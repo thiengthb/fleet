@@ -1,31 +1,31 @@
-# TÀI LIỆU 1 — KIẾN TRÚC & VẬN HÀNH NUC AUTO-DEPLOY PLATFORM
+# DOCUMENT 1 — ARCHITECTURE & OPERATIONS OF THE NUC AUTO-DEPLOY PLATFORM
 
-> Dựng ngày 2026-06-07. Domain: `thientnse.site`. Máy chủ: NUC `thienminiserver`
-> (Ubuntu, Docker Engine 29.5.2, truy cập qua Tailscale `100.126.231.94`).
+> Built 2026-06-07. Domain: `thientnse.site`. Server: NUC `thienminiserver`
+> (Ubuntu, Docker Engine 29.5.2, reachable via Tailscale `100.126.231.94`).
 >
-> Tài liệu này mô tả **toàn bộ luồng hoạt động** của hệ thống, từng thành phần,
-> từng file cấu hình, và mọi thao tác vận hành bạn sẽ cần. Đọc xong tài liệu này
-> bạn phải tự kiểm soát được hệ thống mà không cần hỏi ai.
+> This document describes the **entire operational flow** of the system, every component,
+> every configuration file, and all operational tasks you will need. After reading this document
+> you should be able to control the system on your own without asking anyone.
 
 ---
 
-## MỤC LỤC
+## TABLE OF CONTENTS
 
-1. [Bức tranh tổng thể](#1-bức-tranh-tổng-thể)
-2. [Luồng deploy: từ `git push` đến web cập nhật](#2-luồng-deploy)
-3. [Luồng request: từ trình duyệt đến container](#3-luồng-request)
-4. [Giải phẫu từng thành phần](#4-giải-phẫu-từng-thành-phần)
-5. [Cây thư mục & từng file cấu hình](#5-cây-thư-mục--từng-file-cấu-hình)
-6. [Sổ tay vận hành (cookbook)](#6-sổ-tay-vận-hành)
-7. [Bảng debug khi có sự cố](#7-bảng-debug)
-8. [Bảo mật — những gì đã làm và những gì cần nhớ](#8-bảo-mật)
+1. [The big picture](#1-bức-tranh-tổng-thể)
+2. [Deploy flow: from `git push` to a live web update](#2-luồng-deploy)
+3. [Request flow: from browser to container](#3-luồng-request)
+4. [Anatomy of each component](#4-giải-phẫu-từng-thành-phần)
+5. [Directory tree & every configuration file](#5-cây-thư-mục--từng-file-cấu-hình)
+6. [Operations cookbook](#6-sổ-tay-vận-hành)
+7. [Debugging table for incidents](#7-bảng-debug)
+8. [Security — what was done and what to remember](#8-bảo-mật)
 
 ---
 
-## 1. BỨC TRANH TỔNG THỂ
+## 1. THE BIG PICTURE
 
 ```
-┌─────────────────────── MÁY DEV (Windows) ───────────────────────┐
+┌─────────────────────── DEV MACHINE (Windows) ───────────────────────┐
 │  D:\Projects\MiniServer\link-manager   (clone repo)             │
 │                  │                                              │
 │                  │ git push origin main                         │
@@ -34,359 +34,359 @@
 ┌─────────────────────── GITHUB ──────────────────────────────────┐
 │  repo: thiengthb/linkmanager                                    │
 │  .github/workflows/deploy.yml                                   │
-│       │  (GitHub Actions, runner CỦA GITHUB — không phải NUC)   │
-│       │  build Docker image từ docker/Dockerfile                │
+│       │  (GitHub Actions, GITHUB'S runner — not the NUC)        │
+│       │  build Docker image from docker/Dockerfile              │
 │       ▼                                                         │
-│  ghcr.io/thiengthb/linkmanager:latest  +  :<git-sha-ngắn>       │
+│  ghcr.io/thiengthb/linkmanager:latest  +  :<short-git-sha>      │
 └──────────────────┬──────────────────────────────────────────────┘
-                   │ (NUC chủ động PULL — GitHub không hề
-                   │  có quyền truy cập vào NUC. An toàn.)
+                   │ (the NUC actively PULLS — GitHub has no
+                   │  access to the NUC at all. Safe.)
                    ▼
 ┌─────────────────────── NUC thienminiserver ─────────────────────┐
 │                                                                 │
-│  Docker network: edge  (bridge, dùng chung cho TẤT CẢ)          │
+│  Docker network: edge  (bridge, shared by EVERYTHING)           │
 │  ┌───────────────────────────────────────────────────────────┐ │
 │  │                                                           │ │
-│  │  watchtower ──(poll ghcr.io mỗi 60s)──► thấy image mới    │ │
-│  │      │            thì pull về + recreate container app    │ │
+│  │  watchtower ──(poll ghcr.io every 60s)──► sees new image  │ │
+│  │      │            then pulls it + recreates the app       │ │
 │  │      ▼                                                    │ │
 │  │  link-manager (app)  ◄── traefik v3.7 ◄── cloudflared     │ │
 │  │  /opt/apps/link-manager   /opt/infra      /opt/infra      │ │
-│  │  volume: link-manager_data (SQLite — bất tử qua deploy)   │ │
+│  │  volume: link-manager_data (SQLite — survives any deploy) │ │
 │  │                                                           │ │
 │  └───────────────────────────────────────────────────────────┘ │
-│  netdata (network host — giám sát máy, độc lập hệ thống này)    │
+│  netdata (host network — monitors the machine, separate system)│
 └──────────────────▲──────────────────────────────────────────────┘
                    │ Cloudflare Tunnel (outbound QUIC,
-                   │ KHÔNG mở port nào ra Internet)
+                   │ NO port opened to the Internet)
 ┌──────────────────┴──────────────────────────────────────────────┐
 │                       CLOUDFLARE                                │
 │  DNS:    CNAME  *  →  f725123c-….cfargotunnel.com  (proxied)    │
 │  Tunnel: public hostname  *.thientnse.site → http://traefik:80  │
-│  TLS:    Cloudflare tự lo HTTPS (không cần Let's Encrypt)       │
+│  TLS:    Cloudflare handles HTTPS (no Let's Encrypt needed)     │
 └──────────────────▲──────────────────────────────────────────────┘
                    │ https://link.thientnse.site
-              NGƯỜI DÙNG
+              USER
 ```
 
-### 4 nguyên tắc thiết kế (vi phạm là hỏng)
+### The 4 design principles (violate them and it breaks)
 
-| # | Nguyên tắc | Lý do |
+| # | Principle | Reason |
 |---|---|---|
-| 1 | **Một network `edge` duy nhất**, infra TẠO, app THAM CHIẾU (`external: true`) | Traefik chỉ forward được tới container cùng network. Khác network = 502. |
-| 2 | **`exposedbydefault=false`** — Traefik chỉ public container có `traefik.enable=true` | Đây là công tắc public/private cho từng app. |
-| 3 | **TLS do Cloudflare lo** | Tunnel đã mã hoá; trong mạng nội bộ traefik↔app đi HTTP thường. Không cấu hình Let's Encrypt. |
-| 4 | **NUC chỉ PULL, không nhận lệnh từ ngoài** | Không GitHub runner trên NUC, không mở port. Bị lộ token GitHub cũng không ai vào được NUC. |
+| 1 | **One single `edge` network**, infra CREATES it, apps REFERENCE it (`external: true`) | Traefik can only forward to containers on the same network. Different network = 502. |
+| 2 | **`exposedbydefault=false`** — Traefik only exposes containers with `traefik.enable=true` | This is the public/private switch for each app. |
+| 3 | **TLS is handled by Cloudflare** | The tunnel is already encrypted; inside the internal network traefik↔app runs plain HTTP. Do not configure Let's Encrypt. |
+| 4 | **The NUC only PULLS, takes no commands from outside** | No GitHub runner on the NUC, no open ports. Even if the GitHub token leaks, nobody can get into the NUC. |
 
 ---
 
-## 2. LUỒNG DEPLOY
+## 2. DEPLOY FLOW
 
-### Chuyện gì xảy ra khi bạn `git push origin main` — từng bước một
+### What happens when you `git push origin main` — step by step
 
-**Bước 1 — GitHub Actions kích hoạt** (file `.github/workflows/deploy.yml`):
-- Trigger: push vào `main` (hoặc bấm tay nút *Run workflow* — `workflow_dispatch`).
-- Chạy trên `ubuntu-latest` — máy ảo CỦA GITHUB, dùng xong vứt. NUC không liên quan gì đến bước build.
-- `concurrency: group: build-and-push` — 2 push liên tiếp không build chồng nhau, cái sau xếp hàng.
+**Step 1 — GitHub Actions triggers** (file `.github/workflows/deploy.yml`):
+- Trigger: push to `main` (or click the *Run workflow* button manually — `workflow_dispatch`).
+- Runs on `ubuntu-latest` — GITHUB'S virtual machine, thrown away after use. The NUC is not involved in the build step at all.
+- `concurrency: group: build-and-push` — two consecutive pushes don't build on top of each other; the later one queues up.
 
-**Bước 2 — Build image:**
-- `docker/login-action` đăng nhập ghcr.io bằng `GITHUB_TOKEN` — token này GitHub tự phát cho mỗi lần chạy workflow, không phải cấu hình gì. Quyền `packages: write` được khai báo ngay trong file workflow.
-- `docker/metadata-action` sinh ra 2 tag:
-  - `ghcr.io/thiengthb/linkmanager:latest` — luôn là bản mới nhất.
-  - `ghcr.io/thiengthb/linkmanager:<sha>` (vd `25e663c`) — đóng băng vĩnh viễn theo commit. **Đây là phao cứu sinh để rollback.**
-- `docker/build-push-action` build theo `docker/Dockerfile` (context = root repo để with được cả `backend/` lẫn `frontend/`), truyền build-arg `VITE_API_KEY` từ secret `API_KEY` của repo (nướng vào bundle frontend), rồi push cả 2 tag lên ghcr.io.
-- `cache-from/to: type=gha` — layer cache lưu trên GitHub, build lần sau nhanh hơn nhiều.
+**Step 2 — Build the image:**
+- `docker/login-action` logs into ghcr.io with `GITHUB_TOKEN` — this token is issued automatically by GitHub for each workflow run, no configuration needed. The `packages: write` permission is declared right inside the workflow file.
+- `docker/metadata-action` produces 2 tags:
+  - `ghcr.io/thiengthb/linkmanager:latest` — always the most recent build.
+  - `ghcr.io/thiengthb/linkmanager:<sha>` (e.g. `25e663c`) — frozen forever per commit. **This is the lifeline for rollback.**
+- `docker/build-push-action` builds from `docker/Dockerfile` (context = repo root so it can pull in both `backend/` and `frontend/`), passes the build-arg `VITE_API_KEY` from the repo secret `API_KEY` (baked into the frontend bundle), then pushes both tags to ghcr.io.
+- `cache-from/to: type=gha` — layer cache stored on GitHub, making subsequent builds much faster.
 
-**Bước 3 — Watchtower trên NUC phát hiện** (chậm nhất 60 giây sau):
-- Watchtower poll ghcr.io mỗi `WATCHTOWER_POLL_INTERVAL=60` giây.
-- Nó CHỈ ngó các container có label `com.centurylinklabs.watchtower.enable=true` (vì bật `WATCHTOWER_LABEL_ENABLE=true`). Container nào không gắn label — kể cả traefik, cloudflared — watchtower mặc kệ, không bao giờ tự ý update.
-- So sánh digest của image local với digest trên registry (HEAD request, có xác thực bằng credential mount từ `~/.docker` của user `thien25`).
+**Step 3 — Watchtower on the NUC detects it** (within 60 seconds at most):
+- Watchtower polls ghcr.io every `WATCHTOWER_POLL_INTERVAL=60` seconds.
+- It ONLY looks at containers carrying the label `com.centurylinklabs.watchtower.enable=true` (because `WATCHTOWER_LABEL_ENABLE=true` is set). Any container without the label — including traefik, cloudflared — is ignored by watchtower and never auto-updated.
+- It compares the digest of the local image with the digest in the registry (HEAD request, authenticated with the credential mounted from user `thien25`'s `~/.docker`).
 
-**Bước 4 — Tự thay máu:**
-- Digest khác → watchtower pull image mới → stop container cũ → tạo container mới **với đúng nguyên cấu hình cũ** (network, volume, label, env giữ nguyên) → start.
-- `WATCHTOWER_CLEANUP=true` → image cũ không còn ai dùng bị xoá luôn, đỡ đầy ổ.
-- Volume `link-manager_data` (SQLite) là **named volume nằm ngoài container** → dữ liệu không suy chuyển.
+**Step 4 — The blood transfusion:**
+- Digest differs → watchtower pulls the new image → stops the old container → creates a new container **with the exact same configuration** (network, volume, labels, env preserved) → starts it.
+- `WATCHTOWER_CLEANUP=true` → the old image no longer used by anyone is deleted right away, saving disk.
+- The `link-manager_data` volume (SQLite) is a **named volume living outside the container** → the data is untouched.
 
-**Bước 5 — Traefik tự thấy:**
-- Traefik lắng nghe Docker events qua `/var/run/docker.sock`. Container mới lên (mang label `traefik.*`) → route tự đăng ký lại trong vài giây. Không cần restart traefik, không cần làm gì cả.
+**Step 5 — Traefik sees it on its own:**
+- Traefik listens to Docker events via `/var/run/docker.sock`. A new container comes up (carrying the `traefik.*` labels) → the route re-registers itself within seconds. No traefik restart needed, nothing to do.
 
-**Tổng thời gian: push → web cập nhật ≈ 2–4 phút.** Không SSH, không thao tác tay.
+**Total time: push → web updated ≈ 2–4 minutes.** No SSH, no manual steps.
 
-### Dữ liệu nào sống, dữ liệu nào chết qua mỗi lần deploy?
+### Which data survives, which dies on each deploy?
 
-| Thứ | Số phận |
+| Item | Fate |
 |---|---|
-| Code, file tĩnh trong image | **Thay mới hoàn toàn** theo image |
-| `/data/links.db` (SQLite) | **Sống** — nằm trong volume `link-manager_data` |
-| Biến môi trường | **Sống** — đọc lại từ `/opt/apps/link-manager/.env` |
-| Container ID, log container cũ | Mất (log cũ bị xoá theo container) |
+| Code, static files in the image | **Fully replaced** with the image |
+| `/data/links.db` (SQLite) | **Survives** — lives in the `link-manager_data` volume |
+| Environment variables | **Survives** — re-read from `/opt/apps/link-manager/.env` |
+| Container ID, logs of the old container | Lost (old logs are deleted with the container) |
 
 ---
 
-## 3. LUỒNG REQUEST
+## 3. REQUEST FLOW
 
-### Chuyện gì xảy ra khi ai đó mở `https://link.thientnse.site`
+### What happens when someone opens `https://link.thientnse.site`
 
 ```
-Trình duyệt
+Browser
   │ ① DNS: link.thientnse.site = CNAME * → f725123c-….cfargotunnel.com
-  │    (proxied — trả về IP của Cloudflare, KHÔNG lộ IP nhà bạn)
+  │    (proxied — returns Cloudflare's IP, does NOT expose your home IP)
   ▼
-Cloudflare edge (TLS terminate tại đây — HTTPS do Cloudflare lo)
-  │ ② Khớp public hostname wildcard *.thientnse.site
-  │    → đẩy request xuống tunnel f725123c
+Cloudflare edge (TLS terminated here — HTTPS handled by Cloudflare)
+  │ ② Matches the wildcard public hostname *.thientnse.site
+  │    → pushes the request down the f725123c tunnel
   ▼
-cloudflared (container trên NUC — kết nối outbound sẵn 4 đường QUIC)
-  │ ③ Theo cấu hình ingress: service = http://traefik:80
-  │    "traefik" phân giải được vì cloudflared và traefik CÙNG network edge
-  │    (Docker DNS nội bộ phân giải tên container)
+cloudflared (container on the NUC — keeps 4 outbound QUIC connections ready)
+  │ ③ Per the ingress config: service = http://traefik:80
+  │    "traefik" resolves because cloudflared and traefik are on the SAME edge network
+  │    (Docker's internal DNS resolves container names)
   ▼
 traefik :80 (entrypoint "web")
-  │ ④ So Host header với các router đã đăng ký từ label:
+  │ ④ Compares the Host header against the routers registered from labels:
   │    Host(`link.thientnse.site`) → service link-manager, port 3001
-  │    Không khớp router nào → trả 404 trang trắng của traefik
+  │    Matches no router → returns traefik's blank 404 page
   ▼
-link-manager :3001 (Express serve API + frontend tĩnh)
-  │ ⑤ Trả response, đi ngược lại đúng đường cũ
+link-manager :3001 (Express serving API + static frontend)
+  │ ⑤ Returns the response, going back along the same path
   ▼
-Trình duyệt nhận HTML/JSON, có HTTPS + CDN Cloudflare
+Browser receives HTML/JSON, with HTTPS + Cloudflare CDN
 ```
 
-**Điểm mấu chốt cần khắc cốt:**
-- **Không có port nào của NUC mở ra Internet.** Tunnel là kết nối NUC chủ động gọi ra Cloudflare. Router nhà bạn không cần port-forward gì hết.
-- Một request "đi xuyên" 3 lớp tên: DNS wildcard (Cloudflare) → hostname wildcard (tunnel) → Host rule (traefik). **Thêm app mới chỉ cần đụng lớp thứ 3** (label trong compose của app) — 2 lớp trên là wildcard, ăn sẵn.
-- Traefik dashboard: KHÔNG ra Internet, chỉ bind `127.0.0.1:8080` trên NUC. Xem bằng SSH tunnel (xem mục 6.7).
+**The key points to engrave:**
+- **No NUC port is open to the Internet.** The tunnel is a connection the NUC actively dials out to Cloudflare. Your home router needs no port-forwarding at all.
+- A request "passes through" 3 layers of names: the wildcard DNS (Cloudflare) → the wildcard hostname (tunnel) → the Host rule (traefik). **Adding a new app only touches the 3rd layer** (the label in the app's compose) — the top 2 layers are wildcards, already in place.
+- Traefik dashboard: NOT exposed to the Internet, only bound to `127.0.0.1:8080` on the NUC. View it via an SSH tunnel (see section 6.7).
 
 ---
 
-## 4. GIẢI PHẪU TỪNG THÀNH PHẦN
+## 4. ANATOMY OF EACH COMPONENT
 
-### 4.1. Traefik v3.7 — bộ định tuyến (reverse proxy)
+### 4.1. Traefik v3.7 — the router (reverse proxy)
 
-- **Nhiệm vụ:** nhận mọi request từ cloudflared, nhìn Host header, chuyển đến đúng container.
-- **Cách nó biết route:** đọc Docker socket (`/var/run/docker.sock`, mount read-only). Mỗi container có label `traefik.*` là một "lời khai báo route". Container lên/xuống → route tự thêm/xoá. **Không có file cấu hình route nào cả** — toàn bộ route nằm trong label của từng app.
-- **Vì sao phải v3.7+:** Docker Engine 29 yêu cầu client API ≥ 1.40, traefik ≤ v3.5 pin cứng API 1.24 → chết provider (xem Tài liệu 2). **KHÔNG hạ version traefik xuống dưới 3.7.**
-- Flags quan trọng:
-  - `--providers.docker.exposedbydefault=false` — mặc định KHÔNG public ai.
-  - `--providers.docker.network=edge` — luôn nói chuyện với app qua network edge (kể cả khi app lỡ join nhiều network).
-  - `--entrypoints.web.address=:80` — cổng nhận traffic từ cloudflared.
+- **Job:** receive every request from cloudflared, look at the Host header, forward it to the right container.
+- **How it learns routes:** it reads the Docker socket (`/var/run/docker.sock`, mounted read-only). Each container with `traefik.*` labels is a "route declaration". Containers come up/down → routes self-add/remove. **There is no route configuration file at all** — every route lives in the labels of each app.
+- **Why it must be v3.7+:** Docker Engine 29 requires client API ≥ 1.40; traefik ≤ v3.5 hard-pins API 1.24 → kills the provider (see Document 2). **DO NOT downgrade traefik below 3.7.**
+- Important flags:
+  - `--providers.docker.exposedbydefault=false` — by default expose NObody.
+  - `--providers.docker.network=edge` — always talk to apps over the edge network (even if an app accidentally joins several networks).
+  - `--entrypoints.web.address=:80` — the port that receives traffic from cloudflared.
 
-### 4.2. cloudflared — đường hầm ra Internet
+### 4.2. cloudflared — the tunnel out to the Internet
 
-- **Nhiệm vụ:** giữ 4 kết nối QUIC outbound thường trực tới Cloudflare. Request từ Internet đổ vào tunnel này thay vì vào IP nhà bạn.
-- **Cấu hình nằm ở đâu:** phần "chạy" (token) nằm trong `/opt/infra/.env`; phần "định tuyến" (public hostname → service) nằm **trên Cloudflare dashboard** (tunnel `f725123c`, tab Public Hostname), được đẩy xuống cloudflared tự động — đổi trên web là ăn ngay, không cần restart.
-- Cấu hình hiện tại: 1 dòng duy nhất `*.thientnse.site → http://traefik:80`.
-- **Token = chìa khoá tunnel.** Ai có token là giả danh được tunnel của bạn. Token chỉ nằm trong `/opt/infra/.env` (chmod 600, có `.gitignore`).
+- **Job:** keep 4 persistent outbound QUIC connections to Cloudflare. Requests from the Internet pour into this tunnel instead of hitting your home IP.
+- **Where the config lives:** the "run" part (token) is in `/opt/infra/.env`; the "routing" part (public hostname → service) lives **on the Cloudflare dashboard** (tunnel `f725123c`, Public Hostname tab), pushed down to cloudflared automatically — changing it on the web takes effect instantly, no restart needed.
+- Current config: a single line `*.thientnse.site → http://traefik:80`.
+- **The token = the tunnel's key.** Whoever has the token can impersonate your tunnel. The token only lives in `/opt/infra/.env` (chmod 600, with `.gitignore`).
 
-### 4.3. Watchtower — người gác tự động cập nhật
+### 4.3. Watchtower — the auto-update sentinel
 
-- **Nhiệm vụ:** poll registry 60s/lần, thấy image mới → pull, recreate container.
-- **Phạm vi:** CHỈ container có label `com.centurylinklabs.watchtower.enable=true`. Hiện tại: chỉ `link-manager`.
-- **Credential:** mount **cả thư mục** `/home/thien25/.docker` (không phải file lẻ) + env `DOCKER_CONFIG=/config`. Lý do: `docker login` ghi file mới (inode mới) — nếu mount file lẻ, watchtower sẽ ôm file cũ vĩnh viễn và mất xác thực sau mỗi lần re-login (đã dính một lần, xem Tài liệu 2 mục 3.4).
-- **`DOCKER_API_VERSION=1.44`** trong env — bắt buộc với Docker 29, thiếu là watchtower chết ngay khi start.
-- Chạy thành **project compose riêng** (`name: watchtower`) dù file nằm chung `/opt/infra` — để lệnh `docker compose down` của stack infra không vạ lây và ngược lại.
+- **Job:** poll the registry every 60s, see a new image → pull, recreate the container.
+- **Scope:** ONLY containers with the label `com.centurylinklabs.watchtower.enable=true`. Currently: only `link-manager`.
+- **Credential:** mounts **the whole directory** `/home/thien25/.docker` (not a single file) + env `DOCKER_CONFIG=/config`. Reason: `docker login` writes a new file (new inode) — if you mount a single file, watchtower will cling to the old file forever and lose authentication after each re-login (this bit us once, see Document 2 section 3.4).
+- **`DOCKER_API_VERSION=1.44`** in env — mandatory with Docker 29; without it watchtower dies right at startup.
+- Runs as **its own compose project** (`name: watchtower`) even though the file sits inside the shared `/opt/infra` — so that a `docker compose down` of the infra stack doesn't take it down by accident, and vice versa.
 
-### 4.4. link-manager — app mẫu (mọi app sau này theo đúng khuôn)
+### 4.4. link-manager — the sample app (every future app follows the same mold)
 
-- Image: `ghcr.io/thiengthb/linkmanager:latest` — build sẵn trên GitHub, NUC chỉ pull.
-- Nghe cổng **3001** (KHÔNG publish ra host — traefik gọi qua network edge).
-- Healthcheck nằm sẵn trong Dockerfile (`wget /api/health`) — `docker ps` hiện `(healthy)`.
-- Env đọc từ `/opt/apps/link-manager/.env`: `DB_PATH`, `API_KEY`, `CORS_ORIGIN`, `GEMINI_API_KEY`, `AI_MODEL`.
-- 5 label = toàn bộ "thân phận" của app:
+- Image: `ghcr.io/thiengthb/linkmanager:latest` — pre-built on GitHub, the NUC only pulls.
+- Listens on port **3001** (NOT published to the host — traefik reaches it over the edge network).
+- Healthcheck is built into the Dockerfile (`wget /api/health`) — `docker ps` shows `(healthy)`.
+- Env read from `/opt/apps/link-manager/.env`: `DB_PATH`, `API_KEY`, `CORS_ORIGIN`, `GEMINI_API_KEY`, `AI_MODEL`.
+- 5 labels = the app's entire "identity":
   ```yaml
-  - "com.centurylinklabs.watchtower.enable=true"                          # cho phép auto-update
-  - "traefik.enable=true"                                                 # cho phép public
-  - "traefik.http.routers.link-manager.rule=Host(`link.thientnse.site`)"  # subdomain nào
-  - "traefik.http.routers.link-manager.entrypoints=web"                   # vào cổng 80 traefik
-  - "traefik.http.services.link-manager.loadbalancer.server.port=3001"    # app nghe cổng nào
+  - "com.centurylinklabs.watchtower.enable=true"                          # allow auto-update
+  - "traefik.enable=true"                                                 # allow exposing
+  - "traefik.http.routers.link-manager.rule=Host(`link.thientnse.site`)"  # which subdomain
+  - "traefik.http.routers.link-manager.entrypoints=web"                   # into traefik's port 80
+  - "traefik.http.services.link-manager.loadbalancer.server.port=3001"    # which port the app listens on
   ```
 
-### 4.5. netdata — ngoài hệ thống
+### 4.5. netdata — outside the system
 
-Chạy network `host`, không liên quan gì đến edge/traefik/watchtower. Giám sát tài nguyên máy. Để nguyên.
+Runs on the `host` network, unrelated to edge/traefik/watchtower. Monitors the machine's resources. Leave it alone.
 
 ---
 
-## 5. CÂY THƯ MỤC & TỪNG FILE CẤU HÌNH
+## 5. DIRECTORY TREE & EVERY CONFIGURATION FILE
 
-### Trên NUC
+### On the NUC
 
 ```
-/opt/infra/                       ← TẦNG NỀN TẢNG (động vào phải cẩn thận)
-├── docker-compose.yml            ← traefik + cloudflared + TẠO network edge
-├── watchtower.yml                ← watchtower (project compose riêng tên "watchtower")
-├── .env                          ← TUNNEL_TOKEN (chmod 600, TUYỆT ĐỐI không commit)
-└── .gitignore                    ← chứa ".env"
+/opt/infra/                       ← PLATFORM LAYER (touch with care)
+├── docker-compose.yml            ← traefik + cloudflared + CREATES the edge network
+├── watchtower.yml                ← watchtower (its own compose project named "watchtower")
+├── .env                          ← TUNNEL_TOKEN (chmod 600, ABSOLUTELY never commit)
+└── .gitignore                    ← contains ".env"
 
-/opt/apps/                        ← TẦNG ỨNG DỤNG (mỗi app một thư mục)
+/opt/apps/                        ← APPLICATION LAYER (one directory per app)
 └── link-manager/
-    ├── docker-compose.yml        ← image ghcr + labels + tham chiếu edge (external)
+    ├── docker-compose.yml        ← ghcr image + labels + references edge (external)
     ├── .env                      ← API_KEY, GEMINI_API_KEY… (chmod 600)
-    └── .gitignore                ← chứa ".env"
+    └── .gitignore                ← contains ".env"
 
-/home/thien25/.docker/config.json ← credential ghcr.io (PAT write:packages)
-/home/thien25/actions-runner/     ← runner CŨ, không còn dùng, có thể xoá
+/home/thien25/.docker/config.json ← ghcr.io credential (PAT write:packages)
+/home/thien25/actions-runner/     ← OLD runner, no longer used, can be deleted
 ```
 
-### Trong repo GitHub (mỗi project)
+### Inside the GitHub repo (each project)
 
 ```
 linkmanager/
-├── .github/workflows/deploy.yml  ← build & push lên ghcr (chạy trên runner GitHub)
-├── docker/Dockerfile             ← multi-stage: build frontend Vite → backend Node
-├── docker/docker-compose.yml     ← chỉ dùng dev local, KHÔNG phải bản deploy
+├── .github/workflows/deploy.yml  ← build & push to ghcr (runs on GitHub's runner)
+├── docker/Dockerfile             ← multi-stage: build Vite frontend → Node backend
+├── docker/docker-compose.yml     ← local dev only, NOT the deploy version
 ├── backend/  frontend/
 ```
 
-> **Nguồn chân lý khi deploy là `/opt/apps/<tên>/docker-compose.yml` trên NUC**,
-> không phải compose trong repo. Compose trong repo chỉ để dev máy local.
+> **The source of truth at deploy time is `/opt/apps/<name>/docker-compose.yml` on the NUC**,
+> not the compose in the repo. The compose in the repo is only for local-machine dev.
 
-### Ai tạo network `edge`, ai tham chiếu?
+### Who creates the `edge` network, who references it?
 
-- `/opt/infra/docker-compose.yml` **TẠO**:
+- `/opt/infra/docker-compose.yml` **CREATES** it:
   ```yaml
   networks:
     edge:
       name: edge
       driver: bridge
   ```
-- Mọi file khác (watchtower.yml, app compose) **THAM CHIẾU**:
+- Every other file (watchtower.yml, app compose) **REFERENCES** it:
   ```yaml
   networks:
     edge:
       external: true
   ```
-- Hệ quả vận hành: **`docker compose down` stack infra sẽ cố xoá network edge** và fail nếu app còn chạy. Trình tự đúng khi cần hạ toàn bộ: down các app trước → down infra sau. Khi dựng lại: up infra trước → up app sau.
+- Operational consequence: **`docker compose down` of the infra stack will try to delete the edge network** and fail if apps are still running. The correct sequence when you need to bring everything down: down the apps first → down infra after. When bringing it back up: up infra first → up apps after.
 
 ---
 
-## 6. SỔ TAY VẬN HÀNH
+## 6. OPERATIONS COOKBOOK
 
-> SSH vào NUC: `ssh thien25@thienminiserver` (đã cài key từ máy Windows này).
+> SSH into the NUC: `ssh thien25@thienminiserver` (key already installed from this Windows machine).
 
-### 6.1. Deploy bản code mới (việc hằng ngày)
+### 6.1. Deploy new code (the daily task)
 
 ```bash
 git push origin main
-# Hết. Chờ 2-4 phút. Không cần SSH.
+# Done. Wait 2-4 minutes. No SSH needed.
 ```
-Theo dõi nếu muốn:
-- Tab **Actions** trên GitHub — xem build.
-- `ssh thien25@thienminiserver "docker logs watchtower --since 5m"` — xem watchtower pull.
+Follow along if you want:
+- The **Actions** tab on GitHub — watch the build.
+- `ssh thien25@thienminiserver "docker logs watchtower --since 5m"` — watch watchtower pull.
 
-### 6.2. Thêm một project MỚI (public)
+### 6.2. Add a NEW project (public)
 
-**Phía repo GitHub (1 lần):**
-1. Viết `Dockerfile` (nhớ `EXPOSE <port>`).
-2. Copy nguyên `.github/workflows/deploy.yml` từ repo linkmanager sang. Chỉ cần sửa nếu Dockerfile nằm chỗ khác (`file:`) hoặc cần build-arg khác.
-3. Push → có image `ghcr.io/thiengthb/<repo>:latest`.
+**On the GitHub repo (once):**
+1. Write a `Dockerfile` (remember `EXPOSE <port>`).
+2. Copy the whole `.github/workflows/deploy.yml` from the linkmanager repo over. Only edit it if the Dockerfile lives elsewhere (`file:`) or you need a different build-arg.
+3. Push → you get the image `ghcr.io/thiengthb/<repo>:latest`.
 
-**Phía NUC (1 lần):**
+**On the NUC (once):**
 ```bash
-mkdir -p /opt/apps/<tên>
-# Copy docker-compose.yml từ /opt/apps/link-manager làm mẫu, sửa 5 chỗ:
-#   name: <tên>             image: ghcr.io/thiengthb/<repo>:latest
-#   container_name: <tên>   volume (nếu app có dữ liệu)
-#   3 label traefik: tên router/service, Host(`<sub>.thientnse.site`), port
-# Tạo .env + .gitignore
-cd /opt/apps/<tên> && docker compose up -d
+mkdir -p /opt/apps/<name>
+# Copy docker-compose.yml from /opt/apps/link-manager as a template, change 5 places:
+#   name: <name>            image: ghcr.io/thiengthb/<repo>:latest
+#   container_name: <name>  volume (if the app has data)
+#   3 traefik labels: router/service name, Host(`<sub>.thientnse.site`), port
+# Create .env + .gitignore
+cd /opt/apps/<name> && docker compose up -d
 ```
-**KHÔNG cần đụng Cloudflare** — wildcard `*.thientnse.site` hứng hết mọi subdomain.
+**NO need to touch Cloudflare** — the wildcard `*.thientnse.site` catches every subdomain.
 
-### 6.3. Thêm project chạy NỘI BỘ (không public)
+### 6.3. Add a project running INTERNALLY (not public)
 
-Như 6.2 nhưng **xoá 4 dòng label `traefik.*`** (giữ label watchtower nếu vẫn muốn auto-update). Container vẫn nằm trong network edge, các app khác gọi được bằng tên container (`http://<tên>:<port>`), nhưng Internet không thấy nó — vì traefik `exposedbydefault=false` và không có route.
+Like 6.2 but **delete the 4 `traefik.*` label lines** (keep the watchtower label if you still want auto-update). The container still sits on the edge network and other apps can reach it by container name (`http://<name>:<port>`), but the Internet doesn't see it — because traefik has `exposedbydefault=false` and there is no route.
 
-### 6.4. ROLLBACK khi bản mới có bug
+### 6.4. ROLLBACK when a new build has a bug
 
 ```bash
 ssh thien25@thienminiserver
 cd /opt/apps/link-manager
-nano docker-compose.yml      # đổi:  image: ghcr.io/thiengthb/linkmanager:latest
-                             # thành: image: ghcr.io/thiengthb/linkmanager:<sha-tốt>
-docker compose up -d         # ăn ngay trong vài giây
+nano docker-compose.yml      # change:  image: ghcr.io/thiengthb/linkmanager:latest
+                             # to:       image: ghcr.io/thiengthb/linkmanager:<good-sha>
+docker compose up -d         # takes effect within seconds
 ```
-- Tìm `<sha-tốt>`: GitHub → repo → Packages → linkmanager → danh sách tag; hoặc `git log --oneline`.
-- ⚠️ Khi đang ghim SHA, watchtower vẫn poll nhưng tag SHA không bao giờ đổi → **auto-update tạm đóng băng**. Sửa xong bug, đổi lại `:latest` + `docker compose up -d` để nối lại auto-update.
+- Find the `<good-sha>`: GitHub → repo → Packages → linkmanager → tag list; or `git log --oneline`.
+- ⚠️ While pinned to a SHA, watchtower still polls but the SHA tag never changes → **auto-update is temporarily frozen**. After fixing the bug, switch back to `:latest` + `docker compose up -d` to resume auto-update.
 
-### 6.5. Tắt / bật public cho app đang chạy
+### 6.5. Turn public on/off for a running app
 
 ```bash
-cd /opt/apps/<tên>
-# Sửa docker-compose.yml: thêm/xoá 4 dòng traefik.*
-docker compose up -d    # traefik tự cập nhật route trong vài giây
+cd /opt/apps/<name>
+# Edit docker-compose.yml: add/remove the 4 traefik.* lines
+docker compose up -d    # traefik updates the route within seconds
 ```
 
-### 6.6. Xem log
+### 6.6. View logs
 
 ```bash
 docker logs link-manager --tail 50 -f     # app
-docker logs traefik --tail 50             # định tuyến + access log
+docker logs traefik --tail 50             # routing + access log
 docker logs cloudflared --tail 50         # tunnel
-docker logs watchtower --since 10m        # auto-update gần đây
+docker logs watchtower --since 10m        # recent auto-updates
 ```
 
-### 6.7. Mở Traefik dashboard (an toàn, qua SSH tunnel)
+### 6.7. Open the Traefik dashboard (safely, via SSH tunnel)
 
 ```powershell
 ssh -L 8080:localhost:8080 thien25@thienminiserver
-# giữ phiên SSH, mở trình duyệt: http://localhost:8080/dashboard/
-# (set Host header không cần — router dashboard nhận Host(`traefik.localhost`),
-#  nếu 404 thì thêm "127.0.0.1 traefik.localhost" vào hosts và mở http://traefik.localhost:8080)
+# keep the SSH session, open the browser: http://localhost:8080/dashboard/
+# (no need to set a Host header — the dashboard router accepts Host(`traefik.localhost`),
+#  if you get 404, add "127.0.0.1 traefik.localhost" to hosts and open http://traefik.localhost:8080)
 ```
-Dashboard cho thấy: router nào đang sống, trỏ service nào, port nào — **chỗ đầu tiên cần nhìn khi route không ăn**.
+The dashboard shows: which routers are alive, which service they point to, which port — **the first place to look when a route isn't working**.
 
-### 6.8. Khởi động lại từng tầng
+### 6.8. Restart each layer
 
 ```bash
-# Chỉ app:
+# App only:
 cd /opt/apps/link-manager && docker compose restart
-# Cả tầng infra (app sẽ mất mạng vài giây nhưng không chết):
+# The whole infra layer (apps lose network for a few seconds but don't die):
 cd /opt/infra && docker compose restart
 # Watchtower:
 cd /opt/infra && docker compose -f watchtower.yml restart
 ```
 
-### 6.9. Sau khi NUC reboot
+### 6.9. After the NUC reboots
 
-Không phải làm gì. Mọi container đều `restart: unless-stopped` — Docker tự kéo dậy theo đúng thứ tự phụ thuộc. Kiểm tra cho yên tâm: `docker ps` (đủ 5: traefik, cloudflared, watchtower, link-manager, netdata).
+Nothing to do. Every container is `restart: unless-stopped` — Docker brings them back up in the correct dependency order. Check for peace of mind: `docker ps` (all 5: traefik, cloudflared, watchtower, link-manager, netdata).
 
-### 6.10. Đổi/thêm secret cho app
-
-```bash
-nano /opt/apps/link-manager/.env     # sửa giá trị
-cd /opt/apps/link-manager && docker compose up -d   # recreate để ăn env mới
-```
-⚠️ Riêng `API_KEY` của link-manager: giá trị này còn được **nướng vào frontend lúc build** (build-arg `VITE_API_KEY` từ secret `API_KEY` trên GitHub). Muốn bật xác thực phải đặt **cả hai nơi** trùng nhau: GitHub repo → Settings → Secrets → `API_KEY`, và `.env` trên NUC → rồi chạy lại workflow để build bản frontend mới.
-
-### 6.11. Khi re-login ghcr trên NUC (PAT hết hạn)
+### 6.10. Change/add a secret for an app
 
 ```bash
-echo '<PAT-mới>' | docker login ghcr.io -u thiengthb --password-stdin
-# Watchtower mount cả thư mục ~/.docker nên TỰ ăn credential mới, không cần restart.
+nano /opt/apps/link-manager/.env     # edit the value
+cd /opt/apps/link-manager && docker compose up -d   # recreate to pick up the new env
+```
+⚠️ Note for link-manager's `API_KEY` in particular: this value is also **baked into the frontend at build time** (build-arg `VITE_API_KEY` from the GitHub secret `API_KEY`). To enable authentication you must set it in **both places** identically: GitHub repo → Settings → Secrets → `API_KEY`, and the `.env` on the NUC → then re-run the workflow to build a new frontend.
+
+### 6.11. Re-login to ghcr on the NUC (PAT expired)
+
+```bash
+echo '<new-PAT>' | docker login ghcr.io -u thiengthb --password-stdin
+# Watchtower mounts the whole ~/.docker directory so it picks up the new credential AUTOMATICALLY, no restart needed.
 ```
 
-### 6.12. Lấy lại quyền build tự động (việc còn nợ)
+### 6.12. Restore automatic builds (still owed)
 
-Account GitHub đang **khoá billing** → Actions chưa chạy được (image đầu tiên là build tay trên NUC). Sau khi gỡ khoá tại `github.com/settings/billing`: vào repo → Actions → chọn run fail → **Re-run all jobs** (hoặc push commit bất kỳ). Build xanh + watchtower pull về là chu trình tự động khép kín từ đó về sau.
+The GitHub account is currently **billing-locked** → Actions can't run yet (the first image was built by hand on the NUC). After unlocking at `github.com/settings/billing`: go to the repo → Actions → pick the failed run → **Re-run all jobs** (or push any commit). A green build + watchtower pulling it = the automatic cycle is self-contained from then on.
 
 ---
 
-## 7. BẢNG DEBUG
+## 7. DEBUGGING TABLE
 
-> Quy tắc vàng: lần theo luồng request mục 3 — DNS → tunnel → traefik → app — và xác định request CHẾT Ở LỚP NÀO bằng các dấu hiệu dưới.
+> The golden rule: trace the request flow in section 3 — DNS → tunnel → traefik → app — and pinpoint WHICH LAYER the request DIES AT using the signs below.
 
-| Triệu chứng | Nghĩa là chết ở lớp | Kiểm tra | Cách sửa thường gặp |
+| Symptom | Means it dies at the layer | Check | Common fix |
 |---|---|---|---|
-| Lỗi 1033/530 từ Cloudflare | Tunnel | `docker logs cloudflared` có "Registered tunnel connection"? DNS record có trỏ đúng `f725123c-….cfargotunnel.com`? | Restart cloudflared; sửa DNS record trỏ đúng tunnel ID |
-| 404 trang trắng (response từ traefik) | Traefik không có route | Dashboard (mục 6.7) có router của app không? Label `traefik.enable=true` có chưa? `Host()` đúng chính tả? | Sửa label, `docker compose up -d` lại app |
-| 502 Bad Gateway | Traefik thấy route nhưng không gọi được app | `docker network inspect edge --format '{{range .Containers}}{{.Name}} {{end}}'` — app có trong danh sách? Port trong label = port app nghe? | App thiếu `networks: [edge]`; hoặc `loadbalancer.server.port` sai |
-| App chạy local OK mà không cập nhật bản mới | Watchtower | `docker logs watchtower --since 5m` — có "403"/"auth not present"? `Scanned=0`? | 403: re-login ghcr (mục 6.11). Scanned=0: app thiếu label watchtower.enable |
-| Build GitHub fail toàn bộ, 0 step chạy | GitHub Actions | Annotation của job (tab Actions) | "billing issue" → gỡ khoá billing; "permissions" → Settings → Actions → Workflow permissions |
-| Traefik log: "client version X is too old" | Traefik vs Docker API | `docker logs traefik` | Image traefik < v3.7 — nâng lên (xem Tài liệu 2) |
-| Mọi thứ chết sau khi nghịch compose | Network edge bị xoá/tạo lại | `docker network ls` | Up theo trình tự: infra trước, app sau (mục 5) |
+| Error 1033/530 from Cloudflare | Tunnel | Does `docker logs cloudflared` show "Registered tunnel connection"? Does the DNS record point to the right `f725123c-….cfargotunnel.com`? | Restart cloudflared; fix the DNS record to point at the correct tunnel ID |
+| Blank 404 page (response from traefik) | Traefik has no route | Does the dashboard (section 6.7) show the app's router? Is the `traefik.enable=true` label set? Is `Host()` spelled correctly? | Fix the label, `docker compose up -d` the app again |
+| 502 Bad Gateway | Traefik sees the route but can't reach the app | `docker network inspect edge --format '{{range .Containers}}{{.Name}} {{end}}'` — is the app in the list? Does the port in the label = the port the app listens on? | App missing `networks: [edge]`; or wrong `loadbalancer.server.port` |
+| App runs fine locally but doesn't pick up the new build | Watchtower | `docker logs watchtower --since 5m` — any "403"/"auth not present"? `Scanned=0`? | 403: re-login to ghcr (section 6.11). Scanned=0: app missing the watchtower.enable label |
+| GitHub build fails entirely, 0 steps run | GitHub Actions | The job's annotation (Actions tab) | "billing issue" → unlock billing; "permissions" → Settings → Actions → Workflow permissions |
+| Traefik log: "client version X is too old" | Traefik vs Docker API | `docker logs traefik` | traefik image < v3.7 — upgrade it (see Document 2) |
+| Everything dies after fiddling with compose | The edge network got deleted/recreated | `docker network ls` | Bring up in order: infra first, apps after (section 5) |
 
-**Lệnh chẩn đoán nhanh toàn hệ thống (chạy đầu tiên khi có sự cố):**
+**Quick whole-system diagnostic command (run this first when there's an incident):**
 ```bash
 ssh thien25@thienminiserver '
 docker ps --format "table {{.Names}}\t{{.Status}}";
@@ -397,18 +397,18 @@ echo "--- tunnel:"; docker logs cloudflared --tail 3 2>&1'
 
 ---
 
-## 8. BẢO MẬT
+## 8. SECURITY
 
-**Đã làm:**
-- NUC không mở port nào ra Internet (tunnel outbound-only). Router không port-forward.
-- Traefik dashboard chỉ bind `127.0.0.1` — muốn xem phải SSH.
-- `exposedbydefault=false` — container mới mặc định KHÔNG public.
-- Secrets (`TUNNEL_TOKEN`, `API_KEY`…) chỉ nằm trong `.env` chmod 600 + `.gitignore`; không có trong compose, không trên GitHub.
-- GitHub không có credential gì của NUC (pull-based). Watchtower chỉ có PAT scope packages.
-- Docker socket mount cho traefik là **read-only**.
+**Done:**
+- The NUC opens no port to the Internet (outbound-only tunnel). The router does no port-forwarding.
+- The traefik dashboard only binds `127.0.0.1` — you have to SSH to view it.
+- `exposedbydefault=false` — new containers are NOT public by default.
+- Secrets (`TUNNEL_TOKEN`, `API_KEY`…) only live in `.env` chmod 600 + `.gitignore`; not in compose, not on GitHub.
+- GitHub holds no NUC credentials (pull-based). Watchtower only has a packages-scoped PAT.
+- The Docker socket mounted for traefik is **read-only**.
 
-**Cần nhớ:**
-- ⚠️ API của link-manager đang **mở** (API_KEY trống — log app tự cảnh báo). Muốn khoá: mục 6.10.
-- ⚠️ Token tunnel trong `/opt/infra/.env` — lộ là người khác giả danh tunnel. Nếu nghi lộ: Cloudflare One → tunnel → rotate token, dán lại vào `.env`, `docker compose up -d`.
-- PAT ghcr trên NUC nên chỉ giữ scope `read:packages` về lâu dài (scope `write` hiện tại chỉ cần cho lần build tay; có thể thay bằng PAT read-only khi CI đã chạy).
-- Image ghcr đang gắn với repo public. Nếu chuyển repo private, package private theo — watchtower vẫn pull được nhờ PAT.
+**To remember:**
+- ⚠️ The link-manager API is currently **open** (API_KEY empty — the app log warns about it). To lock it: section 6.10.
+- ⚠️ The tunnel token in `/opt/infra/.env` — if leaked, someone else can impersonate the tunnel. If you suspect a leak: Cloudflare One → tunnel → rotate token, paste it back into `.env`, `docker compose up -d`.
+- The ghcr PAT on the NUC should, long term, only hold the `read:packages` scope (the `write` scope is currently only needed for the manual build; it can be swapped for a read-only PAT once CI is running).
+- The ghcr image is currently attached to a public repo. If you switch the repo to private, the package goes private with it — watchtower can still pull thanks to the PAT.

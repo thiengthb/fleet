@@ -1,55 +1,54 @@
-# TÀI LIỆU 2 — MỔ XẺ: VÌ SAO HỆ THỐNG CŨ LỖI & ĐÃ SỬA NHƯ THẾ NÀO
+# DOCUMENT 2 — DISSECTION: WHY THE OLD SYSTEM FAILED & HOW IT WAS FIXED
 
-> Đây là biên bản "khám nghiệm" kiến trúc cũ trên NUC `thienminiserver`,
-> thực hiện ngày 2026-06-07 TRƯỚC khi xoá bất cứ thứ gì — để hiểu tận gốc
-> nguyên nhân, không sửa mò. Mỗi mục gồm: **triệu chứng → bằng chứng →
-> cơ chế gây lỗi → cách sửa → bài học**.
-
----
-
-## MỤC LỤC
-
-1. [Hiện trường trước khi dọn](#1-hiện-trường-trước-khi-dọn)
-2. [Lỗi gốc #1 — Traefik v3.5 chết Docker provider trên Docker 29 (lỗi chính)](#2-lỗi-gốc-1)
-3. [Lỗi gốc #2 — DNS trỏ tunnel "ma" → toàn bộ web 530](#3-lỗi-gốc-2)
-4. [Các lỗi trong lúc dựng lại (và đã xử lý ngay)](#4-lỗi-phát-sinh-khi-dựng-lại)
-5. [Các vấn đề kiến trúc nền của hệ thống cũ](#5-vấn-đề-kiến-trúc-nền)
-6. [Tổng kết: chuỗi sự kiện dẫn đến "lỗi không rõ nguyên nhân"](#6-tổng-kết-chuỗi-sự-kiện)
-7. [Bài học rút ra](#7-bài-học-rút-ra)
+> This is the "autopsy" report of the old architecture on the NUC `thienminiserver`,
+> carried out on 2026-06-07 BEFORE deleting anything — to understand the root
+> causes, not patch blindly. Each section contains: **symptom → evidence →
+> failure mechanism → fix → lesson**.
 
 ---
 
-## 1. HIỆN TRƯỜNG TRƯỚC KHI DỌN
+## TABLE OF CONTENTS
 
-Kết quả các lệnh chẩn đoán **chỉ-đọc** (`docker ps -a`, `docker network ls`,
+1. [The scene before cleanup](#1-hiện-trường-trước-khi-dọn)
+2. [Root cause #1 — Traefik v3.5 kills the Docker provider on Docker 29 (the main one)](#2-lỗi-gốc-1)
+3. [Root cause #2 — DNS pointing at a "ghost" tunnel → all sites 530](#3-lỗi-gốc-2)
+4. [Errors during the rebuild (and handled on the spot)](#4-lỗi-phát-sinh-khi-dựng-lại)
+5. [Foundational architectural problems of the old system](#5-vấn-đề-kiến-trúc-nền)
+6. [Summary: the chain of events leading to the "unexplained failure"](#6-tổng-kết-chuỗi-sự-kiện)
+7. [Lessons learned](#7-bài-học-rút-ra)
+
+---
+
+## 1. THE SCENE BEFORE CLEANUP
+
+Results of the **read-only** diagnostic commands (`docker ps -a`, `docker network ls`,
 `docker compose ls`, `docker logs`, `docker network inspect`):
 
-| Container | Image | Network | Tình trạng lúc khám |
+| Container | Image | Network | State at examination |
 |---|---|---|---|
-| traefik | traefik:v3.5 | `infrastructure` | Up — nhưng provider Docker **chết hoàn toàn** |
-| cloudflared | cloudflared:latest | `infrastructure` | Up — tunnel registered 4 kết nối (khoẻ!) |
-| link-manager-api | build local trên NUC | `infrastructure` | Up, healthy, publish 3001 ra host |
+| traefik | traefik:v3.5 | `infrastructure` | Up — but the Docker provider was **completely dead** |
+| cloudflared | cloudflared:latest | `infrastructure` | Up — tunnel registered 4 connections (healthy!) |
+| link-manager-api | built locally on the NUC | `infrastructure` | Up, healthy, publishing 3001 to the host |
 | portainer | portainer-ce | `infrastructure` | Up |
-| netdata | netdata | `host` | Up (không liên quan) |
+| netdata | netdata | `host` | Up (unrelated) |
 
-Các quan sát quan trọng:
-- Network `edge` **chưa từng tồn tại**. Nhưng mọi container đều cùng network
-  `infrastructure` → **lỗi "khác network gây 502" KHÔNG phải thủ phạm lần này**
-  (đây là điều bất ngờ đầu tiên — kịch bản lỗi phổ biến nhất lại không xảy ra).
-- `https://link.thientnse.site` và `https://portainer.thientnse.site` đều trả
-  **HTTP 530** (lỗi origin của Cloudflare) — dù tunnel trên NUC báo connected.
-- `docker compose ls` trỏ vào những đường dẫn **không còn tồn tại** (chi tiết mục 5.1).
+Key observations:
+- The `edge` network **never existed**. But every container was on the same
+  `infrastructure` network → **the "different network causes 502" failure was NOT the culprit this time**
+  (this was the first surprise — the most common failure scenario was not what happened).
+- `https://link.thientnse.site` and `https://portainer.thientnse.site` both returned
+  **HTTP 530** (Cloudflare origin error) — even though the tunnel on the NUC reported connected.
+- `docker compose ls` pointed at paths that **no longer existed** (details in section 5.1).
 
 ---
 
-## 2. LỖI GỐC #1 — TRAEFIK v3.5 CHẾT DOCKER PROVIDER TRÊN DOCKER 29
-### (Đây chính là cái "lỗi không rõ nguyên nhân" của bạn)
+## 2. ROOT CAUSE #1 — TRAEFIK v3.5 KILLS THE DOCKER PROVIDER ON DOCKER 29
+### (This is exactly your "unexplained failure")
 
-### Triệu chứng
-Mọi route qua traefik trả 404. Gắn label đúng đến mấy cũng vô dụng. Không có
-thông báo lỗi nào hiện ra phía người dùng web ngoài trang 404 trống.
+### Symptom
+Every route through traefik returned 404. No matter how correctly the labels were set, it was useless. No error message appeared to the web user beyond the blank 404 page.
 
-### Bằng chứng (log traefik, lặp vô hạn mỗi vài giây)
+### Evidence (traefik log, looping endlessly every few seconds)
 ```
 ERR Failed to retrieve information of the docker client and server host
     error="Error response from daemon: client version 1.24 is too old.
@@ -58,252 +57,251 @@ ERR Failed to retrieve information of the docker client and server host
 ERR Provider error, retrying in 954.33254ms ...
 ```
 
-### Cơ chế gây lỗi — giải thích tận gốc
+### The failure mechanism — explained at the root
 
-1. Mọi tool nói chuyện với Docker (traefik, watchtower, portainer, chính lệnh
-   `docker`) đều dùng **Docker Engine API** qua socket `/var/run/docker.sock`,
-   và phải khai "tôi nói API phiên bản X".
-2. **NUC cài Docker Engine 29.5.2** — phiên bản này **đã loại bỏ hỗ trợ mọi
-   API < 1.40** (chính sách cắt API cũ của Docker).
-3. **Traefik v3.5 (và mọi bản trước đó) ghim cứng API version `1.24` trong
-   source code** — con số rất cũ, chọn từ xưa để tương thích rộng. Không có
-   flag cấu hình nào đổi được; kể cả biến môi trường chuẩn `DOCKER_API_VERSION`
-   cũng **bị giá trị ghim cứng đè lên** (đã thử thực tế khi dựng lại — xem mục 4.1).
-4. Kết quả: daemon từ chối ngay ở bước bắt tay → **provider Docker không bao giờ
-   khởi động được** → traefik không đọc được bất kỳ container/label nào →
-   **bảng route trống rỗng vĩnh viễn** → mọi request khớp rule nào cũng không có → 404.
-5. Traefik vẫn "Up" bình thường trong `docker ps`, web 80/443 vẫn nhận kết nối
-   — nên nhìn từ ngoài **không hề có dấu hiệu nó đang hỏng**. Lỗi chỉ hiện trong
-   log. Đây là lý do nó thành "lỗi không rõ nguyên nhân": thành phần hỏng
-   nhưng không chết, không crash, không restart loop.
+1. Every tool that talks to Docker (traefik, watchtower, portainer, the `docker`
+   command itself) uses the **Docker Engine API** over the socket `/var/run/docker.sock`,
+   and must declare "I speak API version X".
+2. **The NUC has Docker Engine 29.5.2 installed** — this version **dropped support for all
+   APIs < 1.40** (Docker's policy of cutting off old APIs).
+3. **Traefik v3.5 (and every earlier release) hard-pins API version `1.24` in
+   source code** — a very old number, chosen long ago for broad compatibility. There is no
+   config flag to change it; even the standard `DOCKER_API_VERSION` environment variable
+   is **overridden by the hard-pinned value** (tested for real during the rebuild — see section 4.1).
+4. Result: the daemon rejects it right at the handshake step → **the Docker provider never
+   starts** → traefik can't read any container/label →
+   **the route table is permanently empty** → every request matching any rule has none → 404.
+5. Traefik still shows "Up" normally in `docker ps`, web 80/443 still accepts connections
+   — so from the outside **there is no sign at all that it's broken**. The error only shows in
+   the log. This is why it became an "unexplained failure": the component is broken
+   but not dead, doesn't crash, doesn't restart-loop.
 
-### Vì sao trước đó từng chạy được?
-Gần như chắc chắn hệ thống từng chạy trên Docker phiên bản cũ hơn (API min
-thấp hơn). Một lần **nâng cấp Docker Engine lên 29** (hoặc cài lại máy) đã
-âm thầm rút thảm dưới chân traefik. Không ai đổi cấu hình traefik cả — nên
-cảm giác "tự nhiên lỗi" là chính xác: thứ thay đổi là Docker, không phải config.
+### Why did it work before?
+Almost certainly the system once ran on an older Docker version (with a lower min API).
+A single **upgrade of Docker Engine to 29** (or a machine reinstall) silently
+pulled the rug out from under traefik. Nobody changed the traefik config — so the
+feeling of "it just broke on its own" is accurate: the thing that changed was Docker, not the config.
 
-### Bằng chứng bạn đã từng vật lộn với hậu quả của nó
-Lịch sử cấu hình ingress của cloudflared (đọc từ log) cho thấy quá trình thử-sai:
+### Evidence that you wrestled with its consequences
+The history of cloudflared's ingress config (read from the log) shows the trial-and-error process:
 ```
-v1: *.thientnse.site         → http://traefik:80          (kiến trúc chuẩn, wildcard)
+v1: *.thientnse.site         → http://traefik:80          (standard architecture, wildcard)
 v2: api.thientnse.site       → http://traefik:80
 v3: linkmgt.thientnse.site   → http://traefik:80
 v4: portainer.thientnse.site → http://traefik:80
 v5: + link.thientnse.site    → http://traefik:80
-v6: link.thientnse.site      → http://link-manager-api:3001   ← BỎ traefik, trỏ thẳng app!
+v6: link.thientnse.site      → http://link-manager-api:3001   ← BYPASS traefik, point straight at the app!
 ```
-Bước v6 là "chữa cháy" kinh điển: vì traefik không bao giờ route được (do lỗi
-trên), bạn đã trỏ tunnel **thẳng vào container app**, bypass traefik. Nó chạy
-được — nhưng phá vỡ kiến trúc: mỗi app mới lại phải sửa Cloudflare, cơ chế
-public/private bằng label trở nên vô nghĩa, và wildcard bị bỏ.
+Step v6 is the classic firefight: because traefik could never route (due to the bug
+above), you pointed the tunnel **straight at the app container**, bypassing traefik. It worked
+— but it broke the architecture: every new app then has to touch Cloudflare again, the
+public/private-by-label mechanism becomes meaningless, and the wildcard is abandoned.
 
-### Cách sửa (đã làm)
-- **Nâng traefik lên v3.7.4** (build 2026-06-05). Từ v3.7, traefik dùng API
-  version mới/thương lượng được với daemon hiện đại → provider sống lại ngay:
-  log sạch lỗi, router từ label xuất hiện trong API của traefik trong vài giây.
-- Quá trình xác minh: sau khi đổi image, gọi
+### Fix (done)
+- **Upgraded traefik to v3.7.4** (build 2026-06-05). From v3.7, traefik uses a new/negotiable
+  API version with modern daemons → the provider came back to life instantly:
+  the log cleared of errors, the routers from labels appeared in traefik's API within seconds.
+- Verification process: after swapping the image, calling
   `curl -H "Host: traefik.localhost" http://127.0.0.1:8080/api/http/routers`
-  thấy router đăng ký từ label Docker → kết luận provider hoạt động.
+  showed the router registered from the Docker label → concluded the provider works.
 
-### Bài học
-- `docker ps` thấy "Up" **không có nghĩa là khoẻ**. Phải đọc log từng thành
-  phần infra sau mỗi lần nâng cấp bất kỳ thứ gì.
-- Nâng cấp Docker Engine là thay đổi **có khả năng phá vỡ mọi tool bám socket**
-  (traefik, watchtower, portainer…). Sau này nâng Docker → check log cả cụm ngay.
+### Lesson
+- `docker ps` showing "Up" **does not mean healthy**. You must read the log of each infra
+  component after upgrading anything.
+- Upgrading Docker Engine is a change with **the potential to break every tool clinging to the socket**
+  (traefik, watchtower, portainer…). In future, after upgrading Docker → check the logs of the whole cluster immediately.
 
 ---
 
-## 3. LỖI GỐC #2 — DNS TRỎ TUNNEL "MA" → TOÀN BỘ WEB 530
+## 3. ROOT CAUSE #2 — DNS POINTING AT A "GHOST" TUNNEL → ALL SITES 530
 
-### Triệu chứng
-`link.thientnse.site`, `portainer.thientnse.site` trả **HTTP 530** (Cloudflare
-error 1033: origin unreachable) — trong khi `docker logs cloudflared` trên NUC
-hiện rõ "Registered tunnel connection" × 4, tức tunnel đang sống khoẻ.
+### Symptom
+`link.thientnse.site`, `portainer.thientnse.site` returned **HTTP 530** (Cloudflare
+error 1033: origin unreachable) — while `docker logs cloudflared` on the NUC
+clearly showed "Registered tunnel connection" × 4, i.e. the tunnel was alive and healthy.
 
-### Cơ chế gây lỗi
-Một public hostname hoạt động cần **2 mảnh khớp nhau**:
+### The failure mechanism
+A working public hostname needs **2 pieces to match**:
 1. **DNS record**: `<sub>.thientnse.site` → CNAME `<tunnel-id>.cfargotunnel.com`
-2. **Cấu hình tunnel**: tunnel `<tunnel-id>` có ingress rule cho hostname đó.
+2. **Tunnel config**: the tunnel `<tunnel-id>` has an ingress rule for that hostname.
 
-Lỗi 530/1033 = mảnh (1) trỏ vào một tunnel-id **không có kết nối nào đang sống**.
-Trên máy bạn từng tồn tại nhiều tunnel qua các lần thử (có tunnel tên
-`nuc-server` cũ). Các DNS record cũ được tạo theo tunnel cũ; tunnel cũ chết/bị
-thay → record thành "trỏ vào ma". Tunnel mới (`f725123c-…`) sống tốt nhưng
-**không record nào trỏ vào nó** → Cloudflare không biết đường xuống NUC.
+A 530/1033 error = piece (1) points at a tunnel-id with **no live connection**.
+On your machine there had been several tunnels through the various attempts (an old tunnel named
+`nuc-server`). The old DNS records were created against the old tunnel; the old tunnel died/was
+replaced → the record became "pointing at a ghost". The new tunnel (`f725123c-…`) was healthy but
+**no record pointed at it** → Cloudflare had no path down to the NUC.
 
-Đây là lỗi tầng "trên trời" (Cloudflare) — mọi debug trên NUC đều bế tắc vì
-trên NUC thật sự **không có gì sai cả**. Triệu chứng đánh lừa: "tunnel connected
-mà web chết".
+This is an "up in the sky" (Cloudflare) layer bug — all debugging on the NUC is a dead end because
+on the NUC there is genuinely **nothing wrong**. The symptom is deceptive: "tunnel connected
+but the site is dead".
 
-### Cách sửa (đã làm — bạn thao tác trên dashboard theo hướng dẫn)
-1. Xoá các public hostname lẻ cũ (`portainer.…`, `link.…` trỏ thẳng app).
-2. Thêm **một wildcard duy nhất**: `*.thientnse.site → http://traefik:80`.
-3. Xoá DNS record lẻ cũ (trỏ tunnel ma), thêm **một record wildcard**:
+### Fix (done — you operated on the dashboard following instructions)
+1. Delete the old per-host public hostnames (`portainer.…`, `link.…` pointing straight at the app).
+2. Add **a single wildcard**: `*.thientnse.site → http://traefik:80`.
+3. Delete the old per-host DNS records (pointing at the ghost tunnel), add **one wildcard record**:
    `CNAME * → f725123c-a055-4119-92ec-32db3c1df4ea.cfargotunnel.com` (proxied).
-4. Xác minh: `curl https://test-wildcard.thientnse.site` trả **404 của traefik**
-   — 404 ở đây là TIN VUI: chứng minh chuỗi DNS → tunnel → traefik đã thông
-   suốt (chỉ là chưa có app nào nhận host đó). Lỗi 530 biến mất.
+4. Verify: `curl https://test-wildcard.thientnse.site` returns **traefik's 404**
+   — a 404 here is GOOD NEWS: it proves the chain DNS → tunnel → traefik is now
+   wide open (it's just that no app accepts that host yet). The 530 error is gone.
 
-### Bài học
-- Wildcard một lần, sống mãi: từ nay **thêm app mới không bao giờ phải đụng
-  Cloudflare** → không còn cơ hội tạo record lệch tunnel-id lần nào nữa.
-- Khi gặp 530/1033: so sánh **tunnel-id trong DNS record** với **tunnel-id
-  đang chạy** (`docker logs cloudflared` hoặc dashboard) — đó là phép kiểm tra
-  một phát ăn ngay.
+### Lesson
+- Wildcard once, lives forever: from now on **adding a new app never touches
+  Cloudflare** → no more chance to ever create a record mismatched with the tunnel-id.
+- When you hit 530/1033: compare the **tunnel-id in the DNS record** with the **running tunnel-id**
+  (`docker logs cloudflared` or the dashboard) — that's a one-shot check that nails it.
 
 ---
 
-## 4. LỖI PHÁT SINH KHI DỰNG LẠI (đã xử lý ngay trong quá trình)
+## 4. ERRORS THAT AROSE DURING THE REBUILD (handled on the spot in the process)
 
-Phần này ghi lại để bạn hiểu vì sao cấu hình mới có những chi tiết "lạ".
+This section is recorded so you understand why the new config has certain "odd" details.
 
-### 4.1. Thử `DOCKER_API_VERSION=1.44` cho traefik v3.5 — THẤT BẠI (cố ý ghi lại)
-Kế hoạch ban đầu dùng `traefik:v3.3` (theo template) + env `DOCKER_API_VERSION`.
-Thực tế: **traefik bỏ qua env này** (giá trị ghim cứng trong code đè lên), lỗi
-y nguyên. Kết luận bằng thực nghiệm: với traefik, **chỉ có nâng version** mới
-sửa được → chốt v3.7. Đây là lý do compose của infra KHÔNG có env đó cho traefik.
+### 4.1. Tried `DOCKER_API_VERSION=1.44` on traefik v3.5 — FAILED (recorded on purpose)
+The original plan used `traefik:v3.3` (per the template) + the `DOCKER_API_VERSION` env.
+In reality: **traefik ignores this env** (the hard-pinned value in code overrides it), the error
+stayed exactly the same. Conclusion by experiment: with traefik, **only upgrading the version**
+fixes it → settled on v3.7. This is why the infra compose has NO such env for traefik.
 
-### 4.2. Watchtower 1.7.1 cũng chết vì đúng bệnh API (pin 1.25)
+### 4.2. Watchtower 1.7.1 also died from the same API disease (pinned 1.25)
 ```
 level=error msg="Error response from daemon: client version 1.25 is too old.
                  Minimum supported API version is 1.40..."
 ```
-Khác traefik, watchtower **CÓ** đọc env `DOCKER_API_VERSION` → thêm
-`DOCKER_API_VERSION=1.44` vào environment là chạy. Vì vậy trong
-`/opt/infra/watchtower.yml` có dòng env này — **không được xoá nó**.
+Unlike traefik, watchtower **DOES** read the `DOCKER_API_VERSION` env → adding
+`DOCKER_API_VERSION=1.44` to the environment makes it run. That's why
+`/opt/infra/watchtower.yml` has this env line — **do not delete it**.
 
-### 4.3. Hai file compose chung thư mục = chung project → cảnh báo "orphan"
-`watchtower.yml` nằm cùng `/opt/infra` với compose chính → compose coi là cùng
-project `infra`, dọa "Found orphan containers ([traefik cloudflared])". Nguy
-hiểm tiềm ẩn: ai đó chạy `docker compose -f watchtower.yml down --remove-orphans`
-sẽ **xoá nhầm traefik + cloudflared**. Fix: thêm `name: watchtower` vào đầu
-`watchtower.yml` — thành project riêng, hết va chạm.
+### 4.3. Two compose files in the same directory = same project → "orphan" warning
+`watchtower.yml` sits in the same `/opt/infra` as the main compose → compose treats it as the same
+project `infra`, threatening "Found orphan containers ([traefik cloudflared])". The hidden danger:
+someone running `docker compose -f watchtower.yml down --remove-orphans`
+would **accidentally delete traefik + cloudflared**. Fix: add `name: watchtower` to the top of
+`watchtower.yml` — it becomes its own project, no more collision.
 
-### 4.4. Watchtower mù credential sau khi re-login ghcr (lỗi tinh vi nhất)
-Triệu chứng: watchtower báo `403 Forbidden, auth: "not present"` khi check
-image — dù `docker pull` bằng tay trên NUC chạy ngon.
+### 4.4. Watchtower blind to credentials after re-login to ghcr (the subtlest bug)
+Symptom: watchtower reports `403 Forbidden, auth: "not present"` when checking
+the image — even though a manual `docker pull` on the NUC works fine.
 
-Cơ chế: cấu hình ban đầu mount **file lẻ**
-`/home/thien25/.docker/config.json:/config.json:ro`. Bind-mount file bám theo
-**inode**. Khi bạn chạy `docker login` lần nữa (đổi PAT), docker **ghi file
-mới** (inode mới) thay vì sửa file cũ → watchtower vẫn ôm inode cũ → nhìn thấy
-nội dung credential đã chết.
+Mechanism: the original config mounted a **single file**
+`/home/thien25/.docker/config.json:/config.json:ro`. A bind-mounted file clings to the
+**inode**. When you run `docker login` again (changing the PAT), docker **writes a
+new file** (new inode) instead of editing the old one → watchtower still clings to the old inode → it sees
+dead credential content.
 
-Fix: mount **cả thư mục** + chỉ định nơi đọc config:
+Fix: mount **the whole directory** + specify where to read the config:
 ```yaml
 volumes:
   - /home/thien25/.docker:/config:ro
 environment:
   - DOCKER_CONFIG=/config
 ```
-Từ giờ re-login thoải mái, watchtower luôn đọc bản mới. Đã xác minh: chu kỳ
-quét sau đó `Session done Failed=0 Scanned=1` — sạch lỗi.
+From now on you can re-login freely, watchtower always reads the new file. Verified: the scan cycle
+afterward `Session done Failed=0 Scanned=1` — clean.
 
-### 4.5. GitHub Actions fail với 0 step chạy — account khoá billing
-Run đầu tiên của workflow mới fail mà **không step nào chạy**. Annotation:
+### 4.5. GitHub Actions fail with 0 steps run — account billing-locked
+The first run of the new workflow failed with **no step running**. Annotation:
 > "The job was not started because your account is locked due to a billing issue."
 
-Tức: workflow đúng, nhưng account `thiengthb` bị khoá billing → GitHub không
-cấp máy ảo `ubuntu-latest`. (Nhiều khả năng đây cũng là lý do lịch sử khiến bạn
-phải dùng **self-hosted runner trên NUC** trước đây!)
+Meaning: the workflow is correct, but the `thiengthb` account is billing-locked → GitHub won't
+provision a `ubuntu-latest` VM. (This is also quite likely the historical reason that forced you
+to use a **self-hosted runner on the NUC** previously!)
 
-Xử lý tạm (đã làm): build image **một lần bằng tay trên NUC** từ clone sẵn có,
-tag `latest` + `25e663c`, push lên ghcr bằng PAT `write:packages` → Phase 5
-tiến tiếp được. Việc còn nợ: bạn gỡ khoá tại `github.com/settings/billing` →
-re-run workflow → từ đó CI tự động hoàn toàn.
+Temporary handling (done): build the image **once by hand on the NUC** from the existing clone,
+tag `latest` + `25e663c`, push to ghcr with a `write:packages` PAT → Phase 5 could
+proceed. Still owed: unlock at `github.com/settings/billing` →
+re-run the workflow → from then on, CI is fully automatic.
 
 ---
 
-## 5. VẤN ĐỀ KIẾN TRÚC NỀN CỦA HỆ THỐNG CŨ
-### (Chưa "gây cháy" ngay nhưng là bom hẹn giờ — đều đã loại bỏ trong bản mới)
+## 5. FOUNDATIONAL ARCHITECTURAL PROBLEMS OF THE OLD SYSTEM
+### (Not yet "on fire" but time bombs — all removed in the new build)
 
-### 5.1. Compose project "mồ côi" — mất khả năng quản lý stack
-`docker compose ls` cũ trỏ vào:
+### 5.1. "Orphaned" compose projects — losing the ability to manage the stack
+The old `docker compose ls` pointed at:
 ```
-cloudflared   /home/thien25/homelab/cloudflared/docker-compose.yml      ← KHÔNG TỒN TẠI
-traefik       /home/thien25/homelab/traefik/docker-compose.yml          ← KHÔNG TỒN TẠI
+cloudflared   /home/thien25/homelab/cloudflared/docker-compose.yml      ← DOES NOT EXIST
+traefik       /home/thien25/homelab/traefik/docker-compose.yml          ← DOES NOT EXIST
 ```
-File thật đã được dọn sang `~/homelab/infrastructure/...` **sau khi** container
-được tạo — container vẫn chạy nhưng "mất giấy khai sinh": không
-`docker compose down/up/restart` theo project được nữa, sửa file mới cũng không
-ảnh hưởng container đang chạy (nó sinh ra từ file ở đường dẫn cũ). Hệ thống rơi
-vào trạng thái "sửa config mãi không thấy đổi gì".
-**Bản mới:** vị trí file là bất biến: `/opt/infra` và `/opt/apps/<tên>`. Muốn
-di chuyển phải `down` ở chỗ cũ → chuyển → `up` ở chỗ mới.
+The real files had been moved to `~/homelab/infrastructure/...` **after** the containers
+were created — the containers keep running but "lost their birth certificate": you can no longer
+`docker compose down/up/restart` by project, and editing the new file has no effect on the running
+container (it was born from the file at the old path). The system fell into a state of
+"editing the config forever and seeing nothing change".
+**New build:** the file location is invariant: `/opt/infra` and `/opt/apps/<name>`. To
+move it you must `down` at the old place → move → `up` at the new place.
 
-### 5.2. TUNNEL_TOKEN nằm trần trụi trong docker-compose.yml
-Token tunnel hardcode plaintext ngay trong file compose cũ — file dạng này rất
-dễ bị commit lên git/chia sẻ khi hỏi bài. Lộ token = người khác chạy tunnel giả
-danh bạn. **Bản mới:** token trong `/opt/infra/.env` (chmod 600) + `.gitignore`;
-compose chỉ tham chiếu `${TUNNEL_TOKEN}`.
+### 5.2. TUNNEL_TOKEN sitting naked in docker-compose.yml
+The tunnel token was hardcoded in plaintext right in the old compose file — a file like this is very
+easy to accidentally commit to git/share when asking for help. A leaked token = someone else running an
+impersonating tunnel. **New build:** the token is in `/opt/infra/.env` (chmod 600) + `.gitignore`;
+the compose only references `${TUNNEL_TOKEN}`.
 
-### 5.3. Traefik dashboard phơi `0.0.0.0:8080` + `api.insecure: true`
-Bất kỳ ai trong LAN/Tailnet mở `http://<ip-nuc>:8080` là thấy toàn bộ sơ đồ
-route, tên container, port nội bộ. **Bản mới:** bind `127.0.0.1:8080` — chỉ xem
-được qua SSH tunnel.
+### 5.3. Traefik dashboard exposing `0.0.0.0:8080` + `api.insecure: true`
+Anyone on the LAN/Tailnet opening `http://<nuc-ip>:8080` sees the entire route map,
+container names, internal ports. **New build:** bind `127.0.0.1:8080` — only viewable
+via SSH tunnel.
 
-### 5.4. Build image ngay trên NUC qua self-hosted runner
-Workflow cũ `deploy-backend.yml` chạy `runs-on: self-hosted` — build + deploy
-ngay trên NUC. Hệ quả: NUC gánh tải build (RAM/CPU/ổ cứng — prune ra 1.3GB rác
-build cache), GitHub có "cửa" chạy lệnh trên máy nhà (rủi ro bảo mật), và máy
-build = máy chạy nên hỏng một là hỏng cả hai. **Bản mới:** build 100% trên
-runner GitHub; NUC chỉ pull image — một chiều, sạch, an toàn.
+### 5.4. Building the image right on the NUC via a self-hosted runner
+The old workflow `deploy-backend.yml` ran `runs-on: self-hosted` — build + deploy
+right on the NUC. Consequences: the NUC bears the build load (RAM/CPU/disk — pruning recovered 1.3GB of
+build-cache garbage), GitHub has a "door" to run commands on the home machine (security risk), and the
+build machine = the run machine so breaking one breaks both. **New build:** build 100% on
+GitHub's runner; the NUC only pulls images — one-way, clean, safe.
 
-### 5.5. App publish port thẳng ra host
-`link-manager-api` cũ publish `0.0.0.0:3001` → ai trong LAN/Tailnet gọi thẳng
-API không qua traefik. **Bản mới:** app KHÔNG publish port nào; chỉ traefik với
-tới nó qua network `edge`.
+### 5.5. App publishing a port straight to the host
+The old `link-manager-api` published `0.0.0.0:3001` → anyone on the LAN/Tailnet could call the
+API directly without going through traefik. **New build:** the app publishes NO port; only traefik reaches
+it over the `edge` network.
 
-### 5.6. Cấu hình traefik vừa file vừa flag — nửa nạc nửa mỡ
-Traefik cũ có `traefik.yml` (file) lẫn flags trong compose, hai nơi định nghĩa
-chồng nhau (file khai entrypoint web/websecure, flags khai providers…). Khó
-biết cái nào đang ăn. **Bản mới:** 100% flags trong compose — một nguồn chân lý.
-
----
-
-## 6. TỔNG KẾT: CHUỖI SỰ KIỆN DẪN ĐẾN "LỖI KHÔNG RÕ NGUYÊN NHÂN"
-
-Ghép tất cả bằng chứng, câu chuyện gần như chắc chắn đã diễn ra thế này:
-
-1. Hệ thống ban đầu chạy ổn: traefik (Docker đời cũ) + tunnel cũ + record lẻ.
-2. **Docker Engine được nâng lên 29** (hoặc máy cài lại) → traefik v3.x ghim
-   API 1.24 lập tức **mù Docker** → mọi route chết → web 404. Không có gì
-   "crash" nên không lần ra được.
-3. Bạn thử gỡ: đổi cấu hình tunnel nhiều lần (6 version ingress), tạo
-   tunnel/record mới, cuối cùng **bypass traefik** trỏ thẳng app — chạy tạm được.
-4. Trong quá trình thử-sai, DNS record và tunnel-id **lệch nhau** → thêm lỗi
-   530 đè lên lỗi 404 — hai lỗi ở hai tầng khác nhau chồng nhau khiến mọi
-   chẩn đoán đơn lẻ đều ra kết quả mâu thuẫn ("tunnel connected mà web chết",
-   "label đúng mà 404").
-5. Việc dọn thư mục (`homelab/traefik` → `homelab/infrastructure/traefik`)
-   làm container mồ côi compose project → sửa config không còn tác dụng →
-   cảm giác "làm gì cũng không ăn thua".
-
-**Một câu:** *thứ giết hệ thống cũ không phải config sai, mà là một lần nâng cấp
-Docker âm thầm + chuỗi chữa cháy sau đó làm DNS/tunnel/file cấu hình lệch pha
-nhau ở ba tầng khác nhau.*
+### 5.6. Traefik config split between file and flags — half-and-half
+The old traefik had both `traefik.yml` (file) and flags in the compose, two places defining things
+that overlapped (the file declared entrypoints web/websecure, the flags declared providers…). Hard
+to tell which one took effect. **New build:** 100% flags in compose — one source of truth.
 
 ---
 
-## 7. BÀI HỌC RÚT RA
+## 6. SUMMARY: THE CHAIN OF EVENTS LEADING TO THE "UNEXPLAINED FAILURE"
 
-1. **Chẩn đoán trước, xoá sau.** Toàn bộ nguyên nhân trên tìm ra bằng lệnh
-   chỉ-đọc trước khi gỡ bất cứ thứ gì. Nếu xoá ngay từ đầu, bài học "Docker 29
-   vs traefik cũ" sẽ quay lại cắn tiếp ở bản mới (template gốc dùng v3.3 —
-   sẽ dính y chang).
-2. **"Up" ≠ "khoẻ".** Sau mọi thay đổi hạ tầng, đọc log từng container infra:
+Piecing all the evidence together, the story almost certainly went like this:
+
+1. The system originally ran fine: traefik (old Docker) + the old tunnel + per-host records.
+2. **Docker Engine was upgraded to 29** (or the machine reinstalled) → traefik v3.x pinned to
+   API 1.24 immediately went **blind to Docker** → every route died → web 404. Nothing
+   "crashed" so it couldn't be traced.
+3. You tried to fix it: changed the tunnel config many times (6 ingress versions), created
+   a new tunnel/record, and finally **bypassed traefik** by pointing straight at the app — a temporary success.
+4. During the trial-and-error, the DNS record and tunnel-id became **mismatched** → adding a 530
+   error on top of the 404 error — two errors at two different layers stacked on top of each other,
+   making every single diagnosis come out contradictory ("tunnel connected but the site is dead",
+   "label correct but 404").
+5. Moving the directory (`homelab/traefik` → `homelab/infrastructure/traefik`)
+   orphaned the containers from their compose project → editing the config no longer had any effect →
+   the feeling that "nothing you do makes any difference".
+
+**In one sentence:** *what killed the old system was not a wrong config, but one silent Docker
+upgrade + the chain of firefighting afterward that knocked DNS/tunnel/config files out of phase
+with each other across three different layers.*
+
+---
+
+## 7. LESSONS LEARNED
+
+1. **Diagnose first, delete after.** Every root cause above was found with read-only
+   commands before removing anything. Had we deleted right at the start, the "Docker 29
+   vs old traefik" lesson would have come back to bite us again on the new build (the original template
+   uses v3.3 — would have hit the exact same thing).
+2. **"Up" ≠ "healthy".** After any infra change, read the log of each infra container:
    `docker logs traefik|cloudflared|watchtower --tail 30`.
-3. **Mỗi lỗi một tầng — debug theo luồng.** DNS → tunnel → traefik → app.
-   Xác định request chết ở tầng nào trước khi sửa bất kỳ cái gì
-   (bảng debug ở Tài liệu 1 mục 7).
-4. **Wildcard hoá những gì có thể.** Một record `*` + một ingress `*` = cả lớp
-   lỗi "record lệch tunnel" biến mất vĩnh viễn.
-5. **Đường dẫn file compose là danh tính của stack.** Đừng di chuyển thư mục
-   chứa compose của container đang chạy.
-6. **Secrets vào `.env` + `.gitignore`, không ngoại lệ.** Kể cả "chỉ là máy nhà".
-7. **Mount thư mục credential, không mount file lẻ** — `docker login` thay
-   inode, bind-mount file sẽ thành ảnh chụp quá khứ.
-8. **Ghim version có chủ đích.** `traefik:v3.7` (đủ mới để sống với Docker 29,
-   ghim minor để không tự nhảy major). Tag `latest` chỉ dành cho thứ có người
-   gác (app do watchtower quản, rollback được bằng tag SHA).
+3. **One error per layer — debug by the flow.** DNS → tunnel → traefik → app.
+   Pinpoint which layer the request dies at before fixing anything
+   (the debugging table in Document 1 section 7).
+4. **Wildcard whatever you can.** One `*` record + one `*` ingress = a whole class of
+   "record mismatched with tunnel" errors gone forever.
+5. **The compose file path is the stack's identity.** Don't move the directory
+   holding the compose of a running container.
+6. **Secrets go in `.env` + `.gitignore`, no exceptions.** Even on "just a home machine".
+7. **Mount the credential directory, not a single file** — `docker login` swaps the
+   inode, a bind-mounted file becomes a snapshot of the past.
+8. **Pin versions deliberately.** `traefik:v3.7` (new enough to live with Docker 29,
+   minor-pinned so it won't jump a major on its own). The `latest` tag is only for things with a
+   watcher (the app managed by watchtower, rollback-able via the SHA tag).

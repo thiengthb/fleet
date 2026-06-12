@@ -1,171 +1,171 @@
-# TÀI LIỆU 3 — DỰNG LẠI TOÀN BỘ TỪ CON SỐ KHÔNG (SETUP FROM SCRATCH)
+# DOCUMENT 3 — REBUILD EVERYTHING FROM ZERO (SETUP FROM SCRATCH)
 
-> Dùng khi: NUC bị cài lại OS, đổi máy mới, hoặc muốn dựng một server thứ hai
-> y hệt. Làm **tuần tự từ trên xuống**, mỗi bước đều có lệnh **KIỂM CHỨNG** —
-> chưa pass kiểm chứng thì KHÔNG sang bước sau.
+> Use when: the NUC's OS is reinstalled, you switch to a new machine, or you want to stand up a
+> second identical server. Work **sequentially top to bottom**, each step has a **VERIFY** command —
+> if the verification doesn't pass, do NOT move to the next step.
 >
-> Thời gian dự kiến: 45–90 phút (chưa tính cài OS).
-> Tham chiếu: kiến trúc & vận hành ở `01-KIEN-TRUC-VA-VAN-HANH.md`,
-> các bẫy đã biết ở `02-MO-XE-LOI-HE-THONG-CU.md`.
+> Estimated time: 45–90 minutes (not counting OS install).
+> References: architecture & operations in `01-KIEN-TRUC-VA-VAN-HANH.md`,
+> known traps in `02-MO-XE-LOI-HE-THONG-CU.md`.
 
 ---
 
-## MỤC LỤC
+## TABLE OF CONTENTS
 
-- [Bước 0 — Checklist những thứ phải có trong tay TRƯỚC khi bắt đầu](#bước-0)
-- [Bước 1 — Hệ điều hành & user](#bước-1)
-- [Bước 2 — Cài Docker Engine](#bước-2)
-- [Bước 3 — Tailscale & SSH từ máy dev](#bước-3)
-- [Bước 4 — Khôi phục dữ liệu app (nếu có backup)](#bước-4)
-- [Bước 5 — Cloudflare Tunnel (tạo mới hoặc dùng lại)](#bước-5)
-- [Bước 6 — Tầng nền tảng /opt/infra (traefik + cloudflared)](#bước-6)
-- [Bước 7 — Cấu hình Cloudflare: wildcard hostname + DNS](#bước-7)
-- [Bước 8 — Login ghcr.io + Watchtower](#bước-8)
-- [Bước 9 — Deploy app (link-manager và mọi app khác)](#bước-9)
-- [Bước 10 — Nghiệm thu toàn hệ thống](#bước-10)
-- [Phụ lục A — Backup & Restore dữ liệu](#phụ-lục-a)
-- [Phụ lục B — Phía GitHub cho repo MỚI tinh](#phụ-lục-b)
-- [Phụ lục C — Những bẫy đã biết (đọc trước khi cãi nhau với hệ thống)](#phụ-lục-c)
+- [Step 0 — Checklist of things you must have in hand BEFORE starting](#bước-0)
+- [Step 1 — Operating system & user](#bước-1)
+- [Step 2 — Install Docker Engine](#bước-2)
+- [Step 3 — Tailscale & SSH from the dev machine](#bước-3)
+- [Step 4 — Restore app data (if you have a backup)](#bước-4)
+- [Step 5 — Cloudflare Tunnel (create new or reuse)](#bước-5)
+- [Step 6 — Platform layer /opt/infra (traefik + cloudflared)](#bước-6)
+- [Step 7 — Configure Cloudflare: wildcard hostname + DNS](#bước-7)
+- [Step 8 — Login to ghcr.io + Watchtower](#bước-8)
+- [Step 9 — Deploy the app (link-manager and every other app)](#bước-9)
+- [Step 10 — Whole-system acceptance test](#bước-10)
+- [Appendix A — Backup & Restore data](#phụ-lục-a)
+- [Appendix B — The GitHub side for a brand-NEW repo](#phụ-lục-b)
+- [Appendix C — Known traps (read before arguing with the system)](#phụ-lục-c)
 
 ---
 
 <a id="bước-0"></a>
-## BƯỚC 0 — CHECKLIST PHẢI CÓ TRONG TAY TRƯỚC KHI BẮT ĐẦU
+## STEP 0 — CHECKLIST OF THINGS TO HAVE IN HAND BEFORE STARTING
 
-| # | Thứ cần | Lấy ở đâu | Ghi chú |
+| # | What you need | Where to get it | Notes |
 |---|---|---|---|
-| 1 | USB cài Ubuntu Server LTS | ubuntu.com | Bản Server, không cần GUI |
-| 2 | Tài khoản Cloudflare quản lý domain `thientnse.site` | dash.cloudflare.com | Nameserver đã trỏ Cloudflare |
-| 3 | Tài khoản GitHub `thiengthb` | github.com | Billing KHÔNG bị khoá (kiểm tra settings/billing) |
-| 4 | GitHub PAT scope `read:packages` | github.com/settings/tokens → classic | Cho NUC pull image. Tạo sẵn, ghi ra giấy/password manager |
-| 5 | Backup volume dữ liệu (nếu cứu được từ máy cũ) | Phụ lục A | Không có thì app khởi đầu DB trống |
-| 6 | Máy dev (Windows) có SSH key | `%USERPROFILE%\.ssh\id_ed25519` | Nếu mất key thì tạo mới: `ssh-keygen -t ed25519` |
+| 1 | USB to install Ubuntu Server LTS | ubuntu.com | Server edition, no GUI needed |
+| 2 | Cloudflare account managing the domain `thientnse.site` | dash.cloudflare.com | Nameservers already pointed to Cloudflare |
+| 3 | GitHub account `thiengthb` | github.com | Billing NOT locked (check settings/billing) |
+| 4 | GitHub PAT scope `read:packages` | github.com/settings/tokens → classic | For the NUC to pull images. Create it ahead of time, write it on paper / in a password manager |
+| 5 | Backup of the data volume (if recoverable from the old machine) | Appendix A | Without it, the app starts with an empty DB |
+| 6 | Dev machine (Windows) with an SSH key | `%USERPROFILE%\.ssh\id_ed25519` | If the key is lost, create a new one: `ssh-keygen -t ed25519` |
 
-**Quy ước cố định toàn tài liệu** (đổi nếu môi trường bạn khác):
-- Hostname NUC: `thienminiserver` — user vận hành: `thien25`
+**Fixed conventions throughout this document** (change if your environment differs):
+- NUC hostname: `thienminiserver` — operating user: `thien25`
 - Domain: `thientnse.site` — registry: `ghcr.io/thiengthb/<repo>`
-- Nền tảng tại `/opt/infra`, app tại `/opt/apps/<tên>`
-- Network Docker dùng chung: `edge`
+- Platform at `/opt/infra`, apps at `/opt/apps/<name>`
+- Shared Docker network: `edge`
 
 ---
 
 <a id="bước-1"></a>
-## BƯỚC 1 — HỆ ĐIỀU HÀNH & USER
+## STEP 1 — OPERATING SYSTEM & USER
 
-1. Cài Ubuntu Server LTS, đặt hostname `thienminiserver`, tạo user `thien25`
-   (tick "Install OpenSSH server" trong installer).
-2. Đăng nhập, cập nhật hệ thống:
+1. Install Ubuntu Server LTS, set the hostname `thienminiserver`, create the user `thien25`
+   (tick "Install OpenSSH server" in the installer).
+2. Log in, update the system:
    ```bash
    sudo apt update && sudo apt -y full-upgrade
    sudo apt -y install curl git ca-certificates
    ```
 
-**✅ KIỂM CHỨNG:** `hostname` ra `thienminiserver`; `id` thấy user thuộc nhóm `sudo`.
+**✅ VERIFY:** `hostname` outputs `thienminiserver`; `id` shows the user in the `sudo` group.
 
 ---
 
 <a id="bước-2"></a>
-## BƯỚC 2 — CÀI DOCKER ENGINE
+## STEP 2 — INSTALL DOCKER ENGINE
 
-Cài bản chính chủ (KHÔNG dùng snap/docker.io của Ubuntu — hay lệch version):
+Install the official version (do NOT use Ubuntu's snap/docker.io — version often mismatched):
 
 ```bash
 curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker thien25     # cho user dùng docker không cần sudo
-# Đăng xuất / đăng nhập lại (hoặc: newgrp docker) để nhóm có hiệu lực
+sudo usermod -aG docker thien25     # let the user use docker without sudo
+# Log out / log back in (or: newgrp docker) for the group to take effect
 ```
 
-**✅ KIỂM CHỨNG:**
+**✅ VERIFY:**
 ```bash
-docker --version && docker compose version   # cả hai chạy không sudo
-docker run --rm hello-world                  # pull + run OK = mạng & daemon OK
+docker --version && docker compose version   # both run without sudo
+docker run --rm hello-world                  # pull + run OK = network & daemon OK
 ```
 
-> ⚠️ **Ghi nhớ từ vụ án cũ** (Tài liệu 2): Docker Engine ≥ 29 yêu cầu client
-> API ≥ 1.40. Mọi version image trong tài liệu này đã chọn để tương thích —
-> **đừng tự hạ version traefik xuống dưới v3.7**, đừng xoá
-> `DOCKER_API_VERSION` của watchtower.
+> ⚠️ **Remember from the old case** (Document 2): Docker Engine ≥ 29 requires client
+> API ≥ 1.40. Every image version in this document was chosen for compatibility —
+> **don't downgrade traefik below v3.7** on your own, don't delete watchtower's
+> `DOCKER_API_VERSION`.
 
 ---
 
 <a id="bước-3"></a>
-## BƯỚC 3 — TAILSCALE & SSH TỪ MÁY DEV
+## STEP 3 — TAILSCALE & SSH FROM THE DEV MACHINE
 
-### 3.1. Tailscale (để SSH từ xa không mở port)
+### 3.1. Tailscale (to SSH remotely without opening ports)
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up        # mở URL hiện ra, đăng nhập tài khoản Tailscale
-tailscale ip -4          # ghi lại IP 100.x.y.z
+sudo tailscale up        # open the URL that appears, log in to your Tailscale account
+tailscale ip -4          # note down the IP 100.x.y.z
 ```
 
-### 3.2. Cài SSH key của máy dev lên NUC
-Trên **máy Windows dev** (PowerShell):
+### 3.2. Install the dev machine's SSH key onto the NUC
+On the **Windows dev machine** (PowerShell):
 ```powershell
 type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh thien25@thienminiserver "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
-(Nhập password lần cuối — từ đó về sau dùng key.)
+(Enter the password one last time — from then on it uses the key.)
 
-**✅ KIỂM CHỨNG:** từ máy dev: `ssh thien25@thienminiserver "echo OK; groups"`
-→ in `OK` không hỏi password, `groups` có `docker`.
+**✅ VERIFY:** from the dev machine: `ssh thien25@thienminiserver "echo OK; groups"`
+→ prints `OK` without asking for a password, `groups` includes `docker`.
 
 ---
 
 <a id="bước-4"></a>
-## BƯỚC 4 — KHÔI PHỤC DỮ LIỆU APP (nếu có backup)
+## STEP 4 — RESTORE APP DATA (if you have a backup)
 
-> Làm TRƯỚC khi deploy app để app mở mắt là thấy dữ liệu. Không có backup → bỏ
-> qua, volume sẽ được tạo trống. Cách tạo backup: Phụ lục A.
+> Do this BEFORE deploying the app so it sees the data the moment it opens its eyes. No backup →
+> skip; the volume will be created empty. How to make a backup: Appendix A.
 
 ```bash
-# Tạo volume đúng tên mà compose của app sẽ tham chiếu:
+# Create the volume with the exact name the app's compose will reference:
 docker volume create link-manager_data
-# Đổ backup vào (file backup dạng tar tạo theo Phụ lục A):
+# Pour in the backup (a tar backup file made per Appendix A):
 docker run --rm -v link-manager_data:/data -v $HOME:/backup alpine \
   sh -c "tar xzf /backup/link-manager_data.tar.gz -C /data"
 ```
 
-**✅ KIỂM CHỨNG:**
+**✅ VERIFY:**
 ```bash
-docker run --rm -v link-manager_data:/data alpine ls -la /data   # thấy links.db
+docker run --rm -v link-manager_data:/data alpine ls -la /data   # see links.db
 ```
 
 ---
 
 <a id="bước-5"></a>
-## BƯỚC 5 — CLOUDFLARE TUNNEL
+## STEP 5 — CLOUDFLARE TUNNEL
 
-### Trường hợp A — tunnel cũ còn (chỉ reset NUC, không đụng Cloudflare)
-Không phải tạo gì. Lấy lại token: **Cloudflare One → Networks → Tunnels →
-chọn tunnel → Configure** → copy token (chuỗi `eyJ...`). Sang Bước 6.
+### Case A — the old tunnel still exists (only the NUC was reset, Cloudflare untouched)
+Nothing to create. Get the token back: **Cloudflare One → Networks → Tunnels →
+select the tunnel → Configure** → copy the token (the `eyJ...` string). Move to Step 6.
 
-### Trường hợp B — tạo tunnel mới tinh
-1. **Cloudflare One → Networks → Tunnels → Create a tunnel** → chọn
-   `Cloudflared` → đặt tên (vd `nuc-platform`).
-2. Trang cài đặt hiện lệnh cài — **KHÔNG chạy lệnh đó** (mình chạy cloudflared
-   bằng Docker ở Bước 6). Chỉ **copy token** `eyJ...`.
-3. **Ghi lại Tunnel ID** (dạng UUID `xxxxxxxx-xxxx-...`, hiện ở danh sách
-   tunnel) — Bước 7 cần nó để tạo DNS.
+### Case B — create a brand-new tunnel
+1. **Cloudflare One → Networks → Tunnels → Create a tunnel** → choose
+   `Cloudflared` → name it (e.g. `nuc-platform`).
+2. The setup page shows an install command — **DO NOT run that command** (we run cloudflared
+   via Docker in Step 6). Only **copy the token** `eyJ...`.
+3. **Note down the Tunnel ID** (a UUID `xxxxxxxx-xxxx-...`, shown in the tunnel
+   list) — Step 7 needs it to create DNS.
 
-> Token và Tunnel ID là 2 thứ khác nhau: token để cloudflared chạy,
-> Tunnel ID để DNS trỏ vào.
+> The token and the Tunnel ID are two different things: the token is for cloudflared to run,
+> the Tunnel ID is for DNS to point at.
 
 ---
 
 <a id="bước-6"></a>
-## BƯỚC 6 — TẦNG NỀN TẢNG `/opt/infra`
+## STEP 6 — PLATFORM LAYER `/opt/infra`
 
-### 6.1. Tạo thư mục
+### 6.1. Create the directories
 ```bash
 sudo mkdir -p /opt/infra /opt/apps
 sudo chown -R thien25:thien25 /opt/infra /opt/apps
 ```
 
-### 6.2. Tạo `/opt/infra/docker-compose.yml` — NỘI DUNG CHÍNH XÁC:
+### 6.2. Create `/opt/infra/docker-compose.yml` — EXACT CONTENT:
 
 ```yaml
 services:
   traefik:
-    image: traefik:v3.7        # >= v3.7 BẮT BUỘC với Docker 29 (xem Tài liệu 2)
+    image: traefik:v3.7        # >= v3.7 MANDATORY with Docker 29 (see Document 2)
     container_name: traefik
     restart: unless-stopped
     command:
@@ -178,7 +178,7 @@ services:
       - "--log.level=INFO"
       - "--accesslog=true"
     ports:
-      - "127.0.0.1:8080:8080"   # dashboard CHỈ bind localhost
+      - "127.0.0.1:8080:8080"   # dashboard ONLY binds localhost
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
@@ -204,83 +204,83 @@ services:
 networks:
   edge:
     name: edge
-    driver: bridge        # tầng infra TẠO network; mọi app THAM CHIẾU external
+    driver: bridge        # the infra layer CREATES the network; every app REFERENCES it external
 ```
 
-### 6.3. Tạo `/opt/infra/.env` (dán token từ Bước 5):
+### 6.3. Create `/opt/infra/.env` (paste the token from Step 5):
 ```bash
 cat > /opt/infra/.env << 'EOF'
-TUNNEL_TOKEN=eyJ...DÁN_TOKEN_THẬT_VÀO_ĐÂY...
+TUNNEL_TOKEN=eyJ...PASTE_THE_REAL_TOKEN_HERE...
 EOF
 chmod 600 /opt/infra/.env
 echo ".env" > /opt/infra/.gitignore
 ```
 
-### 6.4. Khởi chạy
+### 6.4. Launch
 ```bash
 cd /opt/infra
 docker compose up -d
 ```
 
-**✅ KIỂM CHỨNG (cả 3 phải pass):**
+**✅ VERIFY (all 3 must pass):**
 ```bash
-docker compose ps           # 2 container Up
-docker logs cloudflared 2>&1 | grep -c "Registered tunnel connection"   # >= 1 (thường 4)
-docker logs traefik --tail 20    # KHÔNG được có dòng ERR nào
-#   → nếu thấy "client version ... is too old": image traefik < v3.7, sửa lại image!
+docker compose ps           # 2 containers Up
+docker logs cloudflared 2>&1 | grep -c "Registered tunnel connection"   # >= 1 (usually 4)
+docker logs traefik --tail 20    # must NOT have any ERR line
+#   → if you see "client version ... is too old": traefik image < v3.7, fix the image!
 ```
 
 ---
 
 <a id="bước-7"></a>
-## BƯỚC 7 — CẤU HÌNH CLOUDFLARE: WILDCARD HOSTNAME + DNS
+## STEP 7 — CONFIGURE CLOUDFLARE: WILDCARD HOSTNAME + DNS
 
-> Làm trên web dashboard. Mục tiêu: cấu hình MỘT LẦN, về sau thêm app
-> không bao giờ phải quay lại đây.
+> Do this on the web dashboard. Goal: configure ONCE, so that adding apps later
+> never requires coming back here.
 
-### 7.1. Public Hostname (định tuyến trong tunnel)
-**Cloudflare One → Networks → Tunnels → tunnel của bạn → Public Hostname →
+### 7.1. Public Hostname (routing inside the tunnel)
+**Cloudflare One → Networks → Tunnels → your tunnel → Public Hostname →
 Add a public hostname:**
 - Subdomain: `*` — Domain: `thientnse.site`
 - Service: Type `HTTP` — URL `traefik:80`
-  (cloudflared gọi traefik bằng TÊN CONTAINER vì cùng network `edge`)
+  (cloudflared reaches traefik by CONTAINER NAME because they're on the same `edge` network)
 
-Nếu còn entry cũ trỏ thẳng app nào đó → **xoá hết**, chỉ giữ wildcard.
+If there are still old entries pointing straight at some app → **delete them all**, keep only the wildcard.
 
-### 7.2. DNS record (Cloudflare KHÔNG tự tạo cho wildcard)
-**Dashboard Cloudflare → thientnse.site → DNS → Records:**
-- **Xoá** mọi CNAME cũ dạng `<sub> → <uuid-cũ>.cfargotunnel.com` (trỏ tunnel
-  đã chết — chính là thủ phạm lỗi 530 ngày xưa, xem Tài liệu 2 mục 3).
-- **Thêm:** Type `CNAME` — Name `*` —
-  Target `<TUNNEL-ID>.cfargotunnel.com` — Proxy: **BẬT** (mây cam).
-  (`<TUNNEL-ID>` lấy từ Bước 5; tunnel hiện tại 2026-06: `f725123c-a055-4119-92ec-32db3c1df4ea`)
+### 7.2. DNS record (Cloudflare does NOT auto-create one for the wildcard)
+**Cloudflare dashboard → thientnse.site → DNS → Records:**
+- **Delete** every old CNAME of the form `<sub> → <old-uuid>.cfargotunnel.com` (pointing at a
+  dead tunnel — the very culprit of the old 530 error, see Document 2 section 3).
+- **Add:** Type `CNAME` — Name `*` —
+  Target `<TUNNEL-ID>.cfargotunnel.com` — Proxy: **ON** (orange cloud).
+  (`<TUNNEL-ID>` from Step 5; current tunnel as of 2026-06: `f725123c-a055-4119-92ec-32db3c1df4ea`)
 
-**✅ KIỂM CHỨNG (từ máy bất kỳ):**
+**✅ VERIFY (from any machine):**
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" https://abc-xyz-123.thientnse.site
 ```
-- **404** = ĐẠT — chuỗi DNS → tunnel → traefik đã thông (traefik trả 404 vì
-  chưa app nào nhận host đó). 
-- **530** = DNS trỏ sai tunnel-id → soát lại 7.2.
-- **timeout/lỗi SSL** = DNS chưa lan truyền, chờ 1–2 phút thử lại.
+- **404** = PASS — the chain DNS → tunnel → traefik is open (traefik returns 404 because
+  no app accepts that host yet). 
+- **530** = DNS points at the wrong tunnel-id → re-check 7.2.
+- **timeout/SSL error** = DNS hasn't propagated yet, wait 1–2 minutes and retry.
 
 ---
 
 <a id="bước-8"></a>
-## BƯỚC 8 — LOGIN GHCR.IO + WATCHTOWER
+## STEP 8 — LOGIN GHCR.IO + WATCHTOWER
 
-### 8.1. Login ghcr trên NUC (PAT `read:packages` từ Bước 0)
+### 8.1. Login to ghcr on the NUC (PAT `read:packages` from Step 0)
 ```bash
 echo '<GITHUB_PAT>' | docker login ghcr.io -u thiengthb --password-stdin
-# Phải thấy: Login Succeeded
+# Must see: Login Succeeded
 ```
 
-### 8.2. Tạo `/opt/infra/watchtower.yml` — NỘI DUNG CHÍNH XÁC:
+### 8.2. Create `/opt/infra/watchtower.yml` — EXACT CONTENT:
 
 ```yaml
-name: watchtower        # project riêng — KHÔNG được bỏ dòng này
-                        # (chung thư mục với compose infra, thiếu name sẽ
-                        #  dính chung project -> --remove-orphans xoá nhầm traefik)
+name: watchtower        # its own project — do NOT drop this line
+                        # (shares the directory with the infra compose; without name it
+                        #  joins the same project -> --remove-orphans deletes traefik by accident)
 
 services:
   watchtower:
@@ -289,15 +289,15 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      # Mount CẢ THƯ MỤC, không mount file lẻ:
-      # docker login ghi file mới (inode mới) -> mount file lẻ sẽ ôm credential chết
+      # Mount the WHOLE DIRECTORY, not a single file:
+      # docker login writes a new file (new inode) -> mounting a single file clings to dead credentials
       - /home/thien25/.docker:/config:ro
     environment:
       - DOCKER_CONFIG=/config
-      - DOCKER_API_VERSION=1.44      # BẮT BUỘC với Docker 29 — không được xoá
-      - WATCHTOWER_POLL_INTERVAL=60  # giây
-      - WATCHTOWER_CLEANUP=true      # xoá image cũ sau khi update
-      - WATCHTOWER_LABEL_ENABLE=true # CHỈ theo dõi container có label bật
+      - DOCKER_API_VERSION=1.44      # MANDATORY with Docker 29 — do not delete
+      - WATCHTOWER_POLL_INTERVAL=60  # seconds
+      - WATCHTOWER_CLEANUP=true      # delete old images after update
+      - WATCHTOWER_LABEL_ENABLE=true # ONLY watch containers with the label enabled
     networks:
       - edge
 
@@ -306,29 +306,29 @@ networks:
     external: true
 ```
 
-### 8.3. Khởi chạy
+### 8.3. Launch
 ```bash
 cd /opt/infra
 docker compose -f watchtower.yml up -d
 ```
 
-**✅ KIỂM CHỨNG (chờ ~70 giây cho chu kỳ quét đầu):**
+**✅ VERIFY (wait ~70 seconds for the first scan cycle):**
 ```bash
 docker logs watchtower 2>&1 | tail -3
-# Phải thấy:  Session done Failed=0 Scanned=0 Updated=0
-#   Scanned=0 là ĐÚNG lúc này (chưa app nào gắn label).
-# Nếu thấy "client version 1.25 is too old": thiếu DOCKER_API_VERSION -> soát 8.2
+# Must see:  Session done Failed=0 Scanned=0 Updated=0
+#   Scanned=0 is CORRECT right now (no app carries a label yet).
+# If you see "client version 1.25 is too old": missing DOCKER_API_VERSION -> re-check 8.2
 ```
 
 ---
 
 <a id="bước-9"></a>
-## BƯỚC 9 — DEPLOY APP
+## STEP 9 — DEPLOY THE APP
 
-> Mẫu dưới là link-manager. **Mọi app khác làm y hệt**, đổi 5 chỗ: tên,
+> The sample below is link-manager. **Every other app is done identically**, changing 5 places: name,
 > image, volume, subdomain, port.
 
-### 9.1. Tạo `/opt/apps/link-manager/docker-compose.yml`:
+### 9.1. Create `/opt/apps/link-manager/docker-compose.yml`:
 
 ```yaml
 name: link-manager
@@ -343,11 +343,11 @@ services:
     networks:
       - edge
     volumes:
-      - link_data:/data          # dữ liệu SQLite sống ngoài container
+      - link_data:/data          # SQLite data lives outside the container
     labels:
-      # --- bật auto-update ---
+      # --- enable auto-update ---
       - "com.centurylinklabs.watchtower.enable=true"
-      # --- PUBLIC: xoá 4 dòng dưới nếu muốn app CHỈ chạy nội bộ ---
+      # --- PUBLIC: delete the 4 lines below if you want the app to run INTERNALLY only ---
       - "traefik.enable=true"
       - "traefik.http.routers.link-manager.rule=Host(`link.thientnse.site`)"
       - "traefik.http.routers.link-manager.entrypoints=web"
@@ -360,20 +360,20 @@ networks:
 volumes:
   link_data:
     name: link-manager_data
-    external: true        # nếu Bước 4 đã tạo volume (restore). Volume CHƯA
-                          # tồn tại? -> đổi thành "external: false" hoặc chạy:
+    external: true        # if Step 4 already created the volume (restore). Volume does NOT
+                          # exist yet? -> change to "external: false" or run:
                           # docker volume create link-manager_data
 ```
 
-### 9.2. Tạo `/opt/apps/link-manager/.env`:
+### 9.2. Create `/opt/apps/link-manager/.env`:
 ```bash
 cat > /opt/apps/link-manager/.env << 'EOF'
 DB_PATH=/data/links.db
 CORS_ORIGIN=*
-# Bật xác thực API: đặt CÙNG giá trị với secret API_KEY trên GitHub
-# (để VITE_API_KEY nướng trong frontend khớp). Trống = API mở.
+# Enable API auth: set it to the SAME value as the API_KEY secret on GitHub
+# (so the VITE_API_KEY baked into the frontend matches). Empty = open API.
 API_KEY=
-# AI tìm link (Google Gemini) — trống thì tính năng tự tắt
+# AI link search (Google Gemini) — empty turns the feature off
 GEMINI_API_KEY=
 AI_MODEL=
 EOF
@@ -381,112 +381,112 @@ chmod 600 /opt/apps/link-manager/.env
 echo ".env" > /opt/apps/link-manager/.gitignore
 ```
 
-### 9.3. Khởi chạy
+### 9.3. Launch
 ```bash
 cd /opt/apps/link-manager
 docker compose up -d
 ```
 
-**✅ KIỂM CHỨNG:**
+**✅ VERIFY:**
 ```bash
-docker compose ps                          # Up (healthy) sau ~15 giây
-docker compose logs --tail 10              # app báo chạy tại :3001
+docker compose ps                          # Up (healthy) after ~15 seconds
+docker compose logs --tail 10              # app reports running at :3001
 docker network inspect edge --format '{{range .Containers}}{{.Name}} {{end}}'
-#   -> phải có đủ: cloudflared traefik watchtower link-manager
+#   -> must include all of: cloudflared traefik watchtower link-manager
 curl -s https://link.thientnse.site/api/health    # {"ok":true}
 ```
 
 ---
 
 <a id="bước-10"></a>
-## BƯỚC 10 — NGHIỆM THU TOÀN HỆ THỐNG
+## STEP 10 — WHOLE-SYSTEM ACCEPTANCE TEST
 
-Chạy lần lượt, TẤT CẢ phải pass:
+Run each in turn, ALL must pass:
 
 ```bash
-# ① 4 container hệ thống + app đều Up:
+# ① 4 system containers + the app all Up:
 docker ps --format "table {{.Names}}\t{{.Status}}"
 
-# ② Traefik có route của app (ngoài dashboard):
+# ② Traefik has the app's route (outside the dashboard):
 curl -s -H "Host: traefik.localhost" http://127.0.0.1:8080/api/http/routers \
   | grep -o '"rule":"[^"]*"'
-#   -> thấy Host(`link.thientnse.site`)
+#   -> see Host(`link.thientnse.site`)
 
-# ③ Web public sống:
+# ③ The public site is alive:
 curl -s -o /dev/null -w "%{http_code}\n" https://link.thientnse.site    # 200
 
-# ④ Subdomain vu vơ ra 404 (chuỗi wildcard thông):
+# ④ A random subdomain returns 404 (the wildcard chain is open):
 curl -s -o /dev/null -w "%{http_code}\n" https://khong-ton-tai.thientnse.site  # 404
 
-# ⑤ Watchtower nhìn thấy app và xác thực ghcr OK:
+# ⑤ Watchtower sees the app and ghcr auth is OK:
 docker logs watchtower --since 2m 2>&1 | tail -2
-#   -> Session done Failed=0 Scanned=1   (không có dòng 403/auth)
+#   -> Session done Failed=0 Scanned=1   (no 403/auth line)
 
-# ⑥ Test chu trình auto-deploy trọn vẹn (từ máy dev):
-#    sửa 1 dòng bất kỳ -> git push origin main -> chờ 2-4 phút:
-docker logs watchtower -f     # thấy "Found new image ... Stopping ... Started"
+# ⑥ Test the full auto-deploy cycle end to end (from the dev machine):
+#    edit any one line -> git push origin main -> wait 2-4 minutes:
+docker logs watchtower -f     # see "Found new image ... Stopping ... Started"
 ```
 
-Pass cả ⑥ = hệ thống tự động khép kín hoàn chỉnh. **DỪNG. XONG.**
+Passing ⑥ too = the automatic system is fully self-contained. **STOP. DONE.**
 
 ---
 
 <a id="phụ-lục-a"></a>
-## PHỤ LỤC A — BACKUP & RESTORE DỮ LIỆU
+## APPENDIX A — BACKUP & RESTORE DATA
 
-### Backup volume (làm định kỳ, hoặc NGAY TRƯỚC khi reset server)
+### Back up a volume (do it periodically, or RIGHT BEFORE resetting the server)
 ```bash
-# Mỗi volume một file tar (ví dụ link-manager_data):
+# One tar file per volume (e.g. link-manager_data):
 docker run --rm -v link-manager_data:/data -v $HOME:/backup alpine \
   sh -c "tar czf /backup/link-manager_data.tar.gz -C /data ."
-# Kéo file về máy dev cất giữ (chạy từ máy dev):
+# Pull the file back to the dev machine for safekeeping (run from the dev machine):
 scp thien25@thienminiserver:~/link-manager_data.tar.gz D:\Backups\
 ```
-Thứ cần backup ngoài volume: `/opt/infra/.env` (token tunnel),
-`/opt/apps/*/.env` (secrets app). Chỉ vậy — mọi thứ còn lại dựng lại được
-từ tài liệu này + image trên ghcr.
+Things to back up besides the volume: `/opt/infra/.env` (the tunnel token),
+`/opt/apps/*/.env` (app secrets). That's all — everything else can be rebuilt
+from this document + the image on ghcr.
 
-### Restore: xem Bước 4.
+### Restore: see Step 4.
 
-### Liệt kê mọi volume đang có dữ liệu
+### List every volume that holds data
 ```bash
 docker volume ls
-docker run --rm -v <tên-volume>:/v alpine du -sh /v
+docker run --rm -v <volume-name>:/v alpine du -sh /v
 ```
 
 ---
 
 <a id="phụ-lục-b"></a>
-## PHỤ LỤC B — PHÍA GITHUB CHO REPO MỚI TINH
+## APPENDIX B — THE GITHUB SIDE FOR A BRAND-NEW REPO
 
-(Repo `linkmanager` đã có sẵn workflow — phần này cho app/repo MỚI.)
+(The `linkmanager` repo already has the workflow — this section is for a NEW app/repo.)
 
-1. Repo cần một `Dockerfile` (nhớ `EXPOSE <port>`).
-2. Tạo `.github/workflows/deploy.yml` — copy nguyên văn từ repo `linkmanager`
-   (`.github/workflows/deploy.yml`), thường KHÔNG phải sửa gì; chỉ sửa nếu:
-   - Dockerfile không nằm ở `docker/Dockerfile` → sửa `file:`
-   - không cần build-arg → xoá khối `build-args:`
-3. Push lên `main` → tab Actions phải xanh → tab Packages của profile có
+1. The repo needs a `Dockerfile` (remember `EXPOSE <port>`).
+2. Create `.github/workflows/deploy.yml` — copy it verbatim from the `linkmanager` repo
+   (`.github/workflows/deploy.yml`), usually NO edits needed; only edit if:
+   - the Dockerfile isn't at `docker/Dockerfile` → edit `file:`
+   - no build-arg needed → delete the `build-args:` block
+3. Push to `main` → the Actions tab must be green → the profile's Packages tab has the
    package `ghcr.io/thiengthb/<repo>`.
-4. Nếu build fail **0 step chạy**: xem annotation — từng dính
-   *"account is locked due to a billing issue"* → gỡ tại github.com/settings/billing.
-5. Nếu fail ở bước push image: repo Settings → Actions → General →
+4. If the build fails with **0 steps run**: check the annotation — we once hit
+   *"account is locked due to a billing issue"* → unlock at github.com/settings/billing.
+5. If it fails at the image push step: repo Settings → Actions → General →
    Workflow permissions → **Read and write permissions**.
 
 ---
 
 <a id="phụ-lục-c"></a>
-## PHỤ LỤC C — NHỮNG BẪY ĐÃ BIẾT (đúc kết bằng máu, xem chi tiết Tài liệu 2)
+## APPENDIX C — KNOWN TRAPS (learned the hard way, see Document 2 for details)
 
-| # | Bẫy | Hậu quả nếu quên | Phòng |
+| # | Trap | Consequence if forgotten | Prevention |
 |---|---|---|---|
-| 1 | Traefik < v3.7 trên Docker ≥ 29 | Provider chết im lặng, mọi route 404, container vẫn "Up" | Ghim `traefik:v3.7`+; sau nâng cấp Docker phải đọc log traefik |
-| 2 | Watchtower thiếu `DOCKER_API_VERSION=1.44` | Chết ngay khi start ("client version 1.25 is too old") | Giữ nguyên env trong watchtower.yml |
-| 3 | Mount file `config.json` lẻ vào watchtower | Re-login ghcr xong watchtower mù credential (403) | Mount cả thư mục `~/.docker` + `DOCKER_CONFIG=/config` |
-| 4 | `watchtower.yml` thiếu `name:` riêng | `--remove-orphans` xoá nhầm traefik/cloudflared | Giữ dòng `name: watchtower` |
-| 5 | DNS record trỏ tunnel-id cũ | 530 toàn tập dù tunnel sống | Chỉ dùng MỘT wildcard record; tạo tunnel mới phải sửa record `*` |
-| 6 | Di chuyển thư mục chứa compose đang chạy | Stack mồ côi, sửa config không ăn | Vị trí bất biến: `/opt/infra`, `/opt/apps/<tên>`; muốn dời: down → dời → up |
-| 7 | App quên `networks: [edge]` hoặc sai `loadbalancer.server.port` | 502 | Checklist 5 label + network khi thêm app (Bước 9) |
-| 8 | Secrets trong compose / quên `.gitignore` | Lộ token khi chia sẻ file | Secrets CHỈ ở `.env` chmod 600 + `.gitignore` |
-| 9 | Down stack infra khi app còn chạy | Lỗi xoá network edge đang bận | Trình tự: down app trước, infra sau; up thì ngược lại |
-| 10 | Quên backup `.env` trước khi reset | Mất token tunnel + secrets, phải tạo lại từ đầu | Phụ lục A: backup volume + 2 nhóm file `.env` |
+| 1 | Traefik < v3.7 on Docker ≥ 29 | Provider dies silently, every route 404, container still "Up" | Pin `traefik:v3.7`+; after a Docker upgrade you must read the traefik log |
+| 2 | Watchtower missing `DOCKER_API_VERSION=1.44` | Dies right at startup ("client version 1.25 is too old") | Keep the env in watchtower.yml |
+| 3 | Mounting the single `config.json` file into watchtower | After re-login to ghcr, watchtower is blind to the credential (403) | Mount the whole `~/.docker` directory + `DOCKER_CONFIG=/config` |
+| 4 | `watchtower.yml` missing its own `name:` | `--remove-orphans` deletes traefik/cloudflared by accident | Keep the `name: watchtower` line |
+| 5 | DNS record pointing at an old tunnel-id | 530 across the board even though the tunnel is alive | Use only ONE wildcard record; a new tunnel requires fixing the `*` record |
+| 6 | Moving the directory holding a running compose | Orphaned stack, editing the config has no effect | Invariant location: `/opt/infra`, `/opt/apps/<name>`; to move: down → move → up |
+| 7 | App forgetting `networks: [edge]` or a wrong `loadbalancer.server.port` | 502 | Checklist the 5 labels + network when adding an app (Step 9) |
+| 8 | Secrets in compose / forgetting `.gitignore` | Token leaks when sharing the file | Secrets ONLY in `.env` chmod 600 + `.gitignore` |
+| 9 | Bringing down the infra stack while apps are still running | Error deleting the busy edge network | Sequence: down apps first, infra after; up is the reverse |
+| 10 | Forgetting to back up `.env` before a reset | Lose the tunnel token + secrets, have to recreate from scratch | Appendix A: back up the volume + both groups of `.env` files |

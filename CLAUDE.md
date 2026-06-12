@@ -1,157 +1,172 @@
-# MiniServer — Luật chung cho mọi project trong folder này
+# MiniServer — Shared rules for every project in this folder
 
-Mọi project trong `D:\Projects\MiniServer\` được deploy lên NUC `thienminiserver`
-theo kiến trúc cố định (dựng 2026-06-07):
+Every project in `D:\Projects\MiniServer\` is deployed to the NUC `thienminiserver`
+following a fixed architecture (built 2026-06-07):
 
 ```
 git push main → GitHub Actions build → ghcr.io/thiengthb/<repo> (:latest + :<sha>)
-→ Watchtower trên NUC tự pull (≤60s) → Traefik route → Cloudflare Tunnel → *.thientnse.site
+→ Watchtower on the NUC auto-pulls (≤60s) → Traefik route → Cloudflare Tunnel → *.thientnse.site
 ```
 
-Tài liệu đầy đủ: `nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` (vận hành),
-`02-MO-XE-LOI-HE-THONG-CU.md` (các bẫy đã biết), `03-SETUP-FROM-SCRATCH.md` (dựng lại).
-**`nuc-platform/INVENTORY.md` = nguồn sự thật DUY NHẤT** về mọi app/volume/domain/auth/monitor —
-đọc nó trước khi đụng vòng đời project; mọi skill thêm/gỡ app PHẢI cập nhật nó (chống drift).
-**User báo NUC bị reset / cần tái thiết hệ thống → đọc và làm theo
-`nuc-platform/04-AGENT-RUNBOOK-TAI-THIET.md` (runbook dành cho agent).**
+Full docs: `nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` (operations),
+`02-MO-XE-LOI-HE-THONG-CU.md` (known traps), `03-SETUP-FROM-SCRATCH.md` (rebuild).
+**`nuc-platform/INVENTORY.md` = the SINGLE source of truth** for every app/volume/domain/auth/monitor —
+read it before touching a project lifecycle; every add/remove-app skill MUST update it (anti-drift).
+**User reports the NUC was reset / the system needs rebuilding → read and follow
+`nuc-platform/04-AGENT-RUNBOOK-TAI-THIET.md` (the agent runbook).**
 
-## Bất biến — KHÔNG được vi phạm trong bất kỳ project nào
+## Invariants — MUST NOT be violated in any project
 
-1. **NUC chỉ PULL image.** Không self-hosted runner, không SSH-deploy từ CI,
-   không build trên NUC (trừ chữa cháy có chủ đích).
-2. **Một network Docker chung `edge`.** Infra (`/opt/infra`) TẠO nó; mọi app
-   tham chiếu `external: true`. App KHÔNG publish port ra host — chỉ Traefik
-   gọi app qua network.
-3. **Public/private = label.** Traefik `exposedbydefault=false`; app public khi
-   và chỉ khi có 4 label `traefik.*`. Subdomain mới KHÔNG cần đụng Cloudflare
-   (wildcard `*.thientnse.site` đã hứng sẵn).
-4. **Secrets chỉ nằm trong `.env`** (chmod 600) + `.env` phải có trong
-   `.gitignore`. Không bao giờ hardcode token/key vào compose, Dockerfile, code.
-5. **Image tag kép `latest` + git-SHA ngắn.** Rollback = ghim tag SHA trong
-   compose trên NUC, không revert git.
-6. **TLS do Cloudflare lo.** Không cấu hình Let's Encrypt/certbot ở bất cứ đâu.
-7. **Traefik ≥ v3.7, Watchtower phải có `DOCKER_API_VERSION=1.44`** (Docker 29
-   trên NUC bỏ API < 1.40 — vi phạm là chết im lặng, xem tài liệu 02).
-8. **Xác thực = Authentik** (IdP tại `auth.thientnse.site`, `/opt/apps/authentik`).
-   KHÔNG tự code login / hash mật khẩu / ký JWT / mint session trong app. Bảo vệ app =
-   forward-auth qua Traefik (middleware `authentik@docker`); phân quyền = app đọc header
-   `X-authentik-*`. **KHÔNG bao giờ** gắn forward-auth lên endpoint client máy gọi tự động.
-   Authentik là image dựng sẵn — KHÔNG gắn label Watchtower (update thủ công, bump
-   `AUTHENTIK_TAG`). Liên kết user qua **email**.
+1. **The NUC only PULLs images.** No self-hosted runner, no SSH-deploy from CI,
+   no building on the NUC (except deliberate firefighting).
+2. **One shared Docker network `edge`.** Infra (`/opt/infra`) CREATES it; every app
+   references `external: true`. Apps do NOT publish ports to the host — only Traefik
+   reaches apps over the network.
+3. **Public/private = label.** Traefik `exposedbydefault=false`; an app is public if
+   and only if it has the 4 `traefik.*` labels. A new subdomain does NOT need to touch
+   Cloudflare (the wildcard `*.thientnse.site` already catches it).
+4. **Secrets live only in `.env`** (chmod 600) + `.env` must be in
+   `.gitignore`. Never hardcode a token/key into compose, Dockerfile, or code.
+5. **Dual image tag `latest` + short git-SHA.** Rollback = pin the SHA tag in the
+   compose on the NUC, do not revert git.
+6. **TLS is handled by Cloudflare.** Do not configure Let's Encrypt/certbot anywhere.
+7. **Traefik ≥ v3.7, Watchtower must have `DOCKER_API_VERSION=1.44`** (Docker 29
+   on the NUC dropped API < 1.40 — a violation fails silently, see doc 02).
+8. **Authentication = Authentik** (IdP at `auth.thientnse.site`, `/opt/apps/authentik`).
+   Do NOT self-code login / password hashing / JWT signing / session minting in the app. Protect an app =
+   forward-auth via Traefik (middleware `authentik@docker`); authorization = the app reads the
+   `X-authentik-*` headers. **NEVER** put forward-auth on an endpoint that a machine client calls automatically.
+   Authentik is a prebuilt image — do NOT attach a Watchtower label (update manually, bump
+   `AUTHENTIK_TAG`). Link users by **email**.
 
-## Quy ước
+## Conventions
 
-- Repo GitHub: `thiengthb/<repo>`, nhánh deploy: `main`.
-- Mỗi repo phải có: `Dockerfile` (có `EXPOSE <port>` + `HEALTHCHECK` nếu được)
-  và `.github/workflows/deploy.yml` (chuẩn: copy từ một ghcr app đang sống — `nuc-monitor` hoặc `todo`).
-- Trên NUC: app tại `/opt/apps/<tên>/` gồm `docker-compose.yml` + `.env` +
-  `.gitignore`. Compose trong repo (nếu có) CHỈ dùng dev local.
-- Dữ liệu app: named volume (vd `<tên>_data`) — không bind-mount, không để trong container.
-- SSH NUC: `ssh thien25@thienminiserver` (key đã cài; user thuộc group docker).
+- GitHub repo: `thiengthb/<repo>`, deploy branch: `main`.
+- Every repo must have: a `Dockerfile` (with `EXPOSE <port>` + `HEALTHCHECK` where possible)
+  and `.github/workflows/deploy.yml` (standard: copy from a living ghcr app — `nuc-monitor` or `todo`).
+- On the NUC: an app lives at `/opt/apps/<name>/` with `docker-compose.yml` + `.env` +
+  `.gitignore`. The compose in the repo (if any) is for local dev ONLY.
+- App data: a named volume (e.g. `<name>_data`) — no bind-mount, not inside the container.
+- SSH NUC: `ssh thien25@thienminiserver` (key installed; user is in the docker group).
+- **Language = English everywhere for dev artifacts** (code, comments, `docs/*.md`, skills, specs,
+  commit messages). End-user-facing UI copy stays in the product's chosen language (e.g. Vietnamese for
+  `todo`); the in-app guide page is the one user-facing place exempt from the English rule.
 
-## Coding convention — BẮT BUỘC khi viết/sửa code mọi project
+## Coding convention — MANDATORY when writing/editing code in any project
 
-Trước khi viết code, scaffold frontend, hay commit ở BẤT KỲ project nào trong folder này,
-tuân theo skill **`/coding-convention`** (`.claude/skills/coding-convention/SKILL.md`). Tóm tắt
-các luật không thương lượng (chi tiết + checklist trong skill):
+Before writing code, scaffolding a frontend, or committing in ANY project in this folder,
+follow the skill **`/coding-convention`** (`.claude/skills/coding-convention/SKILL.md`). A summary of
+the non-negotiable rules (details + checklist in the skill):
 
-- **Git commit = Conventional Commits, tiếng Anh** (`feat(scope): ...`). Chỉ commit/push khi user yêu cầu.
-- **Naming:** thư mục & file kebab-case; component React PascalCase named-export với `<Name>Props`;
-  hàm/biến camelCase; type/interface PascalCase; hằng & env UPPER_SNAKE; cột DB/field API snake_case.
-  Comment tiếng Việt, code tiếng Anh. ESM everywhere, Node ≥ 22.
-- **Frontend = skill `/react-ui-craft`** (chuẩn kỹ thuật frontend chung — xem mục riêng ngay bên dưới).
-  Stack tham chiếu (đã chạy ở `todo`): Next.js App Router + React 19 + TS + shadcn/ui (style `radix-nova`,
-  CSS variables) + Tailwind v4 + **Motion v12** + Inter (sans, có subset vi) + Geist Mono + lucide + sonner +
-  next-themes, alias `@/`, helper `cn()`; data = Prisma + server actions, không Express riêng.
-- **Giao diện bắt buộc:** chỉ dùng component shadcn/ui (không tự viết thô); dark/light mode dùng CSS
-  variables — **không hardcode màu**; responsive mobile-first; toast bằng sonner, icon bằng lucide.
-- **React:** function component + hooks (Rules of Hooks, effect đủ dependency + cleanup, `key` ổn định,
-  state tối thiểu, đủ loading/error/empty) + quy ước chung (const/===/early-return/async-await, tránh `any`).
-- **Format = Prettier** (config chung: `semi:true`, singleQuote, printWidth 100, tabWidth 2, trailingComma all)
-  từ `.claude/skills/coding-convention/templates/`. Chạy `prettier --write` trước commit.
-- **Mỗi repo cài `commit-msg` hook** từ `.claude/skills/coding-convention/hooks/commit-msg` (ép Conventional
-  Commits + mô tả viết thường, tại máy) — cài ở bước khởi tạo repo cho MỌI project (đã cài cho `todo`).
+- **Git commit = Conventional Commits, in English** (`feat(scope): ...`). Commit/push only when the user asks.
+- **Naming:** directories & files kebab-case; React components PascalCase named-export with `<Name>Props`;
+  functions/variables camelCase; type/interface PascalCase; constants & env UPPER_SNAKE; DB columns/API fields snake_case.
+  Comments and code in English. ESM everywhere, Node ≥ 22.
+- **Frontend = skill `/react-ui-craft`** (the shared frontend engineering standard — see the dedicated section just below).
+  Reference stack (running in `todo`): Next.js App Router + React 19 + TS + shadcn/ui (style `radix-nova`,
+  CSS variables) + Tailwind v4 + **Motion v12** + Inter (sans, with a vi subset) + Geist Mono + lucide + sonner +
+  next-themes, alias `@/`, helper `cn()`; data = Prisma + server actions, no separate Express.
+- **Mandatory UI:** use only shadcn/ui components (don't hand-roll raw ones); dark/light mode via CSS
+  variables — **no hardcoded colors**; responsive mobile-first; toast via sonner, icons via lucide.
+- **React:** function components + hooks (Rules of Hooks, effects with full dependencies + cleanup, stable `key`,
+  minimal state, full loading/error/empty states) + general conventions (const/===/early-return/async-await, avoid `any`).
+- **Format = Prettier** (shared config: `semi:true`, singleQuote, printWidth 100, tabWidth 2, trailingComma all)
+  from `.claude/skills/coding-convention/templates/`. Run `prettier --write` before committing.
+- **Each repo installs the `commit-msg` + `pre-commit` hooks** from `.claude/skills/coding-convention/hooks/`
+  (commit-msg enforces Conventional Commits + lowercase description; pre-commit reminds to update docs) —
+  install at repo-init time for EVERY project (already installed for `todo`).
 
-## Frontend — chuẩn kỹ thuật chung BẮT BUỘC khi project có React/Next (skill `/react-ui-craft`)
+## Frontend — shared engineering standard, MANDATORY when a project has React/Next (skill `/react-ui-craft`)
 
-Mọi project có giao diện **React/Next** trong folder này tuân theo skill **`/react-ui-craft`**
-(`.claude/skills/react-ui-craft/` — `SKILL.md` + 5 reference: `architecture` / `components` / `motion` /
-`ux` / `security`). Đây là **chuẩn kỹ thuật frontend chung**; nó BỔ TRỢ `/coding-convention` (chia việc rõ:
-coding-convention lo naming + commit + Prettier + commit-msg hook; react-ui-craft lo kiến trúc + composition
-+ state + motion + UX states + security frontend). Mở việc frontend → đọc `SKILL.md` trước, mở reference khi
-cần. Skill này là **engineering** (build sao cho tốt); cảm hứng thị giác thuần (palette/typography/layout)
-dùng kèm skill `frontend-design` nếu có.
+Every project with a **React/Next** UI in this folder follows the skill **`/react-ui-craft`**
+(`.claude/skills/react-ui-craft/` — `SKILL.md` + 5 references: `architecture` / `components` / `motion` /
+`ux` / `security`). This is the **shared frontend engineering standard**; it COMPLEMENTS `/coding-convention`
+(clear division: coding-convention handles naming + commits + Prettier + commit-msg hook; react-ui-craft
+handles architecture + composition + state + motion + UX states + frontend security). Opening frontend work →
+read `SKILL.md` first, open a reference when needed. This skill is **engineering** (how to build it well);
+pure visual inspiration (palette/typography/layout) goes with the `frontend-design` skill if available.
 
-- **Stack chuẩn:** React 19 (Server Components, Actions, `use`, `useActionState`, `useOptimistic`,
-  ref-as-prop — KHÔNG `forwardRef`) + Next.js App Router *hoặc* React+Vite SPA (chốt sớm vì nó định hình
-  data layer + security) + Tailwind v4 (token qua `@theme` + OKLCH, KHÔNG `tailwind.config.js` trừ khi
-  plugin cần) + shadcn/ui (component bạn SỞ HỮU, theme qua CSS variables) + **Motion v12** (`motion`,
-  `import { motion } from "motion/react"`) + TypeScript. Stack khác (CSS Modules, MUI…) → GIỮ NGUYÊN TẮC,
-  dịch specifics, KHÔNG ép viết lại.
-- **Quy trình 7 bước (đúng thứ tự — bỏ plan là sinh ra component lộn xộn + spacing lệch):** ① khung 1 việc
-  của màn + nguồn data → ② plan cấu trúc trước khi code (ranh giới component, server/client) → ③ scaffold
-  HỆ THỐNG (token + primitive tái dùng) TRƯỚC màn hình → ④ build bằng composition (component nhỏ, props là
-  API, `cn()`) → ⑤ motion CUỐI cùng, có chủ đích → ⑥ xử lý MỌI state (loading/empty/error/optimistic/ideal)
-  → ⑦ tự soi theo quality floor + `references/security.md`.
-- **Quality floor (ship mặc định, KHÔNG cần ai nhắc):** accessible (semantic HTML, control có nhãn,
-  `focus-visible`, contrast ≥4.5:1, `aria-*` khi semantics thiếu) · responsive ≥360px mobile-first ·
-  motion-safe (tôn trọng `prefers-reduced-motion` mọi nơi có animation) · type-safe (no `any` ở boundary,
-  parse Zod thay vì cast) · performant (chỉ animate `transform`/`opacity`, lazy-load nặng, `LazyMotion` khi
-  cần) · secure.
-- **Security (đọc `references/security.md` TRƯỚC khi ship):** không secret trong client bundle (chỉ
-  `NEXT_PUBLIC_*`/`VITE_*` mới ra client — coi như công khai); không `dangerouslySetInnerHTML` chưa
-  sanitize; Server Action/Route Handler PHẢI auth + validate (Zod) phía server (đừng tin client); client
-  chỉ nhận DTO tối thiểu; `npm audit` sạch high/critical; không lộ stack trace ở production.
-- **Hai thói quen giữ chuẩn cao:** build cái tái dùng MỘT lần (đưa vào vốn component chung, không nhân
-  bản — nhất quán đọc ra "có thiết kế"); tự phê bình output như reviewer khó tính trước khi giao.
+- **Standard stack:** React 19 (Server Components, Actions, `use`, `useActionState`, `useOptimistic`,
+  ref-as-prop — NO `forwardRef`) + Next.js App Router *or* React+Vite SPA (decide early since it shapes the
+  data layer + security) + Tailwind v4 (tokens via `@theme` + OKLCH, NO `tailwind.config.js` unless a
+  plugin needs it) + shadcn/ui (components you OWN, theme via CSS variables) + **Motion v12** (`motion`,
+  `import { motion } from "motion/react"`) + TypeScript. A different stack (CSS Modules, MUI…) → KEEP THE
+  PRINCIPLES, translate the specifics, do NOT force a rewrite.
+- **7-step process (in order — skipping the plan produces messy components + uneven spacing):** ① frame the
+  screen's single job + data source → ② plan the structure before coding (component boundaries, server/client)
+  → ③ scaffold the SYSTEM (tokens + reusable primitives) BEFORE screens → ④ build by composition (small
+  components, props as API, `cn()`) → ⑤ motion LAST, with intent → ⑥ handle EVERY state
+  (loading/empty/error/optimistic/ideal) → ⑦ self-review against the quality floor + `references/security.md`.
+- **Quality floor (ship by default, NOBODY needs to remind you):** accessible (semantic HTML, labeled
+  controls, `focus-visible`, contrast ≥4.5:1, `aria-*` when semantics are missing) · responsive ≥360px mobile-first ·
+  motion-safe (respect `prefers-reduced-motion` wherever there's animation) · type-safe (no `any` at the boundary,
+  parse with Zod instead of casting) · performant (animate only `transform`/`opacity`, lazy-load heavy things,
+  `LazyMotion` when needed) · secure.
+- **Security (read `references/security.md` BEFORE shipping):** no secret in the client bundle (only
+  `NEXT_PUBLIC_*`/`VITE_*` reach the client — treat them as public); no unsanitized `dangerouslySetInnerHTML`;
+  a Server Action/Route Handler MUST auth + validate (Zod) on the server (don't trust the client); the client
+  receives only a minimal DTO; `npm audit` clean of high/critical; no stack trace exposed in production.
+- **Two habits that keep the bar high:** build the reusable thing ONCE (put it into the shared component
+  stock, don't duplicate — consistency reads as "designed"); self-critique your output like a tough reviewer before handing it off.
 
-## Tài liệu & tri thức — BẮT BUỘC cho mọi project (Knowledge OS)
+## In-app user guide — MANDATORY for every app with a UI (skill `/user-guide`)
 
-Chuẩn đầy đủ: **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (đọc khi đụng tài liệu). Mục đích: agent **hiểu một
-project trong 1 lần đọc rẻ tiền**, và tri thức non-obvious **tích lũy qua các session** thay vì tan biến.
+Every app with a frontend MUST ship an in-app guide page (route `/guide`), following the skill
+**`/user-guide`**. It is task-oriented (walk through screens + actions). **One dedicated tab per
+machine-facing integration**: if the app has a **Discord** bot/webhook → a Discord tab (setup, command
+table, notification types, troubleshooting); if it exposes an **MCP** server → an MCP tab (endpoint + auth,
+how to connect, tool table with examples, workflow/safety). Keep the tabs in sync with the code (a new
+command/tool ⇒ update the tab in the same change). Living reference: `todo/app/guide/page.tsx`.
 
-- **Đường nạp context — 3 nấc (bất biến):** `INVENTORY §0` (index) → `<project>/docs/00-map.md` (AI-primer
-  1 trang, LUÔN đọc đầu khi vào project) → `docs/` sâu + `docs/decisions.md` (chỉ khi task cần). `CLAUDE.md`
-  mỗi project giữ **thin** (rule + bất biến + con trỏ) — KHÔNG nhồi module map/luồng/spec vào (tốn context
-  vì auto-nạp mỗi turn); spec dày để ở `docs/`.
-- **Hai trụ cột mọi project đều có:** `docs/00-map.md` (bản chất · module map · luồng · điểm sáng · bất
-  biến · secrets) + `docs/decisions.md` (sổ tri thức: quyết định + bẫy + **vì sao**, append-only). web-app
-  thêm bộ `01-product`/`02-technical`/`03-user-guide` (tiered theo `kind` — xem 05 §3).
-- **Skill:** **`/project-docs`** sinh/đồng bộ doc-set (scaffold + audit drift) · **`/session-wrap`** chốt
-  phiên → ghi `decisions.md`, cập nhật `00-map`, thêm dòng `06-SO-TRI-THUC.md` nếu xuyên project. Bài học
-  **xuyên project** → index `nuc-platform/06-SO-TRI-THUC.md`; bẫy **hạ tầng** → `02-MO-XE-LOI`.
-- **Quy ước:** cuối một đợt sửa đáng kể → chạy `/session-wrap`; quyết định non-obvious → `decisions.md`
-  (đi cùng commit code). Pre-commit hook nhắc (non-blocking) khi code đổi mà docs không đụng.
+## Documentation & knowledge — MANDATORY for every project (Knowledge OS)
 
-## Khi tạo project mới / đưa project lên NUC
+Full standard: **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (read it when touching docs). Purpose: an agent
+**understands a project in one cheap read**, and non-obvious knowledge **accumulates across sessions**
+instead of evaporating.
 
-Dùng skill **`/nuc-new-project`** — nó chạy đúng quy trình: hỏi thông tin →
-Dockerfile → workflow → push & xác minh image → tạo `/opt/apps/<tên>` → nghiệm thu.
-Không tự chế quy trình khác.
+- **The context-loading path — 3 tiers (invariant):** `INVENTORY §0` (index) → `<project>/docs/00-map.md`
+  (AI-primer, 1 page, ALWAYS read first when entering a project) → `docs/` in depth + `docs/decisions.md`
+  (only when the task needs it). Each project's `CLAUDE.md` stays **thin** (rules + invariants + pointers) —
+  do NOT stuff the module map/flows/spec into it (it costs context since it auto-loads every turn); heavy
+  spec lives in `docs/`.
+- **Two pillars every project has:** `docs/00-map.md` (essence · module map · flows · highlights ·
+  invariants · secrets) + `docs/decisions.md` (knowledge log: decisions + traps + **why**, append-only). A
+  web-app adds the `01-product`/`02-technical`/`03-user-guide` set (tiered by `kind` — see 05 §3).
+- **Skills:** **`/project-docs`** generates/syncs the doc-set (scaffold + audit drift) · **`/session-wrap`**
+  wraps a session → write `decisions.md`, update `00-map`, add a line to `06-SO-TRI-THUC.md` if cross-project.
+  Cross-project lessons → the index `nuc-platform/06-SO-TRI-THUC.md`; **infrastructure** traps → `02-MO-XE-LOI`.
+- **Convention:** at the end of a substantial editing pass → run `/session-wrap`; a non-obvious decision →
+  `decisions.md` (in the same commit as the code). The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
-## Khi gỡ / khai tử một project
+## When creating a new project / bringing a project onto the NUC
 
-Dùng skill **`/nuc-remove-project`** — quy trình ngược của `nuc-new-project`: xóa code local →
-hạ container + volume + image + dir trên NUC → dọn Authentik (nếu có provider/group riêng) →
-xác minh subdomain 404 → cập nhật `INVENTORY.md` + `auth-apps.md` → hướng dẫn user xóa GitHub
-repo + ghcr. An toàn là trên hết: xác nhận mất dữ liệu + không ảnh hưởng service khác trước khi hạ.
+Use the skill **`/nuc-new-project`** — it runs the correct process: gather info →
+Dockerfile → workflow → push & verify image → create `/opt/apps/<name>` → acceptance.
+Don't improvise a different process.
 
-## Khi soát sức khỏe / dọn dẹp hệ thống
+## When removing / decommissioning a project
 
-Dùng skill **`/nuc-health-audit`** — đối chiếu `INVENTORY.md` với thực tế, bắt drift + orphan
-(volume mồ côi, dangling image, provider Authentik treo), kiểm mọi subdomain còn sống, Watchtower,
-đĩa/RAM, vệ sinh secret. Chỉ đọc & báo cáo; mọi thao tác phá hủy (xóa volume/image) phải hỏi user.
+Use the skill **`/nuc-remove-project`** — the reverse of `nuc-new-project`: delete local code →
+tear down container + volume + image + dir on the NUC → clean up Authentik (if it has its own provider/group) →
+verify the subdomain 404s → update `INVENTORY.md` + `auth-apps.md` → guide the user to delete the GitHub
+repo + ghcr. Safety first: confirm the data loss + no impact on other services before tearing down.
 
-## Khi cần bảo vệ app (đăng nhập / SSO / phân quyền)
+## When auditing system health / cleaning up
 
-Dùng skill **`/nuc-protect-app`** — login gate (forward-auth), giới hạn ai được vào (group
-policy), hoặc phân quyền trong app (header `X-authentik-groups`). Registry mọi provider/app
-+ các bẫy đã biết: repo `authentik/` (đặc biệt `authentik/docs/auth-apps.md`). Phân quyền in-app =
-đọc header `X-authentik-*` qua `headers()` trong Next.js (chưa có mẫu sống — app đầu tiên làm sẽ
-thành mẫu). Không tự chế cơ chế auth khác.
+Use the skill **`/nuc-health-audit`** — reconcile `INVENTORY.md` against reality, catch drift + orphans
+(orphan volume, dangling image, hanging Authentik provider), check every subdomain is alive, Watchtower,
+disk/RAM, secret hygiene. Read & report only; every destructive action (deleting a volume/image) must ask the user.
 
-## Khi web lỗi
+## When protecting an app (login / SSO / authorization)
 
-Debug theo tầng DNS → tunnel → traefik → app, dùng bảng triệu chứng trong
-`nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` mục 7. Không sửa mò khi chưa xác
-định request chết ở tầng nào.
+Use the skill **`/nuc-protect-app`** — login gate (forward-auth), restrict who can enter (group
+policy), or in-app authorization (the `X-authentik-groups` header). The registry of every provider/app
++ known traps: the `authentik/` repo (especially `authentik/docs/auth-apps.md`). In-app authorization =
+read the `X-authentik-*` headers via `headers()` in Next.js (no living example yet — the first app to do it
+becomes the reference). Don't improvise another auth mechanism.
+
+## When the web is broken
+
+Debug by layer DNS → tunnel → traefik → app, using the symptom table in
+`nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` section 7. Don't fix blindly before pinpointing
+which layer the request dies at.

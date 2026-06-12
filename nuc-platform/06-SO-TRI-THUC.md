@@ -1,46 +1,46 @@
-# 06 — Sổ tri thức xuyên project (index)
+# 06 — Cross-project knowledge log (index)
 
-> **Index** các bài học đáng nhớ của cả nền tảng — KHÔNG chép nội dung, chỉ **1 dòng/bài học + con trỏ**
-> về nơi đầy đủ. Hai nguồn: (a) bài học **xuyên nhiều project** (ghi thẳng ở đây), (b) bài học **riêng một
-> project** (sống ở `<project>/docs/decisions.md`, ở đây chỉ trỏ tới).
+> **Index** of the platform's memorable lessons — does NOT copy content, only **one line per lesson + a pointer**
+> to the full place. Two sources: (a) lessons **spanning multiple projects** (recorded right here), (b) lessons **for a single
+> project** (living in `<project>/docs/decisions.md`, only pointed to here).
 >
-> Lập 2026-06-12. Bồi đắp bởi skill `/session-wrap`. Chuẩn ghi: xem `05-TAI-LIEU-CHUAN.md §5`.
+> Established 2026-06-12. Built up by the `/session-wrap` skill. Recording standard: see `05-TAI-LIEU-CHUAN.md §5`.
 
 ---
 
-## Cách dùng
+## How to use
 
-- Vào một việc mới và muốn biết "đã từng vấp gì liên quan?" → quét bảng dưới, theo con trỏ tới chi tiết.
-- Học được điều gì **xuyên project** (áp cho ≥2 project, hoặc cho chính platform) → thêm 1 dòng mục A.
-- Học được điều gì **riêng 1 project** → ghi đầy đủ vào `<project>/docs/decisions.md`, rồi (nếu đáng
-  cho người khác biết) thêm 1 dòng trỏ ở mục B.
-- Bẫy cấp **hệ thống/hạ tầng** (Docker/Traefik/Watchtower/Authentik) KHÔNG vào đây — chỗ của chúng là
-  `02-MO-XE-LOI-HE-THONG-CU.md`. File này lo tri thức **phát triển/sản phẩm/quyết định**.
+- Starting something new and want to know "have we tripped on anything related?" → scan the table below, follow the pointer to the detail.
+- Learned something **cross-project** (applies to ≥2 projects, or to the platform itself) → add one line to section A.
+- Learned something **for a single project** → record it fully in `<project>/docs/decisions.md`, then (if worth others
+  knowing) add a pointer line in section B.
+- **System/infrastructure**-level traps (Docker/Traefik/Watchtower/Authentik) do NOT go here — their place is
+  `02-MO-XE-LOI-HE-THONG-CU.md`. This file handles **development/product/decision** knowledge.
 
 ---
 
-## A. Bài học xuyên project (nội dung ở đây)
+## A. Cross-project lessons (content here)
 
-| Ngày | Bài học (1 dòng) | Áp cho | Chi tiết |
+| Date | Lesson (one line) | Applies to | Detail |
 |------|------------------|--------|----------|
-| 2026-06-12 | **Tính ĐỘNG thay vì lưu cột phái sinh** (streak, delay, progress…) để tránh dữ liệu lệch khi nguồn đổi. | mọi app có thống kê | `todo/docs/02-technical.md §2` (bảng "Giá trị tính ĐỘNG") |
-| 2026-06-12 | **`CLAUDE.md` thin + spec dày tách sang `docs/`** — file auto-nạp đừng để phình, tốn context mỗi turn. | mọi project | `05-TAI-LIEU-CHUAN.md §2`; `todo/CLAUDE.md` (mẫu đã slim 641→327 dòng) |
-| 2026-06-12 | **Endpoint client-máy gọi (MCP/OAuth/webhook/health) KHÔNG được sau forward-auth** — tách router riêng, auth ở tầng app. | web-app có Authentik | `CLAUDE.md` bất biến #8; `coding-convention §9`; `authentik/docs/auth-apps.md` |
+| 2026-06-12 | **Compute DYNAMICALLY instead of storing derived columns** (streak, delay, progress…) to avoid stale data when the source changes. | every app with stats | `todo/docs/02-technical.md §2` (the "Dynamically computed values" table) |
+| 2026-06-12 | **`CLAUDE.md` thin + heavy spec split into `docs/`** — don't let the auto-loaded file bloat, it costs context every turn. | every project | `05-TAI-LIEU-CHUAN.md §2`; `todo/CLAUDE.md` (slimmed sample 641→327 lines) |
+| 2026-06-12 | **Endpoints called by client-machines (MCP/OAuth/webhook/health) must NOT sit behind forward-auth** — split into their own router, auth at the app layer. | web-app with Authentik | `CLAUDE.md` invariant #8; `coding-convention §9`; `authentik/docs/auth-apps.md` |
 
 ---
 
-## B. Con trỏ tới sổ tri thức từng project
+## B. Pointers to each project's knowledge log
 
-> Mỗi project có `docs/decisions.md` riêng (nếu đã lập). Bảng này chỉ là mục lục — đọc chi tiết ở file đó.
+> Each project has its own `docs/decisions.md` (if established). This table is just a table of contents — read the detail in that file.
 
-| Project | Sổ tri thức | Ghi chú |
-|---------|-------------|---------|
-| todo | `todo/docs/decisions.md` | _(sẽ lập ở Phase 1)_ |
-| journal | `journal/docs/decisions.md` | _(sẽ lập ở Phase 2)_ |
-| yakudoku | `yakudoku/docs/decisions.md` | _(sẽ lập ở Phase 2)_ |
-| jobhunter-bot | `jobhunter-bot/docs/decisions.md` | _(sẽ lập ở Phase 2)_ |
-| nuc-monitor | `nuc-monitor/docs/decisions.md` | _(sẽ lập ở Phase 2)_ |
-| nuc-ops-bot | `nuc-ops-bot/docs/decisions.md` | _(sẽ lập ở Phase 2)_ |
+| Project | Knowledge log | Notes |
+|---------|-------------|--------|
+| todo | `todo/docs/decisions.md` | _(to be established in Phase 1)_ |
+| journal | `journal/docs/decisions.md` | _(to be established in Phase 2)_ |
+| yakudoku | `yakudoku/docs/decisions.md` | _(to be established in Phase 2)_ |
+| jobhunter-bot | `jobhunter-bot/docs/decisions.md` | _(to be established in Phase 2)_ |
+| nuc-monitor | `nuc-monitor/docs/decisions.md` | _(to be established in Phase 2)_ |
+| nuc-ops-bot | `nuc-ops-bot/docs/decisions.md` | _(to be established in Phase 2)_ |
 
-> Khi một project lập `decisions.md`, đổi "_(sẽ lập…)_" thành ghi chú thật + ngày. Project chưa có dòng
-> ở đây mà đã có `decisions.md` → bổ sung dòng (việc của `/session-wrap`).
+> When a project establishes its `decisions.md`, change "_(to be established…)_" to a real note + the date. A project
+> without a line here that already has a `decisions.md` → add the line (the job of `/session-wrap`).

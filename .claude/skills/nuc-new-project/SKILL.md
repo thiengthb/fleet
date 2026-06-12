@@ -1,178 +1,178 @@
 ---
 name: nuc-new-project
-description: Đưa một project mới (hoặc project có sẵn trong MiniServer) lên NUC platform theo đúng quỹ đạo chuẩn - GitHub Actions build ghcr.io, Watchtower auto-pull, Traefik route, Cloudflare wildcard. Dùng khi user muốn tạo project mới, deploy project lên NUC/miniserver, thêm subdomain, hoặc "đưa app này lên server".
+description: Bring a new project (or an existing one in MiniServer) onto the NUC platform along the standard trajectory - GitHub Actions build ghcr.io, Watchtower auto-pull, Traefik route, Cloudflare wildcard. Use when the user wants to create a new project, deploy a project to the NUC/miniserver, add a subdomain, or "get this app onto the server".
 ---
 
-# Skill: Đưa project lên NUC platform
+# Skill: Bring a project onto the NUC platform
 
-Bạn sẽ đưa một project vào quỹ đạo deploy chuẩn của MiniServer. Làm TUẦN TỰ
-6 giai đoạn dưới, mỗi giai đoạn có mục KIỂM CHỨNG — chưa pass thì không đi tiếp.
-Các bất biến trong `D:\Projects\MiniServer\CLAUDE.md` là luật; nếu yêu cầu của
-user mâu thuẫn với bất biến, chỉ ra mâu thuẫn và hỏi lại trước khi làm.
+You will bring a project into MiniServer's standard deploy trajectory. Work SEQUENTIALLY
+through the 6 stages below; each stage has a VERIFICATION section — don't move on until it passes.
+The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law; if a user request
+conflicts with an invariant, point out the conflict and ask back before proceeding.
 
-SSH NUC: `ssh thien25@thienminiserver` (key đã cài). App đặt tại `/opt/apps/<tên>`.
+SSH NUC: `ssh thien25@thienminiserver` (key installed). App lives at `/opt/apps/<name>`.
 
-## Giai đoạn 0 — Thu thập thông tin (hỏi user nếu chưa rõ)
+## Stage 0 — Gather information (ask the user if unclear)
 
-Bắt buộc biết đủ 6 thứ trước khi tạo file:
+You must know all 6 things before creating any file:
 
-1. **Tên project** (kebab-case, vd `todo-app`) — dùng làm tên thư mục
-   `/opt/apps/<tên>`, container_name, tên router/service traefik.
-2. **Repo GitHub** — `thiengthb/<repo>`. Chưa có repo → tạo (hỏi public/private).
-3. **Framework & cổng nội bộ** app lắng nghe (Next.js=3000, Express thường
-   3000/3001, Vite static→nginx=80…). Đọc code để tự xác định trước, chỉ hỏi
-   khi không chắc.
-4. **Public hay nội bộ?** Public → subdomain nào (`<sub>.thientnse.site`)?
-   Kiểm tra subdomain chưa bị app khác dùng: grep `Host(` trong các
-   `/opt/apps/*/docker-compose.yml` trên NUC.
-5. **Có dữ liệu cần persist không?** (DB file, uploads…) → named volume
-   `<tên>_data` mount vào đâu trong container.
-6. **Biến môi trường runtime** nào cần (DB_URL, API key…)? Biến nào cần
-   **lúc build** (kiểu `VITE_*`, `NEXT_PUBLIC_*`)? → biến build phải đi qua
-   GitHub secret + build-arg, KHÔNG để được trong .env trên NUC.
+1. **Project name** (kebab-case, e.g. `todo-app`) — used as the directory name
+   `/opt/apps/<name>`, container_name, and the Traefik router/service name.
+2. **GitHub repo** — `thiengthb/<repo>`. No repo yet → create one (ask public/private).
+3. **Framework & internal port** the app listens on (Next.js=3000, Express usually
+   3000/3001, Vite static→nginx=80…). Read the code to determine it yourself first, only ask
+   when unsure.
+4. **Public or internal?** Public → which subdomain (`<sub>.thientnse.site`)?
+   Check the subdomain isn't already used by another app: grep `Host(` in the
+   `/opt/apps/*/docker-compose.yml` files on the NUC.
+5. **Any data that needs to persist?** (DB file, uploads…) → named volume
+   `<name>_data` mounted where in the container.
+6. **Which runtime environment variables** are needed (DB_URL, API key…)? Which are needed
+   **at build time** (like `VITE_*`, `NEXT_PUBLIC_*`)? → build-time variables must go through
+   a GitHub secret + build-arg, they CANNOT live in `.env` on the NUC.
 
-## Giai đoạn 0.5 — Chọn archetype (giảm boilerplate)
+## Stage 0.5 — Choose an archetype (reduce boilerplate)
 
-Từ mục đích + framework ở Giai đoạn 0, gắn project vào **một `kind`** (xem
-`nuc-platform/INVENTORY.md` §0). Mỗi `kind` có **implementation tham chiếu đang
-sống** — COPY từ nó thay vì viết lại; chỉ sửa chỗ khác biệt. (Không nhân bản
-template tĩnh trong skill → tránh drift; nguồn sự thật là app tham chiếu.)
+From the purpose + framework in Stage 0, attach the project to **one `kind`** (see
+`nuc-platform/INVENTORY.md` §0). Each `kind` has a **living reference implementation** —
+COPY from it instead of rewriting; only change what differs. (Don't duplicate a static
+template into the skill → avoids drift; the source of truth is the reference app.)
 
-| archetype | Tham chiếu (copy từ) | Lấy gì | Đặc thù |
+| archetype | Reference (copy from) | Take what | Specifics |
 |-----------|----------------------|--------|---------|
-| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + khai báo registry `@thiengthb` (ui-kit), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 label Traefik. Theo `/coding-convention` + `/react-ui-craft`. Bảo vệ = Authentik forward-auth (`/nuc-protect-app`). |
-| `python-worker` | `nuc-monitor/` | `Dockerfile` (python slim), `deploy.yml`, `requirements.txt` mẫu | Headless: **KHÔNG** Traefik/port. Nối `edge` chỉ nếu cần egress. |
-| `node-bot` | `jobhunter-bot/` | `Dockerfile` (node), `deploy.yml`, `package.json` (ESM, Node ≥22) | Headless worker Discord: KHÔNG Traefik. Secrets trong `.env` NUC. |
-| `monorepo` (→N image) | `yakudoku/` | CI **matrix** build N image từ 1 repo, layout `web/ core/ bot/`, compose nhiều service | 1 image là **writer DB duy nhất** nếu dùng SQLite; image nội bộ KHÔNG gắn label Traefik. |
-| `infra` (bên thứ 3) | `n8n/` hoặc `authentik/` | `docker-compose.yml` + `.env` | Image ghim version, **KHÔNG** label Watchtower; update = bump tag thủ công. Không CI build. |
+| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (ui-kit), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/nuc-protect-app`). |
+| `python-worker` | `nuc-monitor/` | `Dockerfile` (python slim), `deploy.yml`, sample `requirements.txt` | Headless: NO Traefik/port. Join `edge` only if egress is needed. |
+| `node-bot` | `jobhunter-bot/` | `Dockerfile` (node), `deploy.yml`, `package.json` (ESM, Node ≥22) | Headless Discord worker: NO Traefik. Secrets in NUC `.env`. |
+| `monorepo` (→N images) | `yakudoku/` | CI **matrix** building N images from 1 repo, layout `web/ core/ bot/`, compose with multiple services | One image is the **sole DB writer** if using SQLite; internal images do NOT get Traefik labels. |
+| `infra` (third-party) | `n8n/` or `authentik/` | `docker-compose.yml` + `.env` | Version-pinned image, NO Watchtower label; update = bump the tag manually. No CI build. |
 
-**Bắt buộc cho mọi archetype có CODE** (`web-app`/`worker`/`monorepo`): cài convention repo ngay
-(Giai đoạn 3 mục 0 — Prettier + commit-msg + pre-commit hook). Sau khi tạo project, **cập nhật
-`INVENTORY.md` §0** (thêm dòng kind/path) — chống drift, và **chạy `/project-docs scaffold`** để project
-sinh ra là đã có bộ tài liệu chuẩn (`docs/00-map.md` + `docs/decisions.md`, web-app thêm 01/02/03 — xem
+**Mandatory for every archetype with CODE** (`web-app`/`worker`/`monorepo`): install the repo conventions right away
+(Stage 3 item 0 — Prettier + commit-msg + pre-commit hook). After creating the project, **update
+`INVENTORY.md` §0** (add the kind/path row) — anti-drift, and **run `/project-docs scaffold`** so the project is
+born with the standard doc set (`docs/00-map.md` + `docs/decisions.md`, web-app adds 01/02/03 — see
 `nuc-platform/05-TAI-LIEU-CHUAN.md`). Born-documented.
 
-## Giai đoạn 1 — Dockerfile trong repo
+## Stage 1 — Dockerfile in the repo
 
-Nếu repo đã có Dockerfile: kiểm tra nó build được và `EXPOSE` đúng cổng, rồi
-sang giai đoạn 2. Chưa có → viết theo nguyên tắc:
+If the repo already has a Dockerfile: check it builds and `EXPOSE`s the right port, then
+go to stage 2. None yet → write one following these principles:
 
-- Multi-stage (deps → build → runner), image cuối nhỏ nhất có thể, `NODE_ENV=production`.
-- Chạy bằng user không-root nếu được (`USER node`).
-- `EXPOSE <port>` đúng cổng app nghe.
-- Nên có `HEALTHCHECK` (wget/curl endpoint health) — `docker ps` sẽ hiện (healthy).
-- Next.js: cần `output: 'standalone'` trong next.config; **mẫu sống: `todo/Dockerfile`**
-  (Next.js standalone multi-stage). App Python/khác: `nuc-monitor/Dockerfile`.
-- Tạo/kiểm tra `.dockerignore` (node_modules, .git, .env…).
+- Multi-stage (deps → build → runner), final image as small as possible, `NODE_ENV=production`.
+- Run as a non-root user if possible (`USER node`).
+- `EXPOSE <port>` for the exact port the app listens on.
+- Should have a `HEALTHCHECK` (wget/curl the health endpoint) — `docker ps` will show (healthy).
+- Next.js: needs `output: 'standalone'` in next.config; **living reference: `todo/Dockerfile`**
+  (Next.js standalone multi-stage). Python/other apps: `nuc-monitor/Dockerfile`.
+- Create/check `.dockerignore` (node_modules, .git, .env…).
 
-**KIỂM CHỨNG:** build thử local nếu máy dev có Docker; không có thì để CI
-build ở giai đoạn 3 làm bước kiểm.
+**VERIFICATION:** test-build locally if the dev machine has Docker; if not, let CI
+build in stage 3 act as the check.
 
-## Giai đoạn 2 — Workflow CI trong repo
+## Stage 2 — CI workflow in the repo
 
-Tạo `.github/workflows/deploy.yml` — chuẩn vàng là file cùng tên trong **mọi ghcr app còn
-sống**: `D:\Projects\MiniServer\nuc-monitor\.github\workflows\deploy.yml` (bản gọn, không
-build-arg) hoặc `todo\.github\workflows\deploy.yml`. Copy nguyên văn rồi chỉnh đúng 2 chỗ nếu cần:
+Create `.github/workflows/deploy.yml` — the gold standard is the file of the same name in **every
+living ghcr app**: `D:\Projects\MiniServer\nuc-monitor\.github\workflows\deploy.yml` (the lean version, no
+build-arg) or `todo\.github\workflows\deploy.yml`. Copy verbatim then adjust exactly 2 spots if needed:
 
-- `file:` — đường dẫn Dockerfile (bỏ nếu Dockerfile ở root).
-- `build-args:` — chỉ giữ nếu có biến build-time (giai đoạn 0 mục 6); nhớ
-  tạo secret tương ứng trên GitHub: repo → Settings → Secrets → Actions.
+- `file:` — the Dockerfile path (omit if the Dockerfile is at root).
+- `build-args:` — keep only if there are build-time variables (stage 0 item 6); remember to
+  create the corresponding secret on GitHub: repo → Settings → Secrets → Actions.
 
-Khung bắt buộc phải giữ nguyên: trigger `push: main` + `workflow_dispatch`,
-`permissions: packages: write`, login ghcr bằng `GITHUB_TOKEN`,
+The mandatory skeleton must stay intact: trigger `push: main` + `workflow_dispatch`,
+`permissions: packages: write`, ghcr login with `GITHUB_TOKEN`,
 metadata-action tag `latest` + `type=sha,prefix=,format=short`, cache `type=gha`,
-`concurrency` chống build chồng.
+`concurrency` to prevent overlapping builds.
 
-**KIỂM CHỨNG:** YAML hợp lệ (đọc lại file), không có secret hardcode.
+**VERIFICATION:** valid YAML (re-read the file), no hardcoded secrets.
 
-## Giai đoạn 3 — Push & xác minh image
+## Stage 3 — Push & verify the image
 
-0. **Setup convention cho repo** (nếu chưa): copy `.prettierrc` + `.prettierignore` từ
-   `.claude/skills/coding-convention/templates/` vào repo (`npm i -D prettier`, thêm script `format`),
-   và copy `hooks/commit-msg` + `hooks/pre-commit` vào `<repo>/.git/hooks/` (commit-msg ép Conventional
-   Commits; pre-commit nhắc cập nhật tài liệu — non-blocking). Mọi code phải theo skill `/coding-convention`.
-1. Commit (message tiếng Anh, kiểu `ci: build & push image to ghcr`) — **hỏi
-   user trước khi push** nếu đây là lần đầu đụng repo này trong phiên.
+0. **Set up repo conventions** (if not done): copy `.prettierrc` + `.prettierignore` from
+   `.claude/skills/coding-convention/templates/` into the repo (`npm i -D prettier`, add the `format` script),
+   and copy `hooks/commit-msg` + `hooks/pre-commit` into `<repo>/.git/hooks/` (commit-msg enforces Conventional
+   Commits; pre-commit reminds to update docs — non-blocking). All code must follow the `/coding-convention` skill.
+1. Commit (English message, like `ci: build & push image to ghcr`) — **ask the
+   user before pushing** if this is the first time touching this repo in the session.
 2. `git push origin main`.
-3. Theo dõi build: poll `https://api.github.com/repos/thiengthb/<repo>/actions/runs?per_page=1`
-   (status/conclusion) hoặc poll image từ NUC:
+3. Watch the build: poll `https://api.github.com/repos/thiengthb/<repo>/actions/runs?per_page=1`
+   (status/conclusion) or poll the image from the NUC:
    `docker manifest inspect ghcr.io/thiengthb/<repo>:latest`.
-4. Build fail → đọc annotation qua API check-runs. Các lỗi đã biết:
-   - "account is locked due to a billing issue" → user phải gỡ ở
-     github.com/settings/billing; tạm thời build tay trên NUC (xem tài liệu 02 mục 4.5).
-   - fail ở bước push image → repo Settings → Actions → Workflow permissions
+4. Build fails → read the annotations via the API check-runs. Known errors:
+   - "account is locked due to a billing issue" → the user must clear it at
+     github.com/settings/billing; temporarily build by hand on the NUC (see doc 02 item 4.5).
+   - fails at the push-image step → repo Settings → Actions → Workflow permissions
      → Read and write.
 
-**KIỂM CHỨNG:** `docker manifest inspect ghcr.io/thiengthb/<repo>:latest`
-chạy từ NUC trả về OK.
+**VERIFICATION:** `docker manifest inspect ghcr.io/thiengthb/<repo>:latest`
+run from the NUC returns OK.
 
-## Giai đoạn 4 — Khai báo app trên NUC
+## Stage 4 — Declare the app on the NUC
 
-Tạo `/opt/apps/<tên>/` với 3 file. Mẫu compose (điền các chỗ `<...>`):
+Create `/opt/apps/<name>/` with 3 files. Compose template (fill in the `<...>` spots):
 
 ```yaml
-name: <tên>
+name: <name>
 
 services:
   app:
     image: ghcr.io/thiengthb/<repo>:latest
-    container_name: <tên>
+    container_name: <name>
     restart: unless-stopped
     env_file:
       - .env
     networks:
       - edge
-    # CHỈ thêm volumes nếu app có dữ liệu persist:
+    # ONLY add volumes if the app has persistent data:
     volumes:
-      - app_data:/<đường-dẫn-data-trong-container>
+      - app_data:/<data-path-in-container>
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-      # --- 4 dòng PUBLIC: xoá hết nếu app chỉ chạy nội bộ ---
+      # --- 4 PUBLIC lines: delete them all if the app is internal-only ---
       - "traefik.enable=true"
-      - "traefik.http.routers.<tên>.rule=Host(`<sub>.thientnse.site`)"
-      - "traefik.http.routers.<tên>.entrypoints=web"
-      - "traefik.http.services.<tên>.loadbalancer.server.port=<PORT>"
+      - "traefik.http.routers.<name>.rule=Host(`<sub>.thientnse.site`)"
+      - "traefik.http.routers.<name>.entrypoints=web"
+      - "traefik.http.services.<name>.loadbalancer.server.port=<PORT>"
 
 networks:
   edge:
     external: true
 
-# CHỈ khi có volume:
+# ONLY when there is a volume:
 volumes:
   app_data:
-    name: <tên>_data
+    name: <name>_data
 ```
 
-- `.env`: các biến runtime thật (chmod 600). `.gitignore`: chứa `.env`.
-- App KHÔNG có khối `ports:` — vi phạm bất biến #2.
-- Tên router/service traefik phải duy nhất toàn NUC (trùng là route đè nhau
-  im lặng) — đã kiểm ở giai đoạn 0 mục 4.
+- `.env`: the real runtime variables (chmod 600). `.gitignore`: contains `.env`.
+- The app has NO `ports:` block — that would violate invariant #2.
+- The Traefik router/service name must be unique across the whole NUC (a duplicate silently
+  overrides routes) — already checked in stage 0 item 4.
 
-Rồi: `cd /opt/apps/<tên> && docker compose up -d`.
+Then: `cd /opt/apps/<name> && docker compose up -d`.
 
-**KIỂM CHỨNG:** `docker compose ps` Up (healthy nếu có HEALTHCHECK);
-logs không lỗi.
+**VERIFICATION:** `docker compose ps` Up (healthy if there's a HEALTHCHECK);
+logs show no errors.
 
-## Giai đoạn 5 — Nghiệm thu (bắt buộc đủ 4, app public thì đủ 5)
+## Stage 5 — Acceptance (all 4 required, 5 for a public app)
 
 ```bash
-# ① App nằm trong edge cùng traefik:
+# ① App is on edge alongside traefik:
 docker network inspect edge --format '{{range .Containers}}{{.Name}} {{end}}'
-# ② Traefik đã nhận route (app public):
-curl -s -H "Host: traefik.localhost" http://127.0.0.1:8080/api/http/routers | grep <tên>
-# ③ URL public sống:
+# ② Traefik has picked up the route (public app):
+curl -s -H "Host: traefik.localhost" http://127.0.0.1:8080/api/http/routers | grep <name>
+# ③ Public URL is alive:
 curl -s -o /dev/null -w "%{http_code}" https://<sub>.thientnse.site   # → 200
-# ④ Watchtower nhìn thấy app (chờ ≤70s):
-docker logs watchtower --since 2m | tail -2    # Scanned tăng, Failed=0
-# ⑤ (khuyến nghị) Chu trình tự động trọn vẹn: push 1 commit nhỏ,
-#    xác nhận watchtower log "Found new image ... Stopping ... Started"
+# ④ Watchtower sees the app (wait ≤70s):
+docker logs watchtower --since 2m | tail -2    # Scanned goes up, Failed=0
+# ⑤ (recommended) The full automatic cycle: push a small commit,
+#    confirm the watchtower log "Found new image ... Stopping ... Started"
 ```
 
-Lỗi ở bước nào → bảng debug `nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` mục 7.
-Không pass nghiệm thu thì KHÔNG báo hoàn thành với user.
+A failure at any step → the debug table in `nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` section 7.
+If acceptance doesn't pass, do NOT report completion to the user.
 
-## Giai đoạn 6 — Báo cáo
+## Stage 6 — Report
 
-Tóm tắt cho user: URL (nếu public), vị trí file trên NUC, image+tag hiện tại,
-cách rollback (ghim tag SHA), biến env nào đang trống cần user điền. Nhắc:
-từ giờ chỉ cần `git push origin main`.
+Summarize for the user: URL (if public), file location on the NUC, current image+tag,
+how to roll back (pin the SHA tag), which env variables are empty and need the user to fill them in. Remind:
+from now on it's just `git push origin main`.

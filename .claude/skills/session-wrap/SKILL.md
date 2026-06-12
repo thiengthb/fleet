@@ -1,60 +1,60 @@
 ---
 name: session-wrap
-description: Chốt một phiên làm việc trên project MiniServer — rút tri thức non-obvious của phiên (quyết định kiến trúc + bẫy + lý do) ghi vào docs/decisions.md, cập nhật docs/00-map.md nếu module map đổi, thêm 1 dòng vào nuc-platform/06-SO-TRI-THUC.md nếu bài học xuyên project, và gợi ý memory cá nhân. Mục đích — khiến session sau thông minh hơn. Dùng khi user nói "chốt phiên", "wrap up", "ghi lại những gì học được", "cập nhật tài liệu sau khi xong", hoặc cuối một đợt sửa đáng kể.
+description: Wrap up a work session on a MiniServer project — extract the session's non-obvious knowledge (architecture decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to nuc-platform/06-SO-TRI-THUC.md if the lesson spans projects, and suggest personal memory. Purpose — make the next session smarter. Use when the user says "wrap up the session", "wrap up", "record what we learned", "update the docs now that we're done", or at the end of a significant editing pass.
 ---
 
-# Skill: Chốt phiên & tích lũy tri thức (session-wrap)
+# Skill: Wrap up the session & accumulate knowledge (session-wrap)
 
-Đây là cơ chế **compounding**: biến những gì vừa làm trong phiên thành tri thức committed để session sau
-đọc được. Chuẩn ghi + chỗ ghi theo `nuc-platform/05-TAI-LIEU-CHUAN.md §5–§6`. Chạy ở CUỐI một đợt làm
-việc đáng kể (không phải mỗi sửa lặt vặt).
+This is the **compounding** mechanism: turn what was just done in the session into committed knowledge the next session
+can read. The recording standard + where to record follow `nuc-platform/05-TAI-LIEU-CHUAN.md §5–§6`. Run at the END of a significant
+work pass (not after every little edit).
 
-Nguyên tắc lọc: **chỉ ghi cái non-obvious** — thứ mà nếu session sau không biết sẽ *lặp lại sai lầm /
-phá một bất biến / tốn công dò lại*. Cái code và `git log` đã tự nói (đổi tên, fix typo, thêm field hiển
-nhiên) → KHÔNG ghi.
+Filtering principle: **only record the non-obvious** — the thing that, if the next session didn't know it, would lead to *repeating a mistake /
+breaking an invariant / wasting effort re-deriving it*. What the code and `git log` already say (renames, typo fixes, adding an
+obvious field) → do NOT record.
 
-## Bước 1 — Xác định phạm vi phiên
+## Step 1 — Determine the session scope
 
-- Project nào (thư mục dưới `MiniServer/`)? Tra `kind` ở `INVENTORY §0`.
-- Phiên này đã làm gì? Dựa vào: thay đổi đang có (`git status`/`git diff --stat`), các commit mới của
-  phiên, và mạch hội thoại. Tóm tắt thầm 3–6 gạch đầu dòng "đã thay đổi gì".
+- Which project (directory under `MiniServer/`)? Look up the `kind` in `INVENTORY §0`.
+- What did this session do? Based on: the pending changes (`git status`/`git diff --stat`), the session's new
+  commits, and the conversation thread. Silently summarize 3–6 bullets of "what changed".
 
-## Bước 2 — Rút quyết định/bẫy → `docs/decisions.md`
+## Step 2 — Extract decisions/pitfalls → `docs/decisions.md`
 
-Với mỗi điều non-obvious của phiên, hỏi 4 câu rồi viết 1 mục (mới nhất LÊN ĐẦU, đúng khung §5):
+For each non-obvious thing in the session, ask 4 questions then write one entry (newest ON TOP, following the §5 skeleton):
 
-- **Bối cảnh** — vì sao phải quyết định?
-- **Chốt / Bẫy** — đã chọn gì / bẫy là gì?
-- **Vì sao** — lý do + phương án đã loại (phần quý nhất).
-- **Liên quan** — `file:line`, `[[mục-khác]]`, `INVENTORY §n`.
+- **Context** — why was the decision needed?
+- **Decision / Pitfall** — what was chosen / what is the pitfall?
+- **Why** — the reasoning + the options ruled out (the most valuable part).
+- **Related** — `file:line`, `[[other-entry]]`, `INVENTORY §n`.
 
-Nếu project chưa có `docs/decisions.md` → tạo từ `project-docs/templates/decisions.md` trước (hoặc chạy
-`/project-docs scaffold`). Không có gì non-obvious trong phiên → nói rõ "phiên này không sinh tri thức
-mới đáng ghi" và bỏ qua, ĐỪNG bịa mục cho có.
+If the project has no `docs/decisions.md` yet → create it from `project-docs/templates/decisions.md` first (or run
+`/project-docs scaffold`). If nothing in the session was non-obvious → say clearly "this session produced no new knowledge
+worth recording" and skip it, do NOT fabricate an entry for the sake of it.
 
-## Bước 3 — Cập nhật `docs/00-map.md` nếu cần
+## Step 3 — Update `docs/00-map.md` if needed
 
-Phiên có thêm/xóa/đổi vai module, route, model, hoặc luồng chính, hoặc đổi một bất biến/secret? → cập
-nhật mục tương ứng của `00-map` (§3 module map, §4 luồng, §6 bất biến, §7 secrets). Map phải khớp code
-sau phiên. Không đổi gì cấu trúc → để nguyên.
+Did the session add/remove/change a module role, route, model, or main flow, or change an invariant/secret? → update
+the corresponding section of `00-map` (§3 module map, §4 flows, §6 invariants, §7 secrets). The map must match the code
+after the session. No structural change → leave it as is.
 
-## Bước 4 — Bài học xuyên project → `06-SO-TRI-THUC.md`
+## Step 4 — Cross-project lesson → `06-SO-TRI-THUC.md`
 
-Tri thức này áp cho **≥2 project** hoặc cho **chính platform**? → thêm 1 dòng vào mục A của
-`nuc-platform/06-SO-TRI-THUC.md` (ngày · bài học 1 dòng · áp cho · con trỏ chi tiết). Nếu project lần
-đầu lập `decisions.md` → thêm/sửa con trỏ ở mục B.
+Does this knowledge apply to **≥2 projects** or to **the platform itself**? → add one line to section A of
+`nuc-platform/06-SO-TRI-THUC.md` (date · one-line lesson · applies to · pointer to detail). If the project is creating its
+`decisions.md` for the first time → add/edit the pointer in section B.
 
-> Bẫy cấp **hạ tầng** (Docker/Traefik/Watchtower/Authentik) KHÔNG vào 06 — ghi
-> `02-MO-XE-LOI-HE-THONG-CU.md`. Vòng đời app (thêm/gỡ/đổi domain) → `INVENTORY.md`.
+> An **infrastructure**-level pitfall (Docker/Traefik/Watchtower/Authentik) does NOT go in 06 — record it in
+> `02-MO-XE-LOI-HE-THONG-CU.md`. App lifecycle (add/remove/change domain) → `INVENTORY.md`.
 
-## Bước 5 — Memory cá nhân (chỉ khi đúng loại)
+## Step 5 — Personal memory (only when it's the right kind)
 
-Nếu trong phiên user bộc lộ **sở thích / cách muốn làm việc** (không phải tri thức về code) → cân nhắc
-ghi memory cá nhân (`~/.claude/.../memory`) theo quy ước memory. Tri thức *về project* thì KHÔNG cho vào
-memory — nó thuộc `decisions.md`. (Phân vai: xem `05-TAI-LIEU-CHUAN.md §6`.)
+If during the session the user revealed a **preference / way they want to work** (not knowledge about code) → consider
+recording personal memory (`~/.claude/.../memory`) per the memory convention. Knowledge *about the project* does NOT go into
+memory — it belongs in `decisions.md`. (Role split: see `05-TAI-LIEU-CHUAN.md §6`.)
 
-## Bước 6 — Báo cáo (KHÔNG tự commit/push)
+## Step 6 — Report (do NOT commit/push automatically)
 
-Liệt kê gọn: mục nào đã thêm vào `decisions.md`, `00-map` sửa gì, có thêm dòng `06` không, memory nào
-(nếu có). Các thay đổi tài liệu này nên đi **cùng commit với code của phiên** (theo gợi ý pre-commit
-hook) — nhưng **chỉ commit/push khi user yêu cầu**. Nếu user muốn commit, gợi ý gộp docs vào commit code.
+List concisely: which entry was added to `decisions.md`, what `00-map` changed, whether a `06` line was added, which memory
+(if any). These doc changes should go **in the same commit as the session's code** (per the pre-commit hook's
+suggestion) — but **only commit/push when the user asks**. If the user wants to commit, suggest folding the docs into the code commit.

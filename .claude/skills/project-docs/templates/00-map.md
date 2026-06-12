@@ -1,55 +1,55 @@
 <!--
-  TEMPLATE docs/00-map.md — AI-primer. Chuẩn: nuc-platform/05-TAI-LIEU-CHUAN.md §4.
-  Điền nội dung THẬT của project; xóa mọi dòng <!-- hướng dẫn --> và placeholder <...> trước khi lưu.
-  Mục tiêu: ≤ ~1 trang, đọc xong nắm project mà chưa mở code. Ưu tiên bảng + cây + gạch đầu dòng.
+  TEMPLATE docs/00-map.md — AI-primer. Standard: nuc-platform/05-TAI-LIEU-CHUAN.md §4.
+  Fill in the project's REAL content; delete every <!-- guidance --> line and <...> placeholder before saving.
+  Goal: ≤ ~1 page, after reading it you grasp the project without opening code. Prefer tables + trees + bullets.
 -->
 
-# <tên project> — Bản đồ
+# <project name> — Map
 
-> Một câu: <app này là gì, cho ai>. `kind`: <web-app|monorepo|worker|infra|meta>. Deploy: <domain hoặc "headless (không Traefik)"> · NUC `/opt/apps/<tên>`.
+> One line: <what this app is, for whom>. `kind`: <web-app|monorepo|worker|infra|meta>. Deploy: <domain or "headless (no Traefik)"> · NUC `/opt/apps/<name>`.
 
-## 1. Bản chất
+## 1. Essence
 
-<2–4 dòng: vấn đề nó giải · giá trị cốt lõi · điều KHÔNG phải mục tiêu của nó.>
+<2–4 lines: the problem it solves · its core value · what is NOT its goal.>
 
 ## 2. Stack
 
-| Lớp | Công nghệ |
+| Layer | Technology |
 |-----|-----------|
 | Framework | <...> |
-| UI | <... hoặc "headless"> |
+| UI | <... or "headless"> |
 | Data | <...> |
-| AI / ngoài | <...> |
-| Deploy | <Docker → ghcr → Watchtower → Traefik … hoặc đặc thù worker/infra> |
+| AI / external | <...> |
+| Deploy | <Docker → ghcr → Watchtower → Traefik … or worker/infra specifics> |
 
 ## 3. Module map / entry points
 
 ```
-<cây thư mục RÚT GỌN — chỉ phần quan trọng, mỗi dòng kèm "làm gì">
+<ABBREVIATED directory tree — only the important parts, each line with "what it does">
 ```
 
-## 4. Luồng chính
+## 4. Main flows
 
-<1–3 luồng quan trọng nhất, mỗi luồng đánh số vài bước. Ghi thẳng bẫy / trust-boundary nếu có.>
+<1–3 most important flows, each numbered into a few steps. Note pitfalls / trust boundaries inline if any.>
 
-## 5. Điểm sáng
+## 5. Highlights
 
-- <cái khéo / non-obvious đáng biết: tính ĐỘNG thay vì lưu cột? trust boundary server recompute? topo nhiều image? …>
+- <the clever / non-obvious bit worth knowing: computed DYNAMICALLY instead of stored column? trust boundary server recompute? multi-image topology? …>
 
-## 6. Bất biến
+## 6. Invariants
 
-- <luật KHÔNG được phá khi sửa project này — cô đọng từ CLAUDE.md + platform; mỗi dòng 1 bất biến.>
+- <rules that must NOT be broken when editing this project — distilled from CLAUDE.md + platform; one invariant per line.>
 
 ## 7. Secrets / env
 
-| Biến | Dùng để | Nằm ở | Build-time? |
+| Variable | Used for | Located in | Build-time? |
 |------|---------|-------|-------------|
-| `<TÊN>` | <...> | <.env NUC / GitHub Secret / Variable> | <có/không> |
+| `<NAME>` | <...> | <.env NUC / GitHub Secret / Variable> | <yes/no> |
 
-> Chỉ ghi TÊN biến, KHÔNG ghi giá trị.
+> Record variable NAMES only, NOT values.
 
-## 8. Đọc thêm
+## 8. Further reading
 
-- Chi tiết kỹ thuật: `docs/02-technical.md` <hoặc "(không có — xem code")>
-- Vì sao + bẫy: `docs/decisions.md`
-- Hạ tầng/deploy: `INVENTORY.md §<n>` · skill liên quan: `/<...>`
+- Technical details: `docs/02-technical.md` <or "(none — see code)">
+- Why + pitfalls: `docs/decisions.md`
+- Infra/deploy: `INVENTORY.md §<n>` · related skill: `/<...>`

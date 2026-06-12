@@ -1,145 +1,145 @@
 ---
 name: nuc-protect-app
-description: Bảo vệ một app trên NUC platform bằng Authentik SSO (yêu cầu đăng nhập qua forward-auth, giới hạn ai được truy cập theo group, hoặc phân quyền trong app). Dùng khi user nói "bảo vệ project/app này", "bắt đăng nhập mới vào được", "chỉ tôi/nhóm X được truy cập", "gắn SSO/Authentik", hoặc thêm một app vào sau IdP.
+description: Protect an app on the NUC platform with Authentik SSO (require login via forward-auth, restrict who can access by group, or authorize within the app). Use when the user says "protect this project/app", "require login to get in", "only me/group X can access", "add SSO/Authentik", or to put an app behind the IdP.
 ---
 
-# Skill: Bảo vệ app bằng Authentik (NUC platform)
+# Skill: Protect an app with Authentik (NUC platform)
 
-Authentik là IdP trung tâm tại `https://auth.thientnse.site` (`/opt/apps/authentik`).
-Tài liệu sống: repo `authentik/` (đặc biệt `authentik/docs/auth-apps.md` — registry mọi
-provider/app, CẬP NHẬT sau mỗi lần dùng skill này) và `authentik/README.md`.
-Các bất biến trong `D:\Projects\MiniServer\CLAUDE.md` mục "Authentik" là luật.
+Authentik is the central IdP at `https://auth.thientnse.site` (`/opt/apps/authentik`).
+Living docs: the `authentik/` repo (especially `authentik/docs/auth-apps.md` — the registry of every
+provider/app, UPDATE it after each use of this skill) and `authentik/README.md`.
+The invariants in `D:\Projects\MiniServer\CLAUDE.md` under the "Authentik" section are law.
 
-SSH NUC: `ssh thien25@thienminiserver`. App ở `/opt/apps/<tên>`.
+SSH NUC: `ssh thien25@thienminiserver`. App at `/opt/apps/<name>`.
 
-## Khái niệm (đọc 1 lần)
+## Concepts (read once)
 
-- **Forward-auth = gác ở BIÊN.** Traefik gọi Authentik trước khi request tới app. Chưa
-  đăng nhập → 302 sang `auth.thientnse.site`. Sau khi đăng nhập, Traefik tiêm header
-  `X-authentik-email|username|groups|...` vào request. App KHÔNG cần code auth.
-- Traefik ở đây **chỉ có docker provider** (không file provider) → middleware forward-auth
-  khai báo bằng LABEL trên `authentik-server`, tham chiếu là **`authentik@docker`**.
-- **2 tầng bảo vệ, chọn theo nhu cầu:**
-  1. **Login gate** (mặc định): chỉ cần gắn middleware `authentik@docker` → bất kỳ user
-     Authentik nào đăng nhập đều vào được. Đủ cho hầu hết app nội bộ.
-  2. **Giới hạn AI được vào** (chặn cả user đã đăng nhập nếu không thuộc nhóm): app có
-     **provider `forward_single` riêng + application riêng + policy gắn group**. Khớp host
-     chính xác thắng provider `forward_domain` chung → policy của app này có hiệu lực.
-- **Phân quyền TRONG app** (đọc/ghi, role) = app tự đọc header `X-authentik-groups` Traefik tiêm vào
-  (trong Next.js: `headers()` ở Server Component / route handler / server action).
-- **OIDC (login trong app, không phải gác biên)** chỉ dùng khi app thực sự cần phiên OIDC
-  riêng (hiếm) → xem guide §4 (Auth.js + Authentik), tạo OAuth2/OpenID Provider.
-- ⛔ **TUYỆT ĐỐI không gắn forward-auth lên endpoint mà client máy (script/cron/ollama/
-  webhook) gọi tự động** — sẽ bị redirect HTML và hỏng. Endpoint máy: để router riêng
-  KHÔNG middleware, hoặc dùng API token Authentik / client_credentials.
+- **Forward-auth = gating at the EDGE.** Traefik calls Authentik before the request reaches the app. Not
+  logged in → 302 to `auth.thientnse.site`. After login, Traefik injects the
+  `X-authentik-email|username|groups|...` headers into the request. The app needs NO auth code.
+- Traefik here **only has the docker provider** (no file provider) → the forward-auth middleware is
+  declared via a LABEL on `authentik-server`, referenced as **`authentik@docker`**.
+- **2 protection tiers, choose per need:**
+  1. **Login gate** (default): just attach the `authentik@docker` middleware → any Authentik
+     user who logs in can get in. Enough for most internal apps.
+  2. **Restrict who can enter** (block even a logged-in user who isn't in the group): the app has
+     **its own `forward_single` provider + its own application + a policy attached to a group**. An exact host
+     match beats the shared `forward_domain` provider → this app's policy takes effect.
+- **Authorization WITHIN the app** (read/write, role) = the app reads the `X-authentik-groups` header Traefik injects
+  (in Next.js: `headers()` in a Server Component / route handler / server action).
+- **OIDC (login inside the app, not edge gating)** is only for when the app truly needs its own OIDC
+  session (rare) → see guide §4 (Auth.js + Authentik), create an OAuth2/OpenID Provider.
+- ⛔ **NEVER attach forward-auth to an endpoint that a machine client (script/cron/ollama/
+  webhook) calls automatically** — it would get redirected to HTML and break. Machine endpoints: a separate router
+  with NO middleware, or use an Authentik API token / client_credentials.
 
-## Giai đoạn 0 — Xác định mức bảo vệ (hỏi user nếu chưa rõ)
+## Stage 0 — Determine the protection level (ask the user if unclear)
 
-1. App đã chạy public trên NUC chưa? (có router `Host(...)` trong `/opt/apps/<tên>/docker-compose.yml`).
-   Chưa → chạy skill `nuc-new-project` trước, rồi quay lại.
-2. Mức nào?
-   - **(A) Chỉ cần đăng nhập** (bất kỳ user Authentik) → Giai đoạn 2.
-   - **(B) Chỉ một số người/nhóm** được vào → Giai đoạn 2 + 3.
-   - **(C) Phân quyền chi tiết trong app** (đọc/ghi…) → 2 (+3 nếu cần) + 4, và app phải sửa code.
-3. Có endpoint nào client MÁY gọi tự động không? → tách router riêng, KHÔNG middleware (xem Khái niệm).
+1. Is the app already running public on the NUC? (has a `Host(...)` router in `/opt/apps/<name>/docker-compose.yml`).
+   No → run the `nuc-new-project` skill first, then come back.
+2. Which level?
+   - **(A) Login only** (any Authentik user) → Stage 2.
+   - **(B) Only certain people/groups** can enter → Stage 2 + 3.
+   - **(C) Fine-grained authorization within the app** (read/write…) → 2 (+3 if needed) + 4, and the app's code must change.
+3. Is there any endpoint a MACHINE client calls automatically? → split it into a separate router, NO middleware (see Concepts).
 
-## Chuẩn bị — token + ID (mọi giai đoạn API dùng)
+## Preparation — token + ID (used by every API stage)
 
 ```bash
 ssh thien25@thienminiserver
-T=$(grep '^AUTHENTIK_BOOTSTRAP_TOKEN=' /opt/apps/authentik/.env | cut -d= -f2-)  # token admin
+T=$(grep '^AUTHENTIK_BOOTSTRAP_TOKEN=' /opt/apps/authentik/.env | cut -d= -f2-)  # admin token
 B=https://auth.thientnse.site/api/v3
 H=(-H "Authorization: Bearer $T" -H "Content-Type: application/json")
-# Flow PK (ổn định, nhưng nên fetch lại cho chắc):
+# Flow PKs (stable, but best to re-fetch to be sure):
 AUTHZ=$(curl -s "${H[@]}" "$B/flows/instances/default-provider-authorization-implicit-consent/" | jq -r .pk)
 INVAL=$(curl -s "${H[@]}" "$B/flows/instances/default-provider-invalidation-flow/" | jq -r .pk)
 OUTPOST=$(curl -s "${H[@]}" "$B/outposts/instances/?page_size=20" | jq -r '.results[]|select(.name|test("Embedded";"i")).pk')
 ```
 
-## Giai đoạn 2 — Login gate (gắn middleware)
+## Stage 2 — Login gate (attach the middleware)
 
-Sửa `/opt/apps/<tên>/docker-compose.yml`, thêm vào router của app (giữ backup `.pre-authentik.bak`):
+Edit `/opt/apps/<name>/docker-compose.yml`, add to the app's router (keep a backup `.pre-authentik.bak`):
 
 ```yaml
-- "traefik.http.routers.<tên>.middlewares=authentik@docker"
+- "traefik.http.routers.<name>.middlewares=authentik@docker"
 ```
-Rồi `cd /opt/apps/<tên> && docker compose up -d`.
+Then `cd /opt/apps/<name> && docker compose up -d`.
 
-**KIỂM CHỨNG:** `curl -sS -o /dev/null -w "%{http_code} %{redirect_url}\n" https://<sub>.thientnse.site/`
-→ **302** sang `auth.thientnse.site/application/o/authorize/...`. Nếu 404 ngay sau recreate:
-chờ container healthy rồi thử lại (Traefik bỏ route trong lúc recreate).
+**VERIFICATION:** `curl -sS -o /dev/null -w "%{http_code} %{redirect_url}\n" https://<sub>.thientnse.site/`
+→ **302** to `auth.thientnse.site/application/o/authorize/...`. If 404 right after recreate:
+wait for the container to be healthy then retry (Traefik drops the route during recreate).
 
-> Nếu chỉ cần mức (A): xong, sang Giai đoạn 6.
+> If only level (A) is needed: done, go to Stage 6.
 
-## Giai đoạn 3 — Giới hạn ai được vào (app riêng + group policy)
+## Stage 3 — Restrict who can enter (own app + group policy)
 
-Tạo provider `forward_single` + application + group + policy binding, rồi gắn vào outpost:
+Create a `forward_single` provider + application + group + policy binding, then attach to the outpost:
 
 ```bash
-# 1) Provider riêng cho app (khớp host chính xác → thắng provider domain chung)
+# 1) Own provider for the app (exact host match → beats the shared domain provider)
 PPK=$(curl -s "${H[@]}" -X POST "$B/providers/proxy/" -d "$(jq -n --arg a "$AUTHZ" --arg i "$INVAL" \
-  '{name:"<tên>",authorization_flow:$a,invalidation_flow:$i,mode:"forward_single",external_host:"https://<sub>.thientnse.site"}')" | jq -r .pk)
+  '{name:"<name>",authorization_flow:$a,invalidation_flow:$i,mode:"forward_single",external_host:"https://<sub>.thientnse.site"}')" | jq -r .pk)
 # 2) Application
-APK=$(curl -s "${H[@]}" -X POST "$B/core/applications/" -d "$(jq -n --argjson p "$PPK" '{name:"<Tên>",slug:"<tên>",provider:$p}')" | jq -r .pk)
-# 3) Group + thêm thành viên (lấy user pk: curl "$B/core/users/?username=<email>")
-GPK=$(curl -s "${H[@]}" -X POST "$B/core/groups/" -d '{"name":"<tên>-access"}' | jq -r .pk)
+APK=$(curl -s "${H[@]}" -X POST "$B/core/applications/" -d "$(jq -n --argjson p "$PPK" '{name:"<Name>",slug:"<name>",provider:$p}')" | jq -r .pk)
+# 3) Group + add members (get the user pk: curl "$B/core/users/?username=<email>")
+GPK=$(curl -s "${H[@]}" -X POST "$B/core/groups/" -d '{"name":"<name>-access"}' | jq -r .pk)
 for uid in <pk1> <pk2>; do curl -s "${H[@]}" -X POST "$B/core/groups/$GPK/add_user/" -d "{\"pk\":$uid}" -o /dev/null -w "%{http_code}\n"; done
-# 4) Policy binding: chỉ group này được mở app
+# 4) Policy binding: only this group may open the app
 curl -s "${H[@]}" -X POST "$B/policies/bindings/" -d "$(jq -n --arg t "$APK" --arg g "$GPK" '{target:$t,group:$g,order:0,enabled:true,negate:false}')" | jq -c '{pk,enabled}'
-# 5) Gắn provider vào embedded outpost (GỘP với providers cũ, đừng ghi đè)
+# 5) Attach the provider to the embedded outpost (MERGE with existing providers, don't overwrite)
 CUR=$(curl -s "${H[@]}" "$B/outposts/instances/$OUTPOST/")
 NEW=$(echo "$CUR" | jq -c --argjson p "$PPK" '(.providers//[])+[$p]|unique')
 curl -s "${H[@]}" -X PATCH "$B/outposts/instances/$OUTPOST/" -d "{\"providers\":$NEW}" | jq -c '{providers}'
 ```
 
-**KIỂM CHỨNG:** chờ ~8s (outpost reload config) → `curl` app vẫn 302; rồi xem log để chắc
-ĐÚNG provider của app đang xử lý (không phải provider domain chung):
+**VERIFICATION:** wait ~8s (outpost reloads config) → `curl` the app, still 302; then check the log to be sure
+the CORRECT provider for the app is handling it (not the shared domain provider):
 ```bash
 curl -s -o /dev/null https://<sub>.thientnse.site/
 docker logs authentik-server --since 30s 2>&1 | grep "<sub>.thientnse" | tail -1 \
-  | jq -r '"provider="+.name+" status="+(.status|tostring)'   # phải là provider="<tên>"
+  | jq -r '"provider="+.name+" status="+(.status|tostring)'   # must be provider="<name>"
 ```
-Deny user-không-thuộc-group chỉ kiểm chứng trọn vẹn được khi đăng nhập bằng trình duyệt
-(báo user test); cấu trúc đúng là đủ điều kiện.
+Denying a user-not-in-the-group can only be fully verified by logging in with a browser
+(tell the user to test); the correct structure is a sufficient condition.
 
-## Giai đoạn 4 — Phân quyền trong app (chỉ khi cần mức C)
+## Stage 4 — Authorization within the app (only when level C is needed)
 
-App đọc header Traefik tiêm vào (fail-closed nếu thiếu `X-authentik-email`):
-- `X-authentik-email` = khóa user ổn định (dùng làm khóa liên kết user, theo bất biến #8).
-- `X-authentik-groups` = chuỗi ngăn bằng `|` → map sang quyền của app.
+The app reads the headers Traefik injects (fail-closed if `X-authentik-email` is missing):
+- `X-authentik-email` = the stable user key (used as the user linking key, per invariant #8).
+- `X-authentik-groups` = a `|`-separated string → map to the app's permissions.
 
-Trong **Next.js** (stack chuẩn hiện tại): đọc bằng `headers()` trong Server Component / route
-handler / server action; tập trung logic ở `lib/auth.ts` (hàm `getUser()` đọc email + groups,
-trả về `null` → fail-closed). Map group → quyền (vd `<tên>:write` ⇒ đọc+ghi, `:read` ⇒ chỉ đọc).
-Nút đăng xuất: redirect tới `/outpost.goauthentik.io/sign_out` (đường dẫn trên CHÍNH domain app,
-outpost xử lý). KHÔNG hardcode URL IdP cũ; cần thì đọc từ env `AUTHENTIK_URL=https://auth.thientnse.site`.
-> Chưa có app nào đang đọc header để phân quyền (mẫu cũ `link-manager` đã gỡ; `todo` chỉ gác ở
-> proxy theo group `todo-access`, không phân quyền in-app). App đầu tiên làm mức C → tạo `lib/auth.ts`
-> theo mô tả trên và cập nhật làm mẫu sống mới ở đây.
+In **Next.js** (the current standard stack): read with `headers()` in a Server Component / route
+handler / server action; centralize the logic in `lib/auth.ts` (a `getUser()` function reads email + groups,
+returns `null` → fail-closed). Map group → permission (e.g. `<name>:write` ⇒ read+write, `:read` ⇒ read-only).
+Sign-out button: redirect to `/outpost.goauthentik.io/sign_out` (a path on the app's OWN domain,
+handled by the outpost). Do NOT hardcode the old IdP URL; if needed read it from env `AUTHENTIK_URL=https://auth.thientnse.site`.
+> No app currently reads headers for authorization (the old `link-manager` reference was removed; `todo` only gates at the
+> proxy by the `todo-access` group, no in-app authorization). The first app to do level C → create `lib/auth.ts`
+> per the description above and update it as the new living reference here.
 
-Đổi code app → commit + push → CI build → trên NUC `docker compose pull && up -d` (đồng bộ
-1 nhịp: image mới + env + middleware).
+Change the app's code → commit + push → CI build → on the NUC `docker compose pull && up -d` (sync in
+one beat: new image + env + middleware).
 
-## Giai đoạn 5 — Báo cáo + cập nhật registry
+## Stage 5 — Report + update the registry
 
-1. Cập nhật `authentik/docs/auth-apps.md` (bảng app + chi tiết provider/group), commit & push
-   repo `authentik`.
-2. Báo user: app được bảo vệ mức nào, group nào được vào, cách cấp quyền thêm (add user vào
-   group trong Authentik admin), và nhắc test đăng nhập trình duyệt 1 lần.
+1. Update `authentik/docs/auth-apps.md` (the app table + provider/group details), commit & push the
+   `authentik` repo.
+2. Tell the user: which level the app is protected at, which group can enter, how to grant more access (add a user to the
+   group in the Authentik admin), and remind them to test a browser login once.
 
-## Bẫy đã biết (đừng vấp lại)
+## Known pitfalls (don't trip again)
 
-- **Network dùng chung là `edge`** (đã xác minh; `infrastructure` trong compose dev-local là
-  rác). Authentik server phải ở `edge` để Traefik gọi được + thấy middleware.
-- **Embedded outpost redirect về `localhost`** nếu thiếu `authentik_host` + `authentik_host_browser`
-  = `https://auth.thientnse.site` (đã set sẵn; nếu dựng lại Authentik phải set lại).
-- **OAuth/redirect URL ra `http://`** do Cloudflare cắt TLS rồi Traefik ghi đè
-  `X-Forwarded-Proto=http`. Đã fix bằng label trên router authentik:
+- **The shared network is `edge`** (verified; `infrastructure` in the dev-local compose is
+  junk). The Authentik server must be on `edge` so Traefik can call it + see the middleware.
+- **The embedded outpost redirects to `localhost`** if `authentik_host` + `authentik_host_browser`
+  = `https://auth.thientnse.site` is missing (already set; if rebuilding Authentik, set it again).
+- **OAuth/redirect URL comes out as `http://`** because Cloudflare terminates TLS then Traefik overwrites
+  `X-Forwarded-Proto=http`. Fixed with a label on the authentik router:
   `traefik.http.middlewares.authentik-xfp.headers.customrequestheaders.X-Forwarded-Proto=https`
-  + `routers.authentik.middlewares=authentik-xfp@docker`. Provider Google cần thêm redirect URI
-  `https://auth.thientnse.site/source/oauth/callback/<slug>/` ở Google Cloud Console.
-- **Outpost cần ~5–10s** nạp provider/config mới sau khi tạo qua API — chờ rồi mới kiểm chứng.
-- **404 ngay sau `docker compose up -d`** = cửa sổ recreate, Traefik chưa đăng ký lại route;
-  chờ healthy.
-- **Authentik KHÔNG để Watchtower tự nâng** (no label) — update là thủ công, bump `AUTHENTIK_TAG`.
-- Liên kết user theo **email** (`user_matching_mode=email_link` cho source) để không tạo trùng.
+  + `routers.authentik.middlewares=authentik-xfp@docker`. The Google provider also needs the redirect URI
+  `https://auth.thientnse.site/source/oauth/callback/<slug>/` in the Google Cloud Console.
+- **The outpost needs ~5–10s** to load a new provider/config after creating it via the API — wait before verifying.
+- **404 right after `docker compose up -d`** = the recreate window, Traefik hasn't re-registered the route;
+  wait for healthy.
+- **Authentik is NOT auto-upgraded by Watchtower** (no label) — updates are manual, bump `AUTHENTIK_TAG`.
+- Link users by **email** (`user_matching_mode=email_link` for the source) to avoid creating duplicates.

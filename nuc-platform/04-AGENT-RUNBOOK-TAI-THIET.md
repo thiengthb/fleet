@@ -1,192 +1,192 @@
-# TÀI LIỆU 4 — RUNBOOK CHO AI AGENT: TÁI THIẾT NUC PLATFORM SAU RESET
+# DOCUMENT 4 — AI AGENT RUNBOOK: REBUILDING THE NUC PLATFORM AFTER A RESET
 
-> **Người đọc file này là AI agent (Claude Code), không phải con người.**
+> **The reader of this file is an AI agent (Claude Code), not a human.**
 >
-> Khi user (Teruhiro) nói đại loại: *"NUC của tôi bị reset rồi, dựng lại hệ
-> thống theo runbook đi"* — hãy đọc TOÀN BỘ file này trước khi chạy lệnh đầu
-> tiên, rồi thực hiện tuần tự. File này là phiên bản dành-cho-agent của
-> `03-SETUP-FROM-SCRATCH.md`: cùng đích đến, nhưng ghi rõ **cái gì agent tự
-> làm được, cái gì phải nhờ user, hỏi user câu gì, và kiểm chứng thế nào**.
+> When the user (Teruhiro) says something like: *"My NUC got reset, rebuild the system
+> per the runbook"* — read this ENTIRE file before running the first command,
+> then carry it out sequentially. This file is the agent-oriented version of
+> `03-SETUP-FROM-SCRATCH.md`: same destination, but spelling out **what the agent can do
+> on its own, what it must ask the user for, what to ask the user, and how to verify**.
 >
-> Hai tài liệu nền bắt buộc đọc kèm (cùng thư mục):
-> - `01-KIEN-TRUC-VA-VAN-HANH.md` — kiến trúc đích cần đạt.
-> - `02-MO-XE-LOI-HE-THONG-CU.md` — các bẫy đã từng gây lỗi. KHÔNG lặp lại chúng.
+> Two foundational documents to read alongside (same directory):
+> - `01-KIEN-TRUC-VA-VAN-HANH.md` — the target architecture to reach.
+> - `02-MO-XE-LOI-HE-THONG-CU.md` — the traps that have caused failures. Do NOT repeat them.
 
 ---
 
-## 0. LUẬT LÀM VIỆC (không thương lượng)
+## 0. WORKING RULES (non-negotiable)
 
-1. **Tuần tự từng PHASE, dừng ở mỗi 🛑 CHECKPOINT** chờ user xác nhận/cung cấp
-   thông tin. Không nhảy cóc.
-2. **Mọi lệnh phá huỷ (`down`, `rm`, `prune`, ghi đè file) phải liệt kê chính
-   xác thứ bị ảnh hưởng và hỏi trước** — kể cả khi máy "mới reset" (có thể user
-   đã kịp cài thứ gì đó, hoặc reset không sạch như họ nghĩ).
-3. **Secrets**: token/PAT/key chỉ được ghi vào `.env` chmod 600 trên NUC.
-   Không echo secrets ra log/chat trừ khi user tự dán vào. Mọi thư mục chứa
-   `.env` phải có `.gitignore` chứa `.env`.
-4. Lệnh lỗi → dừng, đọc log, chẩn đoán, đề xuất — không đoán mò chạy tiếp.
-5. Sau mỗi phase: tóm tắt ngắn đã làm gì + phase kế tiếp là gì.
-6. Kiểm tra memory của bạn (`MEMORY.md` của project này) — có thể chứa thông
-   tin mới hơn file này (token đổi, version đổi…). Mâu thuẫn → tin memory mới
-   hơn, và hỏi user khi nghi ngờ.
+1. **Sequentially, one PHASE at a time, stop at every 🛑 CHECKPOINT** to wait for the user to
+   confirm/provide information. No jumping ahead.
+2. **Every destructive command (`down`, `rm`, `prune`, overwriting files) must list the exact
+   things affected and ask first** — even when the machine is "freshly reset" (the user may have
+   already installed something, or the reset wasn't as clean as they think).
+3. **Secrets**: tokens/PATs/keys may only be written into `.env` chmod 600 on the NUC.
+   Do not echo secrets to the log/chat unless the user pastes them in themselves. Every directory
+   holding a `.env` must have a `.gitignore` containing `.env`.
+4. A command fails → stop, read the log, diagnose, propose — do not blindly guess and keep going.
+5. After each phase: a short summary of what was done + what the next phase is.
+6. Check your memory (this project's `MEMORY.md`) — it may hold newer information
+   than this file (token changed, version changed…). On conflict → trust the newer
+   memory, and ask the user when in doubt.
 
 ---
 
-## 1. ĐÁNH GIÁ TÌNH HUỐNG TRƯỚC TIÊN (Phase 0)
+## 1. ASSESS THE SITUATION FIRST (Phase 0)
 
-Hỏi user / tự kiểm để xác định **mức độ mất mát** — quyết định phải làm phase nào:
+Ask the user / self-check to determine the **extent of the loss** — this decides which phases to run:
 
-| Câu hỏi | Nếu CÒN | Nếu MẤT |
+| Question | If PRESENT | If LOST |
 |---|---|---|
-| NUC còn SSH được không? (`Test-NetConnection thienminiserver -Port 22`) | Sang kiểm tra tiếp | Nhờ user cài OS + OpenSSH + Tailscale (họ có `03-SETUP-FROM-SCRATCH.md` bước 1–3) |
-| SSH key của máy dev còn ăn không? (`ssh -o BatchMode=yes thien25@thienminiserver "echo OK"`) | Bỏ qua mục 2.2 | Làm mục 2.2 (bootstrap SSH) |
-| Docker trên NUC? (`docker --version`) | Ghi lại version — **nếu ≥ 29 thì mọi ràng buộc API trong file này áp dụng** | User cài: `curl -fsSL https://get.docker.com \| sudo sh` + `usermod -aG docker thien25` |
-| Cloudflare tunnel cũ còn không? (hỏi user, hoặc xem dashboard) | Chỉ cần token, KHÔNG đụng DNS | Phase 4 phải làm thêm phần tạo tunnel + sửa DNS wildcard |
-| Repo GitHub + workflow còn không? | (Gần như chắc chắn còn — reset NUC không ảnh hưởng GitHub) Bỏ qua phía repo | Xem `03` Phụ lục B |
-| Backup volume dữ liệu có không? (hỏi user) | Restore ở Phase 5 TRƯỚC khi up app | App khởi đầu DB trống — nói rõ cho user biết |
+| Is the NUC still SSH-able? (`Test-NetConnection thienminiserver -Port 22`) | Move on to the next check | Ask the user to install OS + OpenSSH + Tailscale (they have `03-SETUP-FROM-SCRATCH.md` steps 1–3) |
+| Does the dev machine's SSH key still work? (`ssh -o BatchMode=yes thien25@thienminiserver "echo OK"`) | Skip section 2.2 | Do section 2.2 (bootstrap SSH) |
+| Docker on the NUC? (`docker --version`) | Note the version — **if ≥ 29, all the API constraints in this file apply** | User installs: `curl -fsSL https://get.docker.com \| sudo sh` + `usermod -aG docker thien25` |
+| Does the old Cloudflare tunnel still exist? (ask the user, or check the dashboard) | Only need the token, do NOT touch DNS | Phase 4 must also do the tunnel-create + DNS-wildcard-fix part |
+| Do the GitHub repo + workflow still exist? | (Almost certainly yes — resetting the NUC doesn't affect GitHub) Skip the repo side | See `03` Appendix B |
+| Is there a backup of the data volume? (ask the user) | Restore in Phase 5 BEFORE bringing the app up | The app starts with an empty DB — tell the user clearly |
 
-🛑 **CHECKPOINT 0** — Trình bày bảng đánh giá đã điền cho user, chốt danh sách
-phase sẽ chạy. Chờ đồng ý.
+🛑 **CHECKPOINT 0** — Present the filled-in assessment table to the user, confirm the list of
+phases to run. Wait for agreement.
 
 ---
 
-## 2. KẾT NỐI TỪ MÁY DEV (Phase 1)
+## 2. CONNECT FROM THE DEV MACHINE (Phase 1)
 
-### 2.1. Thông tin chuẩn (xác nhận lại với user nếu khác)
-- Host: `thienminiserver` (Tailscale, từng là `100.126.231.94`)
-- User: `thien25` (thuộc group `docker`, có sudo; password sudo = password user — user sẽ cung cấp nếu cần)
-- Máy dev: Windows, làm việc tại `D:\Projects\MiniServer\`
+### 2.1. Standard info (re-confirm with the user if different)
+- Host: `thienminiserver` (Tailscale, was once `100.126.231.94`)
+- User: `thien25` (in the `docker` group, has sudo; sudo password = user password — the user will provide it if needed)
+- Dev machine: Windows, working in `D:\Projects\MiniServer\`
 
-### 2.2. Bootstrap SSH key (chỉ khi key chưa ăn)
-Máy dev là Windows PowerShell 5.1, **không có sshpass**. Cách đã kiểm chứng
-hoạt động (phiên 2026-06-07):
+### 2.2. Bootstrap the SSH key (only when the key doesn't work yet)
+The dev machine is Windows PowerShell 5.1, **no sshpass**. The verified working method
+(session 2026-06-07):
 
 ```powershell
-# 1. Tạo key nếu chưa có:
+# 1. Create the key if it doesn't exist:
 ssh-keygen -t ed25519 -N '""' -f "$env:USERPROFILE\.ssh\id_ed25519" -C "claude-code@windows"
-# 2. Cài Posh-SSH để xác thực password MỘT lần (hỏi user lấy password):
+# 2. Install Posh-SSH to authenticate with the password ONCE (ask the user for the password):
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser
 Install-Module Posh-SSH -Scope CurrentUser -Force -AllowClobber
-# 3. Dùng New-SSHSession + Invoke-SSHCommand append pubkey vào ~/.ssh/authorized_keys
+# 3. Use New-SSHSession + Invoke-SSHCommand to append the pubkey to ~/.ssh/authorized_keys
 #    (mkdir -p ~/.ssh; chmod 700; chmod 600 authorized_keys)
 ```
-Hoặc đơn giản hơn: nhờ user chạy `! type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh thien25@thienminiserver "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"` và nhập password.
+Or more simply: ask the user to run `! type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh thien25@thienminiserver "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"` and enter the password.
 
-**✅ KIỂM CHỨNG:** `ssh -o BatchMode=yes thien25@thienminiserver "echo OK; groups"`
-→ `OK` + group có `docker`.
+**✅ VERIFY:** `ssh -o BatchMode=yes thien25@thienminiserver "echo OK; groups"`
+→ `OK` + the groups include `docker`.
 
-> Lưu ý vận hành: chạy lệnh dài trên NUC qua `ssh thien25@thienminiserver '<lệnh>'`
-> bằng tool Bash (Git Bash) sẽ đỡ lỗi quoting hơn PowerShell. Tránh template Go
-> có `$` trong PowerShell — nó nuốt biến.
+> Operational note: running long commands on the NUC via `ssh thien25@thienminiserver '<command>'`
+> with the Bash tool (Git Bash) avoids quoting errors better than PowerShell. Avoid Go templates
+> with `$` in PowerShell — it swallows the variables.
 
 ---
 
-## 3. KHẢO SÁT & DỌN NỀN (Phase 2 — chỉ khi NUC không sạch hoàn toàn)
+## 3. SURVEY & CLEAN THE GROUND (Phase 2 — only when the NUC isn't completely clean)
 
-Chạy bộ lệnh CHỈ ĐỌC, báo cáo cho user:
+Run the READ-ONLY command set, report to the user:
 ```bash
 docker ps -a ; docker network ls ; docker compose ls -a ; docker volume ls
-docker network inspect edge 2>/dev/null || echo "edge chưa có"
+docker network inspect edge 2>/dev/null || echo "edge does not exist yet"
 ```
-Có rác cũ → liệt kê chính xác thứ định xoá, **🛑 hỏi xác nhận**, rồi mới
-`down`/`rm`/`prune -f` (KHÔNG `-a`, KHÔNG `--volumes` trừ khi user duyệt).
-**Volume nào tên `*_data` tuyệt đối giữ** trừ khi user nói bỏ.
+Old junk present → list exactly what you intend to delete, **🛑 ask for confirmation**, only then
+`down`/`rm`/`prune -f` (NOT `-a`, NOT `--volumes` unless the user approves).
+**Any volume named `*_data` is absolutely kept** unless the user says to drop it.
 
 ---
 
-## 4. DỰNG HẠ TẦNG (Phase 3–4)
+## 4. STAND UP THE INFRASTRUCTURE (Phases 3–4)
 
-Nội dung file **nguyên văn** lấy ở `03-SETUP-FROM-SCRATCH.md` Bước 6 và 8 —
-KHÔNG chế lại từ trí nhớ. Trình tự và những điểm agent hay sai:
+The file content **verbatim** comes from `03-SETUP-FROM-SCRATCH.md` Steps 6 and 8 —
+do NOT reconstruct it from memory. The sequence and the points agents often get wrong:
 
 ### 4.1. `/opt/infra` (traefik + cloudflared)
 ```bash
 sudo mkdir -p /opt/infra /opt/apps && sudo chown -R thien25:thien25 /opt/infra /opt/apps
-# (sudo qua SSH không tty: dùng `echo <password> | sudo -S ...` — xin password từ user)
+# (sudo over SSH without a tty: use `echo <password> | sudo -S ...` — ask the user for the password)
 ```
-- Viết `docker-compose.yml` theo `03` Bước 6.2. **Traefik PHẢI ≥ v3.7** —
-  đây là bài học xương máu số 1 (tài liệu 02 mục 2): bản cũ pin Docker API 1.24,
-  Docker ≥ 29 từ chối → provider chết im lặng, route 404 toàn tập, env
-  `DOCKER_API_VERSION` KHÔNG cứu được traefik (đã thử, thất bại).
-- 🛑 **CHECKPOINT token**: hỏi user lấy `TUNNEL_TOKEN` (Cloudflare One →
-  Tunnels → Configure). Ghi vào `/opt/infra/.env` chmod 600. Nếu user còn
-  `.env` backup thì dùng lại.
-- `docker compose up -d` rồi **✅ KIỂM CHỨNG**:
+- Write `docker-compose.yml` per `03` Step 6.2. **Traefik MUST be ≥ v3.7** —
+  this is hard lesson #1 (Document 02 section 2): the old version pins Docker API 1.24,
+  Docker ≥ 29 rejects it → the provider dies silently, every route 404, the
+  `DOCKER_API_VERSION` env does NOT save traefik (tried, failed).
+- 🛑 **token CHECKPOINT**: ask the user for the `TUNNEL_TOKEN` (Cloudflare One →
+  Tunnels → Configure). Write it into `/opt/infra/.env` chmod 600. If the user still has a
+  `.env` backup, reuse it.
+- `docker compose up -d` then **✅ VERIFY**:
   - `docker logs cloudflared | grep -c "Registered tunnel connection"` ≥ 1
-  - `docker logs traefik --tail 20` **không có ERR** (có "client version ... too old" = image sai)
-  - `curl -s -H "Host: traefik.localhost" http://127.0.0.1:8080/api/http/routers` trả JSON có router dashboard → provider sống.
+  - `docker logs traefik --tail 20` **has no ERR** ("client version ... too old" = wrong image)
+  - `curl -s -H "Host: traefik.localhost" http://127.0.0.1:8080/api/http/routers` returns JSON with the dashboard router → the provider is alive.
 
-### 4.2. Cloudflare (chỉ khi tunnel/DNS thay đổi)
-Agent không tự làm được dashboard (trừ khi user đưa API token có quyền
-Zone.DNS:Edit + Tunnel:Edit). Hướng dẫn user theo `03` Bước 7:
+### 4.2. Cloudflare (only when the tunnel/DNS changes)
+The agent can't do the dashboard on its own (unless the user provides an API token with
+Zone.DNS:Edit + Tunnel:Edit). Guide the user per `03` Step 7:
 wildcard hostname `*.thientnse.site → http://traefik:80` + DNS
-`CNAME * → <TUNNEL-ID>.cfargotunnel.com` (proxied), xoá record lẻ trỏ tunnel cũ.
+`CNAME * → <TUNNEL-ID>.cfargotunnel.com` (proxied), delete per-host records pointing at the old tunnel.
 
-**✅ KIỂM CHỨNG (quan trọng — phân biệt được 3 trạng thái):**
-`curl -s -o /dev/null -w "%{http_code}" https://vu-vo-bat-ky.thientnse.site`
-- `404` = ĐẠT (chuỗi thông, traefik trả 404 vì chưa có app)
-- `530` = DNS trỏ tunnel-id sai (bài học số 2, tài liệu 02 mục 3)
-- timeout = DNS chưa lan / tunnel chưa chạy
+**✅ VERIFY (important — distinguishes the 3 states):**
+`curl -s -o /dev/null -w "%{http_code}" https://any-random.thientnse.site`
+- `404` = PASS (chain open, traefik returns 404 because no app yet)
+- `530` = DNS points at the wrong tunnel-id (lesson #2, Document 02 section 3)
+- timeout = DNS hasn't propagated / tunnel isn't running
 
 ### 4.3. Watchtower
-- 🛑 Nhờ user login ghcr trên NUC: `echo '<PAT read:packages>' | docker login ghcr.io -u thiengthb --password-stdin` (hoặc user dán PAT cho agent chạy).
-- Viết `/opt/infra/watchtower.yml` theo `03` Bước 8.2. **3 chi tiết sống còn**
-  (mỗi cái là một lỗi đã dính thật, tài liệu 02 mục 4):
-  1. `name: watchtower` ở đầu file (thiếu → chung project với infra → `--remove-orphans` xoá nhầm traefik).
-  2. `DOCKER_API_VERSION=1.44` trong env (thiếu → watchtower chết: "client version 1.25 is too old").
-  3. Mount **thư mục** `/home/thien25/.docker:/config:ro` + `DOCKER_CONFIG=/config` (mount file lẻ → re-login là watchtower mù credential, lỗi 403 "auth not present").
-- **✅ KIỂM CHỨNG:** chờ ~70s, `docker logs watchtower | tail -3` →
-  `Session done Failed=0 Scanned=0` (Scanned=0 đúng vì chưa có app gắn label).
+- 🛑 Ask the user to login to ghcr on the NUC: `echo '<PAT read:packages>' | docker login ghcr.io -u thiengthb --password-stdin` (or the user pastes the PAT for the agent to run).
+- Write `/opt/infra/watchtower.yml` per `03` Step 8.2. **3 critical details**
+  (each one is an error actually hit, Document 02 section 4):
+  1. `name: watchtower` at the top of the file (missing → same project as infra → `--remove-orphans` deletes traefik by accident).
+  2. `DOCKER_API_VERSION=1.44` in env (missing → watchtower dies: "client version 1.25 is too old").
+  3. Mount **the directory** `/home/thien25/.docker:/config:ro` + `DOCKER_CONFIG=/config` (mounting a single file → re-login makes watchtower blind to the credential, 403 "auth not present").
+- **✅ VERIFY:** wait ~70s, `docker logs watchtower | tail -3` →
+  `Session done Failed=0 Scanned=0` (Scanned=0 is correct because no app carries a label yet).
 
 ---
 
-## 5. KHÔI PHỤC & DEPLOY APP (Phase 5)
+## 5. RESTORE & DEPLOY THE APP (Phase 5)
 
-1. **Restore volume TRƯỚC** (nếu có backup): `03` Bước 4. Volume chuẩn của
-   link-manager: `link-manager_data` (SQLite tại `/data/links.db`).
-2. Image trên ghcr.io **vẫn còn sau khi reset NUC** (nó nằm trên GitHub) —
-   không cần build lại gì. Kiểm: `docker manifest inspect ghcr.io/thiengthb/linkmanager:latest`.
-3. Dựng `/opt/apps/link-manager/` theo `03` Bước 9 (compose + `.env` + `.gitignore`).
-   `.env` từ backup của user; không có backup → dùng template trong `03` 9.2
-   và **báo rõ user** biến nào đang trống (`API_KEY`, `GEMINI_API_KEY`).
-4. Các app khác (nếu đã có thêm sau 2026-06): hỏi user danh sách, hoặc xem
-   memory; mỗi app làm đúng khuôn skill `/nuc-new-project`.
-5. `docker compose up -d` từng app.
-
----
-
-## 6. NGHIỆM THU TOÀN HỆ THỐNG (Phase 6 — bắt buộc trước khi báo xong)
-
-Chạy đủ 6 kiểm tra ở `03` Bước 10. Tóm tắt ngưỡng đạt:
-1. `docker ps` — đủ container, không restart-loop.
-2. Traefik API có route của từng app public.
-3. `curl https://<app>.thientnse.site` → 200 (và dữ liệu cũ hiện ra nếu có restore).
-4. Subdomain vu vơ → 404.
-5. Watchtower: `Failed=0 Scanned=<số app>`, không 403.
-6. (Nếu user đồng ý) push 1 commit nhỏ → xác nhận watchtower tự pull trong ≤60s+build time.
-
-**Không pass đủ → không được báo hoàn thành.** Pass đủ → tóm tắt: cái gì đã
-dựng, secrets nào user còn nợ, và cập nhật memory của bạn (file
-`nuc-platform-setup` — sửa những gì đã đổi: tunnel ID mới? version mới? app mới?).
+1. **Restore the volume FIRST** (if there's a backup): `03` Step 4. link-manager's standard
+   volume: `link-manager_data` (SQLite at `/data/links.db`).
+2. The image on ghcr.io **still exists after resetting the NUC** (it lives on GitHub) —
+   no need to rebuild anything. Check: `docker manifest inspect ghcr.io/thiengthb/linkmanager:latest`.
+3. Stand up `/opt/apps/link-manager/` per `03` Step 9 (compose + `.env` + `.gitignore`).
+   `.env` from the user's backup; no backup → use the template in `03` 9.2
+   and **tell the user clearly** which variables are empty (`API_KEY`, `GEMINI_API_KEY`).
+4. Other apps (if added after 2026-06): ask the user for the list, or check
+   memory; do each app following the `/nuc-new-project` skill mold.
+5. `docker compose up -d` for each app.
 
 ---
 
-## 7. TRA CỨU NHANH KHI GẶP LỖI TRONG LÚC TÁI THIẾT
+## 6. WHOLE-SYSTEM ACCEPTANCE TEST (Phase 6 — mandatory before reporting done)
 
-| Thấy gì | Nghĩa là | Làm gì |
+Run all 6 checks in `03` Step 10. Summary of pass thresholds:
+1. `docker ps` — all containers present, no restart-loop.
+2. The Traefik API has the route for each public app.
+3. `curl https://<app>.thientnse.site` → 200 (and the old data shows up if restored).
+4. A random subdomain → 404.
+5. Watchtower: `Failed=0 Scanned=<number of apps>`, no 403.
+6. (If the user agrees) push a small commit → confirm watchtower auto-pulls within ≤60s+build time.
+
+**Not passing all → may not report completion.** Passing all → summarize: what was
+stood up, which secrets the user still owes, and update your memory (file
+`nuc-platform-setup` — edit what changed: new tunnel ID? new version? new app?).
+
+---
+
+## 7. QUICK LOOKUP FOR ERRORS DURING THE REBUILD
+
+| What you see | Means | What to do |
 |---|---|---|
-| traefik log "client version 1.24 too old" | Image traefik < v3.7 | Đổi image, KHÔNG thử env workaround (vô dụng với traefik) |
-| watchtower "client version 1.25 too old" | Thiếu `DOCKER_API_VERSION=1.44` | Thêm env |
-| watchtower 403 "auth not present" | Credential stale (mount file lẻ) hoặc chưa login | Mount thư mục + re-login |
-| curl wildcard ra 530 | DNS trỏ tunnel-id cũ/chết | So tunnel-id trong DNS record với tunnel đang chạy |
-| curl app ra 404 | Traefik chưa có route | Label app: enable/Host/port; app có trong network edge? |
-| curl app ra 502 | Route có, gọi app fail | App thiếu `networks: [edge]` hoặc sai `loadbalancer.server.port` |
-| Actions fail 0 step | Billing lock GitHub | User gỡ ở github.com/settings/billing; tạm: build tay trên NUC, push bằng PAT write:packages |
-| compose báo orphan ở /opt/infra | watchtower.yml thiếu `name:` | Thêm `name: watchtower` |
-| `docker compose ls` trỏ path không tồn tại | Stack mồ côi (file bị di chuyển) | down bằng `docker rm` trực tiếp, dựng lại đúng chỗ |
+| traefik log "client version 1.24 too old" | traefik image < v3.7 | Change the image, do NOT try the env workaround (useless with traefik) |
+| watchtower "client version 1.25 too old" | Missing `DOCKER_API_VERSION=1.44` | Add the env |
+| watchtower 403 "auth not present" | Stale credential (single-file mount) or not logged in | Mount the directory + re-login |
+| curl wildcard returns 530 | DNS points at an old/dead tunnel-id | Compare the tunnel-id in the DNS record with the running tunnel |
+| curl app returns 404 | Traefik has no route yet | Label the app: enable/Host/port; is the app on the edge network? |
+| curl app returns 502 | Route exists, calling the app fails | App missing `networks: [edge]` or wrong `loadbalancer.server.port` |
+| Actions fail with 0 steps | GitHub billing lock | User unlocks at github.com/settings/billing; temporary: build by hand on the NUC, push with a write:packages PAT |
+| compose reports an orphan at /opt/infra | watchtower.yml missing `name:` | Add `name: watchtower` |
+| `docker compose ls` points at a non-existent path | Orphaned stack (file was moved) | Bring it down with `docker rm` directly, rebuild it in the right place |
 
 ---
 
-*File này được viết bởi Claude (Opus 4.8) ngay sau lần dựng đầu tiên 2026-06-07,
-khi mọi vết thương còn mới. Nếu bạn-phiên-bản-tương-lai thấy thực tế khác file
-này (version mới, lỗi mới), hãy cập nhật file này và memory sau khi xong việc.*
+*This file was written by Claude (Opus 4.8) right after the first build on 2026-06-07,
+while every wound was still fresh. If you-the-future-version find reality differs from this
+file (new version, new error), update this file and the memory after the work is done.*

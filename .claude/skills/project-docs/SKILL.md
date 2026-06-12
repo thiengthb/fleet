@@ -1,74 +1,74 @@
 ---
 name: project-docs
-description: Sinh & đồng bộ bộ tài liệu chuẩn cho một project trong MiniServer (00-map AI-primer, decisions sổ tri thức, và bộ 01/02/03 cho web-app) theo chuẩn nuc-platform/05-TAI-LIEU-CHUAN.md. Hai mode — scaffold (tạo file docs còn thiếu, copy cấu trúc từ app tham chiếu của kind) và audit (dò drift code↔docs, báo cáo read-only). Dùng khi tạo project mới, project thiếu/lệch tài liệu, user nói "viết tài liệu cho project này", "docs có còn khớp code không", hoặc bước tài liệu trong /nuc-new-project.
+description: Generate & sync the standard doc set for a project in MiniServer (00-map AI-primer, decisions knowledge log, and the 01/02/03 set for web-app) per the nuc-platform/05-TAI-LIEU-CHUAN.md standard. Two modes — scaffold (create the missing doc files, copy the structure from the kind's reference app) and audit (detect code↔docs drift, read-only report). Use when creating a new project, a project is missing/out-of-sync on docs, the user says "write docs for this project", "do the docs still match the code", or for the docs step in /nuc-new-project.
 ---
 
-# Skill: Tài liệu chuẩn cho project (project-docs)
+# Skill: Standard docs for a project (project-docs)
 
-Sinh và giữ đồng bộ bộ tài liệu theo **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (đọc nó trước — đó là
-hợp đồng; skill này chỉ là quy trình thực thi). Mục tiêu cuối: mỗi project có `docs/00-map.md` (agent
-hiểu trong 1 lần đọc rẻ) + `docs/decisions.md` (tri thức tích lũy), web-app thì đủ thêm bộ 01/02/03.
+Generate and keep in sync the doc set per **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (read it first — that's the
+contract; this skill is just the execution process). End goal: every project has `docs/00-map.md` (an agent
+understands it in one cheap read) + `docs/decisions.md` (accumulated knowledge), and web-app also has the full 01/02/03 set.
 
-**Không tự chế cấu trúc khác** với §3/§4/§5 của 05-TAI-LIEU-CHUAN. Nếu thấy chuẩn cần đổi → sửa file
-chuẩn trước, rồi mới theo.
+**Don't invent a different structure** from §3/§4/§5 of 05-TAI-LIEU-CHUAN. If you find the standard needs to change →
+change the standard file first, then follow it.
 
-## Bước 0 — Xác định project & kind
+## Step 0 — Determine the project & kind
 
-1. Project nào (thư mục dưới `D:\Projects\MiniServer\<tên>`)?
-2. Tra `kind` trong `nuc-platform/INVENTORY.md §0`. Chưa có dòng → đây là project mới: hỏi user kind
-   (`web-app`/`monorepo`/`worker`/`infra`/`meta`) và **thêm dòng §0 trước** (chống drift).
-3. `kind` quyết định bộ file bắt buộc (bảng §3 của 05-TAI-LIEU-CHUAN) + **app tham chiếu để copy**:
+1. Which project (directory under `D:\Projects\MiniServer\<name>`)?
+2. Look up the `kind` in `nuc-platform/INVENTORY.md §0`. No row yet → this is a new project: ask the user for the kind
+   (`web-app`/`monorepo`/`worker`/`infra`/`meta`) and **add the §0 row first** (anti-drift).
+3. The `kind` determines the mandatory file set (table §3 of 05-TAI-LIEU-CHUAN) + **the reference app to copy from**:
 
-| kind | Tham chiếu copy cấu trúc | Bộ file bắt buộc |
+| kind | Reference to copy structure from | Mandatory file set |
 |------|--------------------------|------------------|
 | `web-app` (Next) | `todo/docs/` | 00-map · decisions · README · 01-product · 02-technical · 03-user-guide |
-| `monorepo` | `todo/docs/` (02-technical mô tả topo nhiều image như `yakudoku`) | như web-app |
-| `worker` (node-bot/python-worker) | `nuc-monitor/` (cấu trúc gọn) | 00-map · decisions · README |
+| `monorepo` | `todo/docs/` (02-technical describes a multi-image topology like `yakudoku`) | same as web-app |
+| `worker` (node-bot/python-worker) | `nuc-monitor/` (lean structure) | 00-map · decisions · README |
 | `infra` | `authentik/docs/` | 00-map · decisions · README |
-| `meta` | — | README · (decisions nếu có giá trị) |
+| `meta` | — | README · (decisions if valuable) |
 
-## Mode A — scaffold (tạo file còn thiếu)
+## Mode A — scaffold (create the missing files)
 
-Chạy khi project thiếu doc-set (project mới, hoặc cũ mà trống).
+Run when the project lacks the doc-set (a new project, or an old one that's empty).
 
-1. **Đọc code đủ để hiểu thật** (đừng bịa): entry points (`app/`, `src/`, `index.*`, `main.py`),
+1. **Read enough code to truly understand** (don't make it up): entry points (`app/`, `src/`, `index.*`, `main.py`),
    `package.json`/`requirements.txt` (stack), Prisma schema / models, route handlers + server actions,
-   `Dockerfile` + `deploy.yml` (deploy), `.env.example` (secrets — chỉ TÊN biến). Với web-app dùng
-   `/coding-convention` làm nền hiểu stack.
-2. **Sinh `docs/00-map.md`** theo đúng 8 mục khung §4 của 05-TAI-LIEU-CHUAN. Quy tắc rẻ token: bảng +
-   cây thư mục rút gọn + gạch đầu dòng; mỗi mục vài dòng; trỏ docs sâu thay vì chép. Mục 5 "Điểm sáng"
-   phải nêu cái khéo/non-obvious thật (tính động? trust boundary? topo lạ?) — đừng để trống nếu có.
-3. **Sinh `docs/decisions.md`** từ template `templates/decisions.md` (header + 1 mục seed nếu rút được
-   quyết định non-obvious từ code/CLAUDE.md/INVENTORY; nếu chưa có gì đáng ghi → để header + ghi chú "chưa
-   có mục nào").
-4. **web-app/monorepo**: sinh thêm `docs/README.md` (index — copy bảng kiểu `todo/docs/README.md`),
-   `01-product.md`, `02-technical.md`, `03-user-guide.md`. Copy **bố cục mục** từ `todo/docs/` rồi điền
-   nội dung THẬT của project (không để placeholder của todo sót lại).
-5. **`CLAUDE.md` thin**: nếu chưa có → tạo bản ngắn (rule + bất biến riêng project + con trỏ "đọc
-   `docs/00-map.md`"). Nếu đã có mà phình spec → đề xuất tách spec sang `docs/` (như `todo` đã làm), HỎI
-   trước khi cắt.
-6. **Cập nhật index**: thêm/sửa dòng project trong `nuc-platform/06-SO-TRI-THUC.md §B`.
-7. **KHÔNG tự commit/push.** Báo cáo file đã tạo, để user xem. Push repo app = trigger CI → hỏi user.
+   `Dockerfile` + `deploy.yml` (deploy), `.env.example` (secrets — variable NAMES only). For a web-app use
+   `/coding-convention` as the basis for understanding the stack.
+2. **Generate `docs/00-map.md`** following exactly the 8-section skeleton in §4 of 05-TAI-LIEU-CHUAN. Token-cheap rule: tables +
+   an abbreviated directory tree + bullets; a few lines per section; point to deep docs instead of copying. Section 5 "Highlights"
+   must name the real clever/non-obvious bit (computed dynamically? trust boundary? unusual topology?) — don't leave it empty if there is one.
+3. **Generate `docs/decisions.md`** from the template `templates/decisions.md` (header + 1 seed entry if a non-obvious
+   decision can be extracted from the code/CLAUDE.md/INVENTORY; if there's nothing worth recording yet → keep the header + the note "no
+   entries yet").
+4. **web-app/monorepo**: also generate `docs/README.md` (index — copy the table style of `todo/docs/README.md`),
+   `01-product.md`, `02-technical.md`, `03-user-guide.md`. Copy the **section layout** from `todo/docs/` then fill in
+   the project's REAL content (don't leave any of todo's placeholders behind).
+5. **Thin `CLAUDE.md`**: if there isn't one → create a short version (rules + project-specific invariants + a pointer "read
+   `docs/00-map.md`"). If one exists but is bloated with spec → propose splitting the spec out into `docs/` (as `todo` did), ASK
+   before cutting.
+6. **Update the index**: add/edit the project line in `nuc-platform/06-SO-TRI-THUC.md §B`.
+7. **Do NOT commit/push automatically.** Report the files created, for the user to review. Pushing the app repo = triggers CI → ask the user.
 
-## Mode B — audit (dò drift code↔docs)
+## Mode B — audit (detect code↔docs drift)
 
-Chạy khi muốn biết docs còn khớp code không (read-only — chỉ báo cáo, như `/nuc-health-audit`).
+Run when you want to know whether the docs still match the code (read-only — report only, like `/nuc-health-audit`).
 
-Đối chiếu và liệt kê lệch:
-- **Module map (`00-map §3`) vs thực tế**: route/model/lib/thư mục mới chưa có trong map? Mục map trỏ
-  file đã xóa/đổi tên?
-- **Stack (`00-map §2`) vs `package.json`/`requirements.txt`**: lệch version lớn / lib đã bỏ?
-- **Secrets (`00-map §7`) vs `.env.example`**: biến mới chưa ghi?
-- **Đủ bộ theo kind chưa** (bảng §3): file bắt buộc nào còn thiếu?
-- **`decisions.md`**: có quyết định lớn trong git gần đây mà chưa được ghi không? (gợi ý chạy
+Reconcile and list the mismatches:
+- **Module map (`00-map §3`) vs reality**: new route/model/lib/directory not in the map? A map entry pointing to a
+  deleted/renamed file?
+- **Stack (`00-map §2`) vs `package.json`/`requirements.txt`**: a major version mismatch / a dropped lib?
+- **Secrets (`00-map §7`) vs `.env.example`**: a new variable not recorded?
+- **Is the full set present per kind** (table §3): any mandatory file still missing?
+- **`decisions.md`**: is there a big decision in recent git that hasn't been recorded? (suggest running
   `/session-wrap`.)
 
-Báo cáo theo mục ✅/⚠️, mỗi lệch 1 dòng + đề xuất sửa. **Không tự sửa file** trừ khi user đồng ý; sửa
-xong vẫn KHÔNG commit/push khi chưa được yêu cầu.
+Report by ✅/⚠️ section, one line per mismatch + a proposed fix. **Don't edit files automatically** unless the user agrees; once
+edited, still do NOT commit/push without being asked.
 
-## Nghiệm thu
+## Acceptance
 
-- `docs/00-map.md` đọc một lần là nắm project; module map khớp code; mục "Điểm sáng" + "Bất biến" có thật.
-- Đủ bộ file theo `kind` (bảng §3 của 05-TAI-LIEU-CHUAN).
-- `INVENTORY §0` có dòng project; `06-SO-TRI-THUC §B` có con trỏ.
-- Không có placeholder/nội dung của app tham chiếu sót lại.
+- `docs/00-map.md` is grasped in one read; the module map matches the code; the "Highlights" + "Invariants" are real.
+- The full file set is present per `kind` (table §3 of 05-TAI-LIEU-CHUAN).
+- `INVENTORY §0` has the project row; `06-SO-TRI-THUC §B` has the pointer.
+- No leftover placeholder/content from the reference app.

@@ -1,39 +1,39 @@
 ---
 name: coding-convention
-description: Coding convention bắt buộc cho mọi project trong MiniServer — quy ước đặt tên (naming), git commit/push theo Conventional Commits (tiếng Anh), và stack + giao diện frontend bắt buộc (Next.js 16 App Router + React 19 + TS + shadcn radix-nova + Tailwind v4 + Inter/Geist Mono + lucide + sonner + dark/light, Prisma + server actions). Dùng khi tạo/sửa code bất kỳ project nào, scaffold frontend mới, review trước khi commit, hoặc khi user hỏi "code đúng convention chưa".
+description: Mandatory coding convention for every project in MiniServer — naming conventions, git commit/push following Conventional Commits (English), and the required frontend stack + UI (Next.js 16 App Router + React 19 + TS + shadcn radix-nova + Tailwind v4 + Inter/Geist Mono + lucide + sonner + dark/light, Prisma + server actions). Use when creating/editing code in any project, scaffolding a new frontend, reviewing before a commit, or when the user asks "is this code following convention".
 ---
 
-# Skill: Coding Convention của MiniServer
+# Skill: MiniServer Coding Convention
 
-Đây là LUẬT khi viết code trong bất kỳ project nào dưới `D:\Projects\MiniServer\`.
-Áp dụng cùng lúc với các bất biến hạ tầng trong `CLAUDE.md` (deploy/NUC) — skill này
-lo phần **code & giao diện**, không lo phần deploy.
+This is the LAW for writing code in any project under `D:\Projects\MiniServer\`.
+It applies alongside the infrastructure invariants in `CLAUDE.md` (deploy/NUC) — this skill
+handles the **code & UI** side, not the deploy side.
 
-Mẫu sống cho mọi quy ước dưới đây là repo **`todo`** (Next.js 16 full-stack — `D:\Projects\MiniServer\todo`).
-Khi phân vân "viết thế nào", mở file tương ứng trong `todo` ra xem, đừng chế mới.
-(Repo `link-manager` — mẫu cũ kiểu Vite+Express — đã khai tử 2026-06-11; mọi tham chiếu nay trỏ `todo`.)
+The living reference for every convention below is the **`todo`** repo (Next.js 16 full-stack — `D:\Projects\MiniServer\todo`).
+When unsure "how should I write this", open the corresponding file in `todo` and look — don't invent something new.
+(The `link-manager` repo — the old Vite+Express-style reference — was retired 2026-06-11; every reference now points to `todo`.)
 
-Nếu user yêu cầu mâu thuẫn với một mục BẮT BUỘC bên dưới → chỉ ra mâu thuẫn và hỏi lại
-trước khi làm. Đừng âm thầm phá luật.
+If a user request conflicts with a MANDATORY item below → point out the conflict and ask back
+before proceeding. Don't silently break the rules.
 
 ---
 
 ## 1. Git — commit & push
 
-**Commit message = Conventional Commits, viết bằng TIẾNG ANH.**
+**Commit message = Conventional Commits, written in ENGLISH.**
 
 ```
-<type>(<scope>): <mô tả ngắn, thể mệnh lệnh, không chấm cuối>
+<type>(<scope>): <short description, imperative mood, no trailing period>
 
-[body tuỳ chọn: giải thích WHY, không phải WHAT]
+[optional body: explain WHY, not WHAT]
 ```
 
 - `type` ∈ `feat | fix | refactor | chore | docs | test | perf | style | build | ci`.
-- `scope` = tên module/khu vực (`auth`, `api`, `ui`, `deps`, `docker`…). Bỏ được nếu chung chung.
-- Mô tả tiếng Anh, viết thường, ≤ ~72 ký tự, không chấm cuối.
-- Body (nếu cần) giải thích **lý do**, không liệt kê lại diff.
+- `scope` = module/area name (`auth`, `api`, `ui`, `deps`, `docker`…). Omit if generic.
+- Description in English, lowercase, ≤ ~72 characters, no trailing period.
+- The body (if needed) explains the **reason**, not a restatement of the diff.
 
-Ví dụ đúng:
+Correct examples:
 ```
 feat(auth): add Authentik login via forward-auth
 fix(api): handle empty tag returning 500
@@ -41,215 +41,215 @@ chore(deps): bump next to 16
 refactor(ui): extract link-card into its own component
 ```
 
-Quy tắc thao tác git (nhắc lại từ harness, đừng quên):
-- KHÔNG commit/push nếu user chưa yêu cầu.
-- Đang ở nhánh mặc định (`main`) mà cần thay đổi lớn → tạo nhánh trước.
-- KHÔNG `--no-verify`, KHÔNG skip hook/sign trừ khi user yêu cầu rõ.
-- Một commit = một ý thay đổi mạch lạc; đừng gộp nhiều việc không liên quan.
+Git operation rules (repeated from the harness, don't forget):
+- Do NOT commit/push unless the user asks.
+- On the default branch (`main`) and a large change is needed → create a branch first.
+- No `--no-verify`, no skipping hooks/signing unless the user explicitly asks.
+- One commit = one coherent change idea; don't bundle unrelated work.
 
 ---
 
-## 2. Naming convention (toàn stack)
+## 2. Naming convention (full stack)
 
-| Đối tượng | Quy ước | Ví dụ |
+| Object | Convention | Example |
 |---|---|---|
-| Thư mục | kebab-case | `nuc-monitor/`, `components/ui/` |
-| File component React | kebab-case `.tsx` | `link-card.tsx`, `theme-toggle.tsx` |
-| File lib/util/logic | kebab/lowercase `.ts` | `api.ts`, `auth.ts`, `utils.ts` |
-| Component React | PascalCase, **named export** | `export function LinkCard(...)` |
-| Props interface | `<Component>Props`, khai báo NGAY TRÊN component | `interface LinkCardProps { … }` |
-| Hàm / biến | camelCase | `faviconUrl`, `getAccessToken` |
+| Directory | kebab-case | `nuc-monitor/`, `components/ui/` |
+| React component file | kebab-case `.tsx` | `link-card.tsx`, `theme-toggle.tsx` |
+| lib/util/logic file | kebab/lowercase `.ts` | `api.ts`, `auth.ts`, `utils.ts` |
+| React component | PascalCase, **named export** | `export function LinkCard(...)` |
+| Props interface | `<Component>Props`, declared RIGHT ABOVE the component | `interface LinkCardProps { … }` |
+| Function / variable | camelCase | `faviconUrl`, `getAccessToken` |
 | Type / interface | PascalCase | `LinkItem`, `StatsGranularity` |
-| Hằng cấu hình module-level | UPPER_SNAKE_CASE | `BASE_URL`, `PORT`, `API_KEY` |
-| Cột DB & field JSON của API | snake_case | `created_at`, `last_visited_at` |
-| Biến env | UPPER_SNAKE_CASE | `VITE_API_URL`, `CORS_ORIGIN` |
+| Module-level config constant | UPPER_SNAKE_CASE | `BASE_URL`, `PORT`, `API_KEY` |
+| DB column & API JSON field | snake_case | `created_at`, `last_visited_at` |
+| Env variable | UPPER_SNAKE_CASE | `VITE_API_URL`, `CORS_ORIGIN` |
 
-- Comment trong code viết **tiếng Việt**, dùng JSDoc `/** … */` cho field/hàm không hiển nhiên
-  (xem `todo/lib/types.ts` làm mẫu). Code (tên hàm/biến) thì tiếng Anh.
-- Đặt tên theo ý nghĩa, không viết tắt khó hiểu. Khớp giọng văn & mật độ comment của file xung quanh.
+- Comments and code are written in **English** (English everywhere for dev artifacts); use JSDoc `/** … */`
+  for non-obvious fields/functions (see `todo/lib/types.ts` as a reference).
+- Name things by meaning, no cryptic abbreviations. Match the tone & comment density of the surrounding file.
 
 ---
 
 ## 3. JavaScript / TypeScript
 
-- **ESM everywhere**: `"type": "module"`, `import`/`export`, không `require`. Node ≥ 22.
-  Code chạy server (route handler, server action, `lib/*`) dùng prefix `node:` cho built-in (`import fs from 'node:fs'`).
-- **TypeScript là bắt buộc.** Không `any` tuỳ tiện — khai báo interface/type trong `lib/types.ts` (xem `todo/lib/types.ts`).
-- Format do **Prettier** quyết định, KHÔNG cãi tay: dấu nháy đơn `'…'`, **có dấu chấm phẩy** (`semi: true`),
-  `printWidth 100`, `tabWidth 2`, `trailingComma: all`. Config chung ở mục 8. Chạy `prettier --write` trước commit.
-- App phải `npm run lint` (eslint-config-next: core-web-vitals + typescript) sạch và `npm run build`
-  (`next build`) pass trước khi coi là xong.
-- Secrets KHÔNG hardcode — đọc qua `process.env` / `import.meta.env` (nhắc lại bất biến #4 của platform).
+- **ESM everywhere**: `"type": "module"`, `import`/`export`, no `require`. Node ≥ 22.
+  Server-running code (route handler, server action, `lib/*`) uses the `node:` prefix for built-ins (`import fs from 'node:fs'`).
+- **TypeScript is mandatory.** No casual `any` — declare interfaces/types in `lib/types.ts` (see `todo/lib/types.ts`).
+- Formatting is decided by **Prettier**, no arguing: single quotes `'…'`, **semicolons** (`semi: true`),
+  `printWidth 100`, `tabWidth 2`, `trailingComma: all`. Shared config in section 8. Run `prettier --write` before committing.
+- The app must pass `npm run lint` (eslint-config-next: core-web-vitals + typescript) clean and `npm run build`
+  (`next build`) before it counts as done.
+- Secrets are NOT hardcoded — read via `process.env` / `import.meta.env` (repeating platform invariant #4).
 
 ---
 
-## 4. Frontend — STACK BẮT BUỘC (y hệt `todo`)
+## 4. Frontend — MANDATORY STACK (identical to `todo`)
 
-Mọi app mới scaffold giống `todo`. KHÔNG thay framework, UI lib, style, font.
+Every new app is scaffolded like `todo`. Do NOT swap framework, UI lib, style, or font.
 
-| Thành phần | Bắt buộc dùng |
+| Component | Must use |
 |---|---|
 | Framework | **Next.js 16 (App Router, RSC)** + **React 19** + **TypeScript** |
-| Build/run | `next build` / `next start`; `output: 'standalone'` trong `next.config.ts` (để Docker image nhỏ) |
+| Build/run | `next build` / `next start`; `output: 'standalone'` in `next.config.ts` (for a small Docker image) |
 | UI components | **shadcn/ui**, style `radix-nova`, base color `neutral`, CSS variables (`components.json`, `rsc: true`) |
-| CSS | **Tailwind v4** (`@tailwindcss/postcss`, `@import "tailwindcss"` trong `app/globals.css`), theme bằng CSS variables |
-| Font | **Inter** (`next/font/google`, subset `["latin","vietnamese"]`) cho `--font-sans` + **Geist Mono** cho mono. Lý do: Geist trên Google Fonts KHÔNG có subset tiếng Việt → dùng Inter cho sans |
-| Icon | **lucide-react** — KHÔNG dùng bộ icon khác |
-| Toast | **sonner** (`<Toaster position="bottom-center" />`, `@/components/ui/sonner`) — KHÔNG `alert()` / lib toast khác |
+| CSS | **Tailwind v4** (`@tailwindcss/postcss`, `@import "tailwindcss"` in `app/globals.css`), theme via CSS variables |
+| Font | **Inter** (`next/font/google`, subset `["latin","vietnamese"]`) for `--font-sans` + **Geist Mono** for mono. Reason: Geist on Google Fonts has NO Vietnamese subset → use Inter for sans |
+| Icon | **lucide-react** — do NOT use another icon set |
+| Toast | **sonner** (`<Toaster position="bottom-center" />`, `@/components/ui/sonner`) — no `alert()` / other toast lib |
 | Theme | **next-themes** — `<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>` |
-| Data | **Server Actions** (`app/actions.ts`) + **Prisma** (`lib/db.ts`) cho mutation/query; **Route Handlers** (`app/api/<x>/route.ts`) cho endpoint máy/HTTP. KHÔNG dựng Express riêng. |
-| Alias | `@/` → root cho mọi import nội bộ (`@/components`, `@/lib/...`, `@/components/ui`) |
-| Helper class | `cn()` từ `@/lib/utils` (clsx + tailwind-merge) để gộp className |
+| Data | **Server Actions** (`app/actions.ts`) + **Prisma** (`lib/db.ts`) for mutation/query; **Route Handlers** (`app/api/<x>/route.ts`) for machine/HTTP endpoints. Do NOT stand up a separate Express. |
+| Alias | `@/` → root for every internal import (`@/components`, `@/lib/...`, `@/components/ui`) |
+| Helper class | `cn()` from `@/lib/utils` (clsx + tailwind-merge) to merge className |
 
-Khởi tạo nhanh app mới: copy cấu trúc từ `todo`
+Quick start for a new app: copy the structure from `todo`
 (`components.json`, `eslint.config.mjs`, `next.config.ts`, `postcss.config.mjs`, `tsconfig.json`,
-`lib/utils.ts`, `app/globals.css`, `app/layout.tsx`), rồi `npx shadcn@latest add <component>` để thêm UI.
+`lib/utils.ts`, `app/globals.css`, `app/layout.tsx`), then `npx shadcn@latest add <component>` to add UI.
 
 ---
 
-## 5. Frontend — QUY TẮC GIAO DIỆN (bắt buộc, không thương lượng)
+## 5. Frontend — UI RULES (mandatory, non-negotiable)
 
-1. **Chỉ dùng component shadcn/ui.** Không tự viết `<button>`/`<input>`/dialog thô.
-   Cần component chưa có → `npx shadcn@latest add …` rồi extend, đặt trong `components/ui/`.
-   Component nghiệp vụ (compose từ ui) đặt ở `components/<tên>.tsx`.
+1. **Only use shadcn/ui components.** Don't hand-write raw `<button>`/`<input>`/dialog.
+   Need a component that doesn't exist yet → `npx shadcn@latest add …` then extend, place it in `components/ui/`.
+   Business components (composed from ui) go in `components/<name>.tsx`.
 
-2. **Bắt buộc dark/light mode.** Mọi app có theme toggle (mẫu: `theme-toggle.tsx`).
-   Màu LẤY TỪ CSS variables của shadcn (`bg-background`, `text-foreground`, `text-muted-foreground`,
-   `border`, `bg-card`…). **KHÔNG hardcode màu** kiểu `bg-white`, `text-black`, `#fff`, `bg-gray-900`
-   — sẽ vỡ ở theme còn lại.
+2. **Dark/light mode is mandatory.** Every app has a theme toggle (reference: `theme-toggle.tsx`).
+   Colors COME FROM shadcn CSS variables (`bg-background`, `text-foreground`, `text-muted-foreground`,
+   `border`, `bg-card`…). **Do NOT hardcode colors** like `bg-white`, `text-black`, `#fff`, `bg-gray-900`
+   — they'll break in the other theme.
 
-3. **Responsive, mobile-first.** Viết base style cho mobile trước, nâng cấp bằng `sm: md: lg:`.
-   Mọi màn hình phải dùng tốt trên điện thoại; layout co giãn, không tràn ngang.
+3. **Responsive, mobile-first.** Write base styles for mobile first, scale up with `sm: md: lg:`.
+   Every screen must work well on a phone; layout flexes, no horizontal overflow.
 
-4. **Toast = sonner, icon = lucide.** Phản hồi hành động (lưu/xoá/lỗi) qua `toast()` của sonner,
-   không `alert()`/`confirm()` thô. Icon chỉ lấy từ `lucide-react`.
+4. **Toast = sonner, icon = lucide.** Action feedback (save/delete/error) via sonner's `toast()`,
+   not raw `alert()`/`confirm()`. Icons only from `lucide-react`.
 
-5. **A11y & UX cơ bản:** nút có label/aria khi chỉ có icon; dùng `<TooltipProvider>` cho tooltip;
-   trạng thái loading/empty/error phải có UI rõ ràng, không để màn hình trắng.
+5. **Basic a11y & UX:** icon-only buttons have a label/aria; use `<TooltipProvider>` for tooltips;
+   loading/empty/error states must have clear UI, never a blank screen.
 
-Mẫu `app/layout.tsx` chuẩn (ThemeProvider → TooltipProvider → AppShell → children, rồi `<Toaster>`)
-— giữ đúng thứ tự này; xem `todo/app/layout.tsx`.
+The standard `app/layout.tsx` reference (ThemeProvider → TooltipProvider → AppShell → children, then `<Toaster>`)
+— keep this exact order; see `todo/app/layout.tsx`.
 
 ---
 
-## 6. React best practices (bắt buộc)
+## 6. React best practices (mandatory)
 
-Áp dụng cho mọi component. Mẫu sống: `todo/components/*`.
+Applies to every component. Living reference: `todo/components/*`.
 
 **Server vs Client Component (Next.js App Router)**
-- Mặc định là **Server Component** (chạy trên server, fetch/Prisma trực tiếp, không gửi JS xuống client).
-  Chỉ thêm `'use client'` ở ĐẦU file khi component cần state/effect/event handler/hook trình duyệt.
-- Đẩy ranh giới `'use client'` xuống càng sâu càng tốt (lá, không phải gốc) để giữ bundle nhỏ.
-  Data lấy ở Server Component rồi truyền primitive xuống Client Component.
+- Default is a **Server Component** (runs on the server, fetch/Prisma directly, ships no JS to the client).
+  Add `'use client'` at the TOP of the file only when the component needs state/effect/event handler/browser hook.
+- Push the `'use client'` boundary as deep as possible (leaf, not root) to keep the bundle small.
+  Fetch data in a Server Component then pass primitives down to the Client Component.
 
 **Component & structure**
-- Function component + hooks. KHÔNG class component. Một file = một component nghiệp vụ chính
-  (named export); component con nhỏ có thể ở cùng file.
-- Component thuần trình bày tách khỏi logic; logic client tái dùng → custom hook `use*` (đặt trong `hooks/`).
-- Props khai báo qua interface `<Component>Props`; destructure trong tham số. Truyền primitive/handler,
-  hạn chế truyền object lớn xuyên nhiều tầng — cần thì dùng Context.
-- File JSX/component giữ ngắn; > ~250 dòng là dấu hiệu nên tách.
+- Function component + hooks. NO class components. One file = one primary business component
+  (named export); small child components can live in the same file.
+- Keep presentational components separate from logic; reusable client logic → custom `use*` hook (place in `hooks/`).
+- Declare props via a `<Component>Props` interface; destructure in the parameter. Pass primitives/handlers,
+  avoid passing large objects across many layers — use Context when needed.
+- Keep JSX/component files short; > ~250 lines is a sign you should split.
 
 **Hooks**
-- Tuân thủ Rules of Hooks: chỉ gọi ở top level, không trong vòng lặp/điều kiện. Bật rule
-  `eslint-plugin-react-hooks` (đã có trong config) và để nó sạch.
-- `useEffect` phải khai báo ĐỦ dependency. Effect chỉ dùng cho side-effect (fetch, subscribe, DOM);
-  cái gì tính được từ props/state thì tính trực tiếp khi render, ĐỪNG nhồi vào effect + state.
-- Cleanup mọi subscription/timer/listener/AbortController trong return của effect.
-- `useMemo`/`useCallback` chỉ khi đo được lợi (list lớn, ref ổn định cho child memo hoá) —
-  không bọc bừa.
+- Follow the Rules of Hooks: only call at the top level, not inside loops/conditions. Enable the
+  `eslint-plugin-react-hooks` rule (already in the config) and keep it clean.
+- `useEffect` must declare ALL dependencies. Effects are only for side-effects (fetch, subscribe, DOM);
+  anything derivable from props/state should be computed directly during render, do NOT cram it into effect + state.
+- Clean up every subscription/timer/listener/AbortController in the effect's return.
+- `useMemo`/`useCallback` only when there's a measurable benefit (large lists, stable ref for a memoized child) —
+  don't wrap blindly.
 
 **State & data**
-- State tối thiểu, đặt gần nơi dùng; nâng lên (lift) chỉ khi cần chia sẻ. Không nhân bản dữ liệu
-  đã có (derived state) thành state riêng.
-- `key` trong list = id ổn định, KHÔNG dùng index khi list có thể đổi thứ tự/thêm/xoá.
-- Cập nhật state dạng immutable (spread, map…), không mutate trực tiếp.
-- Lấy dữ liệu ưu tiên ở **Server Component** (gọi Prisma qua `lib/db.ts`) hoặc **Server Action**
-  (`app/actions.ts`); chỉ fetch phía client khi thật sự cần (realtime, sau tương tác). Logic nghiệp vụ
-  để trong `lib/*`, không nhồi vào component.
-- Client fetch: quản lý đủ 3 trạng thái loading / error / empty; hiển thị UI cho từng trạng thái (mục 5.5).
+- Minimal state, placed near where it's used; lift it up only when sharing is needed. Don't duplicate data
+  that already exists (derived state) into separate state.
+- `key` in a list = a stable id, do NOT use the index when the list can reorder/add/remove.
+- Update state immutably (spread, map…), don't mutate directly.
+- Prefer fetching data in a **Server Component** (call Prisma via `lib/db.ts`) or a **Server Action**
+  (`app/actions.ts`); only fetch client-side when truly needed (realtime, after an interaction). Keep business logic
+  in `lib/*`, don't cram it into the component.
+- Client fetch: handle all 3 states loading / error / empty; show UI for each state (section 5.5).
 
 **Render & a11y**
-- Không tạo component/hàm mới bên trong render path gây remount; định nghĩa ngoài hoặc useCallback.
-- Dùng HTML ngữ nghĩa (`<button>`, `<nav>`, `<main>`…); tương tác được bằng bàn phím.
-- Không `dangerouslySetInnerHTML` với dữ liệu chưa sanitize.
+- Don't create new components/functions inside the render path that cause remounts; define them outside or use useCallback.
+- Use semantic HTML (`<button>`, `<nav>`, `<main>`…); operable by keyboard.
+- No `dangerouslySetInnerHTML` with unsanitized data.
 
-## 7. Quy ước chung từ các style guide lớn (Airbnb / Google / TS / React)
+## 7. General conventions from the major style guides (Airbnb / Google / TS / React)
 
-Chắt lọc những điều phù hợp stack này — coi như mặc định, lệch thì phải có lý do:
+Distilled to what fits this stack — treat as defaults, deviations need a reason:
 
-- **`const` mặc định, `let` khi cần gán lại, không `var`.** Không gán lại tham số hàm.
-- **`===`/`!==`** luôn dùng (trừ `== null` để bắt cả `null` và `undefined` có chủ đích).
-- **Early return** thay vì lồng `if` sâu; tránh else sau return. Tránh nesting > 3 tầng.
-- **Hàm nhỏ, một nhiệm vụ.** Đặt tên động từ cho hàm (`fetchLinks`, `formatDate`), danh từ cho dữ liệu.
-- **Boolean** đặt tên `is/has/should/can` (`isLoading`, `hasError`).
-- **Async/await** thay chuỗi `.then()` dài; luôn `try/catch` quanh await có thể lỗi.
-- **TS:** ưu tiên `interface` cho shape object, `type` cho union/alias; tránh `any` (dùng `unknown` rồi
-  thu hẹp); bật strict (đã có trong `tsconfig`); export type rõ ràng.
-- **Import order:** built-in/node → thư viện ngoài → alias nội bộ `@/…` → tương đối `./…`. Không import vòng.
-- **Không dead code / `console.log` sót** trong code commit (log có chủ đích thì ok ở backend).
-- **Magic number/string** lặp lại → tách hằng đặt tên.
-- **Comment giải thích WHY, không WHAT;** xoá code chết thay vì comment lại.
+- **`const` by default, `let` when reassignment is needed, no `var`.** Don't reassign function parameters.
+- **`===`/`!==`** always (except `== null` to deliberately catch both `null` and `undefined`).
+- **Early return** instead of deep nested `if`; avoid else after return. Avoid nesting > 3 levels.
+- **Small functions, single responsibility.** Verb names for functions (`fetchLinks`, `formatDate`), nouns for data.
+- **Booleans** named `is/has/should/can` (`isLoading`, `hasError`).
+- **Async/await** instead of long `.then()` chains; always `try/catch` around an await that can fail.
+- **TS:** prefer `interface` for object shapes, `type` for unions/aliases; avoid `any` (use `unknown` then
+  narrow); enable strict (already in `tsconfig`); export types explicitly.
+- **Import order:** built-in/node → external libraries → internal alias `@/…` → relative `./…`. No circular imports.
+- **No dead code / leftover `console.log`** in committed code (deliberate logging is fine on the backend).
+- **Repeated magic number/string** → extract a named constant.
+- **Comments explain WHY, not WHAT;** delete dead code instead of commenting it out.
 
-## 8. Setup mỗi repo: Prettier + commit-msg hook
+## 8. Per-repo setup: Prettier + commit-msg hook
 
-Mọi repo dùng CHUNG một bộ config (nguồn chuẩn trong skill này), không tự chế khác.
+Every repo SHARES one config set (the source of truth is in this skill), don't invent a different one.
 
-**Prettier — format thống nhất mọi repo.** Config: `semi: true`, `singleQuote: true`,
+**Prettier — unified formatting across all repos.** Config: `semi: true`, `singleQuote: true`,
 `printWidth: 100`, `tabWidth: 2`, `trailingComma: 'all'`, `arrowParens: 'always'`, `endOfLine: 'lf'`.
 
 ```sh
-# 1. Copy config + ignore vào ROOT của repo (và mỗi package con frontend/backend nếu tách riêng):
+# 1. Copy config + ignore into the repo ROOT (and each frontend/backend sub-package if split apart):
 cp ".claude/skills/coding-convention/templates/.prettierrc"     "<repo>/.prettierrc"
 cp ".claude/skills/coding-convention/templates/.prettierignore" "<repo>/.prettierignore"
-# 2. Cài & thêm script (trong từng package có package.json):
+# 2. Install & add scripts (in each package with a package.json):
 npm i -D prettier
 #    package.json scripts: "format": "prettier --write .",  "format:check": "prettier --check ."
 ```
 
-- Chạy `npm run format` (hoặc `prettier --write`) trước khi commit. CI/lint nên dùng `format:check`.
-- ESLint lo logic/bug, Prettier lo style — không bật rule format trong ESLint để khỏi đá nhau.
+- Run `npm run format` (or `prettier --write`) before committing. CI/lint should use `format:check`.
+- ESLint handles logic/bugs, Prettier handles style — don't enable format rules in ESLint so they don't clash.
 
-**Git commit-msg hook — ép Conventional Commits ngay tại máy.** Nguồn:
-`.claude/skills/coding-convention/hooks/commit-msg`. Cài sau khi `git init`/clone:
+**Git commit-msg hook — enforce Conventional Commits right on the machine.** Source:
+`.claude/skills/coding-convention/hooks/commit-msg`. Install after `git init`/clone:
 
 ```sh
 cp ".claude/skills/coding-convention/hooks/commit-msg" "<repo>/.git/hooks/commit-msg"
 cp ".claude/skills/coding-convention/hooks/pre-commit" "<repo>/.git/hooks/pre-commit"
-# Git for Windows chạy hook qua sh nên không cần chmod; trên Unix thêm: chmod +x ...
+# Git for Windows runs hooks via sh so no chmod is needed; on Unix add: chmod +x ...
 ```
 
-- **`commit-msg`** chặn: sai cấu trúc `type(scope): desc`, tiêu đề kết thúc bằng `.`, và **chữ đầu mô tả
-  viết hoa** (buộc viết thường, thể mệnh lệnh — trừ acronym toàn hoa như API/JWT/SSO). Bỏ qua merge/revert/fixup.
-- **`pre-commit`** (non-blocking) nhắc khi commit đụng CODE mà không đụng `docs/` → cân nhắc cập nhật
-  `docs/00-map.md` / `docs/decisions.md` (chuẩn tài liệu: `nuc-platform/05-TAI-LIEU-CHUAN.md`). KHÔNG chặn.
+- **`commit-msg`** blocks: wrong `type(scope): desc` structure, subject ending with `.`, and a **capitalized first
+  letter of the description** (forces lowercase, imperative mood — except all-caps acronyms like API/JWT/SSO). Skips merge/revert/fixup.
+- **`pre-commit`** (non-blocking) reminds you when a commit touches CODE but not `docs/` → consider updating
+  `docs/00-map.md` / `docs/decisions.md` (docs standard: `nuc-platform/05-TAI-LIEU-CHUAN.md`). Does NOT block.
 
-Khi scaffold project mới (skill `/nuc-new-project`), cài CẢ Prettier config lẫn 2 hook ở bước khởi tạo repo.
+When scaffolding a new project (skill `/nuc-new-project`), install BOTH the Prettier config and the 2 hooks at the repo init step.
 
-**Document-as-you-code:** khi quyết định điều **non-obvious** (chọn kiến trúc, né một bẫy, đánh đổi) →
-ghi 1 mục vào `<project>/docs/decisions.md` (khung ở `05-TAI-LIEU-CHUAN.md §5`), đi cùng commit code.
-Cuối một đợt sửa đáng kể → chạy `/session-wrap` để chốt tri thức + đồng bộ `docs/00-map.md`.
+**Document-as-you-code:** when making a **non-obvious** decision (choosing an architecture, dodging a pitfall, a trade-off) →
+write one entry into `<project>/docs/decisions.md` (template in `05-TAI-LIEU-CHUAN.md §5`), alongside the code commit.
+At the end of a significant editing pass → run `/session-wrap` to lock in the knowledge + sync `docs/00-map.md`.
 
-## 9. Backend (Next.js — Route Handlers + Server Actions, KHÔNG Express riêng)
+## 9. Backend (Next.js — Route Handlers + Server Actions, NO separate Express)
 
-- Logic server nằm trong Next.js: **Server Action** (`app/actions.ts`) cho mutation từ UI;
-  **Route Handler** (`app/api/<x>/route.ts`) cho endpoint HTTP/máy. Cấu hình qua `process.env.X || '<fallback>'`.
-- **DB qua Prisma** (`lib/db.ts` export 1 instance `prisma` dùng chung — tránh tạo nhiều client khi hot-reload).
-  Schema ở `prisma/schema.prisma`. Dữ liệu persist qua named volume; đường dẫn DB/file đọc từ env (`DATABASE_URL`…), không hardcode path tuyệt đối.
-- Endpoint health `app/api/health/route.ts` luôn mở (cho Docker HEALTHCHECK + CI) — đừng gắn auth lên nó.
-- Auth theo platform: forward-auth qua Authentik (gác ở Traefik) > đọc header `X-authentik-*` trong app để phân
-  quyền > API token cho endpoint máy. KHÔNG tự code login (xem bất biến #8 trong `CLAUDE.md`).
-- ⛔ Endpoint client MÁY gọi tự động (MCP/OAuth/webhook) KHÔNG được sau forward-auth — tách router riêng, auth ở
-  tầng app (mẫu sống: `todo/app/api/[transport]` + `app/api/oauth/*`, bearer/OAuth tự quản; xem `auth-apps.md`).
+- Server logic lives in Next.js: **Server Action** (`app/actions.ts`) for mutations from the UI;
+  **Route Handler** (`app/api/<x>/route.ts`) for HTTP/machine endpoints. Configure via `process.env.X || '<fallback>'`.
+- **DB via Prisma** (`lib/db.ts` exports a single shared `prisma` instance — avoids creating many clients on hot-reload).
+  Schema in `prisma/schema.prisma`. Data persists via a named volume; DB/file paths read from env (`DATABASE_URL`…), not a hardcoded absolute path.
+- The health endpoint `app/api/health/route.ts` is always open (for Docker HEALTHCHECK + CI) — don't put auth on it.
+- Auth per platform: forward-auth via Authentik (gated at Traefik) > read `X-authentik-*` headers in the app for
+  authorization > API token for machine endpoints. Do NOT hand-code login (see invariant #8 in `CLAUDE.md`).
+- ⛔ Endpoints that a MACHINE client calls automatically (MCP/OAuth/webhook) must NOT sit behind forward-auth — split into a separate router, auth at
+  the app layer (living reference: `todo/app/api/[transport]` + `app/api/oauth/*`, self-managed bearer/OAuth; see `auth-apps.md`).
 
 ---
 
-## 10. Checklist trước khi báo "xong" / trước khi commit
+## 10. Checklist before reporting "done" / before committing
 
-- [ ] Tên file/biến/type/commit đúng mục 1–2; quy ước chung mục 7 (const, ===, early return, async/await…).
-- [ ] Frontend: đúng stack mục 4, đủ 5 quy tắc giao diện mục 5 (đặc biệt: không hardcode màu, có dark/light, responsive).
-- [ ] React đúng mục 6: hooks sạch (dependency đủ, cleanup), `key` ổn định, state tối thiểu, đủ loading/error/empty.
-- [ ] `prettier --write` đã chạy; `npm run lint` và `npm run build` của frontend pass (nếu có sửa frontend).
-- [ ] Không hardcode secret; không `console.log`/dead code sót; comment tiếng Việt cho chỗ không hiển nhiên.
-- [ ] Repo đã có Prettier config + commit-msg + pre-commit hook (mục 8). Commit Conventional Commits tiếng Anh (mô tả viết thường); chỉ commit/push khi user yêu cầu.
-- [ ] Tài liệu theo kịp code: quyết định non-obvious đã ghi `docs/decisions.md`; module map/luồng đổi → `docs/00-map.md` cập nhật (chuẩn: `05-TAI-LIEU-CHUAN.md`; cuối đợt sửa lớn → `/session-wrap`).
+- [ ] File/variable/type/commit names follow sections 1–2; general conventions in section 7 (const, ===, early return, async/await…).
+- [ ] Frontend: correct stack from section 4, all 5 UI rules from section 5 (especially: no hardcoded colors, has dark/light, responsive).
+- [ ] React follows section 6: clean hooks (full dependencies, cleanup), stable `key`, minimal state, full loading/error/empty.
+- [ ] `prettier --write` has been run; the frontend's `npm run lint` and `npm run build` pass (if the frontend was touched).
+- [ ] No hardcoded secrets; no leftover `console.log`/dead code; comments in English for non-obvious spots.
+- [ ] The repo has the Prettier config + commit-msg + pre-commit hook (section 8). Commit in English Conventional Commits (lowercase description); only commit/push when the user asks.
+- [ ] Docs keep up with code: non-obvious decisions recorded in `docs/decisions.md`; module map/flow changed → `docs/00-map.md` updated (standard: `05-TAI-LIEU-CHUAN.md`; end of a large editing pass → `/session-wrap`).
