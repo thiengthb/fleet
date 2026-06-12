@@ -215,13 +215,20 @@ npm i -D prettier
 
 ```sh
 cp ".claude/skills/coding-convention/hooks/commit-msg" "<repo>/.git/hooks/commit-msg"
+cp ".claude/skills/coding-convention/hooks/pre-commit" "<repo>/.git/hooks/pre-commit"
 # Git for Windows chạy hook qua sh nên không cần chmod; trên Unix thêm: chmod +x ...
 ```
 
-Hook chặn: sai cấu trúc `type(scope): desc`, tiêu đề kết thúc bằng `.`, và **chữ đầu mô tả viết hoa**
-(buộc viết thường, thể mệnh lệnh — trừ acronym toàn hoa như API/JWT/SSO). Tự bỏ qua merge/revert/fixup.
+- **`commit-msg`** chặn: sai cấu trúc `type(scope): desc`, tiêu đề kết thúc bằng `.`, và **chữ đầu mô tả
+  viết hoa** (buộc viết thường, thể mệnh lệnh — trừ acronym toàn hoa như API/JWT/SSO). Bỏ qua merge/revert/fixup.
+- **`pre-commit`** (non-blocking) nhắc khi commit đụng CODE mà không đụng `docs/` → cân nhắc cập nhật
+  `docs/00-map.md` / `docs/decisions.md` (chuẩn tài liệu: `nuc-platform/05-TAI-LIEU-CHUAN.md`). KHÔNG chặn.
 
-Khi scaffold project mới (skill `/nuc-new-project`), cài CẢ Prettier config lẫn hook ở bước khởi tạo repo.
+Khi scaffold project mới (skill `/nuc-new-project`), cài CẢ Prettier config lẫn 2 hook ở bước khởi tạo repo.
+
+**Document-as-you-code:** khi quyết định điều **non-obvious** (chọn kiến trúc, né một bẫy, đánh đổi) →
+ghi 1 mục vào `<project>/docs/decisions.md` (khung ở `05-TAI-LIEU-CHUAN.md §5`), đi cùng commit code.
+Cuối một đợt sửa đáng kể → chạy `/session-wrap` để chốt tri thức + đồng bộ `docs/00-map.md`.
 
 ## 9. Backend (Next.js — Route Handlers + Server Actions, KHÔNG Express riêng)
 
@@ -244,4 +251,5 @@ Khi scaffold project mới (skill `/nuc-new-project`), cài CẢ Prettier config
 - [ ] React đúng mục 6: hooks sạch (dependency đủ, cleanup), `key` ổn định, state tối thiểu, đủ loading/error/empty.
 - [ ] `prettier --write` đã chạy; `npm run lint` và `npm run build` của frontend pass (nếu có sửa frontend).
 - [ ] Không hardcode secret; không `console.log`/dead code sót; comment tiếng Việt cho chỗ không hiển nhiên.
-- [ ] Repo đã có Prettier config + commit-msg hook (mục 8). Commit Conventional Commits tiếng Anh (mô tả viết thường); chỉ commit/push khi user yêu cầu.
+- [ ] Repo đã có Prettier config + commit-msg + pre-commit hook (mục 8). Commit Conventional Commits tiếng Anh (mô tả viết thường); chỉ commit/push khi user yêu cầu.
+- [ ] Tài liệu theo kịp code: quyết định non-obvious đã ghi `docs/decisions.md`; module map/luồng đổi → `docs/00-map.md` cập nhật (chuẩn: `05-TAI-LIEU-CHUAN.md`; cuối đợt sửa lớn → `/session-wrap`).

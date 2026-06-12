@@ -9,7 +9,7 @@ Mục tiêu: bắt **drift** (bảng ↔ thực tế lệch) và **rác** (orpha
 vặt". Skill này **chỉ đọc & báo cáo**; mọi hành động phá hủy (xóa volume/image) phải **hỏi user**
 và chỉ làm khi được đồng ý. Nguồn sự thật: [`nuc-platform/INVENTORY.md`](../../../nuc-platform/INVENTORY.md).
 
-SSH NUC: `ssh thien25@thienminiserver`. Chạy lần lượt các nhóm kiểm tra A–J, gom kết quả thành
+SSH NUC: `ssh thien25@thienminiserver`. Chạy lần lượt các nhóm kiểm tra A–K (A–J qua SSH; K chạy local), gom kết quả thành
 một báo cáo có mục ✅/⚠️/❌ rồi đề xuất fix.
 
 ## A. Drift: INVENTORY ↔ thực tế
@@ -112,11 +112,31 @@ ssh thien25@thienminiserver 'docker logs nuc-monitor --tail 20 2>&1 | grep -iE "
 Số container nuc-monitor đang theo dõi phải khớp số container thật (trừ chính nó nếu nó tự loại).
 Lệch → có thể còn `known_containers` cũ; restart nuc-monitor để reset baseline nếu cần.
 
+## K. Doc-set drift (tài liệu ↔ chuẩn) — chạy LOCAL trên máy dev
+
+Đối chiếu mỗi project trong `INVENTORY §0` với bộ file bắt buộc theo `kind`
+(`nuc-platform/05-TAI-LIEU-CHUAN.md §3`). Kiểm trên thư mục dev `D:\Projects\MiniServer\<tên>`
+(KHÔNG qua SSH — doc-set sống ở repo dev):
+
+```bash
+for d in /d/Projects/MiniServer/*/; do
+  p=$(basename "$d"); [ -f "$d/docs/00-map.md" ] && m=ok || m=THIẾU
+  [ -f "$d/docs/decisions.md" ] && k=ok || k=THIẾU
+  echo "$p: 00-map=$m decisions=$k"
+done
+```
+
+- Project có CODE (`web-app`/`worker`/`monorepo`) mà thiếu `docs/00-map.md` hoặc `docs/decisions.md` → ⚠️
+  đề xuất `/project-docs scaffold`.
+- web-app/monorepo thiếu `01-product`/`02-technical`/`03-user-guide` → ⚠️.
+- `infra`/`meta`: chỉ cần `00-map` (+README) — thiếu deep docs là bình thường.
+- Muốn soi sâu một project (map có khớp code không) → `/project-docs audit <project>`.
+
 ---
 
 ## Báo cáo
 
-Trình bày gọn theo nhóm A–J, mỗi mục ✅/⚠️/❌ + bằng chứng 1 dòng. Cuối báo cáo:
+Trình bày gọn theo nhóm A–K, mỗi mục ✅/⚠️/❌ + bằng chứng 1 dòng. Cuối báo cáo:
 1. **Drift cần sửa** (bảng vs thực tế) — đề xuất cập nhật INVENTORY hay sửa thực tế.
 2. **Rác đề xuất dọn** (orphan volume, dangling image, provider treo) — **liệt kê lệnh nhưng
    HỎI user trước khi chạy** thứ phá hủy.

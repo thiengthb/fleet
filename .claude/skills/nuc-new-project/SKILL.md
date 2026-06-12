@@ -47,8 +47,10 @@ template tĩnh trong skill → tránh drift; nguồn sự thật là app tham ch
 | `infra` (bên thứ 3) | `n8n/` hoặc `authentik/` | `docker-compose.yml` + `.env` | Image ghim version, **KHÔNG** label Watchtower; update = bump tag thủ công. Không CI build. |
 
 **Bắt buộc cho mọi archetype có CODE** (`web-app`/`worker`/`monorepo`): cài convention repo ngay
-(Giai đoạn 3 mục 0 — Prettier + commit-msg hook). Sau khi tạo project, **cập nhật `INVENTORY.md` §0**
-(thêm dòng kind/path) — chống drift.
+(Giai đoạn 3 mục 0 — Prettier + commit-msg + pre-commit hook). Sau khi tạo project, **cập nhật
+`INVENTORY.md` §0** (thêm dòng kind/path) — chống drift, và **chạy `/project-docs scaffold`** để project
+sinh ra là đã có bộ tài liệu chuẩn (`docs/00-map.md` + `docs/decisions.md`, web-app thêm 01/02/03 — xem
+`nuc-platform/05-TAI-LIEU-CHUAN.md`). Born-documented.
 
 ## Giai đoạn 1 — Dockerfile trong repo
 
@@ -87,8 +89,8 @@ metadata-action tag `latest` + `type=sha,prefix=,format=short`, cache `type=gha`
 
 0. **Setup convention cho repo** (nếu chưa): copy `.prettierrc` + `.prettierignore` từ
    `.claude/skills/coding-convention/templates/` vào repo (`npm i -D prettier`, thêm script `format`),
-   và copy `hooks/commit-msg` vào `<repo>/.git/hooks/commit-msg` để ép Conventional Commits tại máy.
-   Mọi code phải theo skill `/coding-convention`.
+   và copy `hooks/commit-msg` + `hooks/pre-commit` vào `<repo>/.git/hooks/` (commit-msg ép Conventional
+   Commits; pre-commit nhắc cập nhật tài liệu — non-blocking). Mọi code phải theo skill `/coding-convention`.
 1. Commit (message tiếng Anh, kiểu `ci: build & push image to ghcr`) — **hỏi
    user trước khi push** nếu đây là lần đầu đụng repo này trong phiên.
 2. `git push origin main`.

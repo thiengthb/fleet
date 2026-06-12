@@ -105,6 +105,24 @@ dùng kèm skill `frontend-design` nếu có.
 - **Hai thói quen giữ chuẩn cao:** build cái tái dùng MỘT lần (đưa vào vốn component chung, không nhân
   bản — nhất quán đọc ra "có thiết kế"); tự phê bình output như reviewer khó tính trước khi giao.
 
+## Tài liệu & tri thức — BẮT BUỘC cho mọi project (Knowledge OS)
+
+Chuẩn đầy đủ: **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (đọc khi đụng tài liệu). Mục đích: agent **hiểu một
+project trong 1 lần đọc rẻ tiền**, và tri thức non-obvious **tích lũy qua các session** thay vì tan biến.
+
+- **Đường nạp context — 3 nấc (bất biến):** `INVENTORY §0` (index) → `<project>/docs/00-map.md` (AI-primer
+  1 trang, LUÔN đọc đầu khi vào project) → `docs/` sâu + `docs/decisions.md` (chỉ khi task cần). `CLAUDE.md`
+  mỗi project giữ **thin** (rule + bất biến + con trỏ) — KHÔNG nhồi module map/luồng/spec vào (tốn context
+  vì auto-nạp mỗi turn); spec dày để ở `docs/`.
+- **Hai trụ cột mọi project đều có:** `docs/00-map.md` (bản chất · module map · luồng · điểm sáng · bất
+  biến · secrets) + `docs/decisions.md` (sổ tri thức: quyết định + bẫy + **vì sao**, append-only). web-app
+  thêm bộ `01-product`/`02-technical`/`03-user-guide` (tiered theo `kind` — xem 05 §3).
+- **Skill:** **`/project-docs`** sinh/đồng bộ doc-set (scaffold + audit drift) · **`/session-wrap`** chốt
+  phiên → ghi `decisions.md`, cập nhật `00-map`, thêm dòng `06-SO-TRI-THUC.md` nếu xuyên project. Bài học
+  **xuyên project** → index `nuc-platform/06-SO-TRI-THUC.md`; bẫy **hạ tầng** → `02-MO-XE-LOI`.
+- **Quy ước:** cuối một đợt sửa đáng kể → chạy `/session-wrap`; quyết định non-obvious → `decisions.md`
+  (đi cùng commit code). Pre-commit hook nhắc (non-blocking) khi code đổi mà docs không đụng.
+
 ## Khi tạo project mới / đưa project lên NUC
 
 Dùng skill **`/nuc-new-project`** — nó chạy đúng quy trình: hỏi thông tin →

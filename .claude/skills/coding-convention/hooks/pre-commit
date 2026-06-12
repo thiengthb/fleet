@@ -1,0 +1,25 @@
+#!/bin/sh
+# MiniServer — pre-commit hook: nhắc cập nhật tài liệu (NON-BLOCKING, không bao giờ chặn).
+# Cài: copy file này vào <repo>/.git/hooks/pre-commit (chmod +x trên Unix).
+# Nguồn chuẩn: D:\Projects\MiniServer\.claude\skills\coding-convention\hooks\pre-commit
+# Ý đồ: code đổi mà docs/ không đụng → in cảnh báo nhắc ghi docs/00-map.md hoặc docs/decisions.md.
+# Chuẩn tài liệu: nuc-platform/05-TAI-LIEU-CHUAN.md. KHÔNG cản commit (exit 0 luôn).
+
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+[ -z "$staged" ] && exit 0
+
+# File "code": ts/tsx/js/jsx/py/prisma — không tính file trong docs/.
+code_changed="$(printf '%s\n' "$staged" | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|py|prisma)$' | grep -v '^docs/')"
+
+# File "tài liệu": bất kỳ thứ gì trong docs/, hoặc *.md ở gốc.
+docs_changed="$(printf '%s\n' "$staged" | grep -E '^docs/|(^|/)[^/]*\.md$')"
+
+if [ -n "$code_changed" ] && [ -z "$docs_changed" ]; then
+  echo "⚠ Commit này đổi CODE nhưng không đụng tài liệu nào." >&2
+  echo "  Cân nhắc cập nhật (theo nuc-platform/05-TAI-LIEU-CHUAN.md):" >&2
+  echo "    • docs/00-map.md     — nếu module map / luồng / bất biến / secret đổi" >&2
+  echo "    • docs/decisions.md  — nếu có quyết định/bẫy non-obvious (chạy /session-wrap)" >&2
+  echo "  (Cảnh báo nhắc nhở — KHÔNG chặn. Cứ commit nếu không cần cập nhật.)" >&2
+fi
+
+exit 0
