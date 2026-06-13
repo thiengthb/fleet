@@ -1,0 +1,26 @@
+# Add this `test` job to the project's .github/workflows/deploy.yml and make the
+# existing `build` job depend on it (`needs: test`) so a failing test blocks the
+# image build/push. Platform invariant stays intact: tests run in GitHub Actions,
+# the NUC still only PULLs.
+#
+# `npx prisma generate` is REQUIRED: the mocked `@/lib/db` still imports the
+# generated PrismaClient type, so the type must exist for tsc/vitest to resolve it.
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run test
+
+  # --- existing job, add `needs: test` ---
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    # ... unchanged: build image, tag :latest + :<sha>, push to ghcr.io/thiengthb/<repo>

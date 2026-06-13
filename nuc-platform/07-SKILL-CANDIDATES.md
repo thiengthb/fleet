@@ -129,10 +129,11 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `development/playwright-java` · `development/playwright` | SKIP | Java (no Java here) / Codex-ecosystem-pathed (`$CODEX_HOME`). |
 | `tdd-orchestrator` · `tdd-workflow` · `javascript-testing-patterns` · `e2e-testing-patterns` · `testing-patterns` | SKIP | Auto-gen stubs (re-confirmed). |
 
-> **MISSING — no catalog fit:** unit/integration testing for our **core path: Vitest + Next.js server actions** (mocking
-> Prisma, asserting `revalidatePath`/returned DTO, Zod-boundary failures) + RTL component tests + a GH-Actions `test`
-> job gating `deploy.yml`. Every JS-unit candidate was a stub. → **write a small custom skill** (`vitest-server-actions`)
-> rather than settle. Not built yet — do it when the first app actually sets up tests, so it's grounded in real code.
+> **MISSING — no catalog fit → BUILT CUSTOM:** unit/integration testing for our **core path: Vitest + Next.js server
+> actions** (mock the Prisma singleton + `next/cache`, assert guards + `revalidatePath`), pure-logic units, RTL
+> components, and a GH-Actions `test` job gating `deploy.yml`. Every JS-unit candidate was a stub →
+> **`/vitest-server-actions`** authored (grounded in `todo/app/actions.ts` + `lib/db.ts`), with templates
+> (vitest.config/setup, actions.test.ts, ci-test-job.yml). `.claude/skills/vitest-server-actions/`.
 
 ### Agent thinking / process (what the user asked to improve)
 | Skill | Verdict | Note |
@@ -164,7 +165,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 1. `prisma-expert` + `database-design` — the data layer has zero skill coverage today and is core to every web app.
 2. `systematic-debugging` + `verification-before-completion` + `lint-and-validate` — process discipline, polyglot, cheap wins.
 3. `supply-chain-guard` + `dependabot-review` — supply-chain + dep hygiene for the growing `push→GHA→ghcr` fleet (read `supply-chain-guard/scripts/` first).
-4. `playwright-e2e-builder` (e2e, Authentik-aware) + author a custom `vitest-server-actions` (unit/integration — the missing core-path coverage).
+4. `playwright-e2e-builder` (e2e, Authentik-aware) to complement the now-built `/vitest-server-actions` (unit/integration core-path coverage).
 5. Fold the §2 BORROW ideas into `/project-plan` and `/react-ui-craft` — no new skills, pure refinement.
 
 > Re-run this evaluation when the catalog changes materially; update verdicts in place (this file is the memory).
