@@ -63,14 +63,14 @@ Why now, the constraints, what triggered it. 1–3 lines.
 The chosen approach + what was ruled out and why (brief — the durable "why" is distilled to decisions.md at the end).
 
 ## Steps
-- [ ] Step 1 — <action> (one line each; check off as you go, across sessions)
-- [ ] Step 2 — ...
+- [ ] Step 1 — <action> · Files: Create/Modify `path:line` · Test: `<how it's verified>`
+- [ ] Step 2 — ... (one line each; check off as you go, across sessions)
 
 ## Out of scope
 Explicit non-goals, so a later session doesn't scope-creep.
 
 ## Open questions / risks
-Things still unknown or risky. Resolve + strike through as they close.
+Things still unknown or risky (cap at ~3 — more than that means the plan isn't framed tightly enough). Strike through as they close.
 
 ## Decisions to distill
 Bullets of non-obvious knowledge that should land in docs/decisions.md when this plan completes (handed off by /session-wrap).
@@ -78,7 +78,18 @@ Bullets of non-obvious knowledge that should land in docs/decisions.md when this
 
 Set `status: draft` until the user approves it; flip to `active` once execution starts.
 
+**Two habits that make steps + execution sharp** (borrowed from the community plan/execute skills):
+- **Actionable steps** — each step names the exact files it touches (`Create/Modify path:line`) and how it's verified
+  (`Test:`). A step a fresh session can't act on without re-deriving context is too vague.
+- **Critique the plan before executing** — before flipping to `active`, run `/honest-critique` over the plan: what's the
+  weakest assumption, what's missing, what could break an invariant? Fix it in the plan, not mid-execution.
+
 ## Step 3 — Keep it in sync while executing
+
+**Execute in small batches with a checkpoint.** Don't run the whole plan in one silent sweep — do ~3 related steps, then
+report (and, for outward/irreversible steps, wait for the user) before the next batch. This is the rhythm this very
+session used to adopt skills wave-by-wave. Each batch ends by checking off its steps + bumping `updated:`.
+
 
 A plan file is **live**, not write-once. As you work (this session or a later one): check off steps, bump `updated:`,
 append newly-discovered steps/risks. A stale checklist is worse than none — the next session trusts it.

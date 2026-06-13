@@ -2,7 +2,7 @@
 title: Adopt the recommended community skills (adapted) + fold the borrow-ideas, without breaking invariants
 status: active # draft → active → done | abandoned
 created: 2026-06-13
-updated: 2026-06-13 # W1–W5 done
+updated: 2026-06-13 # W1–W6 done
 related:
   [
     nuc-platform/07-SKILL-CANDIDATES.md,
@@ -136,7 +136,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - [x] **W3** Adopted `/supply-chain-guard` (read scanners — benign — dropped them; kept hardening + live scan) + `/dependabot-review` (removed auto-merge). Grep-guard CLEAN. ✓
 - [x] **W4** Adopted `/api-integration-specialist` (Express→Route Handler) + `/async-python-patterns` (self-contained) + `/mcp-builder` (self-contained, anchored to todo/yakudoku + forward-auth-exempt invariant; no scripts/refs vendored). Grep-guard CLEAN. ✓
 - [x] **W5** Adopted `/architecture` (self-contained, ADR→decisions.md) + `/docker-expert` (**narrowed** to Dockerfile authoring; compose/secrets/build-on-host stripped into a NOT-this-skill box) + `/saas-multi-tenant` (Authentik+Prisma-extension+SQLite-no-RLS adapt; flagged speculative). Grep-guard CLEAN. ✓
-- [ ] **W6** Fold all §2 BORROW ideas into `/project-plan`, `/react-ui-craft`, `/coding-convention`, `/nuc-health-audit`; add the authoring note. Grep-guard. Commit.
+- [x] **W6** Folded §2 ideas into `/project-plan` (3) + `/coding-convention` (smells) + `/react-ui-craft` (shadcn CLI + Zod) + `/nuc-health-audit` (group L deps). Created `/skill-authoring` (adoption procedure + grep-guard). `react-useeffect` already covered (skipped, no dup). Grep-guard CLEAN (react-ui-craft hits = pre-existing correct *prohibitions*). ✓
 - [ ] **W7** Update CLAUDE.md pointers + ledger to ADOPTED; `/session-wrap` → `decisions.md`. Commit. Flip plan to `done`.
 
 ## Out of scope

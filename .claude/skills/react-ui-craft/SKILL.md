@@ -77,6 +77,19 @@ These are detailed and meant to be opened during the build, not memorized. Each 
 
 When several apply (the common case), read them together — they're designed to overlap cleanly.
 
+## shadcn workflow & boundary validation (platform habits)
+
+- **Use the shadcn CLI as the source of truth**, don't hand-copy component code: `npx shadcn@latest add <comp>` to pull a
+  component you then own; `add --diff` to preview/upgrade against your version; `npx shadcn@latest docs <comp>` for usage;
+  `info` to read the project's config. Compose via shadcn's own sub-components (FieldGroup/Field, Card sub-parts) rather
+  than re-implementing — consistency reads as "designed". (Stack details: `/coding-convention §4-5`.)
+- **Validate at the boundary with Zod, don't cast.** A server action / Route Handler parses untrusted input with
+  `schema.safeParse(...)` and returns typed field errors on failure (drives `useActionState` form UX); derive the TS type
+  with `z.infer`. The client receives a minimal DTO, never raw rows. (Depth: `references/security.md` + `references/ux.md`.)
+
+> Note: the "you-might-not-need-an-effect" rule (derive from props/state in render; event handlers over effects; `key`
+> to reset state) lives in `/coding-convention §6` — not duplicated here.
+
 ## Two habits that keep the bar high
 
 - **Build the reusable thing once.** Before writing a one-off card/list/dialog, check whether it belongs in the shared component vocabulary. Consistency reads as "designed"; duplication reads as "assembled".

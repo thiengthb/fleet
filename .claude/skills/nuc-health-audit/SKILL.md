@@ -132,6 +132,14 @@ done
 - `infra`/`meta`: only need `00-map` (+README) — missing deep docs is normal.
 - To inspect a project deeply (does the map match the code) → `/project-docs audit <project>`.
 
+## L. Dependency freshness (per-repo, LOCAL) — light
+
+Watchtower auto-pulls new **images**, but the **package dependencies inside each repo** don't update themselves — that's
+a separate hygiene sweep. Per code repo: `npm outdated` + `npm audit --audit-level=high` (Python: `pip list --outdated`
++ `pip-audit`). Apply a **tiered** judgement — patch/minor of a trusted lib = low-risk (recommend), **major bump or any
+security advisory = flag for review**. Don't bulk-bump. Defer the actual PR triage to `/dependabot-review` and the
+hardening/IOC angle to `/supply-chain-guard`; this group just surfaces *which* repos are drifting/vulnerable.
+
 ---
 
 ## Report

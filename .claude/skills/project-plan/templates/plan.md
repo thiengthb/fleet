@@ -26,8 +26,8 @@ The chosen approach + what was ruled out and why (brief — the durable "why" is
 
 ## Steps
 
-- [ ] Step 1 — <action> (one line each; check off as you go, across sessions)
-- [ ] Step 2 — ...
+- [ ] Step 1 — <action> · Files: Create/Modify `path:line` · Test: `<how verified>`
+- [ ] Step 2 — ... (one line each; check off as you go, across sessions)
 
 ## Out of scope
 
@@ -35,7 +35,7 @@ Explicit non-goals, so a later session doesn't scope-creep.
 
 ## Open questions / risks
 
-Things still unknown or risky. Resolve + strike through as they close.
+Things still unknown or risky (cap at ~3). Strike through as they close.
 
 ## Decisions to distill
 

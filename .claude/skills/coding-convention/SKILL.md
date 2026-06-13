@@ -191,6 +191,12 @@ Distilled to what fits this stack — treat as defaults, deviations need a reaso
 - **Repeated magic number/string** → extract a named constant.
 - **Comments explain WHY, not WHAT;** delete dead code instead of commenting it out.
 
+**Design smells to catch in review** (beyond the above):
+- A function that needs a comment to explain a *block* → extract that block into a well-named function.
+- A **boolean parameter** that switches behaviour (`render(true)`) → usually two functions, or an options object with a named field.
+- A **long parameter list** (>3-4) → pass a single typed options object.
+- **Primitive obsession** — a bag of loose strings/numbers that always travel together → give them a type/interface.
+
 ## 8. Per-repo setup: Prettier + commit-msg hook
 
 Every repo SHARES one config set (the source of truth is in this skill), don't invent a different one.

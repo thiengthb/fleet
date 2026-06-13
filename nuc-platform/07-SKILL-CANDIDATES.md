@@ -61,6 +61,12 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 
 ## 2. BORROW — don't install; fold one idea into an existing skill
 
+> **ALL FOLDED ✓ (W6).** `/project-plan` ← max-3-open-Qs + per-task file paths + critique-before-execute + batched
+> execution. `/coding-convention` ← design-smell bullets. `/react-ui-craft` ← shadcn CLI workflow + Zod-at-boundary.
+> `/nuc-health-audit` ← group L dependency-freshness (tiered). `react-useeffect` was **already** in coding-convention §6
+> (skipped, no dup). `skill-creation-guide` + `writing-skills` → the new **`/skill-authoring`** meta-skill (adoption
+> procedure + grep-guard). The clean-code/zod folds were kept minimal (mostly already covered).
+
 | From skill | Idea to fold | Into |
 |---|---|---|
 | `development/create-plan` | "Open questions: **max 3**" discipline. | `/project-plan` |
