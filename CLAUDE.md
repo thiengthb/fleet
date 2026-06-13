@@ -124,6 +124,26 @@ across sessions instead of evaporating.
 > `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill → `/skill-authoring`. Catalog + verdicts:
 > `nuc-platform/07-SKILL-CANDIDATES.md`.
 
+## Model routing — staff work by weight (token discipline)
+
+Model choice is a **session-level** decision, NOT per-task. Do NOT make a habit of analyzing each task and asking to
+switch model mid-conversation — switching re-reads the FULL history at the new model and **drops the prompt cache**
+(thrashing *costs* tokens, doesn't save them), and the agent cannot switch its own model anyway (only the user can).
+- **`/model` picker gotcha:** **Enter = persists to `~/.claude/settings.json` → new default for ALL future/other
+  sessions** (easy to accidentally make a weak model the global default); press **`s`** to switch the current session
+  ONLY. Concurrent sessions are independent until they relaunch.
+- **Session rubric (set once, at start):** architectural / security / multi-file reasoning / ambiguous / UI-craft / a
+  codebase a strong model already shaped → **Opus** (a weak model contaminates strong-model work — the risk is
+  asymmetric, lean Opus when unsure). A whole session of well-specified bulk-mechanical work → Sonnet is fine.
+- **The real token lever (no quality tradeoff):** keep **Opus as the main loop = orchestrator + reviewer**, and delegate
+  heavy-but-mechanical work (wide reads, fan-out search, bulk transforms, migrations) to **subagents on a cheaper model**
+  via the Agent tool's per-agent `model: 'sonnet'|'haiku'`. Subagent context is isolated (doesn't bloat the main thread —
+  the real cost saving) and Opus **reviews the output before accepting it**, so the weak model works in a sandbox under
+  review and never commits unreviewed. Set `model:` per delegation; do NOT flip `CLAUDE_CODE_SUBAGENT_MODEL` globally
+  (that's a cross-session side-effect).
+- **Only suggest the user switch** when the WHOLE session is clearly mismatched (e.g. a long bulk-mechanical run on
+  Opus) — suggest once, and tell them to use **`s`** (session-only) so they don't overwrite their global default.
+
 ## Project lifecycle & ops — use the right skill, don't improvise
 
 | When | Skill | Key points |

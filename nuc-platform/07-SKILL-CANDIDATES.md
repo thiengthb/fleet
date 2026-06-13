@@ -226,6 +226,26 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 
 ---
 
+## 5f. Pass 2026-06-13 (e) — model routing: thin rule, NOT a switch-per-task skill
+
+> User idea: a skill that analyzes every task's weight, proposes a model switch, and waits for approval before working —
+> to save tokens and stop a weak model "contaminating" strong-model code. Concern is valid (the contamination risk is
+> real and asymmetric); the **mechanism was rejected** after honest-critique.
+
+| Option | Verdict | Why |
+|---|---|---|
+| **Switch-per-task skill** (analyze → propose → approve → `/model`) | **REJECT** | 4 flaws: (1) the agent can't switch its own model — only the user can, so it can only ever *suggest*; (2) the analysis runs on the expensive model already loaded — for a light task the cost of asking exceeds the saving; (3) switching mid-session re-reads the FULL history at the new model and **drops the prompt cache** → thrashing *costs* tokens; (4) wrong granularity — model is session-level (shared context, code consistency), not task-level. A "fire before every task" skill is also exactly the context-tax we keep cutting. |
+| **Thin rule in `CLAUDE.md`** (session rubric + `/model` Enter-vs-`s` gotcha + delegate-to-cheaper-subagent) | **ADOPTED** | Always present, ~zero recurring cost, no fire-per-turn. Captures the one durable behavior. |
+| Flip `CLAUDE_CODE_SUBAGENT_MODEL` globally | **NOT DONE** | Cross-session side-effect; prefer per-delegation `model:` so each call is a deliberate choice. |
+
+**Verified Claude Code mechanics (basis for the rule):** `/model` + **Enter persists to `~/.claude/settings.json` =
+global default for all future sessions**; press **`s`** for session-only. Switching mid-session re-sends full context
+and loses prompt cache. Subagents accept a per-agent `model:` override (and `CLAUDE_CODE_SUBAGENT_MODEL` global) — so
+the real token lever is **Opus main = orchestrator+reviewer, cheaper subagents do isolated bulk work under review**
+(isolated context = the real saving; review = no contamination). Rule lives in `CLAUDE.md` §"Model routing".
+
+---
+
 ## 6. Suggested first wave (if/when we decide to install)
 
 0. **Done this pass:** authored `/honest-critique` + `/brainstorming` (custom — catalog had no fit). Test them in use.
