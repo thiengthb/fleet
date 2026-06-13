@@ -145,6 +145,10 @@ switch model mid-conversation — switching re-reads the FULL history at the new
   the real cost saving) and Opus **reviews the output before accepting it**, so the weak model works in a sandbox under
   review and never commits unreviewed. Set `model:` per delegation; do NOT flip `CLAUDE_CODE_SUBAGENT_MODEL` globally
   (that's a cross-session side-effect).
+- **Announce every downgrade (notify, don't gate):** when spawning a subagent on a model **weaker than the main loop**,
+  state it up front *before* spawning, then proceed (the user can interrupt). One compact block, one line each:
+  `label: 2–3-word task → model` (e.g. `Explore: grep auth usages → haiku`). Subagents that inherit the main model get
+  NO line — no downgrade = no contamination risk = noise. This is the user's control surface over staffing.
 - **Only suggest the user switch** when the WHOLE session is clearly mismatched (e.g. a long bulk-mechanical run on
   Opus) — suggest once, and tell them to use **`s`** (session-only) so they don't overwrite their global default.
 
