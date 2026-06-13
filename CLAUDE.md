@@ -120,7 +120,7 @@ across sessions instead of evaporating.
 > **Reference skills (auto-fire by topic):** data → `/prisma-expert`+`/database-design` · React perf →
 > `/react-best-practices` · Dockerfile → `/docker-expert` · MCP → `/mcp-builder` · external-API →
 > `/api-integration-specialist` · Python async → `/async-python-patterns` · system decision → `/architecture` ·
-> multi-tenant → `/saas-multi-tenant` · deps → `/dependabot-review`+`/supply-chain-guard` · testing →
+> deps → `/dependabot-review`+`/supply-chain-guard` · testing →
 > `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill → `/skill-authoring`. Catalog + verdicts:
 > `nuc-platform/07-SKILL-CANDIDATES.md`.
 

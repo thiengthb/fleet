@@ -43,7 +43,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `development/architecture` | **ADOPTED ✓** | Installed `/architecture` (W5, self-contained; ADR→`decisions.md` invariant; scoped system-level vs `/brainstorming`). | docs |
 | `development/database-design` | **ADOPTED ✓** | DB design judgment. Installed `/database-design` (W1, adapted: dropped ORM-selection — Prisma is fixed; SQLite-first framing). | docs |
 | `development/docker-expert` | **ADOPTED ✓ (narrowed)** | Installed `/docker-expert` (W5) **scoped to Dockerfile authoring ONLY**; stripped compose/networks/secrets/build-on-host/multi-arch (platform invariants) into an explicit "NOT this skill" box; base→node:22. | docs |
-| `development/saas-multi-tenant` | **ADOPTED ✓** | Installed `/saas-multi-tenant` (W5, adapted: tenant from **Authentik** not self-JWT; Prisma **client extension** not deprecated `$use`; server action not Express; **SQLite has no RLS** caveat). Speculative — no multi-tenant app yet. | docs |
+| `development/saas-multi-tenant` | **REMOVED 2026-06-13** | Adopted in W5 but **removed** — speculative, no multi-tenant app exists; it was a standing context tax (description loaded every session) for zero use. Re-adopt from this catalog entry if a multi-tenant app is ever built. (Lesson: don't keep a skill with no triggering need — see `06 §A`.) | — |
 
 ## 1b. ADOPT-when-the-need-appears (situational, substantive)
 
