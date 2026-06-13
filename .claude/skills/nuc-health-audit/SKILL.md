@@ -112,9 +112,15 @@ ssh thien25@thienminiserver 'docker logs nuc-monitor --tail 20 2>&1 | grep -iE "
 The number of containers nuc-monitor is tracking must match the real container count (minus itself if it excludes itself).
 A mismatch → there may be stale `known_containers`; restart nuc-monitor to reset the baseline if needed.
 
-## K. Doc-set drift (docs ↔ standard) — run LOCAL on the dev machine
+## K. Doc-set & classification drift (docs ↔ standard, §0 well-formed) — run LOCAL on the dev machine
 
-Reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
+First reconcile the **§0 classification registry itself**: every row must carry a valid **`domain`**
+(`platform`/`product`/`automation`/`shared`) **and** a `kind` — a row missing or invalid on either (e.g. a project
+added by hand, bypassing `/nuc-new-project`) → ⚠️ fix the classification. Conversely every dev dir under
+`D:\Projects\MiniServer\` (and every §1 app) must have a §0 row — a missing row = §0 omission (often left by an
+incomplete `/nuc-remove-project`) → ⚠️.
+
+Then reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
 (`nuc-platform/05-documentation-standard.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
 (NOT over SSH — the doc-set lives in the dev repo):
 
