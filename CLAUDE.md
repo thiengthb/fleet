@@ -1,217 +1,135 @@
 # MiniServer — Shared rules for every project in this folder
 
-Every project in `D:\Projects\MiniServer\` is deployed to the NUC `thienminiserver`
-following a fixed architecture (built 2026-06-07):
+Every project in `D:\Projects\MiniServer\` deploys to the NUC `thienminiserver` via a fixed chain (built 2026-06-07):
 
 ```
 git push main → GitHub Actions build → ghcr.io/thiengthb/<repo> (:latest + :<sha>)
-→ Watchtower on the NUC auto-pulls (≤60s) → Traefik route → Cloudflare Tunnel → *.thientnse.site
+→ Watchtower on the NUC auto-pulls (≤60s) → Traefik → Cloudflare Tunnel → *.thientnse.site
 ```
 
-Full docs: `nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` (operations),
-`02-MO-XE-LOI-HE-THONG-CU.md` (known traps), `03-SETUP-FROM-SCRATCH.md` (rebuild).
-**`nuc-platform/INVENTORY.md` = the SINGLE source of truth** for every app/volume/domain/auth/monitor —
-read it before touching a project lifecycle; every add/remove-app skill MUST update it (anti-drift).
-**User reports the NUC was reset / the system needs rebuilding → read and follow
-`nuc-platform/04-AGENT-RUNBOOK-TAI-THIET.md` (the agent runbook).**
+**`nuc-platform/INVENTORY.md` = the SINGLE source of truth** (every app/volume/domain/auth/monitor) — read it before any
+project-lifecycle change; every add/remove-app skill MUST update it (anti-drift). Other docs: `01-KIEN-TRUC-VA-VAN-HANH.md`
+(ops), `02-MO-XE-LOI-HE-THONG-CU.md` (traps), `03-SETUP-FROM-SCRATCH.md` (rebuild). **NUC reset / needs rebuilding → follow
+`04-AGENT-RUNBOOK-TAI-THIET.md`.**
 
 ## Invariants — MUST NOT be violated in any project
 
-1. **The NUC only PULLs images.** No self-hosted runner, no SSH-deploy from CI,
-   no building on the NUC (except deliberate firefighting).
-2. **One shared Docker network `edge`.** Infra (`/opt/infra`) CREATES it; every app
-   references `external: true`. Apps do NOT publish ports to the host — only Traefik
-   reaches apps over the network.
-3. **Public/private = label.** Traefik `exposedbydefault=false`; an app is public if
-   and only if it has the 4 `traefik.*` labels. A new subdomain does NOT need to touch
-   Cloudflare (the wildcard `*.thientnse.site` already catches it).
-4. **Secrets live only in `.env`** (chmod 600) + `.env` must be in
-   `.gitignore`. Never hardcode a token/key into compose, Dockerfile, or code.
-5. **Dual image tag `latest` + short git-SHA.** Rollback = pin the SHA tag in the
-   compose on the NUC, do not revert git.
-6. **TLS is handled by Cloudflare.** Do not configure Let's Encrypt/certbot anywhere.
-7. **Traefik ≥ v3.7, Watchtower must have `DOCKER_API_VERSION=1.44`** (Docker 29
-   on the NUC dropped API < 1.40 — a violation fails silently, see doc 02).
-8. **Authentication = Authentik** (IdP at `auth.thientnse.site`, `/opt/apps/authentik`).
-   Do NOT self-code login / password hashing / JWT signing / session minting in the app. Protect an app =
-   forward-auth via Traefik (middleware `authentik@docker`); authorization = the app reads the
-   `X-authentik-*` headers. **NEVER** put forward-auth on an endpoint that a machine client calls automatically.
-   Authentik is a prebuilt image — do NOT attach a Watchtower label (update manually, bump
-   `AUTHENTIK_TAG`). Link users by **email**.
+1. **NUC only PULLs images** — no self-hosted runner, no SSH-deploy from CI, no build-on-NUC (except deliberate firefighting).
+2. **One shared Docker network `edge`** — infra (`/opt/infra`) creates it; apps reference `external: true`, never publish
+   ports to the host (only Traefik reaches apps over the network).
+3. **Public = label** — Traefik `exposedbydefault=false`; an app is public **iff** it has the 4 `traefik.*` labels. A new
+   subdomain needs no Cloudflare change (the wildcard `*.thientnse.site` already catches it).
+4. **Secrets only in `.env`** (chmod 600, in `.gitignore`) — never hardcode a token/key in compose, Dockerfile, or code.
+5. **Dual image tag `latest` + short git-SHA** — rollback = pin the SHA tag in the NUC compose, do NOT revert git.
+6. **TLS by Cloudflare** — do not configure Let's Encrypt/certbot anywhere.
+7. **Traefik ≥ v3.7; Watchtower needs `DOCKER_API_VERSION=1.44`** (Docker 29 dropped API < 1.40 — a violation fails
+   silently, see doc 02).
+8. **Auth = Authentik** (IdP `auth.thientnse.site`, `/opt/apps/authentik`) — never self-code login / password hashing /
+   JWT / session minting. Protect an app = forward-auth (middleware `authentik@docker`); authorize = app reads the
+   `X-authentik-*` headers; link users by **email**. **NEVER** forward-auth an endpoint a machine client calls
+   automatically. Authentik = prebuilt image → NO Watchtower label (update manually, bump `AUTHENTIK_TAG`).
 
 ## Conventions
 
-- GitHub repo: `thiengthb/<repo>`, deploy branch: `main`.
-- Every repo must have: a `Dockerfile` (with `EXPOSE <port>` + `HEALTHCHECK` where possible)
-  and `.github/workflows/deploy.yml` (standard: copy from a living ghcr app — `nuc-monitor` or `todo`).
-- On the NUC: an app lives at `/opt/apps/<name>/` with `docker-compose.yml` + `.env` +
-  `.gitignore`. The compose in the repo (if any) is for local dev ONLY.
-- App data: a named volume (e.g. `<name>_data`) — no bind-mount, not inside the container.
-- SSH NUC: `ssh thien25@thienminiserver` (key installed; user is in the docker group).
-- **Language = English everywhere for dev artifacts** (code, comments, `docs/*.md`, skills, specs,
-  commit messages). End-user-facing UI copy stays in the product's chosen language (e.g. Vietnamese for
-  `todo`); the in-app guide page is the one user-facing place exempt from the English rule.
-- **Agent ↔ user chat = Vietnamese, always.** Every conversational reply, explanation, summary, question, or
-  status the agent writes TO the user in chat MUST be in Vietnamese — no other language for the prose. This is
-  separate from and does NOT override the dev-artifact rule above: code/comments/docs/skills/commit messages stay
-  English; only the chat-facing prose is Vietnamese. (Technical tokens — file paths, commands, code, identifiers —
-  stay as-is inside the Vietnamese prose.)
+- Repo `thiengthb/<repo>`, deploy branch `main`. Each repo needs a `Dockerfile` (`EXPOSE` + `HEALTHCHECK` where possible)
+  + `.github/workflows/deploy.yml` (copy from a living ghcr app — `nuc-monitor`/`todo`).
+- On the NUC: `/opt/apps/<name>/` = `docker-compose.yml` + `.env` + `.gitignore` (any repo compose is local-dev ONLY).
+  App data = a named volume (`<name>_data`), no bind-mount.
+- SSH: `ssh thien25@thienminiserver` (key installed; user in the docker group).
+- **Dev artifacts = English** (code, comments, `docs/*.md`, skills, specs, commit messages). End-user UI copy = the
+  product's language (vi for `todo`); the in-app `/guide` page is the one exempt.
+- **Agent ↔ user chat = Vietnamese, always** — every reply/explanation/summary/question/status written TO the user. Does
+  NOT override the English dev-artifact rule above; technical tokens (paths, commands, identifiers) stay as-is.
 
-## Coding convention — MANDATORY when writing/editing code in any project
+## Coding — skill `/coding-convention` (MANDATORY before writing/editing code or committing)
 
-Before writing code, scaffolding a frontend, or committing in ANY project in this folder,
-follow the skill **`/coding-convention`** (`.claude/skills/coding-convention/SKILL.md`). A summary of
-the non-negotiable rules (details + checklist in the skill):
+Core rules (full checklist in the skill):
+- **Conventional Commits in English** (`feat(scope): …`); commit/push only when the user asks.
+- **Naming:** dirs/files kebab-case · React components PascalCase (named export, `<Name>Props`) · funcs/vars camelCase ·
+  types PascalCase · constants/env UPPER_SNAKE · DB columns/API fields snake_case. **ESM, Node ≥ 22.**
+- **Format = Prettier** (`semi:true`, singleQuote, printWidth 100, tabWidth 2, trailingComma all) from the skill's
+  `templates/`; run `prettier --write` before committing.
+- **Install the `commit-msg` + `pre-commit` hooks** from the skill's `hooks/` at repo-init (commit-msg enforces
+  Conventional Commits + lowercase description; pre-commit reminds to update docs).
 
-- **Git commit = Conventional Commits, in English** (`feat(scope): ...`). Commit/push only when the user asks.
-- **Naming:** directories & files kebab-case; React components PascalCase named-export with `<Name>Props`;
-  functions/variables camelCase; type/interface PascalCase; constants & env UPPER_SNAKE; DB columns/API fields snake_case.
-  Comments and code in English. ESM everywhere, Node ≥ 22.
-- **Frontend = skill `/react-ui-craft`** (the shared frontend engineering standard — see the dedicated section just below).
-  Reference stack (running in `todo`): Next.js App Router + React 19 + TS + shadcn/ui (style `radix-nova`,
-  CSS variables) + Tailwind v4 + **Motion v12** + Inter (sans, with a vi subset) + Geist Mono + lucide + sonner +
-  next-themes, alias `@/`, helper `cn()`; data = Prisma + server actions, no separate Express.
-- **Mandatory UI:** use only shadcn/ui components (don't hand-roll raw ones); dark/light mode via CSS
-  variables — **no hardcoded colors**; responsive mobile-first; toast via sonner, icons via lucide.
-- **React:** function components + hooks (Rules of Hooks, effects with full dependencies + cleanup, stable `key`,
-  minimal state, full loading/error/empty states) + general conventions (const/===/early-return/async-await, avoid `any`).
-- **Format = Prettier** (shared config: `semi:true`, singleQuote, printWidth 100, tabWidth 2, trailingComma all)
-  from `.claude/skills/coding-convention/templates/`. Run `prettier --write` before committing.
-- **Each repo installs the `commit-msg` + `pre-commit` hooks** from `.claude/skills/coding-convention/hooks/`
-  (commit-msg enforces Conventional Commits + lowercase description; pre-commit reminds to update docs) —
-  install at repo-init time for EVERY project (already installed for `todo`).
+## Frontend — skill `/react-ui-craft` (MANDATORY for any React/Next UI)
 
-## Frontend — shared engineering standard, MANDATORY when a project has React/Next (skill `/react-ui-craft`)
+The shared frontend engineering standard — complements `/coding-convention` (that owns naming/commits/Prettier; this owns
+architecture/composition/state/motion/UX-states/security). `SKILL.md` + 5 refs (`architecture`/`components`/`motion`/`ux`/
+`security`): read SKILL first, open a ref when needed.
+- **Stack (running in `todo`):** React 19 (Server Components, Actions, `use`, `useActionState`, `useOptimistic`,
+  ref-as-prop — **NO `forwardRef`**) + Next.js App Router *or* React+Vite + Tailwind v4 (tokens via `@theme`+OKLCH, **no
+  `tailwind.config.js`**) + shadcn/ui (own the components, theme via CSS vars) + Motion v12 (`motion/react`) + TS. A
+  different stack → keep the principles, don't force a rewrite.
+- **7-step:** ① frame job+data → ② plan structure (boundaries, server/client) → ③ scaffold SYSTEM (tokens+primitives)
+  before screens → ④ compose (small components, props-as-API, `cn()`) → ⑤ motion last → ⑥ handle EVERY state
+  (loading/empty/error/optimistic) → ⑦ self-review vs the quality floor + security.
+- **Quality floor (ship by default):** accessible (semantic HTML, labeled controls, `focus-visible`, contrast ≥4.5:1) ·
+  responsive ≥360px · motion-safe (`prefers-reduced-motion`) · type-safe (no `any` at the boundary, parse with Zod) ·
+  performant (animate only `transform`/`opacity`, lazy-load heavy) · secure.
+- **Security (read `references/security.md` first):** no secret in the client bundle (only `NEXT_PUBLIC_*`/`VITE_*` reach
+  the client = public); no unsanitized `dangerouslySetInnerHTML`; a Server Action/Route Handler MUST auth + Zod-validate
+  server-side; the client gets only a minimal DTO; `npm audit` clean of high/critical; no stack trace in prod.
+- **Mandatory UI:** shadcn/ui only (don't hand-roll) · dark/light via CSS vars, **no hardcoded colors** · toast via sonner ·
+  icons via lucide · build the reusable thing ONCE (shared stock, don't duplicate).
 
-Every project with a **React/Next** UI in this folder follows the skill **`/react-ui-craft`**
-(`.claude/skills/react-ui-craft/` — `SKILL.md` + 5 references: `architecture` / `components` / `motion` /
-`ux` / `security`). This is the **shared frontend engineering standard**; it COMPLEMENTS `/coding-convention`
-(clear division: coding-convention handles naming + commits + Prettier + commit-msg hook; react-ui-craft
-handles architecture + composition + state + motion + UX states + frontend security). Opening frontend work →
-read `SKILL.md` first, open a reference when needed. This skill is **engineering** (how to build it well);
-pure visual inspiration (palette/typography/layout) goes with the `frontend-design` skill if available.
+## In-app user guide — skill `/user-guide` (MANDATORY for any app with a UI)
 
-- **Standard stack:** React 19 (Server Components, Actions, `use`, `useActionState`, `useOptimistic`,
-  ref-as-prop — NO `forwardRef`) + Next.js App Router *or* React+Vite SPA (decide early since it shapes the
-  data layer + security) + Tailwind v4 (tokens via `@theme` + OKLCH, NO `tailwind.config.js` unless a
-  plugin needs it) + shadcn/ui (components you OWN, theme via CSS variables) + **Motion v12** (`motion`,
-  `import { motion } from "motion/react"`) + TypeScript. A different stack (CSS Modules, MUI…) → KEEP THE
-  PRINCIPLES, translate the specifics, do NOT force a rewrite.
-- **7-step process (in order — skipping the plan produces messy components + uneven spacing):** ① frame the
-  screen's single job + data source → ② plan the structure before coding (component boundaries, server/client)
-  → ③ scaffold the SYSTEM (tokens + reusable primitives) BEFORE screens → ④ build by composition (small
-  components, props as API, `cn()`) → ⑤ motion LAST, with intent → ⑥ handle EVERY state
-  (loading/empty/error/optimistic/ideal) → ⑦ self-review against the quality floor + `references/security.md`.
-- **Quality floor (ship by default, NOBODY needs to remind you):** accessible (semantic HTML, labeled
-  controls, `focus-visible`, contrast ≥4.5:1, `aria-*` when semantics are missing) · responsive ≥360px mobile-first ·
-  motion-safe (respect `prefers-reduced-motion` wherever there's animation) · type-safe (no `any` at the boundary,
-  parse with Zod instead of casting) · performant (animate only `transform`/`opacity`, lazy-load heavy things,
-  `LazyMotion` when needed) · secure.
-- **Security (read `references/security.md` BEFORE shipping):** no secret in the client bundle (only
-  `NEXT_PUBLIC_*`/`VITE_*` reach the client — treat them as public); no unsanitized `dangerouslySetInnerHTML`;
-  a Server Action/Route Handler MUST auth + validate (Zod) on the server (don't trust the client); the client
-  receives only a minimal DTO; `npm audit` clean of high/critical; no stack trace exposed in production.
-- **Two habits that keep the bar high:** build the reusable thing ONCE (put it into the shared component
-  stock, don't duplicate — consistency reads as "designed"); self-critique your output like a tough reviewer before handing it off.
+Ship an in-app `/guide` page, task-oriented. **One tab per machine-facing integration:** Discord bot/webhook → a Discord
+tab (setup, command table, notification types, troubleshooting); MCP server → an MCP tab (endpoint+auth, how to connect,
+tool table, safety). Keep tabs in sync with code (new command/tool ⇒ update the tab in the same change). Reference:
+`todo/app/guide/page.tsx`.
 
-## In-app user guide — MANDATORY for every app with a UI (skill `/user-guide`)
+## Code reuse across projects — skill `/code-reuse`
 
-Every app with a frontend MUST ship an in-app guide page (route `/guide`), following the skill
-**`/user-guide`**. It is task-oriented (walk through screens + actions). **One dedicated tab per
-machine-facing integration**: if the app has a **Discord** bot/webhook → a Discord tab (setup, command
-table, notification types, troubleshooting); if it exposes an **MCP** server → an MCP tab (endpoint + auth,
-how to connect, tool table with examples, workflow/safety). Keep the tabs in sync with the code (a new
-command/tool ⇒ update the tab in the same change). Living reference: `todo/app/guide/page.tsx`.
+Independent repos (no monorepo) → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature:** read
+the catalog **`nuc-platform/08-SHARED-ASSETS.md`** + grep sibling projects for prior art first. **Rule of three:** 1× build
+local · 2× log as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual →
+`ui-kit` copy-in; heavy+stable+security glue (e.g. the MCP OAuth shim, dup'd todo↔yakudoku) → a `@thiengthb/*` package
+(baked at CI build); lighter → copy-in/template. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST
+update `08-SHARED-ASSETS.md` in the same change.
 
-## Code reuse across projects — DRY across independent repos (skill `/code-reuse`)
+## Documentation & Knowledge OS — skills `/project-docs` `/project-plan` `/session-wrap`
 
-The platform is **independent repos** (no monorepo) — reuse is never free, but reinventing the same subsystem in each
-project wastes tokens + time. **Before scaffolding/coding a feature, check the skill `/code-reuse`**: read the catalog
-**`nuc-platform/08-SHARED-ASSETS.md`** (the index of what reusable piece already exists + where) and grep sibling
-projects for prior art BEFORE writing new code. **Rule of three:** 1× build local · 2× log it in the catalog as
-DUPLICATED · 3× same-shape + stable ⇒ extract (don't abstract earlier — premature sharing couples independent deploys).
-**Hybrid share model:** visual components → `ui-kit` copy-in registry; heavy+stable+security-sensitive backend glue (e.g.
-the MCP OAuth shim, already duplicated todo↔yakudoku) → a published `@thiengthb/*` package baked at CI build time; lighter
-snippets → copy-in/template. Extract the **glue**, keep the **feature** local. Any reuse/extraction/new duplication MUST
-update `08-SHARED-ASSETS.md` in the same change (anti-drift).
+Full standard: **`nuc-platform/05-TAI-LIEU-CHUAN.md`**. Goal: understand a project in one cheap read; knowledge accumulates
+across sessions instead of evaporating.
+- **Context-loading path (3 tiers):** `INVENTORY §0` → `<project>/docs/00-map.md` (AI-primer, always read first on entry)
+  → `docs/` + `docs/decisions.md` (only when the task needs it). **Keep each `CLAUDE.md` thin** (rules+invariants+pointers);
+  heavy spec lives in `docs/` (it costs context every turn).
+- **Two pillars per project:** `docs/00-map.md` (essence·modules·flows·invariants·secrets) + `docs/decisions.md`
+  (append-only why-log). A web-app adds `01-product`/`02-technical`/`03-user-guide` (05 §3).
+- **Multi-session work** (feature/refactor/migration/hard bug) → persist a plan via `/project-plan` in
+  `docs/plans/YYYY-MM-DD-<slug>.md` (complements `/plan` mode; small same-session changes get no file).
+- **Skills:** `/project-docs` scaffolds/audits the doc-set · `/project-plan` persists a multi-session plan · `/session-wrap`
+  closes a session (write `decisions.md`, update `00-map`, distill finished plans, add a cross-project line to
+  `06-SO-TRI-THUC.md`). Infra traps → `02-MO-XE-LOI`.
+- **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
+  The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
-## Documentation & knowledge — MANDATORY for every project (Knowledge OS)
+## Thinking & process
 
-Full standard: **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (read it when touching docs). Purpose: an agent
-**understands a project in one cheap read**, and non-obvious knowledge **accumulates across sessions**
-instead of evaporating.
-
-- **The context-loading path — 3 tiers (invariant):** `INVENTORY §0` (index) → `<project>/docs/00-map.md`
-  (AI-primer, 1 page, ALWAYS read first when entering a project) → `docs/` in depth + `docs/decisions.md`
-  (only when the task needs it). Each project's `CLAUDE.md` stays **thin** (rules + invariants + pointers) —
-  do NOT stuff the module map/flows/spec into it (it costs context since it auto-loads every turn); heavy
-  spec lives in `docs/`.
-- **Two pillars every project has:** `docs/00-map.md` (essence · module map · flows · highlights ·
-  invariants · secrets) + `docs/decisions.md` (knowledge log: decisions + traps + **why**, append-only). A
-  web-app adds the `01-product`/`02-technical`/`03-user-guide` set (tiered by `kind` — see 05 §3).
-- **Forward roadmap:** substantial **multi-session** work (feature/refactor/migration/hard bug fix) gets a persisted plan
-  in `docs/plans/YYYY-MM-DD-<slug>.md` via the skill **`/project-plan`** — the prospective counterpart to `decisions.md`
-  (05 §5.5). Complements plan mode (`/plan` researches + approves in-session; the file persists the roadmap across
-  sessions). Small same-session changes do NOT get a plan file. When a plan closes, `/session-wrap` distills its "why"
-  into `decisions.md`.
-- **Skills:** **`/project-docs`** generates/syncs the doc-set (scaffold + audit drift) · **`/project-plan`** persists a
-  multi-session plan in `docs/plans/` · **`/session-wrap`** wraps a session → write `decisions.md`, update `00-map`, close
-  any finished plan + distill it, add a line to `06-SO-TRI-THUC.md` if cross-project.
-  Cross-project lessons → the index `nuc-platform/06-SO-TRI-THUC.md`; **infrastructure** traps → `02-MO-XE-LOI`.
-- **Convention:** at the end of a substantial editing pass → run `/session-wrap`; a non-obvious decision →
-  `decisions.md` (in the same commit as the code). The pre-commit hook reminds (non-blocking) when code changes but docs don't.
-
-## Thinking & process — how the agent should work
-
-Standing disciplines, applied at the right moments (not as constant noise):
-
-- **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, generate 2-3
-  genuinely distinct approaches with tradeoffs, recommend one with reasoning, validate incrementally. Diverge here →
-  converge into `/project-plan`.
-- **`/honest-critique`** — at DECISION points (the user proposes an approach / asks "should I…" / you're about to agree
-  or hand off a plan): truth over comfort. Lead with the strongest counter-case, name tradeoffs, separate fact from
-  preference, red-team your own output, concede fast when the user is right. **No reflexive "You're absolutely right!".**
-  The user explicitly values honest pushback over agreement.
-- **Before claiming done / committing:** `/lint-and-validate` (lint + types + audit, incl. Python) → then
-  `/verification-before-completion` (run the check, read the output, THEN claim — evidence, not "should work").
+- **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, 2-3 distinct
+  approaches + tradeoffs, recommend with reasoning. Diverge → converge into `/project-plan`.
+- **`/honest-critique`** — at DECISION points (user proposes / asks "should I…" / you're about to agree): truth over
+  comfort, lead with the counter-case, separate fact from preference, red-team your own output, concede fast. **No
+  reflexive "You're absolutely right!"** — the user values honest pushback.
+- **Before claiming done / committing:** `/lint-and-validate` (lint+types+audit, incl. Python) →
+  `/verification-before-completion` (run it, read the output, THEN claim — evidence, not "should work").
 - **Debugging:** `/systematic-debugging` — root cause before any fix; ≥3 failed fixes ⇒ question the architecture.
 
-> **Reference skills auto-trigger by topic** (don't memorize — they fire from their descriptions): data →
-> `/prisma-expert` + `/database-design` · React perf → `/react-best-practices` · Dockerfile → `/docker-expert` ·
-> MCP server → `/mcp-builder` · external-API client → `/api-integration-specialist` · Python async → `/async-python-patterns`
-> · system-level decision → `/architecture` · multi-tenant → `/saas-multi-tenant` · deps/supply-chain → `/dependabot-review`
-> + `/supply-chain-guard` · testing → `/vitest-server-actions` + `/playwright-e2e-builder` · authoring/adopting a skill →
-> `/skill-authoring`. Full catalog + adopt/skip verdicts: `nuc-platform/07-SKILL-CANDIDATES.md` (read before re-shopping).
+> **Reference skills (auto-fire by topic):** data → `/prisma-expert`+`/database-design` · React perf →
+> `/react-best-practices` · Dockerfile → `/docker-expert` · MCP → `/mcp-builder` · external-API →
+> `/api-integration-specialist` · Python async → `/async-python-patterns` · system decision → `/architecture` ·
+> multi-tenant → `/saas-multi-tenant` · deps → `/dependabot-review`+`/supply-chain-guard` · testing →
+> `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill → `/skill-authoring`. Catalog + verdicts:
+> `nuc-platform/07-SKILL-CANDIDATES.md`.
 
-## When creating a new project / bringing a project onto the NUC
+## Project lifecycle & ops — use the right skill, don't improvise
 
-Use the skill **`/nuc-new-project`** — it runs the correct process: gather info →
-Dockerfile → workflow → push & verify image → create `/opt/apps/<name>` → acceptance.
-Don't improvise a different process.
-
-## When removing / decommissioning a project
-
-Use the skill **`/nuc-remove-project`** — the reverse of `nuc-new-project`: delete local code →
-tear down container + volume + image + dir on the NUC → clean up Authentik (if it has its own provider/group) →
-verify the subdomain 404s → update `INVENTORY.md` + `auth-apps.md` → guide the user to delete the GitHub
-repo + ghcr. Safety first: confirm the data loss + no impact on other services before tearing down.
-
-## When auditing system health / cleaning up
-
-Use the skill **`/nuc-health-audit`** — reconcile `INVENTORY.md` against reality, catch drift + orphans
-(orphan volume, dangling image, hanging Authentik provider), check every subdomain is alive, Watchtower,
-disk/RAM, secret hygiene. Read & report only; every destructive action (deleting a volume/image) must ask the user.
-
-## When protecting an app (login / SSO / authorization)
-
-Use the skill **`/nuc-protect-app`** — login gate (forward-auth), restrict who can enter (group
-policy), or in-app authorization (the `X-authentik-groups` header). The registry of every provider/app
-+ known traps: the `authentik/` repo (especially `authentik/docs/auth-apps.md`). In-app authorization =
-read the `X-authentik-*` headers via `headers()` in Next.js (no living example yet — the first app to do it
-becomes the reference). Don't improvise another auth mechanism.
-
-## When the web is broken
-
-Debug by layer DNS → tunnel → traefik → app, using the symptom table in
-`nuc-platform/01-KIEN-TRUC-VA-VAN-HANH.md` section 7. Don't fix blindly before pinpointing
-which layer the request dies at.
+| When | Skill | Key points |
+|------|-------|-----------|
+| New project / onboard to NUC | **`/nuc-new-project`** | gather info → Dockerfile → workflow → push & verify image → create `/opt/apps/<name>` → acceptance |
+| Remove / decommission | **`/nuc-remove-project`** | delete local code → tear down container+volume+image+dir → clean Authentik provider/group → verify the subdomain 404s → update `INVENTORY.md`+`auth-apps.md`; confirm data loss + no impact first |
+| Health audit / cleanup | **`/nuc-health-audit`** | reconcile `INVENTORY.md` vs reality (drift, orphan volume/image, hanging provider), subdomains alive, Watchtower, disk/RAM, secret hygiene; **report only** — every destructive action asks the user |
+| Protect an app (login/SSO/authz) | **`/nuc-protect-app`** | forward-auth gate / group policy / in-app authz via `X-authentik-*` (`headers()` in Next). Registry + traps: `authentik/docs/auth-apps.md` |
+| Web is broken | debug by layer | DNS → tunnel → Traefik → app, symptom table in `01-KIEN-TRUC §7`; pinpoint the failing layer before fixing |
