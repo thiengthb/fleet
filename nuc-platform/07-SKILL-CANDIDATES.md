@@ -199,6 +199,31 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 > `/deep-research`; would be 100% reinvention. A cron *agent* — cron is a mechanism, not a tool-restricted/context-
 > isolated role (the only thing that justifies a custom agent).
 
+## 5e. Pass 2026-06-13 (d) — the MECHANISM axis (hooks / plugins / SDD), not more skills
+
+> Prior passes scanned the *content* axis (skills) and concluded it's tapped — more skills = context tax. This pass
+> stepped back to the **mechanism** axis after researching the 2026 ecosystem (skills 349+, Superpowers 40.9k★, Spec Kit
+> 80k★, plugins now the official distribution format, hooks = the "deterministic control layer"). The asymmetry we'd
+> never named: we invested heavily in *writing* rules (8 invariants, knowledge OS) but *enforcement* was still 100%
+> model-discretion.
+
+| Mechanism | Verdict | Why |
+|---|---|---|
+| **Hooks** (`PreToolUse`/`PostToolUse`) | **ADOPTED this pass** | Turns prose invariants into code that can't be skipped. Highest leverage, ~zero context tax (hooks don't load into context like skills). See below. |
+| **Plugins / private marketplace** | **DEFER (design-ready)** | The packaging/distribution format (bundles skills+agents+hooks+MCP). Marginal today (one machine, `.claude` already in git); worth it only when expanding to multiple machines / onboarding. Hooks were written package-ready (`${CLAUDE_PROJECT_DIR}` paths, self-contained Node) so the future bundle is cheap. |
+| **Spec-driven dev** (Spec Kit / Kiro / BMAD) | **SKIP (redundant)** | `/brainstorming` + `/project-plan` + `decisions.md` already reproduce the spec→plan→tasks→implement discipline. Importing Spec Kit would be heavier and duplicative. |
+
+### Hooks authored this pass (`.claude/hooks/`, wired in `.claude/settings.json`)
+- **`secret-guard.mjs`** (PreToolUse, **blocks**) — hardcoded secret into a non-`.env` file → exit 2. Invariant #4.
+- **`invariant-warn.mjs`** (PostToolUse, advisory) — certbot/letsencrypt/acme in config (#6), self-hosted runner in CI
+  (#1), host port-publish in an app compose (#2). Never blocks (legit local-dev exceptions exist).
+- **`prettier-on-edit.mjs`** (PostToolUse, best-effort) — local prettier `--write`; silent no-op if none installed.
+- All Node ESM (Windows-safe, no shell branching). Tested standalone (block/allow/placeholder cases) before wiring.
+
+> **Decided NOT to automate:** the `/skill-authoring` conflict grep-guard as a hook — its regex contains the very tokens
+> it forbids, so it false-fires on the rule-documenting skills; stays a human-judgment manual step. **Decided NOT to add:**
+> an `edit-without-read` hook — the harness already enforces read-before-edit natively.
+
 ---
 
 ## 6. Suggested first wave (if/when we decide to install)
