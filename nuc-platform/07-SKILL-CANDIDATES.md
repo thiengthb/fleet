@@ -33,10 +33,10 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `development/prisma-expert` | **ADOPTED ✓** | Schema/migration/N+1/transaction depth. Installed `/prisma-expert` (W1, adapted: dropped non-existent-specialist routing + serverless conn-pooling; noted SQLite + the singleton). | docs |
 | `security/supply-chain-guard` | **ADOPTED ✓** | Installed `/supply-chain-guard` (W3). Read its bash scanners (benign) but **dropped them** — frozen IOC db (2026-03-31) = false confidence; kept the hardening checklist + a **live** scan procedure (advisories + npm/pip audit). | docs (scripts dropped) |
 | `workflow-automation/dependabot-review` | **ADOPTED ✓** | Installed `/dependabot-review` (W3, adapted: **removed auto-merge** — recommends + waits for user go-ahead, per the merge-ships-via-Watchtower rule). | docs |
-| `development/mcp-builder` | HIGH | Anthropic guide to build MCP servers (Node/Py). Pairs with the `/user-guide` MCP tab. | **scripts ⚠ read first** |
+| `development/mcp-builder` | **ADOPTED ✓** | Installed `/mcp-builder` (W4, rewritten self-contained: live MCP/SDK URLs, anchored to todo/yakudoku MCP pattern + forward-auth-exempt invariant; no reference files/scripts vendored). | docs (none vendored) |
 | `development/react-best-practices` (Vercel) | HIGH | 45 concrete RSC/bundle/waterfall perf rules — depth `/react-ui-craft` doesn't have. Stack-aligned. | docs |
-| `development/api-integration-specialist` | HIGH | Robust 3rd-party API clients (OAuth2, retries, circuit breakers, webhook-sig). The worker/bot use case. | docs |
-| `development/async-python-patterns` | HIGH | asyncio concurrency for the standalone **Python workers/bots**. | docs |
+| `development/api-integration-specialist` | **ADOPTED ✓** | Installed `/api-integration-specialist` (W4, adapted: Express webhook → Next.js Route Handler; kebab name; trimmed vendor snippets). | docs |
+| `development/async-python-patterns` | **ADOPTED ✓** | Installed `/async-python-patterns` (W4, rewritten self-contained — no dangling playbook ref). | docs |
 | `development/systematic-debugging` | **ADOPTED ✓** | "No fix without root-cause" 4-phase. Installed `/systematic-debugging` (W2, adapted: dangling sub-skill refs → our skills; debug-by-layer tie-in). | docs |
 | `development/verification-before-completion` | **ADOPTED ✓** | Evidence-before-claims gate. Installed `/verification-before-completion` (W2, tied to /honest-critique + /verify). | docs |
 | `development/lint-and-validate` | **ADOPTED ✓** | Installed `/lint-and-validate` (W2). Read its scripts (benign) but **dropped them** — kept the guidance only, aligned to eslint/tsc/Prettier + ruff/mypy/bandit. | docs (scripts dropped) |

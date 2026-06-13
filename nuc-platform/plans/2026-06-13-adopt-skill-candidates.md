@@ -2,7 +2,7 @@
 title: Adopt the recommended community skills (adapted) + fold the borrow-ideas, without breaking invariants
 status: active # draft → active → done | abandoned
 created: 2026-06-13
-updated: 2026-06-13 # W1, W2, W3 done
+updated: 2026-06-13 # W1, W2, W3, W4 done
 related:
   [
     nuc-platform/07-SKILL-CANDIDATES.md,
@@ -134,7 +134,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - [x] **W1** Adopted `/prisma-expert` + `/database-design` (stripped serverless/ORM-choice framing; SQLite-aware). Grep-guard CLEAN. ✓
 - [x] **W2** Adopted `/systematic-debugging` + `/verification-before-completion`; `/lint-and-validate` (read its scripts — benign — then dropped them, kept guidance). Grep-guard CLEAN. ✓
 - [x] **W3** Adopted `/supply-chain-guard` (read scanners — benign — dropped them; kept hardening + live scan) + `/dependabot-review` (removed auto-merge). Grep-guard CLEAN. ✓
-- [ ] **W4** Adopt `api-integration-specialist` + `async-python-patterns`; read+adopt `mcp-builder` scripts (cross-check MCP-exempt invariant). Grep-guard. Commit.
+- [x] **W4** Adopted `/api-integration-specialist` (Express→Route Handler) + `/async-python-patterns` (self-contained) + `/mcp-builder` (self-contained, anchored to todo/yakudoku + forward-auth-exempt invariant; no scripts/refs vendored). Grep-guard CLEAN. ✓
 - [ ] **W5** Adopt `architecture`; adopt `docker-expert` (strip build-on-host/compose/secrets); adopt `saas-multi-tenant` (or defer). Grep-guard. Commit.
 - [ ] **W6** Fold all §2 BORROW ideas into `/project-plan`, `/react-ui-craft`, `/coding-convention`, `/nuc-health-audit`; add the authoring note. Grep-guard. Commit.
 - [ ] **W7** Update CLAUDE.md pointers + ledger to ADOPTED; `/session-wrap` → `decisions.md`. Commit. Flip plan to `done`.
