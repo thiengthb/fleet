@@ -144,6 +144,21 @@ instead of evaporating.
 - **Convention:** at the end of a substantial editing pass → run `/session-wrap`; a non-obvious decision →
   `decisions.md` (in the same commit as the code). The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
+## Thinking & process — how the agent should work (skills `/brainstorming` + `/honest-critique`)
+
+Two standing thinking disciplines, applied at the right moments (not as constant noise):
+
+- **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, generate 2-3
+  genuinely distinct approaches with tradeoffs, recommend one with reasoning, validate incrementally. Diverge here →
+  converge into `/project-plan`.
+- **`/honest-critique`** — at DECISION points (the user proposes an approach / asks "should I…" / you're about to agree
+  or hand off a plan): truth over comfort. Lead with the strongest counter-case, name tradeoffs, separate fact from
+  preference, red-team your own output, concede fast when the user is right. **No reflexive "You're absolutely right!".**
+  The user explicitly values honest pushback over agreement.
+
+> Catalog evaluation of community skills (what to adopt/borrow/skip, with reasons) is the memory file
+> `nuc-platform/07-SKILL-CANDIDATES.md` — read it before re-shopping for skills.
+
 ## When creating a new project / bringing a project onto the NUC
 
 Use the skill **`/nuc-new-project`** — it runs the correct process: gather info →
