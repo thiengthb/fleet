@@ -123,7 +123,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 ### Testing (the platform had NO testing skill)
 | Skill | Verdict | Note |
 |---|:--:|---|
-| `development/playwright-e2e-builder` | **ADOPT HIGH** | Interview-driven Playwright E2E: POM, `storageState` auth reuse (its cookie/session path matches **Authentik forward-auth** = httpOnly cookies), GH-Actions sharding, dev-server config. Docs-as-skill done well, not a stub. |
+| `development/playwright-e2e-builder` | **ADOPTED ✓ (adapted)** | Installed as `/playwright-e2e-builder`. Kept the bones (interview-driven planning, POM, role-based locators, sharding); **rewrote auth/seeding/CI** for this platform: Authentik forward-auth ⇒ NO in-app login form (apps open at app layer locally; header-injection for `X-authentik-*` authz), seed via **Prisma not REST**, **temp SQLite** test DB not Postgres, Node 22. Templates incl. config/seed/global-setup/fixtures/POM/e2e.yml. |
 | `development/webapp-testing` | BORROW MED | Anthropic's official "drive a local webapp" toolkit (screenshots/logs). Ships a **real** `scripts/with_server.py`. For ad-hoc UI debugging; complements `/verify`. |
 | `development/test-detect` | BORROW MED | Lightweight runner that auto-detects Vitest/Jest/Playwright/pytest/Go — handy for polyglot repos. |
 | `development/playwright-java` · `development/playwright` | SKIP | Java (no Java here) / Codex-ecosystem-pathed (`$CODEX_HOME`). |
@@ -165,7 +165,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 1. `prisma-expert` + `database-design` — the data layer has zero skill coverage today and is core to every web app.
 2. `systematic-debugging` + `verification-before-completion` + `lint-and-validate` — process discipline, polyglot, cheap wins.
 3. `supply-chain-guard` + `dependabot-review` — supply-chain + dep hygiene for the growing `push→GHA→ghcr` fleet (read `supply-chain-guard/scripts/` first).
-4. `playwright-e2e-builder` (e2e, Authentik-aware) to complement the now-built `/vitest-server-actions` (unit/integration core-path coverage).
+4. ✓ DONE — `/playwright-e2e-builder` (e2e, platform-adapted) + `/vitest-server-actions` (unit/integration) now cover the full testing pyramid.
 5. Fold the §2 BORROW ideas into `/project-plan` and `/react-ui-craft` — no new skills, pure refinement.
 
 > Re-run this evaluation when the catalog changes materially; update verdicts in place (this file is the memory).

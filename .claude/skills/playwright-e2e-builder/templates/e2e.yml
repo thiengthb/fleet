@@ -1,0 +1,43 @@
+# .github/workflows/e2e.yml — SEPARATE from deploy.yml (browser E2E is heavy; don't block
+# the ghcr build on it). Runs as its own gate on PRs + push to main.
+# Test DB = temp SQLite file (no service container). Node 22 (platform standard).
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/2, 2/2]
+    env:
+      DATABASE_URL: file:./e2e/.test.db
+      BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Install Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+      # global-setup.ts runs `prisma migrate deploy` + seed against DATABASE_URL,
+      # and playwright.config.ts starts `next dev` against the same temp DB.
+      - name: Run E2E
+        run: npx playwright test --shard=${{ matrix.shard }}
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ strategy.job-index }}
+          path: playwright-report/
+          retention-days: 14
