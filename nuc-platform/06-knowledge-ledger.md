@@ -29,6 +29,8 @@
 | 2026-06-13 | **Adopt a community skill by ADAPTING, not copying** — read scripts line-by-line (drop if non-essential), strip invariant-conflicts, kill dangling refs, re-scope the description, run the conflict grep-guard. | every skill added to `.claude/skills/` | `/skill-authoring`; `nuc-platform/07-SKILL-CANDIDATES.md` |
 | 2026-06-13 | **Don't pre-install a skill before its triggering need** — it's clutter + a context tax; defer "situational" ones with a note instead. | every skill add | `07-SKILL-CANDIDATES.md §1b` |
 | 2026-06-13 | **A frozen security/IOC list gives false confidence** ("scan passed" against a stale list) — prefer live advisories + `npm/pip audit` over a baked-in scanner. | supply-chain hygiene | `/supply-chain-guard` |
+| 2026-06-13 | **Multi-user MCP: gate ONLY `/api/oauth/authorize` behind Authentik** (the browser step) so it learns the email and binds it into the OAuth token (`sub=email`); keep `/api/mcp`+`/token` exempt. Drop shared static bearers — they can't identify a user. Thread per-request identity into the core client with `AsyncLocalStorage` (mcp-handler tools don't get the request). No token in the Claude JSON → works for free tier. | web-app with MCP + Authentik + multi-user | `yakudoku/docs/decisions.md` (2026-06-13 MCP entry); `authentik/docs/auth-apps.md` (yakudoku §) |
+| 2026-06-13 | **"Internal-only" ≠ trusted on the shared `edge` network**: an app that forwards an identity header (`X-User-Email`) to a sibling backend must gate it with a shared **service token** (backend 401s without it) + resolve the user server-side + verify row ownership (IDOR). Any edge container could otherwise spoof it. | any app with a separate backend on `edge` | `yakudoku/docs/decisions.md` (2026-06-13 service-token entry); `core/app/auth.py` |
 
 ---
 
@@ -40,7 +42,7 @@
 |---------|-------------|--------|
 | todo | `todo/docs/decisions.md` | **Established 2026-06-13** — seeded with the foundational whys (behavioral invariant, dynamic-compute, rolling-roadmap, in-process MCP + sync rules, stateless OAuth shim, schedule trust boundary, tab-role naming). Full Knowledge OS doc-set in place (00-map + 01–04). |
 | journal | `journal/docs/decisions.md` | _(to be established in Phase 2)_ |
-| yakudoku | `yakudoku/docs/decisions.md` | **Established 2026-06-13** — grading/judge design, MCP expansion, JP word-lookup (Word/Kanji/DictEntry); + thin CLAUDE.md added 2026-06-13. |
+| yakudoku | `yakudoku/docs/decisions.md` | **Established 2026-06-13** — multi-user (shared catalog + per-user `userKey`, service-token trust, MCP OAuth `sub=email`, Discord `/link`, wipe-migration); grading/judge design, MCP expansion, JP word-lookup (Word/Kanji/DictEntry); + thin CLAUDE.md added 2026-06-13. |
 | jobhunter-bot | `jobhunter-bot/docs/decisions.md` | _(to be established in Phase 2)_ |
 | nuc-monitor | `nuc-monitor/docs/decisions.md` | _(to be established in Phase 2)_ |
 | nuc-ops-bot | `nuc-ops-bot/docs/decisions.md` | _(to be established in Phase 2)_ |
