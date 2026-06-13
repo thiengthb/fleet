@@ -20,8 +20,10 @@ The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law. The source of trut
 ## Stage 0 — Confirm & build a damage inventory
 
 1. Ask/confirm with the user: the **project name**, and confirm they **accept losing all its data**.
-2. Open `INVENTORY.md` to get exactly: domain, image, volume(s), auth level (does it have its own
-   Authentik provider/group), GitHub repo. This is the list of what must be cleaned up.
+2. Open `INVENTORY.md` to get exactly: its **§0 row** (the `domain` + `kind` classification — to be removed
+   in Stage 7) and its **§1 row** (subdomain/URL, image, volume(s), auth level — does it have its own Authentik
+   provider/group — GitHub repo). This is the list of what must be cleaned up. (NB: "subdomain" = the public URL;
+   the §0 `domain` column = the purpose bucket `platform`/`product`/`automation`/`shared` — don't confuse them.)
 3. Check **no other service depends on** this project (e.g. another app calls its API,
    shares a volume). In doubt → ask the user.
 4. Snapshot the baseline state to compare after removal:
@@ -126,8 +128,9 @@ Ask the user whether they want to delete the repo — some projects are only rem
 
 ## Stage 7 — Update the registry (MANDATORY — anti-drift)
 
-1. **`nuc-platform/INVENTORY.md`:** remove the app's row from §1; remove the provider/group row from §3
-   (if any); add a line to §6 "Retired apps" with the date + what was deleted.
+1. **`nuc-platform/INVENTORY.md`:** remove the app's row from **§0** (the project map — its `domain`/`kind`/path)
+   AND from §1 (apps); remove the provider/group row from §3 (if any); add a line to §6 "Decommissioned apps" with
+   the date + what was deleted.
 2. **`authentik/docs/auth-apps.md`** (if the app is listed there): remove the app's entry, note "Removed
    YYYY-MM-DD".
 3. Commit + push the modified doc repos — **only when the user asks** (per the git rule). Message like:
