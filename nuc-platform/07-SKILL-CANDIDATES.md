@@ -37,9 +37,9 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `development/react-best-practices` (Vercel) | HIGH | 45 concrete RSC/bundle/waterfall perf rules — depth `/react-ui-craft` doesn't have. Stack-aligned. | docs |
 | `development/api-integration-specialist` | HIGH | Robust 3rd-party API clients (OAuth2, retries, circuit breakers, webhook-sig). The worker/bot use case. | docs |
 | `development/async-python-patterns` | HIGH | asyncio concurrency for the standalone **Python workers/bots**. | docs |
-| `development/systematic-debugging` | HIGH | "No fix without root-cause" 4-phase discipline. No debugging skill exists today. | docs |
-| `development/verification-before-completion` | HIGH | Gate: no "done/passing" claim without fresh command output. Reinforces honest CI culture. | docs |
-| `development/lint-and-validate` | HIGH | Post-edit lint/tsc/audit loop incl. **Python (ruff/mypy/bandit)** — our Prettier focus misses the worker side. | scripts (benign) |
+| `development/systematic-debugging` | **ADOPTED ✓** | "No fix without root-cause" 4-phase. Installed `/systematic-debugging` (W2, adapted: dangling sub-skill refs → our skills; debug-by-layer tie-in). | docs |
+| `development/verification-before-completion` | **ADOPTED ✓** | Evidence-before-claims gate. Installed `/verification-before-completion` (W2, tied to /honest-critique + /verify). | docs |
+| `development/lint-and-validate` | **ADOPTED ✓** | Installed `/lint-and-validate` (W2). Read its scripts (benign) but **dropped them** — kept the guidance only, aligned to eslint/tsc/Prettier + ruff/mypy/bandit. | docs (scripts dropped) |
 | `development/architecture` | HIGH | Trade-off → ADR decision framework, "start simple". Good for a continuously-growing platform. | docs |
 | `development/database-design` | **ADOPTED ✓** | DB design judgment. Installed `/database-design` (W1, adapted: dropped ORM-selection — Prisma is fixed; SQLite-first framing). | docs |
 | `development/docker-expert` | MED* | Lean/non-root/HEALTHCHECK Dockerfile authoring. **Guardrail:** ignore its compose/secrets/build-on-host advice — that violates "NUC only PULLs". | docs |

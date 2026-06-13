@@ -2,7 +2,7 @@
 title: Adopt the recommended community skills (adapted) + fold the borrow-ideas, without breaking invariants
 status: active # draft → active → done | abandoned
 created: 2026-06-13
-updated: 2026-06-13 # W1 done
+updated: 2026-06-13 # W1, W2 done
 related:
   [
     nuc-platform/07-SKILL-CANDIDATES.md,
@@ -132,7 +132,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 
 - [x] **W0** Confirm scope with the user (adopt §1+§2 now, defer §1b — confirmed 2026-06-13). Plan flipped to `active`.
 - [x] **W1** Adopted `/prisma-expert` + `/database-design` (stripped serverless/ORM-choice framing; SQLite-aware). Grep-guard CLEAN. ✓
-- [ ] **W2** Adopt `systematic-debugging` + `verification-before-completion`; read+adopt `lint-and-validate` scripts. Grep-guard. Commit.
+- [x] **W2** Adopted `/systematic-debugging` + `/verification-before-completion`; `/lint-and-validate` (read its scripts — benign — then dropped them, kept guidance). Grep-guard CLEAN. ✓
 - [ ] **W3** Read+adopt `supply-chain-guard` scripts; adopt `dependabot-review` (no auto-merge). Grep-guard. Commit.
 - [ ] **W4** Adopt `api-integration-specialist` + `async-python-patterns`; read+adopt `mcp-builder` scripts (cross-check MCP-exempt invariant). Grep-guard. Commit.
 - [ ] **W5** Adopt `architecture`; adopt `docker-expert` (strip build-on-host/compose/secrets); adopt `saas-multi-tenant` (or defer). Grep-guard. Commit.
