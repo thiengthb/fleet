@@ -54,7 +54,7 @@ for h in $(grep -rhoP "Host\(\`\K[^\`]+" /opt/apps/*/docker-compose.yml | sort -
 done'
 ```
 Expected: open app → `200`; gated app (forward-auth) → `302` to auth. `404/502/530/000` → ❌
-(404=lost route, 502=app dead, 530=tunnel, 000=DNS) — check the debug table `01-KIEN-TRUC...` §7.
+(404=lost route, 502=app dead, 530=tunnel, 000=DNS) — check the debug table `01-architecture-and-operations...` §7.
 
 ## E. Authentik: providers ↔ registry
 
@@ -115,7 +115,7 @@ A mismatch → there may be stale `known_containers`; restart nuc-monitor to res
 ## K. Doc-set drift (docs ↔ standard) — run LOCAL on the dev machine
 
 Reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
-(`nuc-platform/05-TAI-LIEU-CHUAN.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
+(`nuc-platform/05-documentation-standard.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
 (NOT over SSH — the doc-set lives in the dev repo):
 
 ```bash

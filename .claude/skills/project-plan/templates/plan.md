@@ -8,7 +8,7 @@ related: [] # file.ts · INVENTORY §n · docs/plans/<prior>.md
 
 <!--
   A PERSISTED, multi-session plan. Forward-looking counterpart to docs/decisions.md.
-  Standard: nuc-platform/05-TAI-LIEU-CHUAN.md §5.5. Maintained by the /project-plan skill.
+  Standard: nuc-platform/05-documentation-standard.md §5.5. Maintained by the /project-plan skill.
   Keep it token-cheap (tables + bullets + checklist, not prose). Keep the checklist in sync as you execute.
 -->
 

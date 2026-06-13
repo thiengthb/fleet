@@ -10,7 +10,7 @@ Every MiniServer app with a UI must teach the user how to use it **inside the ap
 Living reference: `todo/app/guide/page.tsx` (route `/guide`, tabs "Using the app" + "Use with AI/MCP").
 
 Standards this builds on: `/react-ui-craft` (frontend engineering) + `/coding-convention` (stack, UI rules)
-+ `nuc-platform/05-TAI-LIEU-CHUAN.md` (the guide mirrors `docs/03-user-guide.md`).
++ `nuc-platform/05-documentation-standard.md` (the guide mirrors `docs/03-user-guide.md`).
 
 ## Rule (mandatory for every app with a UI)
 

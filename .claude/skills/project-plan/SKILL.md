@@ -12,7 +12,7 @@ of work keeps its roadmap + state on disk instead of evaporating when the conver
 > Relationship to plan mode (`/plan`): they are complementary, not alternatives. Use **plan mode** to research read-only
 > and get the user's approval *in the session*; use **this skill** to **persist** the approved plan so the next session
 > remembers it. Typical flow: plan-mode research → user approves → write the plan file → execute → keep the file's checklist
-> in sync as you go. The standard this skill follows: `nuc-platform/05-TAI-LIEU-CHUAN.md §5.5`.
+> in sync as you go. The standard this skill follows: `nuc-platform/05-documentation-standard.md §5.5`.
 
 ## When to use it (and when NOT to)
 

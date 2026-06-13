@@ -9,8 +9,8 @@
 > on its own, what it must ask the user for, what to ask the user, and how to verify**.
 >
 > Two foundational documents to read alongside (same directory):
-> - `01-KIEN-TRUC-VA-VAN-HANH.md` — the target architecture to reach.
-> - `02-MO-XE-LOI-HE-THONG-CU.md` — the traps that have caused failures. Do NOT repeat them.
+> - `01-architecture-and-operations.md` — the target architecture to reach.
+> - `02-known-traps.md` — the traps that have caused failures. Do NOT repeat them.
 
 ---
 

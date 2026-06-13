@@ -8,9 +8,9 @@ git push main → GitHub Actions build → ghcr.io/thiengthb/<repo> (:latest + :
 ```
 
 **`nuc-platform/INVENTORY.md` = the SINGLE source of truth** (every app/volume/domain/auth/monitor) — read it before any
-project-lifecycle change; every add/remove-app skill MUST update it (anti-drift). Other docs: `01-KIEN-TRUC-VA-VAN-HANH.md`
-(ops), `02-MO-XE-LOI-HE-THONG-CU.md` (traps), `03-SETUP-FROM-SCRATCH.md` (rebuild). **NUC reset / needs rebuilding → follow
-`04-AGENT-RUNBOOK-TAI-THIET.md`.**
+project-lifecycle change; every add/remove-app skill MUST update it (anti-drift). Other docs: `01-architecture-and-operations.md`
+(ops), `02-known-traps.md` (traps), `03-SETUP-FROM-SCRATCH.md` (rebuild). **NUC reset / needs rebuilding → follow
+`04-agent-rebuild-runbook.md`.**
 
 ## Invariants — MUST NOT be violated in any project
 
@@ -91,7 +91,7 @@ update `08-SHARED-ASSETS.md` in the same change.
 
 ## Documentation & Knowledge OS — skills `/project-docs` `/project-plan` `/session-wrap`
 
-Full standard: **`nuc-platform/05-TAI-LIEU-CHUAN.md`**. Goal: understand a project in one cheap read; knowledge accumulates
+Full standard: **`nuc-platform/05-documentation-standard.md`**. Goal: understand a project in one cheap read; knowledge accumulates
 across sessions instead of evaporating.
 - **Context-loading path (3 tiers):** `INVENTORY §0` → `<project>/docs/00-map.md` (AI-primer, always read first on entry)
   → `docs/` + `docs/decisions.md` (only when the task needs it). **Keep each `CLAUDE.md` thin** (rules+invariants+pointers);
@@ -102,7 +102,7 @@ across sessions instead of evaporating.
   `docs/plans/YYYY-MM-DD-<slug>.md` (complements `/plan` mode; small same-session changes get no file).
 - **Skills:** `/project-docs` scaffolds/audits the doc-set · `/project-plan` persists a multi-session plan · `/session-wrap`
   closes a session (write `decisions.md`, update `00-map`, distill finished plans, add a cross-project line to
-  `06-SO-TRI-THUC.md`). Infra traps → `02-MO-XE-LOI`.
+  `06-knowledge-ledger.md`). Infra traps → `02-known-traps`.
 - **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
   The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
@@ -132,4 +132,4 @@ across sessions instead of evaporating.
 | Remove / decommission | **`/nuc-remove-project`** | delete local code → tear down container+volume+image+dir → clean Authentik provider/group → verify the subdomain 404s → update `INVENTORY.md`+`auth-apps.md`; confirm data loss + no impact first |
 | Health audit / cleanup | **`/nuc-health-audit`** | reconcile `INVENTORY.md` vs reality (drift, orphan volume/image, hanging provider), subdomains alive, Watchtower, disk/RAM, secret hygiene; **report only** — every destructive action asks the user |
 | Protect an app (login/SSO/authz) | **`/nuc-protect-app`** | forward-auth gate / group policy / in-app authz via `X-authentik-*` (`headers()` in Next). Registry + traps: `authentik/docs/auth-apps.md` |
-| Web is broken | debug by layer | DNS → tunnel → Traefik → app, symptom table in `01-KIEN-TRUC §7`; pinpoint the failing layer before fixing |
+| Web is broken | debug by layer | DNS → tunnel → Traefik → app, symptom table in `01-architecture-and-operations §7`; pinpoint the failing layer before fixing |

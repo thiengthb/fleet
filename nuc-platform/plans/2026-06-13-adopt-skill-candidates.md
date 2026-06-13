@@ -8,7 +8,7 @@ related:
     nuc-platform/07-SKILL-CANDIDATES.md,
     CLAUDE.md,
     .claude/skills/,
-    nuc-platform/05-TAI-LIEU-CHUAN.md,
+    nuc-platform/05-documentation-standard.md,
   ]
 ---
 
@@ -137,7 +137,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - [x] **W4** Adopted `/api-integration-specialist` (Express→Route Handler) + `/async-python-patterns` (self-contained) + `/mcp-builder` (self-contained, anchored to todo/yakudoku + forward-auth-exempt invariant; no scripts/refs vendored). Grep-guard CLEAN. ✓
 - [x] **W5** Adopted `/architecture` (self-contained, ADR→decisions.md) + `/docker-expert` (**narrowed** to Dockerfile authoring; compose/secrets/build-on-host stripped into a NOT-this-skill box) + `/saas-multi-tenant` (Authentik+Prisma-extension+SQLite-no-RLS adapt; flagged speculative). Grep-guard CLEAN. ✓
 - [x] **W6** Folded §2 ideas into `/project-plan` (3) + `/coding-convention` (smells) + `/react-ui-craft` (shadcn CLI + Zod) + `/nuc-health-audit` (group L deps). Created `/skill-authoring` (adoption procedure + grep-guard). `react-useeffect` already covered (skipped, no dup). Grep-guard CLEAN (react-ui-craft hits = pre-existing correct *prohibitions*). ✓
-- [x] **W7** Caught + adopted the missed `/react-best-practices`; added thin CLAUDE.md disciplines + reference-skill index; distilled cross-project lessons into `06-SO-TRI-THUC.md §A` (adoption procedure, no-pre-install, frozen-IOC); ledger all ADOPTED. Plan → `done`. ✓
+- [x] **W7** Caught + adopted the missed `/react-best-practices`; added thin CLAUDE.md disciplines + reference-skill index; distilled cross-project lessons into `06-knowledge-ledger.md §A` (adoption procedure, no-pre-install, frozen-IOC); ledger all ADOPTED. Plan → `done`. ✓
 
 ## Out of scope
 
@@ -161,8 +161,8 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 ## Decisions to distill — DISTILLED ✓ (W7)
 
 - The skill-adoption procedure + the conflict grep-guard → **`/skill-authoring`** (the durable home) + one line in
-  `06-SO-TRI-THUC.md §A`.
-- Why §1b skills are deferred (pre-need install = clutter) → `06-SO-TRI-THUC.md §A` + `07-SKILL-CANDIDATES.md §1b`.
-- Frozen-IOC-list = false confidence → `06-SO-TRI-THUC.md §A` + `/supply-chain-guard`.
+  `06-knowledge-ledger.md §A`.
+- Why §1b skills are deferred (pre-need install = clutter) → `06-knowledge-ledger.md §A` + `07-SKILL-CANDIDATES.md §1b`.
+- Frozen-IOC-list = false confidence → `06-knowledge-ledger.md §A` + `/supply-chain-guard`.
 - Skill ownership boundaries (architecture↔decisions.md, database-design↔prisma-expert, react-best-practices↔react-ui-craft,
   docker-expert↔nuc-new-project) → encoded in each skill's description "complements/defers" line + `/skill-authoring`.

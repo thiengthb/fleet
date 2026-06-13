@@ -228,12 +228,12 @@ cp ".claude/skills/coding-convention/hooks/pre-commit" "<repo>/.git/hooks/pre-co
 - **`commit-msg`** blocks: wrong `type(scope): desc` structure, subject ending with `.`, and a **capitalized first
   letter of the description** (forces lowercase, imperative mood — except all-caps acronyms like API/JWT/SSO). Skips merge/revert/fixup.
 - **`pre-commit`** (non-blocking) reminds you when a commit touches CODE but not `docs/` → consider updating
-  `docs/00-map.md` / `docs/decisions.md` (docs standard: `nuc-platform/05-TAI-LIEU-CHUAN.md`). Does NOT block.
+  `docs/00-map.md` / `docs/decisions.md` (docs standard: `nuc-platform/05-documentation-standard.md`). Does NOT block.
 
 When scaffolding a new project (skill `/nuc-new-project`), install BOTH the Prettier config and the 2 hooks at the repo init step.
 
 **Document-as-you-code:** when making a **non-obvious** decision (choosing an architecture, dodging a pitfall, a trade-off) →
-write one entry into `<project>/docs/decisions.md` (template in `05-TAI-LIEU-CHUAN.md §5`), alongside the code commit.
+write one entry into `<project>/docs/decisions.md` (template in `05-documentation-standard.md §5`), alongside the code commit.
 At the end of a significant editing pass → run `/session-wrap` to lock in the knowledge + sync `docs/00-map.md`.
 
 ## 9. Backend (Next.js — Route Handlers + Server Actions, NO separate Express)
@@ -258,4 +258,4 @@ At the end of a significant editing pass → run `/session-wrap` to lock in the 
 - [ ] `prettier --write` has been run; the frontend's `npm run lint` and `npm run build` pass (if the frontend was touched).
 - [ ] No hardcoded secrets; no leftover `console.log`/dead code; comments in English for non-obvious spots.
 - [ ] The repo has the Prettier config + commit-msg + pre-commit hook (section 8). Commit in English Conventional Commits (lowercase description); only commit/push when the user asks.
-- [ ] Docs keep up with code: non-obvious decisions recorded in `docs/decisions.md`; module map/flow changed → `docs/00-map.md` updated (standard: `05-TAI-LIEU-CHUAN.md`; end of a large editing pass → `/session-wrap`).
+- [ ] Docs keep up with code: non-obvious decisions recorded in `docs/decisions.md`; module map/flow changed → `docs/00-map.md` updated (standard: `05-documentation-standard.md`; end of a large editing pass → `/session-wrap`).

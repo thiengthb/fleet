@@ -1,5 +1,5 @@
 <!--
-  TEMPLATE docs/00-map.md — AI-primer. Standard: nuc-platform/05-TAI-LIEU-CHUAN.md §4.
+  TEMPLATE docs/00-map.md — AI-primer. Standard: nuc-platform/05-documentation-standard.md §4.
   Fill in the project's REAL content; delete every <!-- guidance --> line and <...> placeholder before saving.
   Goal: ≤ ~1 page, after reading it you grasp the project without opening code. Prefer tables + trees + bullets.
 -->

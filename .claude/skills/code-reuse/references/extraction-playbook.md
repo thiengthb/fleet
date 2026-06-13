@@ -61,5 +61,5 @@ just a canonical starting point. The catalog records where the template lives so
 
 - Update `08-SHARED-ASSETS.md`: flip the row's status (DUPLICATED → SHARED), set the canonical location + mechanism, list
   the consuming repos.
-- If the lesson is cross-project-worthy, `/session-wrap` distills it into `06-SO-TRI-THUC.md`.
+- If the lesson is cross-project-worthy, `/session-wrap` distills it into `06-knowledge-ledger.md`.
 - Run the `/skill-authoring` grep-guard if the shared code touched anything invariant-adjacent.

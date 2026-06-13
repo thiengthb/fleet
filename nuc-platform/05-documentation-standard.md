@@ -133,8 +133,8 @@ Each entry follows this exact skeleton (short — 4 lines is enough):
 The "is it worth recording?" criterion — ask: *if a later session didn't know this, would it repeat the mistake /
 break an invariant / waste time re-investigating?* Yes → record it. This is the job of the `/session-wrap` skill.
 
-> Different from `nuc-platform/02-MO-XE-LOI-HE-THONG-CU.md` (**system/platform**-level traps) and
-> `06-SO-TRI-THUC.md` (a cross-project index). `decisions.md` is the traps + decisions **of a single project**.
+> Different from `nuc-platform/02-known-traps.md` (**system/platform**-level traps) and
+> `06-knowledge-ledger.md` (a cross-project index). `decisions.md` is the traps + decisions **of a single project**.
 
 ---
 
@@ -172,7 +172,7 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
 - `docs/decisions.md` = knowledge **of the project**, committed, everyone reads it, travels with the repo.
 - Personal memory = the user's preferences/feedback, private, per-machine. NOT the same role.
 - Rule: knowledge about *project code/decisions* → `decisions.md`. Feedback about *how the user wants to work* →
-  memory. A lesson *spanning multiple projects* → `06-SO-TRI-THUC.md` (index).
+  memory. A lesson *spanning multiple projects* → `06-knowledge-ledger.md` (index).
 
 ---
 
@@ -184,7 +184,7 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
   so the roadmap survives across sessions — the forward-looking counterpart to `decisions.md` (§5.5).
 - **Skill `/session-wrap`** at the end of a session: extracts decisions/traps → `decisions.md`; updates `00-map` if the
   module map changed; closes a finished plan (`done`) + distills its knowledge into `decisions.md`; one line into
-  `06-SO-TRI-THUC.md` if cross-project.
+  `06-knowledge-ledger.md` if cross-project.
 - **A light pre-commit hook** (`coding-convention/hooks/pre-commit`): a commit touching code but NOT touching `docs/`
   → a **non-blocking** warning (doesn't block). It nudges, doesn't obstruct.
 - **`/nuc-new-project`**: a newly created project has already run `/project-docs scaffold` → born-documented.
@@ -199,4 +199,4 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
 - [ ] Does this session have a non-obvious decision/trap? Yes → record it in `docs/decisions.md` (via `/session-wrap`).
 - [ ] Is the work multi-session/substantial? → persist a plan in `docs/plans/` (via `/project-plan`); keep its checklist in sync.
 - [ ] Is `CLAUDE.md` still thin (not bloated with spec)? Heavy spec → split it into `docs/`.
-- [ ] A cross-project lesson? → add one line to `06-SO-TRI-THUC.md`.
+- [ ] A cross-project lesson? → add one line to `06-knowledge-ledger.md`.
