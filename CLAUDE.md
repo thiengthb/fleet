@@ -118,6 +118,18 @@ table, notification types, troubleshooting); if it exposes an **MCP** server →
 how to connect, tool table with examples, workflow/safety). Keep the tabs in sync with the code (a new
 command/tool ⇒ update the tab in the same change). Living reference: `todo/app/guide/page.tsx`.
 
+## Code reuse across projects — DRY across independent repos (skill `/code-reuse`)
+
+The platform is **independent repos** (no monorepo) — reuse is never free, but reinventing the same subsystem in each
+project wastes tokens + time. **Before scaffolding/coding a feature, check the skill `/code-reuse`**: read the catalog
+**`nuc-platform/08-SHARED-ASSETS.md`** (the index of what reusable piece already exists + where) and grep sibling
+projects for prior art BEFORE writing new code. **Rule of three:** 1× build local · 2× log it in the catalog as
+DUPLICATED · 3× same-shape + stable ⇒ extract (don't abstract earlier — premature sharing couples independent deploys).
+**Hybrid share model:** visual components → `ui-kit` copy-in registry; heavy+stable+security-sensitive backend glue (e.g.
+the MCP OAuth shim, already duplicated todo↔yakudoku) → a published `@thiengthb/*` package baked at CI build time; lighter
+snippets → copy-in/template. Extract the **glue**, keep the **feature** local. Any reuse/extraction/new duplication MUST
+update `08-SHARED-ASSETS.md` in the same change (anti-drift).
+
 ## Documentation & knowledge — MANDATORY for every project (Knowledge OS)
 
 Full standard: **`nuc-platform/05-TAI-LIEU-CHUAN.md`** (read it when touching docs). Purpose: an agent

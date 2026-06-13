@@ -159,6 +159,10 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
   table; tailored to the user's stated value (truth over comfort). `.claude/skills/honest-critique/`.
 - **`/brainstorming`** — diverge → 2-3 distinct approaches + tradeoffs → recommend-with-reasoning → hand off to
   `/project-plan`. `.claude/skills/brainstorming/`.
+- **`/code-reuse`** (2026-06-13, user-requested) — DRY across the **independent repos**: check prior art before building,
+  rule-of-three gate, hybrid share model (ui-kit copy-in / `@thiengthb/*` package / template), owns the catalog
+  `08-SHARED-ASSETS.md`. Catalog had no fit (community DRY skills assume a monorepo). Seeded from the proven duplication
+  (MCP OAuth shim built twice in todo↔yakudoku). `.claude/skills/code-reuse/`.
 
 > Together with the existing set this closes the thinking loop: **brainstorm → plan (`/project-plan`) → critique
 > (`/honest-critique`) → execute → verify (`/verify` + `verification-before-completion`) → wrap (`/session-wrap`)**.

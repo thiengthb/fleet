@@ -1,0 +1,50 @@
+# 08 — Shared assets catalog (reusable building blocks)
+
+> **The cheap index of "what reusable thing already exists, where its canonical copy lives, and how to reuse it."** Read
+> this BEFORE building a feature so you reuse instead of reinventing (saving tokens + dev time). Owned + kept in sync by
+> the skill **`/code-reuse`** — every reuse / extraction / newly-noticed duplication MUST update this file in the same
+> change (anti-drift, same discipline as `INVENTORY.md`).
+>
+> Established 2026-06-13. The platform is **independent repos** — reuse is never free; see `/code-reuse` for the
+> rule-of-three gate and the hybrid share model, and `references/extraction-playbook.md` for how to extract.
+
+---
+
+## Maturity / status legend
+
+- **PATTERN** — a recurring shape worth copying by hand; no single canonical artifact yet (or not worth extracting).
+- **TEMPLATE** — a canonical scaffold to copy from (config/CI/Dockerfile/hooks).
+- **REGISTRY** — copy-in shared code with a canonical home (the `ui-kit` model).
+- **DUPLICATED — extract candidate** — built ≥2×, near-identical; flagged for extraction once it hits 3× stable.
+- **SHARED (package)** — extracted to a published `@thiengthb/*` package; consumed at CI build time.
+
+> Reminder (rule of three): 1× = build local · 2× = log here as DUPLICATED · 3× same-shape + stable = extract.
+
+---
+
+## A. Catalog
+
+| Asset | What it is | Canonical / where | Reused in | Mechanism | Status |
+|------|-----------|-----------|-----------|-----------|--------|
+| **MCP self-issued OAuth shim (glue)** | OAuth authorize/token/register + issuer/validation for the MCP endpoint — *glue only*, NOT the tool definitions | `todo/lib/mcp/{auth,oauth}.ts` + `todo/app/api/oauth/*` | `todo`, `yakudoku/web` (near-identical: auth 38≈39, oauth 86≈89, token 63≈67, authorize 124≈129, register 32=32) | → **published package** when extracted (heavy + security-sensitive) | **DUPLICATED — extract candidate** (built 2×; extract at 3rd app or now if churn has stopped) |
+| **MCP `server.ts` (tool definitions)** | The app-specific MCP tools | per app | — | **stays local** (this is the *feature*, not glue) | PATTERN (do NOT share) |
+| **Forward-auth header reader** | Read `X-authentik-email` / `X-authentik-groups` to identify/authorize the user | `todo`, `journal`, `yakudoku/web` (`lib/api.ts`) | 3 apps | copy-in or tiny package | **DUPLICATED — extract candidate** (3 apps; verify same shape before extracting) |
+| **Public-router split** | Splitting health/MCP/OAuth/webhook endpoints into their own Traefik router, **exempt from forward-auth** (invariant #8) | `todo`, `journal`, `yakudoku` | 3 apps | PATTERN (compose labels) — see `coding-convention §9`, `authentik/docs/auth-apps.md` | PATTERN (well-documented; no artifact to extract) |
+| **Prisma client singleton** | `lib/db.ts` global-cached PrismaClient (avoids hot-reload connection storms) | `todo/lib/db.ts` | `todo`, `journal` | TEMPLATE / copy-in | PATTERN (small; copy-in) |
+| **shadcn UI components** | Visual component stock | `ui-kit` (`thiengthb/ui-kit`) | every web-app | **REGISTRY (copy-in)** — already established | REGISTRY |
+| **`deploy.yml` (GitHub Actions)** | Build → push `ghcr.io/thiengthb/<repo>` (`:latest` + `:sha`) | "copy from a living app" — `todo/.github/workflows/deploy.yml`, `yakudoku/.github/workflows/deploy.yml` | every deployed repo | **TEMPLATE** | TEMPLATE |
+| **Dockerfile (node multi-stage / python)** | Standard build with `EXPOSE` + `HEALTHCHECK`, base `node:22` | living apps | every repo | TEMPLATE (see `/docker-expert`, `/nuc-new-project`) | TEMPLATE |
+| **commit-msg + pre-commit hooks** | Conventional Commits enforcement + docs reminder | `.claude/skills/coding-convention/hooks/` | every repo | **TEMPLATE** (installed at repo init) | TEMPLATE |
+| **Prettier config** | Shared formatting (`semi`, singleQuote, printWidth 100…) | `.claude/skills/coding-convention/templates/` | every repo | **TEMPLATE** | TEMPLATE |
+| **Discord bot bootstrap** | Gateway connect + command/handler scaffold + allowlist | node: `jobhunter-bot`, `yakudoku-bot`; python: `nuc-monitor`, `nuc-ops-bot` | 4 workers (2 node + 2 python) | PATTERN per language | **DUPLICATED — watch** (different langs; extract only within a language if 3× same-shape) |
+
+---
+
+## B. How to use this file
+
+- **Building a feature?** Scan column 1 here first. If it's listed → reuse via its mechanism (don't grep, don't rebuild).
+- **Found a 2nd copy of something?** Add a row (or flip a row to DUPLICATED) — same change as the code.
+- **Extracting?** Follow `/code-reuse` → `references/extraction-playbook.md`; then flip the row to SHARED/REGISTRY with the
+  canonical location + consuming repos.
+- **Auditing?** `/code-reuse` audit mode reconciles this table against a grep sweep of the projects; `/nuc-health-audit`
+  treats a drifted catalog as a finding.
