@@ -35,6 +35,7 @@
 | 2026-06-13 | **Add `paths-ignore: ['\*\*.md','docs/\*\*']` to each app's `deploy.yml`** so docs-only pushes don't trigger a wasted CI build + Watchtower redeploy. | every deployed app | `todo`/`yakudoku` `deploy.yml` |
 | 2026-06-13 | **A project may already satisfy the doc-set via an equivalent file — don't force `01/02/03` if `INSTRUCTION.md` + `00-map` already cover it** (a 2nd source of truth just drifts). | per-project docs | `yakudoku` (`INSTRUCTION.md` = authoritative, 571 lines) |
 | 2026-06-13 | **Remove a skill with no triggering need** (anti-clutter): `/saas-multi-tenant` was adopted then removed — its description loaded every session for zero use. | every skill add | `07-SKILL-CANDIDATES.md §1`; counterpart to "don't pre-install" |
+| 2026-06-13 | **Model choice is session-level, NOT per-task** — switching mid-session re-reads full history + drops the prompt cache (*costs* tokens), and `/model` Enter persists a GLOBAL default (`s` = session-only). Real token lever = Opus orchestrates+reviews while cheaper **subagents** do isolated bulk work under review (no contamination). Rejected a switch-per-task skill (agent can't self-switch). | every session / token discipline | `CLAUDE.md §"Model routing"`; `07-SKILL-CANDIDATES.md §5f` |
 
 ---
 
