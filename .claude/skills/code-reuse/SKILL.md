@@ -1,6 +1,6 @@
 ---
 name: code-reuse
-description: Before building a feature in any MiniServer project, check whether it already exists in another project (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — so a piece built ≥3× becomes a shared asset instead of being reinvented. Use when scaffolding/coding a feature, when you notice the same thing built twice, or when explicitly auditing duplication. Owns the shared-assets catalog (nuc-platform/08-SHARED-ASSETS.md). NOT for in-repo refactors (that's normal coding) and NOT for visual UI components (ui-kit owns those).
+description: Before building a feature in any MiniServer project, check whether it already exists elsewhere (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — a piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog nuc-platform/08-SHARED-ASSETS.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (ui-kit owns those).
 ---
 
 # Code reuse across projects (DRY across independent repos)

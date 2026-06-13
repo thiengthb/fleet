@@ -1,6 +1,6 @@
 ---
 name: session-wrap
-description: Wrap up a work session on a MiniServer project — extract the session's non-obvious knowledge (architecture decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to nuc-platform/06-SO-TRI-THUC.md if the lesson spans projects, and suggest personal memory. Purpose — make the next session smarter. Use when the user says "wrap up the session", "wrap up", "record what we learned", "update the docs now that we're done", or at the end of a significant editing pass.
+description: Wrap up a work session on a MiniServer project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to nuc-platform/06-SO-TRI-THUC.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
 ---
 
 # Skill: Wrap up the session & accumulate knowledge (session-wrap)

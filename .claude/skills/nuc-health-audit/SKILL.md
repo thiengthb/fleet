@@ -1,6 +1,6 @@
 ---
 name: nuc-health-audit
-description: Health-check & sync the entire NUC platform — reconcile INVENTORY.md against reality (container/volume/route/Authentik), find orphans (orphan volume, dangling image, hanging provider), check every subdomain is alive, Watchtower is still scanning, disk/RAM capacity, secret hygiene (.env chmod 600), and the nuc-monitor baseline. Use when the user says "audit/check/inspect the system", "clean up the NUC", "is everything ok", "is there any junk", or for a periodic run.
+description: Health-check & sync the NUC platform — reconcile INVENTORY.md against reality (container/volume/route/Authentik), find orphans (volume/image/provider), check subdomains alive, Watchtower scanning, disk/RAM, secret hygiene (.env chmod 600), nuc-monitor baseline. Use when the user says "audit/check the system", "clean up the NUC", "is everything ok", "any junk", or for a periodic run.
 ---
 
 # Skill: Health-check & sync the NUC platform

@@ -1,6 +1,6 @@
 ---
 name: coding-convention
-description: Mandatory coding convention for every project in MiniServer — naming conventions, git commit/push following Conventional Commits (English), and the required frontend stack + UI (Next.js 16 App Router + React 19 + TS + shadcn radix-nova + Tailwind v4 + Inter/Geist Mono + lucide + sonner + dark/light, Prisma + server actions). Use when creating/editing code in any project, scaffolding a new frontend, reviewing before a commit, or when the user asks "is this code following convention".
+description: Mandatory coding convention for every MiniServer project — naming, git commits (Conventional Commits, English), and the required frontend stack/UI (Next.js App Router + React 19 + TS + shadcn radix-nova + Tailwind v4 + lucide + sonner + dark/light, Prisma + server actions). Use when creating/editing code, scaffolding a frontend, reviewing before a commit, or when the user asks "is this following convention".
 ---
 
 # Skill: MiniServer Coding Convention

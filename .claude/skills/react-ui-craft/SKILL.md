@@ -1,17 +1,6 @@
 ---
 name: react-ui-craft
-description: >-
-  Build polished, production-grade React and Next.js (App Router) interfaces:
-  elegant UI on Tailwind v4 + shadcn/ui, smart well-composed components, smooth
-  Motion (Framer Motion) animations, thoughtful UX states, clean maintainable
-  architecture, and frontend security hardening. Reach for this skill whenever
-  the work involves a React or Next.js frontend, UI components, a design system,
-  Tailwind/shadcn, animation or micro-interactions, loading/empty/error states,
-  refactoring frontend code for maintainability, or securing a client app that
-  talks to an API — even when the user only says "make this page nicer", "build
-  a dashboard", "add an animation", or "clean up this component" without naming
-  the stack. Use alongside the frontend-design skill, which covers pure visual
-  aesthetics (palette, typography, layout direction).
+description: Engineering standard for React/Next.js (App Router) UIs — Tailwind v4 + shadcn/ui, well-composed components, Motion animations, UX states (loading/empty/error), maintainable architecture, frontend security. Use for any React/Next frontend, UI component, design system, animation, or securing a client app — even when phrased as "make this page nicer", "build a dashboard", or "clean up this component". Complements frontend-design (pure visuals: palette/typography/layout).
 ---
 
 # React UI Craft

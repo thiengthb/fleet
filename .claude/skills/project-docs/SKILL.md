@@ -1,6 +1,6 @@
 ---
 name: project-docs
-description: Generate & sync the standard doc set for a project in MiniServer (00-map AI-primer, decisions knowledge log, and the 01/02/03 set for web-app) per the nuc-platform/05-TAI-LIEU-CHUAN.md standard. Two modes — scaffold (create the missing doc files, copy the structure from the kind's reference app) and audit (detect code↔docs drift, read-only report). Use when creating a new project, a project is missing/out-of-sync on docs, the user says "write docs for this project", "do the docs still match the code", or for the docs step in /nuc-new-project.
+description: Generate & sync a project's standard doc set (00-map AI-primer, decisions log, + the 01/02/03 set for web-apps) per nuc-platform/05-TAI-LIEU-CHUAN.md. Two modes — scaffold (create missing docs from the kind's reference app) and audit (detect code↔docs drift, read-only). Use when creating a project, when docs are missing/stale, for the docs step in /nuc-new-project, or when the user says "write docs" / "do the docs still match the code".
 ---
 
 # Skill: Standard docs for a project (project-docs)

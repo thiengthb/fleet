@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Explore the solution space before committing to a build — frame the real problem, generate 2-3 genuinely distinct approaches with their tradeoffs, recommend one with reasoning, and validate the direction incrementally. Use at the start of a non-trivial feature/design/refactor, when the user says "let's brainstorm", "what are my options", "how should I approach X", or before writing a plan. Diverge here; converge into /project-plan.
+description: Explore the solution space before committing to a build — frame the real problem, generate 2-3 genuinely distinct approaches with tradeoffs, recommend one with reasoning, validate incrementally. Use at the start of a non-trivial feature/design/refactor, or when the user says "let's brainstorm", "what are my options", "how should I approach X". Diverge here; converge into /project-plan.
 ---
 
 # Skill: Brainstorming (diverge before you converge)

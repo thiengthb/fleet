@@ -1,6 +1,6 @@
 ---
 name: playwright-e2e-builder
-description: Plan and build Playwright end-to-end test suites for a MiniServer web-app (Next.js App Router + Prisma + server actions) — interview-driven planning, Page Object Model, role-based locators, a temp-SQLite test DB seeded via Prisma, and a sharded GitHub Actions e2e workflow. Adapted to this platform's auth model (Authentik forward-auth, NO in-app login form). Use when adding E2E tests, testing critical user flows end-to-end, or when the user says "set up Playwright / write e2e tests". Complements /vitest-server-actions (unit/integration).
+description: Plan & build Playwright E2E suites for a MiniServer web-app (Next.js App Router + Prisma + server actions) — interview-driven planning, Page Object Model, role-based locators, temp-SQLite DB seeded via Prisma, sharded GitHub Actions workflow. Adapted to Authentik forward-auth (NO in-app login form). Use when adding E2E tests or the user says "set up Playwright / write e2e tests". Complements /vitest-server-actions (unit/integration).
 ---
 
 # Skill: Playwright E2E builder (platform-adapted)

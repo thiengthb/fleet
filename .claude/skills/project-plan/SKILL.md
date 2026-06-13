@@ -1,6 +1,6 @@
 ---
 name: project-plan
-description: Capture a substantial, multi-step plan (a feature, refactor, migration, or hard bug fix) as a persisted file under a project's docs/plans/ so the intent + roadmap survives across sessions. Use when the user asks the agent to "make a plan to develop/fix/improve X", "lay out the steps", "plan the work for this feature/refactor/migration", or when a piece of work is big enough to span more than one session. NOT for small one-off changes (use plan mode, then just do it).
+description: Capture a substantial multi-step plan (feature, refactor, migration, hard bug fix) as a persisted file under docs/plans/ so the roadmap survives across sessions. Use when the user asks to "make a plan to develop/fix/improve X", "lay out the steps", or when the work spans more than one session. NOT for small one-off changes (use plan mode, then just do it).
 ---
 
 # Skill: Persisted project plan (project-plan)

@@ -1,6 +1,6 @@
 ---
 name: user-guide
-description: Build and maintain the in-app user guide for any MiniServer app that has a UI. Every app with a frontend MUST ship a guide page (route /guide) that walks the user through the screens and actions; if the app integrates Discord and/or an MCP server, the guide MUST include a dedicated tab documenting setup, the full command/tool list, examples, and troubleshooting. Use this when building an app's guide page, adding a Discord or MCP integration, or when the user asks about the user-guide / help page.
+description: Build & maintain the in-app user guide for any MiniServer app with a UI — a /guide page walking through screens + actions; if the app integrates Discord and/or an MCP server, a dedicated tab documenting setup, the full command/tool list, examples, and troubleshooting. Use when building a guide page, adding a Discord/MCP integration, or when the user asks about the guide / help page.
 ---
 
 # Skill: In-app user guide (user-guide)

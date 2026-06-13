@@ -1,6 +1,6 @@
 ---
 name: nuc-remove-project
-description: Remove/retire a project from the NUC platform completely and safely — delete local code, tear down the container + volume + image + directory on the NUC, clean up Authentik config (provider/app/group) if any, verify the subdomain is dead, update INVENTORY.md + auth-apps.md, and guide the user through deleting the GitHub repo + ghcr package. Use when the user says "remove/delete/drop/retire project X", "I don't use app X anymore", "clean up X on the mini server".
+description: Remove/retire a project from the NUC completely & safely — delete local code, tear down container + volume + image + dir, clean Authentik config (provider/app/group), verify the subdomain is dead, update INVENTORY.md + auth-apps.md, guide deletion of the GitHub repo + ghcr package. Use when the user says "remove/delete/retire project X", "I don't use app X anymore", "clean up X on the mini server".
 ---
 
 # Skill: Remove a project from the NUC platform (safe, leaving nothing behind)
