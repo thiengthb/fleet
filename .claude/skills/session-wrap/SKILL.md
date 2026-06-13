@@ -71,3 +71,14 @@ memory — it belongs in `decisions.md`. (Role split: see `05-documentation-stan
 List concisely: which entry was added to `decisions.md`, what `00-map` changed, whether a `06` line was added, which memory
 (if any). These doc changes should go **in the same commit as the session's code** (per the pre-commit hook's
 suggestion) — but **only commit/push when the user asks**. If the user wants to commit, suggest folding the docs into the code commit.
+
+## Step 7 — Model-routing carry-forward (see `CLAUDE.md` §"Model routing")
+
+Two quick checks at wrap-time — both are *reminders to the user*, not auto-actions:
+
+- **Did the model get switched this session?** If so, flag whether the **global default was left changed** — the `/model`
+  picker's **Enter persists to `~/.claude/settings.json`** (affects all future sessions); only **`s`** is session-only.
+  If a weak model may have become the global default, tell the user to reset it.
+- **Did the session expose a chunk of bulk-mechanical work** (wide reads, fan-out, bulk transforms)? Note in
+  `decisions.md` that it's a candidate to **delegate to a cheaper subagent under Opus review** next time — so the
+  knowledge that "this part is safe to staff cheaply" doesn't evaporate.
