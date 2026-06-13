@@ -30,7 +30,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 
 | Skill | Tier | Fills which gap | Ships |
 |---|:--:|---|:--:|
-| `development/prisma-expert` | HIGH | Schema/migration/N+1/transaction depth — our skills stop at "Prisma + server actions". | docs |
+| `development/prisma-expert` | **ADOPTED ✓** | Schema/migration/N+1/transaction depth. Installed `/prisma-expert` (W1, adapted: dropped non-existent-specialist routing + serverless conn-pooling; noted SQLite + the singleton). | docs |
 | `security/supply-chain-guard` | HIGH | Scans npm/PyPI/GH-Actions for compromised pkgs + IOC/C2 + CI/CD misconfig. Fits `push→GHA→ghcr` across many repos. | **scripts ⚠ read first** |
 | `workflow-automation/dependabot-review` | HIGH | Triage + safe auto-merge of dep PRs. Watchtower auto-pulls on every merge → recurring chore. | docs |
 | `development/mcp-builder` | HIGH | Anthropic guide to build MCP servers (Node/Py). Pairs with the `/user-guide` MCP tab. | **scripts ⚠ read first** |
@@ -41,7 +41,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `development/verification-before-completion` | HIGH | Gate: no "done/passing" claim without fresh command output. Reinforces honest CI culture. | docs |
 | `development/lint-and-validate` | HIGH | Post-edit lint/tsc/audit loop incl. **Python (ruff/mypy/bandit)** — our Prettier focus misses the worker side. | scripts (benign) |
 | `development/architecture` | HIGH | Trade-off → ADR decision framework, "start simple". Good for a continuously-growing platform. | docs |
-| `development/database-design` | HIGH | Prisma/Postgres-specific schema/index/ORM thinking. | docs |
+| `development/database-design` | **ADOPTED ✓** | DB design judgment. Installed `/database-design` (W1, adapted: dropped ORM-selection — Prisma is fixed; SQLite-first framing). | docs |
 | `development/docker-expert` | MED* | Lean/non-root/HEALTHCHECK Dockerfile authoring. **Guardrail:** ignore its compose/secrets/build-on-host advice — that violates "NUC only PULLs". | docs |
 | `development/saas-multi-tenant` | MED | Postgres RLS + **Prisma-middleware** tenant scoping. Pays off the day any app is shared (note: auth is still Authentik). | docs |
 

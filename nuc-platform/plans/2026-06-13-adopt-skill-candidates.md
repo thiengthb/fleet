@@ -2,7 +2,7 @@
 title: Adopt the recommended community skills (adapted) + fold the borrow-ideas, without breaking invariants
 status: active # draft → active → done | abandoned
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-13 # W1 done
 related:
   [
     nuc-platform/07-SKILL-CANDIDATES.md,
@@ -131,7 +131,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 ## Steps
 
 - [x] **W0** Confirm scope with the user (adopt §1+§2 now, defer §1b — confirmed 2026-06-13). Plan flipped to `active`.
-- [ ] **W1** Adopt `prisma-expert` + `database-design` (strip serverless/Drizzle framing). Grep-guard. Commit.
+- [x] **W1** Adopted `/prisma-expert` + `/database-design` (stripped serverless/ORM-choice framing; SQLite-aware). Grep-guard CLEAN. ✓
 - [ ] **W2** Adopt `systematic-debugging` + `verification-before-completion`; read+adopt `lint-and-validate` scripts. Grep-guard. Commit.
 - [ ] **W3** Read+adopt `supply-chain-guard` scripts; adopt `dependabot-review` (no auto-merge). Grep-guard. Commit.
 - [ ] **W4** Adopt `api-integration-specialist` + `async-python-patterns`; read+adopt `mcp-builder` scripts (cross-check MCP-exempt invariant). Grep-guard. Commit.
