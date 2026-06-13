@@ -12,24 +12,32 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 
 ---
 
-## 0. Project map (kind + path) — classification registry
+## 0. Project map (domain + kind + path) — classification registry
 
-> Classified by **`kind`** rather than nested directories: every project sits flat at `D:\Projects\MiniServer\<name>`,
-> scanning this table tells you the essence of each one. `kind` determines the **archetype** when creating a new one (skill
-> `/nuc-new-project` → "Choose archetype"). The dev-machine layout ≠ the NUC layout (`/opt/apps` + `/opt/infra`).
+> **Two orthogonal axes, both metadata on this flat table — NOT nested directories.** Every project sits flat at
+> `D:\Projects\MiniServer\<name>`; this table is the index (better than `ls` — it carries description + repo + path + auth).
+> - **`domain`** = *what it's for* (browse-by-purpose): `platform` · `product` · `automation` · `shared`. Rows are grouped by it.
+> - **`kind`** = *how it's built/deployed* (the operational axis): drives the archetype in `/nuc-new-project` ("Choose
+>   archetype") + which invariants apply.
+>
+> They don't align (e.g. `nuc-monitor` is domain `platform` but kind `python-worker`), which is exactly why a one-dimensional
+> directory tree can't express both — a flat table with two columns can. The dev-machine layout ≠ the NUC layout (`/opt/apps`
+> + `/opt/infra`). **When to add a `domain`:** only when ≥2 projects share a purpose none of the four captures (else use the
+> nearest + let `kind` disambiguate). **When to reconsider physical nesting:** not until this table passes ~25–30 rows AND the
+> flat dev folder genuinely impedes navigation — even then prefer a VS Code multi-root workspace over moving independent git repos.
 
-| Project | kind | Short description | GitHub repo | Dev path | NUC |
-|---------|------|-----------|-------------|----------|-----|
-| **todo** | `web-app` (Next) | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `MiniServer/todo` | `/opt/apps/todo` |
-| **journal** | `web-app` (Next) | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `MiniServer/journal` | `/opt/apps/journal` |
-| **yakudoku** | `monorepo` (→3 images) | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `MiniServer/yakudoku` | `/opt/apps/yakudoku` |
-| **jobhunter-bot** | `node-bot` (worker) | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `MiniServer/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
-| **nuc-ops-bot** | `python-worker` (bot) | Discord ChatOps bot controlling the NUC | `thiengthb/nuc-ops-bot` | `MiniServer/nuc-ops-bot` | `/opt/apps/nuc-ops-bot` |
-| **nuc-monitor** | `python-worker` | Monitors the NUC → Discord — python-worker reference | `thiengthb/nuc-monitor` | `MiniServer/nuc-monitor` | `/opt/apps/nuc-monitor` |
-| **authentik** | `infra` (third party) | Central IdP (pinned image, manual update) | `thiengthb/authentik` (compose) | `MiniServer/authentik` | `/opt/apps/authentik` |
-| **n8n** | `infra` (third party) | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `MiniServer/n8n` | `/opt/apps/n8n` |
-| **ui-kit** | `meta` (not deployed) | Shared frontend shadcn registry (copy-in) | `thiengthb/ui-kit` | `MiniServer/ui-kit` | — |
-| **nuc-platform** | `meta` (control plane) | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `MiniServer/` (root) | — |
+| Domain | Project | kind | Short description | GitHub repo | Dev path | NUC |
+|--------|---------|------|-----------|-------------|----------|-----|
+| `platform` | **authentik** | `infra` (third party) | Central IdP (pinned image, manual update) | `thiengthb/authentik` (compose) | `MiniServer/authentik` | `/opt/apps/authentik` |
+| `platform` | **nuc-monitor** | `python-worker` | Monitors the NUC → Discord — python-worker reference | `thiengthb/nuc-monitor` | `MiniServer/nuc-monitor` | `/opt/apps/nuc-monitor` |
+| `platform` | **nuc-ops-bot** | `python-worker` (bot) | Discord ChatOps bot controlling the NUC | `thiengthb/nuc-ops-bot` | `MiniServer/nuc-ops-bot` | `/opt/apps/nuc-ops-bot` |
+| `product` | **todo** | `web-app` (Next) | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `MiniServer/todo` | `/opt/apps/todo` |
+| `product` | **journal** | `web-app` (Next) | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `MiniServer/journal` | `/opt/apps/journal` |
+| `product` | **yakudoku** | `monorepo` (→3 images) | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `MiniServer/yakudoku` | `/opt/apps/yakudoku` |
+| `automation` | **n8n** | `infra` (third party) | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `MiniServer/n8n` | `/opt/apps/n8n` |
+| `automation` | **jobhunter-bot** | `node-bot` (worker) | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `MiniServer/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
+| `shared` | **ui-kit** | `meta` (not deployed) | Shared frontend shadcn registry (copy-in) | `thiengthb/ui-kit` | `MiniServer/ui-kit` | — |
+| `shared` | **nuc-platform** | `meta` (control plane) | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `MiniServer/` (root) | — |
 
 **The 5 standard `kind`s** (shaping the archetype + the invariants that apply):
 
@@ -38,6 +46,13 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 - `monorepo` — 1 repo → multiple images (CI matrix); one image is the sole DB writer if using SQLite.
 - `infra` — version-pinned third-party image: NO Watchtower label, update = bump the tag manually.
 - `meta` — not deployed to the NUC (shared lib / docs / skill).
+
+**The 4 `domain`s** (purpose buckets for browsing; orthogonal to `kind`):
+
+- `platform` — runs, secures, or observes the system itself (IdP, monitoring, ops control).
+- `product` — end-user-facing applications someone opens and uses.
+- `automation` — scheduled/triggered workflows & agents (not a daily-use UI).
+- `shared` — reusable assets / control plane, not deployed to the NUC.
 
 ---
 
