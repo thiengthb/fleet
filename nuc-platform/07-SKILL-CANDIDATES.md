@@ -40,10 +40,10 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `development/systematic-debugging` | **ADOPTED ✓** | "No fix without root-cause" 4-phase. Installed `/systematic-debugging` (W2, adapted: dangling sub-skill refs → our skills; debug-by-layer tie-in). | docs |
 | `development/verification-before-completion` | **ADOPTED ✓** | Evidence-before-claims gate. Installed `/verification-before-completion` (W2, tied to /honest-critique + /verify). | docs |
 | `development/lint-and-validate` | **ADOPTED ✓** | Installed `/lint-and-validate` (W2). Read its scripts (benign) but **dropped them** — kept the guidance only, aligned to eslint/tsc/Prettier + ruff/mypy/bandit. | docs (scripts dropped) |
-| `development/architecture` | HIGH | Trade-off → ADR decision framework, "start simple". Good for a continuously-growing platform. | docs |
+| `development/architecture` | **ADOPTED ✓** | Installed `/architecture` (W5, self-contained; ADR→`decisions.md` invariant; scoped system-level vs `/brainstorming`). | docs |
 | `development/database-design` | **ADOPTED ✓** | DB design judgment. Installed `/database-design` (W1, adapted: dropped ORM-selection — Prisma is fixed; SQLite-first framing). | docs |
-| `development/docker-expert` | MED* | Lean/non-root/HEALTHCHECK Dockerfile authoring. **Guardrail:** ignore its compose/secrets/build-on-host advice — that violates "NUC only PULLs". | docs |
-| `development/saas-multi-tenant` | MED | Postgres RLS + **Prisma-middleware** tenant scoping. Pays off the day any app is shared (note: auth is still Authentik). | docs |
+| `development/docker-expert` | **ADOPTED ✓ (narrowed)** | Installed `/docker-expert` (W5) **scoped to Dockerfile authoring ONLY**; stripped compose/networks/secrets/build-on-host/multi-arch (platform invariants) into an explicit "NOT this skill" box; base→node:22. | docs |
+| `development/saas-multi-tenant` | **ADOPTED ✓** | Installed `/saas-multi-tenant` (W5, adapted: tenant from **Authentik** not self-JWT; Prisma **client extension** not deprecated `$use`; server action not Express; **SQLite has no RLS** caveat). Speculative — no multi-tenant app yet. | docs |
 
 ## 1b. ADOPT-when-the-need-appears (situational, substantive)
 
