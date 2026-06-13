@@ -38,9 +38,9 @@
 
 | Project | Knowledge log | Notes |
 |---------|-------------|--------|
-| todo | `todo/docs/decisions.md` | _(to be established in Phase 1)_ |
+| todo | `todo/docs/decisions.md` | **Established 2026-06-13** — seeded with the foundational whys (behavioral invariant, dynamic-compute, rolling-roadmap, in-process MCP + sync rules, stateless OAuth shim, schedule trust boundary, tab-role naming). Full Knowledge OS doc-set in place (00-map + 01–04). |
 | journal | `journal/docs/decisions.md` | _(to be established in Phase 2)_ |
-| yakudoku | `yakudoku/docs/decisions.md` | _(to be established in Phase 2)_ |
+| yakudoku | `yakudoku/docs/decisions.md` | **Established 2026-06-13** — grading/judge design, MCP expansion, JP word-lookup (Word/Kanji/DictEntry); + thin CLAUDE.md added 2026-06-13. |
 | jobhunter-bot | `jobhunter-bot/docs/decisions.md` | _(to be established in Phase 2)_ |
 | nuc-monitor | `nuc-monitor/docs/decisions.md` | _(to be established in Phase 2)_ |
 | nuc-ops-bot | `nuc-ops-bot/docs/decisions.md` | _(to be established in Phase 2)_ |
