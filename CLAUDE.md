@@ -126,6 +126,10 @@ across sessions instead of evaporating.
 
 ## Model routing — staff work by weight (token discipline)
 
+**Token discipline targets the *right* amount, never the *minimum*** — never trade away reasoning depth on the task in
+front of you; it only removes wasted context and over-powered staffing on mechanical work. A strong model on a hard
+problem should think as much as the problem needs.
+
 Model choice is a **session-level** decision, NOT per-task. Do NOT make a habit of analyzing each task and asking to
 switch model mid-conversation — switching re-reads the FULL history at the new model and **drops the prompt cache**
 (thrashing *costs* tokens, doesn't save them), and the agent cannot switch its own model anyway (only the user can).
