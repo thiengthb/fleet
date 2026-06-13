@@ -12,6 +12,7 @@
   **Context:** why this decision was needed (1–2 sentences).
   **Decision / Pitfall:** what was chosen, or what the pitfall is.
   **Why:** the reasoning + what was ruled out (the most valuable part — don't omit it).
+  **Revisit when:** the concrete condition that should make a future session reopen this (e.g. ">500 concurrent users → reconsider SQLite"). OPTIONAL — include ONLY when such a trigger exists; omit it entirely for decisions with no clear expiry.
   **Related:** `file.ts:42` · [[other-name]] · INVENTORY §n.
 -->
 

@@ -169,6 +169,38 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 
 ---
 
+## 5d. Pass 2026-06-13 (c) — `anthropics/skills` official repo (the one big source 5a–5c missed)
+
+> Passes 1–5c vetted `davila7/claude-code-templates` (+ ideas from `obra/superpowers`). The only other large source is
+> Anthropic's official **`anthropics/skills`** (≈149k★, the basis of the open `agentskills.io` standard since Dec 2025).
+> Evaluated 2026-06-13 (c). The community "awesome-*" lists (BehiSecc / travisvn / hesreallyhim / Composio) are just
+> indexes pointing back at these same repos — no net-new depth.
+
+| Skill group | Net-new vs what we own | Verdict |
+|---|---|---|
+| **Document generation** (`docx` · `pdf` · `pptx` · `xlsx`) | ✅ Yes — server-side Office/PDF authoring; davila7 had no equivalent | **ADOPT-when-the-need-appears** — NO current app exports documents. Installing now repeats the `saas-multi-tenant` mistake (a context tax with zero triggering need, see `06 §A`). Re-adopt from here if e.g. journal/an app gains a "export to PDF/report" feature. |
+| `mcp-builder` | Already adopted (§1, our self-contained rewrite) | SKIP (have it) |
+| `webapp-testing` | Already logged (§5c, BORROW MED) | SKIP (logged) |
+| `artifacts-builder` | For claude.ai artifacts, not a dev-platform task | SKIP (out of scope) |
+| Creative (art/music/design) · Enterprise (brand/comms) | Off the dev-platform scope | SKIP (out of scope) |
+
+> **Net result of pass (c): install nothing now.** The community well is tapped — the davila7 catalog is harvested and
+> the only fresh capability (doc-generation) is situational. Recorded here so a future session doesn't re-scan
+> `anthropics/skills` from scratch.
+
+### Custom skill authored this pass (no catalog fit)
+- **`/nuc-scheduled-maintenance`** (2026-06-13 (c), user-requested) — the platform had no skill for *which* NUC upkeep is
+  worth a cron heartbeat + how to wire it **report-only**. Generic community "cron" skills just reteach the scheduling
+  mechanism (which `/schedule` + the Cron* tools already own) and carry no platform knowledge. Owns the what/when/safe-
+  wiring lane; hard report-only rule (no destructive action by an unattended agent); defers mechanism→`/schedule`,
+  audit→`/nuc-health-audit`, liveness→`nuc-monitor`. `.claude/skills/nuc-scheduled-maintenance/`.
+
+> **Decided NOT to build:** a "web-browse" skill/agent — fully covered by the built-in `WebSearch`/`WebFetch` tools +
+> `/deep-research`; would be 100% reinvention. A cron *agent* — cron is a mechanism, not a tool-restricted/context-
+> isolated role (the only thing that justifies a custom agent).
+
+---
+
 ## 6. Suggested first wave (if/when we decide to install)
 
 0. **Done this pass:** authored `/honest-critique` + `/brainstorming` (custom — catalog had no fit). Test them in use.
