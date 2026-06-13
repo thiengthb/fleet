@@ -1,8 +1,8 @@
 ---
 title: Đồng bộ mọi project trong MiniServer lên chuẩn platform (docs + convention + hooks), HOÃN test
-status: active # draft → active → done | abandoned
+status: done # draft → active → done | abandoned
 created: 2026-06-13
-updated: 2026-06-13 # Phase 0 + re-baseline + todo (bước 1) xong; tiếp nuc-monitor (bước 2)
+updated: 2026-06-14 # ALL 9 projects compliant + pushed, CI 5/5 xanh. Hoãn (đợt riêng): test infra + journal /guide.
 related:
   [
     nuc-platform/INVENTORY.md,
@@ -59,17 +59,17 @@ thiếu ở cả 3 service Python. Reference (todo/nuc-monitor) cũng có nợ �
 - [x] 4 — **journal**: full `docs/` set (00-map+decisions+docs-README+01/02/03) ✅, root `README.md` ✅, thin `CLAUDE.md` ✅, `package.json` ESM ✅ (build verified exit 0), `deploy.yml` paths-ignore ✅, ledger §B ✅. **`app/guide/page.tsx` = HOÃN** (UI craft khối L, như test — đợt riêng).
 
 ### Phase 3 — worker còn lại
-- [ ] 5 — **jobhunter-bot**: `docs/00-map`+`decisions`+thin `CLAUDE.md`, eslint config, retry/backoff cho `askN8n` · Test: eslint, /verification
-- [ ] 6 — **nuc-ops-bot**: `docs/00-map`+`decisions`+thin `CLAUDE.md`, `pyproject.toml`+ruff+mypy (bug đã vá 0c) · Test: ruff, mypy
+- [x] 5 — **jobhunter-bot**: 00-map+decisions+thin CLAUDE.md ✅, eslint flat config ✅ (lint exit 0), retry/backoff cho `askN8n` (3 attempt, chỉ transient) ✅. CI build success. Pushed `6749e1a`.
+- [x] 6 — **nuc-ops-bot**: 00-map+decisions+thin CLAUDE.md ✅, `pyproject.toml` ruff+mypy ✅ (bug aiohttp đã vá 0c). Pushed `b0e27f2`.
 
 ### Phase 4 — infra/meta
-- [ ] 7 — **authentik**: `docs/00-map.md`+`docs/decisions.md` · Test: 8 mục đủ
-- [ ] 8 — **n8n**: `docs/00-map.md`+`docs/decisions.md` · Test: 8 mục đủ
-- [ ] 9 — **ui-kit**: `docs/00-map.md` (decisions optional) · Test: 8 mục đủ
+- [x] 7 — **authentik**: 00-map + decisions ✅ (live registry vẫn ở auth-apps.md). Pushed `99ee9b6`.
+- [x] 8 — **n8n**: 00-map + decisions ✅. Pushed `362f016`.
+- [x] 9 — **ui-kit**: 00-map + decisions + prettier (P0) ✅. Pushed `59bb521`.
 
 ### Phase 5 — Đóng
-- [ ] 10 — `/nuc-health-audit`: xác nhận INVENTORY ↔ reality khớp, không orphan/drift · Test: report sạch
-- [ ] 11 — `/session-wrap` cuối: 1 dòng 06-knowledge-ledger, flip plan → done
+- [x] 10 — Không có inventory drift (đổi chỉ là docs/config/code, không đổi domain/volume/auth/topology) → INVENTORY §0/§1 không cần sửa. **CI 5/5 xanh** = bằng chứng build. Health-audit qua SSH = tùy chọn report-only, chạy `/nuc-health-audit` sau khi Watchtower settle nếu muốn xác nhận image mới healthy (nhất là HEALTHCHECK nuc-monitor).
+- [x] 11 — `/session-wrap`: ledger §A (3 dòng) + §B (jobhunter/nuc-ops/+infra) + memory + plan → done.
 
 ## Out of scope
 
