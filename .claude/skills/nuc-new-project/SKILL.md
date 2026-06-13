@@ -31,12 +31,12 @@ You must know all 6 things before creating any file:
    **at build time** (like `VITE_*`, `NEXT_PUBLIC_*`)? → build-time variables must go through
    a GitHub secret + build-arg, they CANNOT live in `.env` on the NUC.
 
-## Stage 0.5 — Choose an archetype (reduce boilerplate)
+## Stage 0.5 — Classify: archetype (`kind`) + `domain`
 
-From the purpose + framework in Stage 0, attach the project to **one `kind`** (see
-`nuc-platform/INVENTORY.md` §0). Each `kind` has a **living reference implementation** —
-COPY from it instead of rewriting; only change what differs. (Don't duplicate a static
-template into the skill → avoids drift; the source of truth is the reference app.)
+Both axes go into the `INVENTORY §0` row (they are orthogonal — see §0). From the purpose +
+framework in Stage 0, attach the project to **one `kind`** (the technical archetype below). Each `kind`
+has a **living reference implementation** — COPY from it instead of rewriting; only change what differs.
+(Don't duplicate a static template into the skill → avoids drift; the source of truth is the reference app.)
 
 | archetype | Reference (copy from) | Take what | Specifics |
 |-----------|----------------------|--------|---------|
@@ -46,9 +46,15 @@ template into the skill → avoids drift; the source of truth is the reference a
 | `monorepo` (→N images) | `yakudoku/` | CI **matrix** building N images from 1 repo, layout `web/ core/ bot/`, compose with multiple services | One image is the **sole DB writer** if using SQLite; internal images do NOT get Traefik labels. |
 | `infra` (third-party) | `n8n/` or `authentik/` | `docker-compose.yml` + `.env` | Version-pinned image, NO Watchtower label; update = bump the tag manually. No CI build. |
 
+**Then pick its `domain`** (the purpose axis for browsing, orthogonal to `kind` — `INVENTORY §0`):
+`platform` (runs/secures/observes the system) · `product` (end-user-facing app) · `automation`
+(scheduled/triggered workflow & agents) · `shared` (reusable asset / control plane, not deployed). If none of
+the four fits **and** no sibling shares the new purpose, use the nearest — do NOT invent a domain for a single project.
+
 **Mandatory for every archetype with CODE** (`web-app`/`worker`/`monorepo`): install the repo conventions right away
 (Stage 3 item 0 — Prettier + commit-msg + pre-commit hook). After creating the project, **update
-`INVENTORY.md` §0** (add the kind/path row) — anti-drift, and **run `/project-docs scaffold`** so the project is
+`INVENTORY.md` §0** (add the row with its `domain` + `kind` + path, placed under its domain group) — anti-drift,
+and **run `/project-docs scaffold`** so the project is
 born with the standard doc set (`docs/00-map.md` + `docs/decisions.md`, web-app adds 01/02/03 — see
 `nuc-platform/05-documentation-standard.md`). Born-documented.
 
