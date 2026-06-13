@@ -31,8 +31,8 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | Skill | Tier | Fills which gap | Ships |
 |---|:--:|---|:--:|
 | `development/prisma-expert` | **ADOPTED ✓** | Schema/migration/N+1/transaction depth. Installed `/prisma-expert` (W1, adapted: dropped non-existent-specialist routing + serverless conn-pooling; noted SQLite + the singleton). | docs |
-| `security/supply-chain-guard` | HIGH | Scans npm/PyPI/GH-Actions for compromised pkgs + IOC/C2 + CI/CD misconfig. Fits `push→GHA→ghcr` across many repos. | **scripts ⚠ read first** |
-| `workflow-automation/dependabot-review` | HIGH | Triage + safe auto-merge of dep PRs. Watchtower auto-pulls on every merge → recurring chore. | docs |
+| `security/supply-chain-guard` | **ADOPTED ✓** | Installed `/supply-chain-guard` (W3). Read its bash scanners (benign) but **dropped them** — frozen IOC db (2026-03-31) = false confidence; kept the hardening checklist + a **live** scan procedure (advisories + npm/pip audit). | docs (scripts dropped) |
+| `workflow-automation/dependabot-review` | **ADOPTED ✓** | Installed `/dependabot-review` (W3, adapted: **removed auto-merge** — recommends + waits for user go-ahead, per the merge-ships-via-Watchtower rule). | docs |
 | `development/mcp-builder` | HIGH | Anthropic guide to build MCP servers (Node/Py). Pairs with the `/user-guide` MCP tab. | **scripts ⚠ read first** |
 | `development/react-best-practices` (Vercel) | HIGH | 45 concrete RSC/bundle/waterfall perf rules — depth `/react-ui-craft` doesn't have. Stack-aligned. | docs |
 | `development/api-integration-specialist` | HIGH | Robust 3rd-party API clients (OAuth2, retries, circuit breakers, webhook-sig). The worker/bot use case. | docs |
