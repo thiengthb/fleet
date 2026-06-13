@@ -51,6 +51,11 @@ read it before touching a project lifecycle; every add/remove-app skill MUST upd
 - **Language = English everywhere for dev artifacts** (code, comments, `docs/*.md`, skills, specs,
   commit messages). End-user-facing UI copy stays in the product's chosen language (e.g. Vietnamese for
   `todo`); the in-app guide page is the one user-facing place exempt from the English rule.
+- **Agent ↔ user chat = Vietnamese, always.** Every conversational reply, explanation, summary, question, or
+  status the agent writes TO the user in chat MUST be in Vietnamese — no other language for the prose. This is
+  separate from and does NOT override the dev-artifact rule above: code/comments/docs/skills/commit messages stay
+  English; only the chat-facing prose is Vietnamese. (Technical tokens — file paths, commands, code, identifiers —
+  stay as-is inside the Vietnamese prose.)
 
 ## Coding convention — MANDATORY when writing/editing code in any project
 
