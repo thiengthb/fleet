@@ -1,8 +1,8 @@
 ---
 title: Adopt the recommended community skills (adapted) + fold the borrow-ideas, without breaking invariants
-status: active # draft → active → done | abandoned
+status: done # draft → active → done | abandoned
 created: 2026-06-13
-updated: 2026-06-13 # W1–W6 done
+updated: 2026-06-13 # W1–W7 done — all §1 ADOPT installed (adapted), §2 BORROW folded, §1b deferred
 related:
   [
     nuc-platform/07-SKILL-CANDIDATES.md,
@@ -137,7 +137,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - [x] **W4** Adopted `/api-integration-specialist` (Express→Route Handler) + `/async-python-patterns` (self-contained) + `/mcp-builder` (self-contained, anchored to todo/yakudoku + forward-auth-exempt invariant; no scripts/refs vendored). Grep-guard CLEAN. ✓
 - [x] **W5** Adopted `/architecture` (self-contained, ADR→decisions.md) + `/docker-expert` (**narrowed** to Dockerfile authoring; compose/secrets/build-on-host stripped into a NOT-this-skill box) + `/saas-multi-tenant` (Authentik+Prisma-extension+SQLite-no-RLS adapt; flagged speculative). Grep-guard CLEAN. ✓
 - [x] **W6** Folded §2 ideas into `/project-plan` (3) + `/coding-convention` (smells) + `/react-ui-craft` (shadcn CLI + Zod) + `/nuc-health-audit` (group L deps). Created `/skill-authoring` (adoption procedure + grep-guard). `react-useeffect` already covered (skipped, no dup). Grep-guard CLEAN (react-ui-craft hits = pre-existing correct *prohibitions*). ✓
-- [ ] **W7** Update CLAUDE.md pointers + ledger to ADOPTED; `/session-wrap` → `decisions.md`. Commit. Flip plan to `done`.
+- [x] **W7** Caught + adopted the missed `/react-best-practices`; added thin CLAUDE.md disciplines + reference-skill index; distilled cross-project lessons into `06-SO-TRI-THUC.md §A` (adoption procedure, no-pre-install, frozen-IOC); ledger all ADOPTED. Plan → `done`. ✓
 
 ## Out of scope
 
@@ -158,11 +158,11 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - **docker-expert body conflict:** highest risk of teaching a wrong pattern (build-on-host) — annotate aggressively; if
   it can't be cleanly de-conflicted, downgrade to BORROW (fold only the Dockerfile-authoring bullets).
 
-## Decisions to distill
+## Decisions to distill — DISTILLED ✓ (W7)
 
-- The skill-adoption procedure (read → vet scripts → strip conflicts → re-scope description → attribute → grep-guard) —
-  reusable for every future community-skill add.
-- Ownership boundaries between overlapping skills (architecture/decisions.md, database-design/prisma-expert,
-  lint-and-validate/coding-convention, docker-expert/nuc-new-project).
-- Why §1b skills are deferred (pre-need install = clutter) — encode the "adopt-when-triggered" rule.
-- The conflict grep-guard as the platform's standing "no-invariant-violation" check for new skills.
+- The skill-adoption procedure + the conflict grep-guard → **`/skill-authoring`** (the durable home) + one line in
+  `06-SO-TRI-THUC.md §A`.
+- Why §1b skills are deferred (pre-need install = clutter) → `06-SO-TRI-THUC.md §A` + `07-SKILL-CANDIDATES.md §1b`.
+- Frozen-IOC-list = false confidence → `06-SO-TRI-THUC.md §A` + `/supply-chain-guard`.
+- Skill ownership boundaries (architecture↔decisions.md, database-design↔prisma-expert, react-best-practices↔react-ui-craft,
+  docker-expert↔nuc-new-project) → encoded in each skill's description "complements/defers" line + `/skill-authoring`.

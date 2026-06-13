@@ -26,6 +26,9 @@
 | 2026-06-12 | **Compute DYNAMICALLY instead of storing derived columns** (streak, delay, progress…) to avoid stale data when the source changes. | every app with stats | `todo/docs/02-technical.md §2` (the "Dynamically computed values" table) |
 | 2026-06-12 | **`CLAUDE.md` thin + heavy spec split into `docs/`** — don't let the auto-loaded file bloat, it costs context every turn. | every project | `05-TAI-LIEU-CHUAN.md §2`; `todo/CLAUDE.md` (slimmed sample 641→327 lines) |
 | 2026-06-12 | **Endpoints called by client-machines (MCP/OAuth/webhook/health) must NOT sit behind forward-auth** — split into their own router, auth at the app layer. | web-app with Authentik | `CLAUDE.md` invariant #8; `coding-convention §9`; `authentik/docs/auth-apps.md` |
+| 2026-06-13 | **Adopt a community skill by ADAPTING, not copying** — read scripts line-by-line (drop if non-essential), strip invariant-conflicts, kill dangling refs, re-scope the description, run the conflict grep-guard. | every skill added to `.claude/skills/` | `/skill-authoring`; `nuc-platform/07-SKILL-CANDIDATES.md` |
+| 2026-06-13 | **Don't pre-install a skill before its triggering need** — it's clutter + a context tax; defer "situational" ones with a note instead. | every skill add | `07-SKILL-CANDIDATES.md §1b` |
+| 2026-06-13 | **A frozen security/IOC list gives false confidence** ("scan passed" against a stale list) — prefer live advisories + `npm/pip audit` over a baked-in scanner. | supply-chain hygiene | `/supply-chain-guard` |
 
 ---
 

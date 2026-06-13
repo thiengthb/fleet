@@ -144,9 +144,9 @@ instead of evaporating.
 - **Convention:** at the end of a substantial editing pass → run `/session-wrap`; a non-obvious decision →
   `decisions.md` (in the same commit as the code). The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
-## Thinking & process — how the agent should work (skills `/brainstorming` + `/honest-critique`)
+## Thinking & process — how the agent should work
 
-Two standing thinking disciplines, applied at the right moments (not as constant noise):
+Standing disciplines, applied at the right moments (not as constant noise):
 
 - **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, generate 2-3
   genuinely distinct approaches with tradeoffs, recommend one with reasoning, validate incrementally. Diverge here →
@@ -155,9 +155,16 @@ Two standing thinking disciplines, applied at the right moments (not as constant
   or hand off a plan): truth over comfort. Lead with the strongest counter-case, name tradeoffs, separate fact from
   preference, red-team your own output, concede fast when the user is right. **No reflexive "You're absolutely right!".**
   The user explicitly values honest pushback over agreement.
+- **Before claiming done / committing:** `/lint-and-validate` (lint + types + audit, incl. Python) → then
+  `/verification-before-completion` (run the check, read the output, THEN claim — evidence, not "should work").
+- **Debugging:** `/systematic-debugging` — root cause before any fix; ≥3 failed fixes ⇒ question the architecture.
 
-> Catalog evaluation of community skills (what to adopt/borrow/skip, with reasons) is the memory file
-> `nuc-platform/07-SKILL-CANDIDATES.md` — read it before re-shopping for skills.
+> **Reference skills auto-trigger by topic** (don't memorize — they fire from their descriptions): data →
+> `/prisma-expert` + `/database-design` · React perf → `/react-best-practices` · Dockerfile → `/docker-expert` ·
+> MCP server → `/mcp-builder` · external-API client → `/api-integration-specialist` · Python async → `/async-python-patterns`
+> · system-level decision → `/architecture` · multi-tenant → `/saas-multi-tenant` · deps/supply-chain → `/dependabot-review`
+> + `/supply-chain-guard` · testing → `/vitest-server-actions` + `/playwright-e2e-builder` · authoring/adopting a skill →
+> `/skill-authoring`. Full catalog + adopt/skip verdicts: `nuc-platform/07-SKILL-CANDIDATES.md` (read before re-shopping).
 
 ## When creating a new project / bringing a project onto the NUC
 
