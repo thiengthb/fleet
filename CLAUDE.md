@@ -132,8 +132,14 @@ instead of evaporating.
 - **Two pillars every project has:** `docs/00-map.md` (essence · module map · flows · highlights ·
   invariants · secrets) + `docs/decisions.md` (knowledge log: decisions + traps + **why**, append-only). A
   web-app adds the `01-product`/`02-technical`/`03-user-guide` set (tiered by `kind` — see 05 §3).
-- **Skills:** **`/project-docs`** generates/syncs the doc-set (scaffold + audit drift) · **`/session-wrap`**
-  wraps a session → write `decisions.md`, update `00-map`, add a line to `06-SO-TRI-THUC.md` if cross-project.
+- **Forward roadmap:** substantial **multi-session** work (feature/refactor/migration/hard bug fix) gets a persisted plan
+  in `docs/plans/YYYY-MM-DD-<slug>.md` via the skill **`/project-plan`** — the prospective counterpart to `decisions.md`
+  (05 §5.5). Complements plan mode (`/plan` researches + approves in-session; the file persists the roadmap across
+  sessions). Small same-session changes do NOT get a plan file. When a plan closes, `/session-wrap` distills its "why"
+  into `decisions.md`.
+- **Skills:** **`/project-docs`** generates/syncs the doc-set (scaffold + audit drift) · **`/project-plan`** persists a
+  multi-session plan in `docs/plans/` · **`/session-wrap`** wraps a session → write `decisions.md`, update `00-map`, close
+  any finished plan + distill it, add a line to `06-SO-TRI-THUC.md` if cross-project.
   Cross-project lessons → the index `nuc-platform/06-SO-TRI-THUC.md`; **infrastructure** traps → `02-MO-XE-LOI`.
 - **Convention:** at the end of a substantial editing pass → run `/session-wrap`; a non-obvious decision →
   `decisions.md` (in the same commit as the code). The pre-commit hook reminds (non-blocking) when code changes but docs don't.

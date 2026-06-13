@@ -52,4 +52,5 @@
 
 - Technical details: `docs/02-technical.md` <or "(none — see code)">
 - Why + pitfalls: `docs/decisions.md`
+- Work in flight: `docs/plans/` (status: active) <omit this line if there are no active plans>
 - Infra/deploy: `INVENTORY.md §<n>` · related skill: `/<...>`

@@ -38,6 +38,19 @@ Did the session add/remove/change a module role, route, model, or main flow, or 
 the corresponding section of `00-map` (§3 module map, §4 flows, §6 invariants, §7 secrets). The map must match the code
 after the session. No structural change → leave it as is.
 
+## Step 3.5 — Close any finished plan in `docs/plans/`
+
+If this session worked off a persisted plan (`docs/plans/*.md`, `status: active`):
+
+- Did the work **finish**? → flip its `status:` to `done` and **distill its _Decisions to distill_ bullets into
+  `docs/decisions.md`** (the durable "why" migrates plan → decisions, per `05-TAI-LIEU-CHUAN.md §5.5`). Don't leave the
+  knowledge living only in a closed plan.
+- Did the work **partially** advance? → tick off completed steps + bump `updated:` (leave `status: active`).
+- Was it **dropped**? → `status: abandoned` with a one-line reason.
+
+No plan file for this work, but it was big/multi-session → consider creating one via `/project-plan` so the next session
+inherits the roadmap.
+
 ## Step 4 — Cross-project lesson → `06-SO-TRI-THUC.md`
 
 Does this knowledge apply to **≥2 projects** or to **the platform itself**? → add one line to section A of

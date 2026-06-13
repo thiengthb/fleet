@@ -31,6 +31,7 @@ Tier 0 — INVENTORY §0            (1 table)     → what this project is, whic
 Tier 1 — <project>/docs/00-map.md (1 page)     → grasp the essence + module map + flows + invariants
 Tier 2 — docs/ in depth          (per task)    → 01-product / 02-technical / 03-user-guide / *-spec
         + docs/decisions.md       (file tail)   → why the code is this way, known traps
+        + docs/plans/ (status:active)(if any)   → forward roadmap of work currently in flight
 ```
 
 - Each project's `CLAUDE.md` is a file Claude Code **auto-loads** (walking up the directory tree). Since auto-loading
@@ -137,6 +138,35 @@ break an invariant / waste time re-investigating?* Yes → record it. This is th
 
 ---
 
+## 5.5 `docs/plans/` — the forward roadmap (the prospective mechanism)
+
+If `decisions.md` is the **retrospective** log (*why we did what we did*), `docs/plans/` is its **prospective**
+counterpart (*what we intend to do + where we are in doing it*). It exists so a piece of work that **spans more than one
+session** keeps its roadmap + execution state on disk instead of evaporating with the conversation. Maintained by the
+`/project-plan` skill.
+
+- **One file per substantial plan**, path `docs/plans/YYYY-MM-DD-<slug>.md`. Substantial = a feature / refactor /
+  migration / hard multi-step bug fix. A small same-session change does **NOT** get a file — use plan mode (`/plan`) and
+  just do it. Over-producing plan files is clutter and costs context.
+- **`status:` frontmatter IS the index** (`draft → active → done | abandoned`) — no separate index file to drift. To list
+  in-flight work: glob `docs/plans/*.md`, read frontmatter, filter `status: active`.
+- **Live, not write-once:** the checklist is kept in sync as work proceeds (this session or a later one). A stale plan is
+  worse than none.
+- **Complementary to plan mode**, not a replacement: plan mode researches read-only + gets in-session approval; the plan
+  file **persists** the approved roadmap for the next session. Flow: plan-mode research → approve → write file → execute →
+  sync checklist.
+- **Anti-overlap with `decisions.md`:** plan files own the forward roadmap + state; `decisions.md` owns the durable "why".
+  When a plan closes, `/session-wrap` **distills** its *Decisions to distill* bullets into `decisions.md` (knowledge
+  migrates plan → decisions, one way) and flips the plan to `done`. Don't keep the same settled decision as the live
+  source of truth in both.
+- **Context-loading:** only `active`/`draft` plans are on the default read path (and only when the task relates to them);
+  `done`/`abandoned` plans are read on-demand. Do NOT bulk-read finished plans on entry.
+
+> Different from `decisions.md` (backward, append-only knowledge) and from a one-off in-session plan (ephemeral, not
+> persisted). A plan file is the persisted roadmap of **one multi-session effort** in **one project**.
+
+---
+
 ## 6. Relationship with personal memory (`~/.claude/.../memory`)
 
 - `docs/decisions.md` = knowledge **of the project**, committed, everyone reads it, travels with the repo.
@@ -150,8 +180,11 @@ break an invariant / waste time re-investigating?* Yes → record it. This is th
 
 - **Skill `/project-docs`** scaffolds (generates the missing docs set, copied from the reference app of the kind) + audits
   (detects code↔docs drift, read-only report).
+- **Skill `/project-plan`** persists a substantial multi-session plan into `docs/plans/` (and keeps its checklist in sync)
+  so the roadmap survives across sessions — the forward-looking counterpart to `decisions.md` (§5.5).
 - **Skill `/session-wrap`** at the end of a session: extracts decisions/traps → `decisions.md`; updates `00-map` if the
-  module map changed; one line into `06-SO-TRI-THUC.md` if cross-project.
+  module map changed; closes a finished plan (`done`) + distills its knowledge into `decisions.md`; one line into
+  `06-SO-TRI-THUC.md` if cross-project.
 - **A light pre-commit hook** (`coding-convention/hooks/pre-commit`): a commit touching code but NOT touching `docs/`
   → a **non-blocking** warning (doesn't block). It nudges, doesn't obstruct.
 - **`/nuc-new-project`**: a newly created project has already run `/project-docs scaffold` → born-documented.
@@ -164,5 +197,6 @@ break an invariant / waste time re-investigating?* Yes → record it. This is th
 - [ ] Does `docs/00-map.md` have all 8 sections of §4? Missing → `/project-docs scaffold`.
 - [ ] Does the module map / flows in `00-map` still match the code? Mismatched → update it (or `/project-docs audit`).
 - [ ] Does this session have a non-obvious decision/trap? Yes → record it in `docs/decisions.md` (via `/session-wrap`).
+- [ ] Is the work multi-session/substantial? → persist a plan in `docs/plans/` (via `/project-plan`); keep its checklist in sync.
 - [ ] Is `CLAUDE.md` still thin (not bloated with spec)? Heavy spec → split it into `docs/`.
 - [ ] A cross-project lesson? → add one line to `06-SO-TRI-THUC.md`.

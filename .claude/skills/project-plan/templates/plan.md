@@ -1,0 +1,44 @@
+---
+title: <one line — what this plan delivers>
+status: draft # draft → active → done | abandoned
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+related: [] # file.ts · INVENTORY §n · docs/plans/<prior>.md
+---
+
+<!--
+  A PERSISTED, multi-session plan. Forward-looking counterpart to docs/decisions.md.
+  Standard: nuc-platform/05-TAI-LIEU-CHUAN.md §5.5. Maintained by the /project-plan skill.
+  Keep it token-cheap (tables + bullets + checklist, not prose). Keep the checklist in sync as you execute.
+-->
+
+## Goal
+
+One sentence: what "done" looks like (the observable outcome).
+
+## Context
+
+Why now, the constraints, what triggered it. 1–3 lines.
+
+## Approach & tradeoffs
+
+The chosen approach + what was ruled out and why (brief — the durable "why" is distilled to `decisions.md` at the end).
+
+## Steps
+
+- [ ] Step 1 — <action> (one line each; check off as you go, across sessions)
+- [ ] Step 2 — ...
+
+## Out of scope
+
+Explicit non-goals, so a later session doesn't scope-creep.
+
+## Open questions / risks
+
+Things still unknown or risky. Resolve + strike through as they close.
+
+## Decisions to distill
+
+Non-obvious knowledge that should land in `docs/decisions.md` when this plan completes (handed off by `/session-wrap`):
+
+- ...
