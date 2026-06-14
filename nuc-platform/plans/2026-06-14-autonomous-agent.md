@@ -3,7 +3,7 @@ title: Autonomous agent — governed self-execution + research-grounded self-pro
 kind: feature # feature | system-change | fix | refactor | chore
 status: active # draft → active → done | abandoned
 created: 2026-06-14
-updated: 2026-06-14 # Layer A COMPLETE — autonomy-gate (28/28) + contract 09 + research-before-design gate (prior-art-check 6/6); checkpoint before Layer B
+updated: 2026-06-14 # Layer A complete; Layer B B1+B2 done (auto-pilot skill + orchestrator, dry-loop verified); checkpoint before B3 (first LIVE autonomous run)
 related:
   [
     .claude/hooks/secret-guard.mjs,
@@ -132,8 +132,8 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 - [x] A4 — Research-before-design gate: RFC-lite `templates/proposal.md` + `kind:`-aware plan template + advisory `prior-art-check.mjs` hook (nudges when a `kind: feature` plan goes `active` with <2 external URLs) + rule baked into `/project-plan`. **Verified 6/6** (incl. this plan now passing). Hard enforcement lives in the proposer skill (Layer C); this is the in-loop backstop.
 
 ### Layer B — Autonomous executor (advance an approved plan, supervised → unattended)
-- [ ] B1 — `/auto-pilot` skill · Create `.claude/skills/auto-pilot/SKILL.md` · ONE-batch contract (fresh context): read plan → next N safe-zone steps → delegate heavy reads to subagents (rubric) → check off + bump `updated:` → at gate post Discord digest + **park** → `/session-wrap` log → balanced idle-backlog rule (explicit, plan-listed) → model=Sonnet.
-- [ ] B2 — Dumb orchestrator · Create `scripts/auto-pilot-run.{sh,ps1}` · loop fresh `claude -p` per batch (no `--continue`); deterministic stop guard · Test: dry-loop over a 2-step throwaway plan.
+- [x] B1 — `/auto-pilot` skill · `.claude/skills/auto-pilot/SKILL.md` · stateless one-batch contract (fresh context): load minimal state → next 1-3 safe-zone steps → delegate heavy reads to subagents (read/answer only, no writes) → branch + local commit → PARK at gate + digest → balanced idle rule + "nothing-worth-doing" exit. Done.
+- [x] B2 — Dumb orchestrator · `.claude/scripts/auto-pilot-run.ps1` + `.sh` (root `scripts/` is gitignored — control-plane repo only tracks `/.claude/` + `/nuc-platform/`) · loop fresh `claude -p` per batch (sets `CLAUDE_AUTONOMOUS=1`, no `--continue`, `--disallowedTools` defense-in-depth, never `--bare`); stop on no-progress/no-steps/cap; `--dry-run` · **Dry-loop verified** on both (8 unchecked, identical; PS fixed: ASCII-only + literal `(GATE)`). CLI flags validated via `claude --help`.
 - [ ] B3 — Supervised dry-run (user watching): 2–3 fresh batches · Test: stays in safe zone + lean (no compaction), hook never fires, steps checked off across batches, subagents used for wide reads.
 - [ ] B4 — Discord control plane (reuse): digest via `nuc-monitor` webhook; Approve/Deny + allowlist via `nuc-ops-bot` → flips a flag the next batch reads (**security review: no free-text → command**); T3 notify wired.
 - [ ] B5 — Real unattended window on a low-risk plan, user supervising **from phone**: works → digest → park → approve from phone → PR step done in a supervised session. Test: full loop, zero gate crossed unattended.

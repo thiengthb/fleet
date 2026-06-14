@@ -45,6 +45,7 @@ try {
       { name: 'Claude Code settings', re: /\.claude\/settings(\.local)?\.json$/ },
       { name: 'a Claude Code hook', re: /\.claude\/hooks\// },
       { name: 'a skill (agent behaviour)', re: /\.claude\/skills\// },
+      { name: 'the auto-pilot orchestrator', re: /\.claude\/scripts\// },
       { name: 'agent memory', re: /\.claude\/memory\// },
       { name: 'a CLAUDE.md rule file', re: /(^|\/)claude\.md$/ },
       { name: 'a CI/CD workflow', re: /\.github\/workflows\// },
