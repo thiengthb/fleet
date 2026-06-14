@@ -57,15 +57,15 @@ What changed vs the current files:
 
 ```bash
 # 3a. RSA keypair — private stays a secret, public is committed (non-secret).
-openssl genpkey -algorithm RSA -pkcs8 -pkeyopt rsa_keygen_bits:2048 -out gate.key
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out gate.key   # genpkey already emits PKCS#8 (no -pkcs8 flag)
 openssl pkey -in gate.key -pubout -out gate.pub
 cp gate.pub .claude/keys/gate-approval.pub.pem          # commit this (the agent/hook verify with it)
 base64 -w0 gate.key                                      # → paste into the BOT's .env GATE_SIGNING_KEY_B64 (NUC); then shred gate.key
 
 # 3b. Private gates repo + local clone for the orchestrator.
-gh repo create thiengthb/nuc-agent-gates --private
-#   seed empty requests/ and gates/ dirs (.gitkeep), then:
-git clone git@github.com:thiengthb/nuc-agent-gates.git ~/.claude/agent-gates   # = GATE_REPO_DIR default
+#   No gh CLI on this box → create thiengthb/nuc-agent-gates (Private) via github.com/new, then (origin is HTTPS):
+git clone https://github.com/thiengthb/nuc-agent-gates.git ~/.claude/agent-gates   # = GATE_REPO_DIR default
+#   seed empty requests/ and gates/ dirs: mkdir -p requests gates && touch requests/.gitkeep gates/.gitkeep && git add -A && git commit -m "chore: seed gate channel" && git push
 
 # 3c. Fine-grained GitHub PAT: repo = nuc-agent-gates ONLY, permission Contents: Read and write → bot .env GATES_GITHUB_TOKEN.
 # 3d. Discord channel id for approvals → bot .env GATE_APPROVAL_CHANNEL_ID (or leave blank to reuse OPS_CHANNEL_ID).
