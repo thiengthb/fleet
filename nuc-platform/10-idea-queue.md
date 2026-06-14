@@ -42,11 +42,14 @@
      guards against; Mansoury). Next net-new inbox idea should be probed for orthogonality before the next sort. -->
 
 ### idea-0003 — Phase 3: day-log + milestone-anchored memory
-state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
+state: proposed · source: user · created: 2026-06-14 · updated: 2026-06-14
 gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.7 effort: 3 · base: 1.4 · interest: 0.6 · **rank: 1.53**
-proposal: null · outcome: null
+proposal: plans/2026-06-14-phase3-daylog-memory-proposal.md · outcome: null (awaiting supervisor)
 > Dated session digests in `nuc-platform/log/YYYY-MM-DD.md` (OUTSIDE governance-locked `.claude/memory/`), milestone
 > anchors FK-linking child entries, recall convention (newest→oldest, jump around a milestone). Couples to idea-0002 schema.
+> **Analyzed 2026-06-14** → proposal (6 verified sources: Park/MemGPT/Zettelkasten/Event-Sourcing/RAG-threshold):
+> Option A (markdown recall tier, RAG-schema-ready, embeddings deferred). **Flags a scope-coupling** — fold idea-0002's
+> "schema now" half into this build, shrink 0002 to the later pgvector migration. Awaiting `/idea outcome 0003 …`.
 
 ### idea-0002 — RAG/vector memory foundation (design schema now, build at volume trigger)
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
