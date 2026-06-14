@@ -5,6 +5,7 @@
 /*
 
 !/.gitignore
+!/.gitattributes
 !/CLAUDE.md
 !/nuc-platform/
 !/.claude/
