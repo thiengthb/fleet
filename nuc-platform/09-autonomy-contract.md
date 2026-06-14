@@ -29,6 +29,10 @@ Operational test for a tier: **"can this be undone in < 5 min with no external s
 2. **Self-modification prohibition.** The agent NEVER autonomously writes its own governance — `.claude/settings*.json`,
    `.claude/hooks/**`, `.claude/skills/**`, `.claude/memory/**`, any `CLAUDE.md`, `.github/workflows/**`, `.git/**`,
    `.env*`. It may *propose* a change (a proposal artifact); a **human commits** it. (This is the CVE-2025-53773 lesson.)
+   - **Skill induction (`/skill-proposer`)** is the sanctioned shape of "propose a change" for skills: the agent DRAFTS a
+     skill into `nuc-platform/skill-proposals/` (outside the `.claude/skills/**` lock ⇒ a normal **T2** branch-local write)
+     and **stops**. Installing = a **human** moving the draft into `.claude/skills/<name>/` after a security review (**T4**,
+     hard-blocked for the agent). Drafting is T2, installing is T4 — the propose-don't-install line made physical by path.
 3. **No lethal trifecta in one unattended run**: private data + untrusted input + outward comms are never combined.
 4. **Graceful degradation, never auto-escalation.** On anomaly (unexpected paths, repeated gate hits, low confidence)
    the run downgrades to **park-and-ask**; autonomy is only ever *raised* by a human.

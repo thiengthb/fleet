@@ -82,6 +82,13 @@ via skill **`/memory`** (which owns the two-tier mechanics: shared in-repo `.cla
 vs the local home-dir tier — pick with its litmus). Knowledge *about the project* does NOT go into memory — it belongs in
 `decisions.md`. (Role split: see `05-documentation-standard.md §6`.)
 
+## Step 5.5 — Skill-induction scan (cadence — like `/idea sort`)
+
+Did a **multi-step process recur** this session (and in the day-log/git ≥3× total)? → run **`/skill-proposer`**: it drafts
+a candidate skill into `nuc-platform/skill-proposals/` for a human to review + install — it never installs. **"Nothing
+worth proposing" is the normal outcome** (anti-sprawl — the platform already has many skills); only propose on a real
+rule-of-three. This is the SKILLS sibling of the `/idea sort` cadence (which re-ranks FEATURE ideas). Skip if nothing recurred.
+
 ## Step 6 — Report (do NOT commit/push automatically)
 
 List concisely: which entry was added to `decisions.md`, what `00-map` changed, whether a `06` line was added, which memory

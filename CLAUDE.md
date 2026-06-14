@@ -147,6 +147,10 @@ durable contract + decision tiers in `09-autonomy-contract.md`; build roadmap in
 - **Layer C (Proposer) front door = skill `/idea` + `nuc-platform/10-idea-queue.md`** — the idea backlog where
   gap-analysis lands, gets ranked (feasibility gate first, then a capped interest bonus), and the supervisor's
   accept/reject is the oracle that biases future proposals (Reflexion). Self-scoring in a closed loop is forbidden.
+- **Proposer for SKILLS = skill `/skill-proposer` + `nuc-platform/skill-proposals/`** (sibling of `/idea`, which proposes
+  FEATURES) — induces a DRAFT skill from a process repeated ≥3× and files it into the sandbox for a **human to review +
+  install**. **Propose-don't-install:** the agent NEVER writes to `.claude/skills/` (drafting the sandbox = T2; installing
+  = a human move = T4, gate-blocked). Adapts Hermes' detect+draft, refuses its auto-install (ADAS/Anthropic safety).
 
 ## Thinking & process
 
