@@ -37,6 +37,10 @@ Mark the recommended option with **`(khuyến nghị)`** right in the table so t
 Chosen option (`(khuyến nghị)`) + one **plain-language** sentence why + one line "why not the others". (Do NOT fill this
 until Prior art + Options above are populated.)
 
+> Acceptance bar: state in one line what "done & correct" looks like for the chosen option. The full testable
+> **acceptance criteria (Given/When/Then, 1 AC→1 test)** are written in the resulting `/project-plan` (standard
+> `nuc-platform/11-testing-standard.md` §3) — don't duplicate them here; the proposal decides *whether*, the plan specs *what*.
+
 ## Pre-mortem — REQUIRED: ≥2 failure modes
 
 - If X happens, this fails because…

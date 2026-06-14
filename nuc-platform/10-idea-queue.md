@@ -37,9 +37,9 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     last /idea sort: 2026-06-14. Phase-2 interest model LIVE. After shipping Phase 1/2/3 + B4 + folding 0002/0009,
-     the active set has drained to just idea-0005 (Phase 4). Wildcard check: still NONE — the whole backlog is
-     platform-internal (autonomy/Knowledge-OS/token); a net-new ORTHOGONAL idea is overdue (the exploration floor's point). -->
+     last /idea sort: 2026-06-14. Phase-2 interest model LIVE. idea-0010 (testing/spec, the exploration-floor WILDCARD)
+     + idea-0011 (skill-proposer) ACCEPTED 2026-06-14 → moved to Done (graduated to build plans). idea-0006 (E2E) folded
+     into idea-0010. Active set back to just idea-0005 (Phase 4). Next wildcard check due at the next /idea sort. -->
 
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
@@ -51,6 +51,28 @@ proposal: null · outcome: null
 ---
 
 ## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
+
+### idea-0010 — Testing & spec discipline: tiered SDD-lite + selective TDD + contract testing
+state: done · source: user · created: 2026-06-14 · updated: 2026-06-14
+gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.7 effort: 3 · base: 2.1 · interest: SKIPPED (wildcard) · rank: 2.1
+proposal: plans/2026-06-14-testing-spec-discipline-proposal.md
+outcome: **accept — Option A** (2026-06-14, "theo những gì bạn khuyến nghị") + **idea-0006 folded** (E2E = pyramid top tier).
+Graduated → build plan `plans/2026-06-14-testing-spec-discipline-build.md`. *Reflexion bias:* extend-the-spine + evidence-
+tiered testing over a parallel SDD tool (B) or a blanket-TDD mandate (C); the multi-user future overrides the solo anti-ceremony prior.
+> The exploration-floor wildcard (quality engineering). AC (Given/When/Then, 1 AC→1 test) on the proposal/plan spine;
+> selective TDD for pure logic (Nagappan 40–90% defect↓); consumer-driven contract tests for cross-repo seams; E2E sparse
+> at the top (idea-0006). 5 verified sources (Nagappan/Spec-Kit/Kiro/Gherkin/Pact).
+
+### idea-0011 — Skill proposer: induce a skill from a repeated process, then PROPOSE it (governance-safe)
+state: done · source: user · created: 2026-06-14 · updated: 2026-06-14
+gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.6 effort: 3 · base: 1.8 · interest: 0.6 · rank: 1.96
+proposal: plans/2026-06-14-skill-proposer-induction-proposal.md
+outcome: **accept — Option A** (2026-06-14, supervisor: "idea 11 phải theo A") — **separate skill** `/skill-proposer`, full
+A, auto-detection **hook deferred to Phase 2**. Graduated → build plan `plans/2026-06-14-skill-proposer-build.md`.
+*Reflexion bias:* supervisor wants Hermes-style self-improvement but strictly under propose-don't-install — never the closed auto-install loop (B).
+> Detect a process repeated ≥3× (rule of three, over day-log + git) → draft SKILL.md via /skill-authoring → self-verify
+> (Voyager) → PROPOSE into a sandbox queue; human security-reviews + installs (autonomy-gate blocks .claude/skills/**).
+> Diversity + anti-sprawl via dedup + WIP cap + Curator. 4 verified sources (Hermes/Voyager/ADAS/Anthropic).
 
 ### idea-0003 — Phase 3: day-log + milestone-anchored memory
 state: done · source: user · created: 2026-06-14 · updated: 2026-06-14
@@ -105,9 +127,10 @@ gate: pass · moscow: could · interest: 0.8
 > (Redis/mmntm ~200K-token threshold; full-context still wins +15–20% under ~1M). No now-build.
 
 ### idea-0006 — Playwright E2E suite (deferred from compliance-sync)
-state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: after a UI-regression scare or before a risky multi-app release
+state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: as the TOP TIER of idea-0010's testing standard — build the suite when regression risk rises
 gate: pass · moscow: could · interest: 0.3
-> E2E coverage for the web apps (skill `/playwright-e2e-builder` ready). Deferred earlier; revisit when regression risk rises.
+> E2E coverage for the web apps (skill `/playwright-e2e-builder` ready). **Folded into idea-0010** (2026-06-14) as the
+> testing pyramid's top tier — no longer a standalone idea; the standard positions it, the suite itself gets built at the trigger.
 
 ### idea-0007 — journal /guide page (deferred from compliance-sync)
 state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: when journal gets active end-users

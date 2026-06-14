@@ -166,9 +166,9 @@ durable contract + decision tiers in `09-autonomy-contract.md`; build roadmap in
 > **Reference skills (auto-fire by topic):** data → `/prisma-expert`+`/database-design` · React perf →
 > `/react-best-practices` · Dockerfile → `/docker-expert` · MCP → `/mcp-builder` · external-API →
 > `/api-integration-specialist` · Python async → `/async-python-patterns` · system decision → `/architecture` ·
-> deps → `/dependabot-review`+`/supply-chain-guard` · testing →
-> `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill → `/skill-authoring`. Catalog + verdicts:
-> `nuc-platform/07-SKILL-CANDIDATES.md`.
+> deps → `/dependabot-review`+`/supply-chain-guard` · testing → `/testing-standard` (the router: tiers + acceptance
+> criteria + contract tests, standard `nuc-platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder`
+> (per-tier how-to) · authoring a skill → `/skill-authoring`. Catalog + verdicts: `nuc-platform/07-SKILL-CANDIDATES.md`.
 
 ## Model routing — staff work by weight (token discipline)
 

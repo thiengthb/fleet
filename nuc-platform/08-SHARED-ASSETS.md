@@ -37,6 +37,7 @@
 | **commit-msg + pre-commit hooks** | Conventional Commits enforcement + docs reminder | `.claude/skills/coding-convention/hooks/` | every repo | **TEMPLATE** (installed at repo init) | TEMPLATE |
 | **Prettier config** | Shared formatting (`semi`, singleQuote, printWidth 100…) | `.claude/skills/coding-convention/templates/` | every repo | **TEMPLATE** | TEMPLATE |
 | **Discord bot bootstrap** | Gateway connect + command/handler scaffold + allowlist | node: `jobhunter-bot`, `yakudoku-bot`; python: `nuc-monitor`, `nuc-ops-bot` | 4 workers (2 node + 2 python) | PATTERN per language | **DUPLICATED — watch** (different langs; extract only within a language if 3× same-shape) |
+| **Consumer-driven contract test (cross-repo HTTP seam)** | Zod-contract + consumer fixture test + provider real-response verify — guards a repo↔repo API from silent drift (fixtures-first, no Pact broker) | `.claude/skills/testing-standard/templates/contract-test.example.ts` | (seams: todo↔core, web↔core, MCP) | **TEMPLATE** (copy-in; broker deferred to ≥2 teams) — standard `11-testing-standard.md §4` | TEMPLATE |
 
 ---
 
