@@ -34,6 +34,11 @@ ok "diff -q '$tmp/first' '$env1' >/dev/null"                       "idempotent: 
 dups="$(grep -c '^NEWKEY=' "$env1")"
 ok "[ '$dups' = '1' ]"                                             "no duplicate key after re-run"
 
+# CRLF snippet (Notepad-saved mirror) must NOT leave a trailing \r on the value
+printf 'CRTEST=withcr\r\n' | run "$env1"
+ok "grep -qx 'CRTEST=withcr' '$env1'"                              "CRLF snippet line -> value stored with NO trailing CR"
+no "grep -qP 'CRTEST=withcr\r' '$env1'"                            "no carriage return survived into .env"
+
 # exit-code guards (capture rc explicitly)
 printf '\n# only comments\n' | NUC_ENV_FILE="$env1" NUC_RESTART=0 bash "$SCRIPT" testapp >/dev/null 2>&1; rc=$?
 ok "[ $rc -ne 0 ]"                                                 "empty snippet -> nonzero exit (rejected)"
