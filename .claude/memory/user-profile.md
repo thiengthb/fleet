@@ -16,3 +16,17 @@ Actively follows the autonomous-agent tooling space (OpenClaw, Hermes, …) and 
 evaluates critically before adopting (OpenClaw was assessed and declined — see [[extend-dont-rebuild]]).
 Thinks at the system-design level, not just feature level: frames a request as "should we, and what's the
 best shape" and explicitly invites pushback rather than agreement.
+
+## Interest signals
+
+Explicit, human-tagged input to the idea-queue interest model (the `## /idea sort` derivation reads this section
+together with the `outcome: accept/reject` history; see `nuc-platform/10-idea-queue.md` §Rules). Keep terse, one
+bullet per durable preference; the supervisor edits this, not the agent. Pairs with the accept/reject oracle, never
+replaces it.
+
+- **Leans toward** (raises interest): agent autonomy/governance, the Knowledge OS (memory/docs continuity), and
+  **extending existing infra over building parallel systems** — see [[extend-dont-rebuild]]. Designs that are
+  research-grounded + bounded + exploration-preserving (the idea-0001 accept signal).
+- **Leans away from** (lowers interest): ceremony/over-engineering for a solo operator; net-new services when an
+  existing one extends; un-grounded "this would be nice" proposals.
+- _Calibrate against the real `outcome:` log over time — this is a starting prior, recency-decayed, not ground truth._

@@ -29,11 +29,23 @@ Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; ke
   (re-analyze jointly vs drop) — never silently merge.
 - **`/idea gate <id>`** (or run inline on add) — feasibility+fit gate FIRST: set `moscow:` + judge "does it fit the
   system / invariants?". `pass` → `active`. `wont`/no-fit-no-reshape → `deferred` (maybe-later) or `dead` (+ tombstone reason).
-- **`/idea sort`** — the **post-feature cadence**: (1) re-score + re-rank the `active` set (`rank = base×(1+0.15×interest)`,
-  interest capped 15%, gate is absolute); (2) enforce the WIP cap (`active` ≤ 5 → defer the lowest); (3) optionally run
+- **`/idea sort`** — the **post-feature cadence**: (1) **re-derive `interest`** for each `active` idea (see below) then
+  re-score + re-rank (`rank = base×(1+0.15×interest)`, interest capped 15%, gate is absolute); (2) **surface ≥1 wildcard**
+  (exploration floor — below); (3) enforce the WIP cap (`active` ≤ 5 → defer the lowest); (4) optionally run
   **gap-analysis (C1 Proposer):** propose new `inbox` ideas, but **ground each in an EXTERNAL standard** (INVENTORY drift,
   missing test coverage, a documented gap, prior-art) — NOT the agent's opinion (intrinsic self-assessment is unreliable;
   see proposal §Prior art). Surface new ideas to the supervisor; don't self-promote them past `inbox`.
+
+  **Deriving `interest` (Phase 2 — never hand-type it):** compute `interest ∈ [0,1]` from human signals ONLY — (a) the
+  supervisor's `outcome: accept/reject` history on *similar* past ideas (the Reflexion oracle), (b) explicit prefs in
+  `.claude/memory/user-profile.md` §"Interest signals". **Confidence-weight** (Hu 2008): a single verdict nudges weakly,
+  a consistent pattern more; coarse buckets (≈0.2/0.4/0.6/0.8), recency-decayed, re-derived every sort. **Forbidden:**
+  deriving interest from the agent's own liking of an idea (closed-loop self-scoring degrades). Show the *why* per idea.
+
+  **Exploration floor (anti-feedback-loop, Mansoury CIKM'20):** interest + gate compound toward the comfort zone and
+  starve novel ideas across sorts — the 15% cap alone doesn't stop it. So **every sort surfaces ≥1 "wildcard"**: a
+  novel / dissimilar / orthogonal-to-history idea ranked on `base` only (interest term skipped), explicitly flagged. None
+  available ⇒ say so. Rationale + sources: `plans/2026-06-14-phase2-interest-model-proposal.md`.
 - **`/idea analyze`** — deep-dive the **top-1** `active` idea only (not the whole queue — wasted tokens). Apply
   `/honest-critique` + the proposal template's Counter-case/Pre-mortem. Write `proposal.md` (via the proposal flow:
   brainstorm → `templates/proposal.md` with ≥2 external sources + ≥2 options). Set the idea `state: proposed`, link `proposal:`.
