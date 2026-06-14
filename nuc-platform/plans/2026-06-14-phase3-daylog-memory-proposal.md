@@ -1,8 +1,9 @@
 ---
 title: Phase 3 — day-log + milestone-anchored temporal memory (the recall tier, RAG-schema-ready)
 kind: system-change # feature | system-change — both REQUIRE prior-art before acceptance
-status: draft # draft → accepted → rejected | superseded
+status: accepted # draft → accepted → rejected | superseded
 created: 2026-06-14
+updated: 2026-06-14 # ACCEPTED — Option A + fold idea-0002 schema-now into this build; building this session
 related:
   [
     nuc-platform/10-idea-queue.md (idea-0003 — the candidate this analyzes; couples idea-0002),
@@ -106,7 +107,9 @@ for a solo operator at this corpus size a third dated artifact risks becoming wr
 honest version may be a *recall convention over git history + decisions.md* (no new file type) until the corpus or the RAG
 actually demands the structured log.
 
-## Decision (human)
+## Decision (human) — ACCEPTED 2026-06-14
 
-Filled by the supervisor: **accepted** → becomes a `/project-plan` · **rejected** (reason) · **deferred** (until …).
-Note the scope-coupling flag in §Recommendation (idea-0002 shrink) needs a yes/no too.
+**accepted, Option A** + **fold confirmed**: the frontmatter schema is defined IN this Phase 3 build (the day-log needs
+it), and **idea-0002 shrinks to the later pgvector migration only** (moved to deferred, revisit at the volume trigger).
+Build roadmap → `plans/2026-06-14-phase3-daylog-memory-build.md`. Tier discipline (log=recall / decisions=archival /
+ledger=index) and "logs are never auto-loaded" are load-bearing acceptance criteria.

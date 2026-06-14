@@ -41,6 +41,13 @@ Tier 2 — docs/ in depth          (per task)    → 01-product / 02-technical /
   code. Always at this exact path, every kind.
 - Read `docs/` in depth **only when the task needs it** (fixing AI → read 02-technical §AI; writing a guide → 03-user-guide…).
 
+> **Memory tiers (MemGPT model) — know which one you're touching.** The loading path above is the *core* (`00-map`,
+> always read) + *archival* (`decisions.md`/ledger, on demand) tiers. There is a third, **recall** tier: dated session
+> digests in `nuc-platform/log/YYYY-MM-DD.md` (Phase 3). It captures "what happened around **when** / at milestone X" and
+> is **NEVER auto-loaded** — read it on demand by date or `milestone_id` only (auto-loading would re-bloat context). The
+> log is the raw record; `/session-wrap` distills its durable *why* **upward** into `decisions.md`. Schema + recall
+> convention: `nuc-platform/log/README.md`. (Its frontmatter is RAG-ready — `embedding: null` until idea-0002's pgvector build.)
+
 ---
 
 ## 3. The standard documentation set by `kind` (tiered)

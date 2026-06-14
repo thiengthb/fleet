@@ -83,9 +83,12 @@ OR the batch budget is reached, OR the autonomy-gate hook blocked something. Whe
 ## Step 6 — Write state back (the cross-context memory)
 
 - Check off completed steps in the plan; bump `updated:` with a one-line note of what this batch did.
+- **Append the batch digest to the recall tier** `nuc-platform/log/YYYY-MM-DD.md` (one terse `type: episodic` block —
+  schema/template in `log/README.md`/`_TEMPLATE.md`) so it's durable, not ephemeral. This is a T2 write *outside*
+  `.claude/memory/` → the gate allows it unattended. Keep it short (what + next + any gate); do NOT auto-load it later.
 - `git add -A && git commit -m "<conventional msg>"` on the branch (LOCAL only).
 - If something non-obvious was learned, note it under the plan's "Decisions to distill" (a later `/session-wrap`
-  distills it). Do NOT edit `decisions.md`/`00-map.md` heavily mid-batch — keep the batch focused.
+  distills it upward into `decisions.md`). Do NOT edit `decisions.md`/`00-map.md` heavily mid-batch — keep the batch focused.
 
 ## Step 7 — Digest + balanced idle rule, then exit
 

@@ -19,7 +19,22 @@ obvious field) → do NOT record.
 - What did this session do? Based on: the pending changes (`git status`/`git diff --stat`), the session's new
   commits, and the conversation thread. Silently summarize 3–6 bullets of "what changed".
 
-## Step 2 — Extract decisions/pitfalls → `docs/decisions.md`
+## Step 1.5 — Write the recall digest → `nuc-platform/log/YYYY-MM-DD.md` (the temporal tier)
+
+Before distilling the *why* (Steps 2–4), persist the *what* as a dated **recall** entry — so "what happened around when /
+at milestone X" is answerable later. Append today's digest to `nuc-platform/log/YYYY-MM-DD.md` (create from
+`log/_TEMPLATE.md` if today's file doesn't exist; schema + tier rules in `log/README.md`):
+
+- One `type: episodic` block with frontmatter (`id`, `created`, `importance` 1–10, `milestone_id`, `related_ids`,
+  `embedding: null`) + **What happened** (raw bullets) · **Decisions made** (pointers to the Step-2 `decisions.md` entries,
+  not copies) · **Open threads**.
+- Shipped/finished a milestone this session? → also add (or update) a `type: reflection` anchor entry and point this
+  session's episodic `milestone_id` at it (the FK that recall walks around).
+- **This is the recall tier → it is the RAW record, and it is NEVER auto-loaded.** Steps 2–4 below distill its durable
+  lessons *upward* into `decisions.md`/ledger (archival). Don't duplicate content across the two — link.
+- Skip only for a trivial pass with nothing worth a dated record (same bar as Step 2).
+
+## Step 2 — Extract decisions/pitfalls → `docs/decisions.md` (distil UPWARD from the recall digest)
 
 For each non-obvious thing in the session, ask 4 questions then write one entry (newest ON TOP, following the §5 skeleton):
 

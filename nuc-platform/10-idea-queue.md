@@ -37,27 +37,9 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     last /idea sort: 2026-06-14 (post Phase-1 idea-queue ship + B4 pull). Phase-2 interest model NOW LIVE.
-     Wildcard check: NONE — the active set is uniformly autonomy/Knowledge-OS (the homogeneity the exploration floor
-     guards against; Mansoury). Next net-new inbox idea should be probed for orthogonality before the next sort. -->
-
-### idea-0003 — Phase 3: day-log + milestone-anchored memory
-state: proposed · source: user · created: 2026-06-14 · updated: 2026-06-14
-gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.7 effort: 3 · base: 1.4 · interest: 0.6 · **rank: 1.53**
-proposal: plans/2026-06-14-phase3-daylog-memory-proposal.md · outcome: null (awaiting supervisor)
-> Dated session digests in `nuc-platform/log/YYYY-MM-DD.md` (OUTSIDE governance-locked `.claude/memory/`), milestone
-> anchors FK-linking child entries, recall convention (newest→oldest, jump around a milestone). Couples to idea-0002 schema.
-> **Analyzed 2026-06-14** → proposal (6 verified sources: Park/MemGPT/Zettelkasten/Event-Sourcing/RAG-threshold):
-> Option A (markdown recall tier, RAG-schema-ready, embeddings deferred). **Flags a scope-coupling** — fold idea-0002's
-> "schema now" half into this build, shrink 0002 to the later pgvector migration. Awaiting `/idea outcome 0003 …`.
-
-### idea-0002 — RAG/vector memory foundation (design schema now, build at volume trigger)
-state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
-gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.6 effort: 3 · base: 1.2 · interest: 0.8 · **rank: 1.34**
-proposal: null · outcome: null
-> Standardize memory frontmatter now (UUID/type/taxonomy/importance/milestone_id/…, nullable `embedding`); migrate to
-> journal's Postgres+pgvector at ~150 files / ~80K tokens. Supervisor wants the foundation early (parent plan, fork 4).
-> _interest 0.9→0.8 (Phase-2 re-derive 2026-06-14): high theme-fit but confidence-capped on thin oracle data; order unchanged._
+     last /idea sort: 2026-06-14. Phase-2 interest model LIVE. After shipping Phase 1/2/3 + B4 + folding 0002/0009,
+     the active set has drained to just idea-0005 (Phase 4). Wildcard check: still NONE — the whole backlog is
+     platform-internal (autonomy/Knowledge-OS/token); a net-new ORTHOGONAL idea is overdue (the exploration floor's point). -->
 
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
@@ -69,6 +51,16 @@ proposal: null · outcome: null
 ---
 
 ## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
+
+### idea-0003 — Phase 3: day-log + milestone-anchored memory
+state: done · source: user · created: 2026-06-14 · updated: 2026-06-14
+gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.7 effort: 3 · base: 1.4 · interest: 0.6 · rank: 1.53
+proposal: plans/2026-06-14-phase3-daylog-memory-proposal.md
+outcome: **accept** (2026-06-14) — Option A + folded idea-0002's schema-now half into this build. *Reflexion bias:* the
+supervisor favours grounded recall-tier design that defers infra (embeddings) until a real volume trigger.
+> Dated session digests `nuc-platform/log/YYYY-MM-DD.md` (recall tier, never auto-loaded), RAG-schema-ready frontmatter,
+> milestone anchors FK-linking children, event-sourced immutability. **Graduated → build plan
+> `plans/2026-06-14-phase3-daylog-memory-build.md`** (this session). 6 verified sources (Park/MemGPT/Zettelkasten/Fowler/RAG-threshold).
 
 ### idea-0009 — Resolve Layer-C overlap: does the shipped `/idea` skill already absorb planned C1 `/feature-proposal`?
 state: done · source: agent · created: 2026-06-14 · updated: 2026-06-14 · dedup_of: (autonomy plan step C1/C2)
@@ -103,6 +95,14 @@ outcome: **accept** — supervisor took full scope (B4a+B4b) 2026-06-14; B4b's `
 ---
 
 ## Deferred (someday/maybe — has a revisit trigger)
+
+### idea-0002 — RAG/vector memory MIGRATION (pgvector — build at volume trigger)
+state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: corpus crosses ~200K tokens / ~150 files (RAG-threshold research)
+gate: pass · moscow: could · interest: 0.8
+> **Shrunk 2026-06-14** (idea-0003 decision): the "standardize frontmatter schema now" half is folded into Phase 3's build
+> (the day-log defines + uses it, with a nullable `embedding`). What remains here = the *later* migration to journal's
+> Postgres+pgvector — purely additive (populate `embedding`), deferred until the corpus is large enough to beat long-context
+> (Redis/mmntm ~200K-token threshold; full-context still wins +15–20% under ~1M). No now-build.
 
 ### idea-0006 — Playwright E2E suite (deferred from compliance-sync)
 state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: after a UI-regression scare or before a risky multi-app release
