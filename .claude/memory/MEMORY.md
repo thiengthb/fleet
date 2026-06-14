@@ -10,3 +10,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Extend, don't rebuild](extend-dont-rebuild.md) — prefers extending existing infra over parallel systems (anti-drift)
 - [Concise commit messages](concise-commit-messages.md) — short Conventional Commits subject, minimal/no body
 - [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier in-repo, syncs via git
+- [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first

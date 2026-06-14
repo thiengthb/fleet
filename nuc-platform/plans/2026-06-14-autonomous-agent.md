@@ -3,7 +3,7 @@ title: Autonomous agent — governed self-execution + research-grounded self-pro
 kind: feature # feature | system-change | fix | refactor | chore
 status: active # draft → active → done | abandoned
 created: 2026-06-14
-updated: 2026-06-14 # Layer A complete; Layer B B1+B2 done (auto-pilot skill + orchestrator, dry-loop verified); checkpoint before B3 (first LIVE autonomous run)
+updated: 2026-06-14 # Layer A done; B1-B3 done — first LIVE autonomous batch worked (advanced safe steps, parked at gate, clean digest on Sonnet); checkpoint before B4 (Discord, touches other repos)
 related:
   [
     .claude/hooks/secret-guard.mjs,
@@ -134,7 +134,7 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 ### Layer B — Autonomous executor (advance an approved plan, supervised → unattended)
 - [x] B1 — `/auto-pilot` skill · `.claude/skills/auto-pilot/SKILL.md` · stateless one-batch contract (fresh context): load minimal state → next 1-3 safe-zone steps → delegate heavy reads to subagents (read/answer only, no writes) → branch + local commit → PARK at gate + digest → balanced idle rule + "nothing-worth-doing" exit. Done.
 - [x] B2 — Dumb orchestrator · `.claude/scripts/auto-pilot-run.ps1` + `.sh` (root `scripts/` is gitignored — control-plane repo only tracks `/.claude/` + `/nuc-platform/`) · loop fresh `claude -p` per batch (sets `CLAUDE_AUTONOMOUS=1`, no `--continue`, `--disallowedTools` defense-in-depth, never `--bare`); stop on no-progress/no-steps/cap; `--dry-run` · **Dry-loop verified** on both (8 unchecked, identical; PS fixed: ASCII-only + literal `(GATE)`). CLI flags validated via `claude --help`.
-- [ ] B3 — Supervised dry-run (user watching): 2–3 fresh batches · Test: stays in safe zone + lean (no compaction), hook never fires, steps checked off across batches, subagents used for wide reads.
+- [x] B3 — First LIVE run validated (1-batch smoke test, user watching via report). A fresh Sonnet worker created branch `auto/<slug>`, did 2 safe-zone steps, **committed locally**, checked off the steps, and **PARKED on its own at the GATE step** (recognized "open a PR" as T3, didn't attempt it) + emitted a clean digest. Found+fixed a `.sh` `--disallowedTools` word-split bug (now a bash array; hook remains the authoritative gate). NOT yet exercised: multi-batch loop + subagent delegation on a wide read → watch in B5. Throwaway plan/branch cleaned up.
 - [ ] B4 — Discord control plane (reuse): digest via `nuc-monitor` webhook; Approve/Deny + allowlist via `nuc-ops-bot` → flips a flag the next batch reads (**security review: no free-text → command**); T3 notify wired.
 - [ ] B5 — Real unattended window on a low-risk plan, user supervising **from phone**: works → digest → park → approve from phone → PR step done in a supervised session. Test: full loop, zero gate crossed unattended.
 

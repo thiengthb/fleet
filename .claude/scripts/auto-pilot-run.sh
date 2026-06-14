@@ -27,8 +27,10 @@ count_unchecked() { awk '/^[[:space:]]*-[[:space:]]*\[ \]/ && !/\(GATE\)/ {n++} 
 
 PROMPT="Run ONE /auto-pilot batch for the approved plan at '$PLAN'. Advance the next 1-3 safe-zone steps on the auto/ branch, commit locally, then PARK at the first gate and emit a digest. Never push, deploy, or cross any gate."
 
-# Defense-in-depth: deny the worst command classes at the CLI layer too (the hook is still the primary gate).
-DISALLOW='Bash(git push:*) Bash(git merge:*) Bash(docker:*) Bash(ssh:*) Bash(rm:*)'
+# Defense-in-depth: deny the worst command classes at the CLI layer too. The autonomy-gate hook is the AUTHORITATIVE
+# gate (verified); this is belt-and-suspenders. Each pattern must be its OWN arg (spaces inside => use an array, never
+# a space-joined string, or the CLI mis-parses it). Confirm acceptance (no "matches no known tool" warning) in B5.
+DISALLOW=('Bash(git push:*)' 'Bash(git merge:*)' 'Bash(docker:*)' 'Bash(ssh:*)' 'Bash(rm:*)')
 
 echo "[auto-pilot] plan=$PLAN model=$MODEL maxBatches=$MAX_BATCHES dryRun=$DRY_RUN"
 for i in $(seq 1 "$MAX_BATCHES"); do
@@ -36,10 +38,10 @@ for i in $(seq 1 "$MAX_BATCHES"); do
   if [ "$before" -eq 0 ]; then echo "[auto-pilot] no unchecked steps left — done."; break; fi
   echo "[auto-pilot] batch $i/$MAX_BATCHES — $before unchecked step(s) remain"
   if [ "$DRY_RUN" -eq 1 ]; then
-    echo "[auto-pilot][dry-run] would run: CLAUDE_AUTONOMOUS=1 claude -p \"<prompt>\" --model $MODEL --permission-mode acceptEdits --disallowedTools \"$DISALLOW\""
+    echo "[auto-pilot][dry-run] would run: CLAUDE_AUTONOMOUS=1 claude -p \"<prompt>\" --model $MODEL --permission-mode acceptEdits --disallowedTools ${DISALLOW[*]}"
     break
   fi
-  CLAUDE_AUTONOMOUS=1 claude -p "$PROMPT" --model "$MODEL" --permission-mode acceptEdits --disallowedTools $DISALLOW || true
+  CLAUDE_AUTONOMOUS=1 claude -p "$PROMPT" --model "$MODEL" --permission-mode acceptEdits --disallowedTools "${DISALLOW[@]}" || true
   after="$(count_unchecked "$PLAN")"
   if [ "$after" -ge "$before" ]; then
     echo "[auto-pilot] no progress (parked or stalled) — stopping for human review."
