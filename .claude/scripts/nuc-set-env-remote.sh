@@ -34,6 +34,8 @@ awk '
     next
   }
   {
+    # auto-heal: drop orphan/malformed lines (keep ONLY key=, #comment, blank) so a corrupted .env self-cleans
+    if ($0 !~ /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=/ && $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/) next
     eq = index($0, "=")
     if (eq > 0) {
       ck = substr($0, 1, eq-1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", ck)

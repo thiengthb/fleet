@@ -39,6 +39,14 @@ printf 'CRTEST=withcr\r\n' | run "$env1"
 ok "grep -qx 'CRTEST=withcr' '$env1'"                              "CRLF snippet line -> value stored with NO trailing CR"
 no "grep -qP 'CRTEST=withcr\r' '$env1'"                            "no carriage return survived into .env"
 
+# auto-heal: orphan/malformed lines already in the .env get dropped on the next merge
+printf 'GOOD=1\nMIIEvwIBADANBgkqhkiG9w0Borphanbase64line\n-----END PRIVATE KEY-----\nKEEP2=yes\n' > "$env1"
+printf 'GOOD=2\n' | run "$env1"
+ok "grep -qx 'GOOD=2' '$env1'"                                     "auto-heal: valid key still updated"
+ok "grep -qx 'KEEP2=yes' '$env1'"                                  "auto-heal: valid key preserved"
+no "grep -q 'MIIEvwIBADANBgkqhkiG9w0Borphanbase64line' '$env1'"    "auto-heal: orphan base64 line dropped"
+no "grep -q 'END PRIVATE KEY' '$env1'"                             "auto-heal: orphan PEM footer dropped"
+
 # exit-code guards (capture rc explicitly)
 printf '\n# only comments\n' | NUC_ENV_FILE="$env1" NUC_RESTART=0 bash "$SCRIPT" testapp >/dev/null 2>&1; rc=$?
 ok "[ $rc -ne 0 ]"                                                 "empty snippet -> nonzero exit (rejected)"
