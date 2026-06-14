@@ -11,3 +11,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Concise commit messages](concise-commit-messages.md) — short Conventional Commits subject, minimal/no body
 - [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier in-repo, syncs via git
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
+- [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified
