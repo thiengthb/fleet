@@ -42,7 +42,16 @@ task at hand.
 ## Step 2 — Write the plan file
 
 Path: `docs/plans/YYYY-MM-DD-<kebab-slug>.md` (date = today, slug = short topic, e.g. `2026-06-13-discord-reminders`).
-Copy `templates/plan.md` and fill it in. Keep it **token-cheap** (tables + bullets + a checklist, not prose). The skeleton:
+Copy `templates/plan.md` and fill it in. Keep it **token-cheap** (tables + bullets + a checklist, not prose).
+
+> **Research-before-design (anti-bias) — for `kind: feature` / `system-change` plans:** before flipping `status:
+> active`, fill the `## Prior art & sources` section with **≥2 external URLs** and **≥2 ruled-out options** — survey
+> what already exists *outside* this repo first; don't design from opinion (pure self-assessed gaps are unreliable).
+> For a bigger "should we even do this" decision, write a `templates/proposal.md` (RFC-lite: Prior art · Options ·
+> Recommendation · Pre-mortem · Counter-case), get it **approved**, then plan. The `prior-art-check.mjs` hook nudges
+> in-loop if a feature plan goes `active` without sources. `fix`/`refactor`/`chore` plans are exempt — set `kind:`.
+
+The skeleton:
 
 ```markdown
 ---

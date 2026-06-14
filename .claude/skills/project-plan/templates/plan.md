@@ -1,5 +1,6 @@
 ---
 title: <one line — what this plan delivers>
+kind: feature # feature | system-change | fix | refactor | chore — feature/system-change REQUIRE Prior art before `active`
 status: draft # draft → active → done | abandoned
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -20,9 +21,17 @@ One sentence: what "done" looks like (the observable outcome).
 
 Why now, the constraints, what triggered it. 1–3 lines.
 
+## Prior art & sources
+
+<!-- kind: feature | system-change ⇒ REQUIRED before flipping status: active — ≥2 external URLs (research-before-design,
+     anti-bias). Omit this section for fix/refactor/chore plans. The prior-art-check.mjs hook nudges if it's missing. -->
+
+- [Source 1](url) — what we learn / can reuse · what to avoid
+- [Source 2](url) — ...
+
 ## Approach & tradeoffs
 
-The chosen approach + what was ruled out and why (brief — the durable "why" is distilled to `decisions.md` at the end).
+The chosen approach + **≥2 options ruled out and why** (brief — the durable "why" is distilled to `decisions.md` at the end).
 
 ## Steps
 

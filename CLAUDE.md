@@ -125,6 +125,20 @@ Knowledge *about the project/code* still goes to `decisions.md`, NOT memory. New
 
 @.claude/memory/MEMORY.md
 
+## Autonomous agent — governance (contract `nuc-platform/09-autonomy-contract.md`)
+
+An unattended/headless run (env `CLAUDE_AUTONOMOUS=1`) operates under a deterministic gate, NOT trust. Keep this thin —
+durable contract + decision tiers in `09-autonomy-contract.md`; build roadmap in `plans/2026-06-14-autonomous-agent.md`.
+- **Hard, non-negotiable:** never push `main` / deploy / run a destructive command unattended; and the agent **NEVER
+  edits its own governance** (`.claude/settings*.json`, `hooks/**`, `skills/**`, `memory/**`, any `CLAUDE.md`,
+  `.github/workflows/**`, `.env*`) — it may *propose*, a human commits (the CVE-2025-53773 lesson). Enforced by
+  `autonomy-gate.mjs` (PreToolUse), not by good intentions.
+- **Tiers:** T1 read / T2 reversible-local-branch → autonomous; T3 outward (PR/Discord/dep/CI) → notify+gate; T4
+  irreversible/high-blast → hard-blocked. Test: "undo in <5 min, no external side-effect?" No ⇒ T4.
+- **Decide → research-before-design → propose, don't execute.** New work is proposed as a research-grounded artifact
+  (≥2 external sources, ≥2 options w/ tradeoffs) and queued for human approval — never self-entered into the build
+  pipeline. Pure self-critique is unreliable ⇒ ground gap-analysis in external standards, not the agent's opinion.
+
 ## Thinking & process
 
 - **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, 2-3 distinct
