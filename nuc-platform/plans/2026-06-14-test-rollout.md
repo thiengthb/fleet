@@ -1,8 +1,8 @@
 ---
 title: Test infrastructure rollout (Vitest unit/integration) across web/mono apps
-status: active # draft → active → done | abandoned
+status: done # draft → active → done | abandoned
 created: 2026-06-14
-updated: 2026-06-14 # todo (template) done — 57 tests + CI gate; journal + yakudoku next
+updated: 2026-06-14 # ALL DONE — todo 57 + journal 21 + yakudoku-web 20 tests, each CI-gated, all green
 related:
   [
     .claude/skills/vitest-server-actions,
@@ -40,12 +40,13 @@ Skill = `/vitest-server-actions`. Playwright E2E is a separate later phase.
 - [x] 1 — **todo** (template): vitest deps + `vitest.config.ts`/`vitest.setup.ts` + scripts; tests for lib `dates`,
   `streak`, `priority`, `capacity`, `velocity` + `app/actions.ts` (addTask/toggleTask/deleteTask/setEmotion/setEstimate/
   saveNote/scheduleTaskAt/addTomorrowTask/createPlan); CI `test` job, `build needs: test`. **57 tests green.**
-- [ ] 2 — **journal**: copy todo's config/setup; unit-test pure logic (e.g. `lib/jobs/suggestion` Jaccard dedup, trigger
-  eval) + server actions (`app/actions.ts` createEntry/updateEntry/deleteEntry — mock prisma + the embedding fail-soft
-  path); CI test job. Note: pgvector raw-SQL paths can't be unit-mocked meaningfully — test the guards/branches around them.
-- [ ] 3 — **yakudoku-web**: copy config/setup; unit-test the MCP/practice glue that's pure; server actions if any.
-  (core/bot already have `pytest` — out of scope here.)
-- [ ] 4 — close: bump each project's decisions.md if a non-obvious test trap surfaced; flip plan → done.
+- [x] 2 — **journal**: config/setup copied; **21 tests** — pure Jaccard dedup (`tokenize`/`isSimilar`, exported) +
+  server actions (createEntry/updateEntry/deleteEntry — mock `@/lib/db` + `next/cache` + `getCurrentUser` + fail-soft
+  `syncEntryEmbedding`, `getTemplate` kept real). CI `test` job, `build needs: test`. Green (6e08c0b).
+- [x] 3 — **yakudoku-web**: config/setup copied; **20 tests** — `format.ts` (verdictEmoji/humanizeNextDue) + MCP security
+  glue (PKCE RFC-7636 vector, JWT round-trip, `checkMcpAuth` branches) + `TOOL_CATALOG` anti-drift. **Per-lane** CI gate
+  (`if: matrix.context == 'web'` before web's build-push — core/bot keep their own pytest gate). Green (4698434).
+- [x] 4 — close: distilled the test decisions into journal + yakudoku `decisions.md`; ledger §A line added; plan → done.
 
 ## Out of scope
 
