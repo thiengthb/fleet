@@ -65,20 +65,18 @@ proposal: null · outcome: null
 
 ---
 
-## Inbox (gap-analysis — ungated, awaiting supervisor)
+## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
 
 ### idea-0009 — Resolve Layer-C overlap: does the shipped `/idea` skill already absorb planned C1 `/feature-proposal`?
-state: inbox · source: agent · created: 2026-06-14 · updated: 2026-06-14 · dedup_of: (autonomy plan step C1)
-gate: unknown · moscow: ? · interest: ?
-> GAP-ANALYSIS (grounded in two plan docs, not agent opinion): `plans/2026-06-14-autonomous-agent.md` Layer C **C1** specs a
-> `/feature-proposal` skill = external-grounded gap-analysis → RFC-lite proposal → halt. Phase 1's shipped `/idea` skill
-> already does exactly that (`/idea sort` gap-analysis + `/idea analyze` → `proposal.md`, propose-don't-execute, Reflexion
-> oracle = C2). Likely a DUP. **Supervisor decides:** fold C1/C2 into `/idea` and update the plan, or keep them distinct with
-> a stated boundary. Flagged per the dedup rule (never silently merge); surfaced, not self-promoted past inbox.
-
----
-
-## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
+state: done · source: agent · created: 2026-06-14 · updated: 2026-06-14 · dedup_of: (autonomy plan step C1/C2)
+outcome: **accept the fold** (supervisor delegated the call 2026-06-14) — `/idea` already realizes C1+C2; **do NOT build a
+separate `/feature-proposal`**. Marked C1/C2 `[x]` in `plans/2026-06-14-autonomous-agent.md` (superseded-by-/idea); kept C3
+as the genuinely-distinct *unattended* integration. Added "nothing worth proposing" as a first-class output to the skill.
+> GAP-ANALYSIS (grounded in two plan docs, not agent opinion): `plans/2026-06-14-autonomous-agent.md` Layer C **C1** spec'd a
+> `/feature-proposal` skill = external-grounded gap-analysis → RFC-lite proposal → halt. The shipped `/idea` skill already
+> does exactly that (`/idea sort` gap-analysis + `/idea analyze` → `proposal.md`; bounded backlog = WIP cap; Reflexion oracle
+> = `outcome:`). Confirmed a real DUP and folded. *Reflexion bias:* before building a planned skill, check whether a shipped
+> one already covers it (don't re-build).
 
 ### idea-0001 — Phase 2: user interest model (formalize the interest signal)
 state: done · source: user · created: 2026-06-14 · updated: 2026-06-14

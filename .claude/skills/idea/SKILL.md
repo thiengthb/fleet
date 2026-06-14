@@ -34,7 +34,9 @@ Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; ke
   (exploration floor — below); (3) enforce the WIP cap (`active` ≤ 5 → defer the lowest); (4) optionally run
   **gap-analysis (C1 Proposer):** propose new `inbox` ideas, but **ground each in an EXTERNAL standard** (INVENTORY drift,
   missing test coverage, a documented gap, prior-art) — NOT the agent's opinion (intrinsic self-assessment is unreliable;
-  see proposal §Prior art). Surface new ideas to the supervisor; don't self-promote them past `inbox`.
+  see proposal §Prior art). Surface new ideas to the supervisor; don't self-promote them past `inbox`. **"Nothing worth
+  proposing" is a valid, first-class outcome** (anti-churn) — if no externally-grounded gap exists, say so and stop; never
+  manufacture filler ideas to look productive.
 
   **Deriving `interest` (Phase 2 — never hand-type it):** compute `interest ∈ [0,1]` from human signals ONLY — (a) the
   supervisor's `outcome: accept/reject` history on *similar* past ideas (the Reflexion oracle), (b) explicit prefs in

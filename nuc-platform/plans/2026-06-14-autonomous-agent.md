@@ -149,9 +149,12 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 - [ ] B5 — Real unattended window on a low-risk plan, user supervising **from phone**: works → digest → park → approve from phone → PR step done in a supervised session. Test: full loop, zero gate crossed unattended.
 
 ### Layer C — Autonomous proposer (research-grounded "what next" — most-dangerous, last)
-- [ ] C1 — `/feature-proposal` skill · gap-analysis grounded in **external standards** (INVENTORY, test coverage, docs, web best-practice) NOT self-opinion → research-then-design → emits a proposal in the RFC-lite template → **halts** (never builds).
-- [ ] C2 — **Bounded backlog** (max ~5 unreviewed proposals; blocked from generating more while full = the user's review is the throttle) + **"nothing worth doing" valid output** (anti-churn) + Reflexion memory of accept/reject to bias future proposals.
-- [ ] C3 — Supervised run: agent proposes 1–2 items, user accepts/rejects; accepted ones enter the normal `/project-plan` → Layer-B pipeline. Test: no proposal auto-enters build; rejected pattern not re-proposed.
+> **SUPERSEDED by the `/idea` skill (Phase 1, shipped 2026-06-14) — do NOT build a separate `/feature-proposal`.** The
+> dedup was resolved via idea-0009 (supervisor decision 2026-06-14, full scope): `/idea` already realizes C1+C2. The only
+> genuinely-distinct residue is C3's *unattended* path (the orchestrator invoking gap-analysis inside a no-human batch).
+- [x] C1 — *Realized by `/idea`*: `/idea sort` gap-analysis (grounded in INVENTORY drift / missing test coverage / a documented gap / prior-art, NOT opinion) + `/idea analyze` → research-then-design → RFC-lite `proposal.md` → halts. Skill `.claude/skills/idea/SKILL.md`; queue `nuc-platform/10-idea-queue.md`.
+- [x] C2 — *Realized by `/idea`*: bounded backlog = WIP cap `active ≤ 5`; Reflexion accept/reject memory = the `outcome:` oracle (with *why*); **"nothing worth proposing" is now a first-class gap-analysis output** (anti-churn, added to the skill 2026-06-14).
+- [ ] C3 — **Unattended** proposer integration (the residue, NOT yet built): the `auto-pilot` orchestrator invokes `/idea sort` gap-analysis inside a no-human batch, enforces the bounded-backlog throttle in-loop, surfaces 1–2 grounded `inbox` ideas via the digest, and **halts** — no proposal auto-enters build; rejected patterns not re-proposed. (Interactive C1/C2 above already work in a supervised session; this wires them into the unattended loop — gated on B4/B5 being live.)
 
 ## Out of scope
 
