@@ -9,6 +9,7 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [User profile](user-profile.md) — who I work with: solo architect/operator of the MiniServer platform
 - [Extend, don't rebuild](extend-dont-rebuild.md) — prefers extending existing infra over parallel systems (anti-drift)
 - [Concise commit messages](concise-commit-messages.md) — short Conventional Commits subject, minimal/no body
+- [Commit message Windows encoding](commit-message-windows-encoding.md) — never pipe a PowerShell here-string to git (BOM + dash mangling); use a UTF-8 file or Bash heredoc
 - [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier in-repo, syncs via git
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
 - [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified
