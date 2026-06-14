@@ -106,6 +106,25 @@ across sessions instead of evaporating.
 - **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
   The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
+## Agent memory — multi-machine (skill `/memory`)
+
+The agent's memory of the **user** is **two-tier**, so it travels across machines via git instead of being trapped on
+one box. Mechanics (frontmatter, index upkeep, the write procedure) live in skill `/memory` — keep this thin.
+
+- **Shared (default) → `.claude/memory/` in the repo** — carried by `git push/pull`, so it's present on *every* machine
+  (auto-loaded each session via the `@.claude/memory/MEMORY.md` import below). Holds facts true regardless of machine:
+  who the user is, preferences, feedback, project intent, references. **Write almost everything here.** This OVERRIDES
+  the default home-directory memory path the harness describes.
+- **Local → `~/.claude/projects/<hash>/memory/`** — native home dir, NOT synced (its folder name is the repo's absolute
+  path hashed, so it differs per machine anyway). ONLY for facts bound to *this physical machine* (a local path, hostname,
+  locally-installed tool version/quirk).
+
+**Litmus (auto-pick the tier):** "If I sat at a different computer tomorrow, would this fact still be true and useful?"
+Yes → shared (repo). No → local (home). **One fact = one file = one tier; never duplicate across tiers** (drift).
+Knowledge *about the project/code* still goes to `decisions.md`, NOT memory. New machine = just `git pull`, nothing to set up.
+
+@.claude/memory/MEMORY.md
+
 ## Thinking & process
 
 - **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, 2-3 distinct

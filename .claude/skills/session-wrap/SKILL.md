@@ -62,9 +62,10 @@ Does this knowledge apply to **≥2 projects** or to **the platform itself**? �
 
 ## Step 5 — Personal memory (only when it's the right kind)
 
-If during the session the user revealed a **preference / way they want to work** (not knowledge about code) → consider
-recording personal memory (`~/.claude/.../memory`) per the memory convention. Knowledge *about the project* does NOT go into
-memory — it belongs in `decisions.md`. (Role split: see `05-documentation-standard.md §6`.)
+If during the session the user revealed a **preference / way they want to work** (not knowledge about code) → record it
+via skill **`/memory`** (which owns the two-tier mechanics: shared in-repo `.claude/memory/` that syncs across machines,
+vs the local home-dir tier — pick with its litmus). Knowledge *about the project* does NOT go into memory — it belongs in
+`decisions.md`. (Role split: see `05-documentation-standard.md §6`.)
 
 ## Step 6 — Report (do NOT commit/push automatically)
 
