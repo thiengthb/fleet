@@ -138,9 +138,16 @@ durable contract + decision tiers in `09-autonomy-contract.md`; build roadmap in
 - **Decide → research-before-design → propose, don't execute.** New work is proposed as a research-grounded artifact
   (≥2 external sources, ≥2 options w/ tradeoffs) and queued for human approval — never self-entered into the build
   pipeline. Pure self-critique is unreliable ⇒ ground gap-analysis in external standards, not the agent's opinion.
+- **Layer C (Proposer) front door = skill `/idea` + `nuc-platform/10-idea-queue.md`** — the idea backlog where
+  gap-analysis lands, gets ranked (feasibility gate first, then a capped interest bonus), and the supervisor's
+  accept/reject is the oracle that biases future proposals (Reflexion). Self-scoring in a closed loop is forbidden.
 
 ## Thinking & process
 
+- **`/idea`** — the intake front-door: a living backlog of platform-native ideas in `nuc-platform/10-idea-queue.md`
+  (capture · gate-then-score · re-sort after each big feature · deep-analyze top-1 · push back on biased/infeasible/dup
+  · defer/prune). The planning spine is **`/idea` (candidate) → `/brainstorming`+proposal (analyze) → `/project-plan`
+  (accepted)** — don't conflate. Propose-don't-execute: a human accepts before an idea becomes a plan.
 - **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, 2-3 distinct
   approaches + tradeoffs, recommend with reasoning. Diverge → converge into `/project-plan`.
 - **`/honest-critique`** — at DECISION points (user proposes / asks "should I…" / you're about to agree): truth over
