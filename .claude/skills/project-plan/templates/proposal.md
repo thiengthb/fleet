@@ -25,14 +25,17 @@ benchmark, a real incident) — NOT the agent's opinion that "this would be nice
 
 ## Options considered — REQUIRED: ≥2, with tradeoffs
 
+Mark the recommended option with **`(khuyến nghị)`** right in the table so the supervisor sees the pick at a glance.
+
 | Option | Benefit | Drawback / cost |
 | --- | --- | --- |
-| A — ... |  |  |
+| A — ... *(khuyến nghị)* |  |  |
 | B — ... |  |  |
 
 ## Recommendation
 
-Chosen option + one line "why not the others". (Do NOT fill this until Prior art + Options above are populated.)
+Chosen option (`(khuyến nghị)`) + one **plain-language** sentence why + one line "why not the others". (Do NOT fill this
+until Prior art + Options above are populated.)
 
 ## Pre-mortem — REQUIRED: ≥2 failure modes
 
@@ -43,6 +46,8 @@ Chosen option + one line "why not the others". (Do NOT fill this until Prior art
 
 One sentence arguing AGAINST the recommendation (red-team your own proposal before handing it over).
 
-## Decision (human)
+## Decision (human) — the human-accept gate
 
-Filled by the supervisor: **accepted** → becomes a `/project-plan` · **rejected** (reason) · **deferred** (until …).
+Filled by the supervisor ONLY (never self-accepted by the agent). When presenting this, name the gate in plain language:
+"accept ⇒ becomes a `/project-plan` build · reject (reason) · deferred (until …)". The agent's job ends at *present +
+wait*; the yes/no is the user's.

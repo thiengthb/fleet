@@ -40,6 +40,12 @@ project-lifecycle change; every add/remove-app skill MUST update it (anti-drift)
   product's language (vi for `todo`); the in-app `/guide` page is the one exempt.
 - **Agent ↔ user chat = Vietnamese, always** — every reply/explanation/summary/question/status written TO the user. Does
   NOT override the English dev-artifact rule above; technical tokens (paths, commands, identifiers) stay as-is.
+- **Legible decision surface (the user is the supervisor/oracle — they must be able to actually supervise):**
+  ① **Explain in plain, everyday language first** — lead with "what this means / what happens next"; keep jargon (RICE,
+  MemGPT, tier names) as a labelled aside, never the main thread. ② **Flag the recommended option** — on every option
+  list (chat AND docs) mark my pick `(khuyến nghị)` + one plain sentence why; don't make the user infer it. ③ **Name the
+  gate at every approve/accept** — state which skill + which workflow step the gate belongs to and what the user's yes/no
+  does next (e.g. "đây là bước *human-accept* của `/idea` → `/project-plan`"). Detail: memory `legible-proposals-plain-language`.
 
 ## Coding — skill `/coding-convention` (MANDATORY before writing/editing code or committing)
 

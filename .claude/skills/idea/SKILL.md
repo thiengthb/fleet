@@ -20,6 +20,11 @@ ranking, and their lifecycle. It IS the autonomy roadmap's **Layer C "Proposer."
 (T1/T2). Turning a `proposed` idea into a `/project-plan` requires the supervisor's explicit `outcome: accept` — and
 **no-response is not approval**. `autonomy-gate.mjs` is the backstop.
 
+**Name the gate (mandatory).** Whenever you put a `proposed` idea in front of the user for a yes/no, say it in plain
+language: *"this is the **human-accept gate** of `/idea` → `/project-plan` (propose-don't-execute); accept ⇒ it becomes
+a build plan, reject ⇒ deferred/dead."* Never silently write `outcome: accept` yourself — the user is the oracle; the
+gate is theirs. (This is the rule the supervisor flagged: I had been self-accepting without naming the gate.)
+
 ## Subcommands (how to act)
 
 Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; keep scores coarse (ordinal hints).
@@ -50,7 +55,9 @@ Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; ke
   available ⇒ say so. Rationale + sources: `plans/2026-06-14-phase2-interest-model-proposal.md`.
 - **`/idea analyze`** — deep-dive the **top-1** `active` idea only (not the whole queue — wasted tokens). Apply
   `/honest-critique` + the proposal template's Counter-case/Pre-mortem. Write `proposal.md` (via the proposal flow:
-  brainstorm → `templates/proposal.md` with ≥2 external sources + ≥2 options). Set the idea `state: proposed`, link `proposal:`.
+  brainstorm → `templates/proposal.md` with ≥2 external sources + ≥2 options). The Recommendation section **must mark the
+  picked option `(khuyến nghị)`** in the options table + state why in plain language. Set the idea `state: proposed`,
+  link `proposal:`, then present it at the **human-accept gate** (name it — see the invariant above); do NOT self-accept.
 - **`/idea pushback <id>`** — when an idea is biased (rests on a misunderstanding of the system), infeasible, or doesn't
   fit: write `pushback:` with the reasoning **and propose a better-fit alternative idea**; surface both, let the
   supervisor choose. This is the core of "don't let the agent tự biên tự diễn" — challenge, don't comply blindly.

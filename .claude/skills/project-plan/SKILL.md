@@ -48,8 +48,11 @@ Copy `templates/plan.md` and fill it in. Keep it **token-cheap** (tables + bulle
 > active`, fill the `## Prior art & sources` section with **≥2 external URLs** and **≥2 ruled-out options** — survey
 > what already exists *outside* this repo first; don't design from opinion (pure self-assessed gaps are unreliable).
 > For a bigger "should we even do this" decision, write a `templates/proposal.md` (RFC-lite: Prior art · Options ·
-> Recommendation · Pre-mortem · Counter-case), get it **approved**, then plan. The `prior-art-check.mjs` hook nudges
-> in-loop if a feature plan goes `active` without sources. `fix`/`refactor`/`chore` plans are exempt — set `kind:`.
+> Recommendation · Pre-mortem · Counter-case). The **Recommendation MUST mark the picked option `(khuyến nghị)`** in the
+> options table + one plain-language sentence why. Then present it at the **human-accept gate** — name it in plain
+> language ("đây là bước duyệt: accept ⇒ thành plan này, reject ⇒ deferred") and get the user's explicit yes; do NOT
+> self-approve. Only after acceptance do you plan. The `prior-art-check.mjs` hook nudges in-loop if a feature plan goes
+> `active` without sources. `fix`/`refactor`/`chore` plans are exempt — set `kind:`.
 
 The skeleton:
 

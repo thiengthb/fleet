@@ -14,3 +14,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
 - [Sandbox-propose governance](sandbox-propose-governance.md) — never edit live governance; propose a tested sandbox copy, human installs
 - [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified
+- [Legible proposals, plain language](legible-proposals-plain-language.md) — flag the recommended option, name the skill/process behind any approve gate, explain in everyday language
