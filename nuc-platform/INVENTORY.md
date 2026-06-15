@@ -91,6 +91,14 @@ Notes:
   /prune` (write, with a confirmation button) + `/ask` (LLM suggestion). **No `/redeploy`** — deliberately omitted because Watchtower
   already auto-updates within ≤60s; the Watchtower HTTP API is not enabled (keeping the infra minimal). LLM = Groq
   (action-selector, suggestion only, does not self-execute). Secrets `/opt/apps/nuc-ops-bot/.env`. Repo: `thiengthb/nuc-ops-bot`.
+  - **Gate-approval control plane (B4, 2026-06-15)** — the bot ALSO runs `gate_approval.py`: a `tasks.loop` polls the
+    **private GitHub repo `nuc-agent-gates`** (Contents API via aiohttp) for the autonomous agent's park-requests, posts
+    Duyệt/Từ chối buttons, and **RS256-signs** a short-lived approval token (signing key b64 in the bot `.env`). The
+    matching **public key is committed** at `.claude/keys/gate-approval.pub.pem` (trust anchor; the local worker verifies
+    against it). Authorization on a click reuses `guards.user_allowed` (user-ID + guild + the approval channel). New bot
+    `.env` keys (signing key, fine-grained PAT, `GATES_REPO`, `GATE_APPROVAL_CHANNEL_ID`) are delivered via skill
+    `/nuc-set-env` (never through the chat). Still **no endpoint / no Traefik** — the gates repo is the only channel.
+    Design: `plans/2026-06-14-discord-control-plane.md`; build log: `plans/2026-06-14-autonomous-agent.md` (B4).
 
 ## 2. Infra (`/opt/infra`) + outside the system
 

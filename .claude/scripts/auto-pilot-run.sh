@@ -12,6 +12,12 @@
 #
 # NOTE: the `claude -p` flags below were validated against the installed CLI. Worker must NOT use --bare (that skips
 # hooks → would disable the gate). Defense-in-depth: --disallowedTools denies the worst classes even before the hook.
+#
+# B4b.3 FIX (2026-06-15): count_unchecked EXCLUDES (GATE) lines, so when the ONLY remaining work is an approved gate
+# (the common case: "open a PR" is the last step), before==0 → the loop said "done" and NEVER spawned the batch that
+# would cross it → an approved gate could never be crossed autonomously. Fix: also spawn a batch when a gate is
+# already approved (`gate-cli check == approve`), and count "the approved gate got crossed/consumed" as progress.
+# See nuc-platform/plans/2026-06-14-autonomous-agent.md B4b.3 finding #2.
 set -euo pipefail
 
 PLAN=""; MAX_BATCHES=8; MODEL="sonnet"; DRY_RUN=0
@@ -38,6 +44,12 @@ gate_push() {
     && git -C "$GATE_REPO_DIR" commit -q -m "gate: agent park-request(s)" 2>/dev/null \
     && git -C "$GATE_REPO_DIR" push -q 2>/dev/null || true
 }
+# True iff a fresh, valid APPROVE token authorizes the currently-parked gate (worker's Step 1.5 will cross it).
+# Feature-off / no gate-cli / no pending gate ⇒ false (loop behaves exactly as before).
+gate_approved() {
+  [ -f .claude/scripts/gate-cli.mjs ] || return 1
+  [ "$(node .claude/scripts/gate-cli.mjs check 2>/dev/null || true)" = "approve" ]
+}
 
 # Unchecked checklist items, EXCLUDING (GATE)-marked ones (those await a human, must not drive the loop).
 count_unchecked() { awk '/^[[:space:]]*-[[:space:]]*\[ \]/ && !/\(GATE\)/ {n++} END{print n+0}' "$1"; }
@@ -54,8 +66,14 @@ echo "[auto-pilot] plan=$PLAN model=$MODEL maxBatches=$MAX_BATCHES dryRun=$DRY_R
 for i in $(seq 1 "$MAX_BATCHES"); do
   gate_pull # fetch approvals the bot wrote since the last batch
   before="$(count_unchecked "$PLAN")"
-  if [ "$before" -eq 0 ]; then echo "[auto-pilot] no unchecked steps left — done."; break; fi
-  echo "[auto-pilot] batch $i/$MAX_BATCHES — $before unchecked step(s) remain"
+  approved_before=0; if gate_approved; then approved_before=1; fi
+  # Spawn a batch if there is safe-zone work OR an approved gate waiting to be crossed.
+  if [ "$before" -eq 0 ] && [ "$approved_before" -eq 0 ]; then echo "[auto-pilot] no unchecked steps left — done."; break; fi
+  if [ "$approved_before" -eq 1 ]; then
+    echo "[auto-pilot] batch $i/$MAX_BATCHES — approved gate pending + $before safe-zone step(s)"
+  else
+    echo "[auto-pilot] batch $i/$MAX_BATCHES — $before unchecked step(s) remain"
+  fi
   if [ "$DRY_RUN" -eq 1 ]; then
     echo "[auto-pilot][dry-run] would run: CLAUDE_AUTONOMOUS=1 claude -p \"<prompt>\" --model $MODEL --permission-mode acceptEdits --disallowedTools ${DISALLOW[*]}"
     break
@@ -63,7 +81,9 @@ for i in $(seq 1 "$MAX_BATCHES"); do
   CLAUDE_AUTONOMOUS=1 claude -p "$PROMPT" --model "$MODEL" --permission-mode acceptEdits --disallowedTools "${DISALLOW[@]}" || true
   gate_push # publish any park-request the worker wrote this batch
   after="$(count_unchecked "$PLAN")"
-  if [ "$after" -ge "$before" ]; then
+  approved_after=0; if gate_approved; then approved_after=1; fi
+  # Progress = a safe-zone step got checked OFF, OR an approved gate got crossed (approve → consumed/none).
+  if [ "$after" -ge "$before" ] && ! { [ "$approved_before" -eq 1 ] && [ "$approved_after" -eq 0 ]; }; then
     echo "[auto-pilot] no progress (parked or stalled) — stopping for human review."
     break
   fi

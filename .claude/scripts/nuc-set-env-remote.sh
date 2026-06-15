@@ -5,6 +5,14 @@
 # Atomic (temp + mv on the same fs), preserves chmod 600, keeps one .env.bak. NEVER prints values. Optional recreate.
 # Secrets arrive via STDIN only (never argv -> not visible in `ps`/history) and live solely in 0600 files.
 #   arg $1 = app name.   env: NUC_RESTART=0 to skip recreate; NUC_ENV_FILE=<path> to override target (tests only).
+#
+# B4b.3 FIX (2026-06-15): the previous "names-only" listing + auto-heal used `^[A-Za-z_][A-Za-z0-9_]*=`, which a
+# malformed orphan line (a long base64 value sitting on its own line, e.g. a split signing key whose prefix is all
+# word-chars before an `=`) could MATCH -> the listing then printed the VALUE (a private key LEAKED into the caller's
+# transcript) AND auto-heal kept the orphan instead of dropping it. Fix: a real env key is a short identifier, so we
+# bound the key name to <=64 chars (KEYMAX). A long-base64 orphan has no short `key=` prefix -> it never matches ->
+# it's neither listed (no leak) nor kept (auto-heal drops it, self-cleaning a corrupted .env). See
+# nuc-platform/plans/2026-06-14-autonomous-agent.md B4b.3 finding #1 + [[never-print-secret-file-contents]].
 set -eu
 
 app="${1:-}"
@@ -23,22 +31,28 @@ grep -qE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' "$snip" \
   || { echo "nuc-set-env: snippet has no KEY=VALUE lines - nothing to do" >&2; exit 5; }
 
 # Merge - file1 = snippet (overrides), file2 = existing .env (rewrite matched keys in place, append the rest).
-awk '
+# KEYMAX bounds a valid env-key NAME length: a real key is a short identifier; anything longer that "looks like" a
+# key (a base64 orphan) is treated as garbage and dropped, never matched, never printed.
+awk -v KEYMAX=64 '
+  function is_key(line,   eq, k) {
+    eq = index(line, "="); if (eq == 0 || eq - 1 > KEYMAX) return 0
+    k = substr(line, 1, eq - 1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
+    return (k ~ /^[A-Za-z_][A-Za-z0-9_]*$/)
+  }
   FNR==NR {
     if ($0 ~ /^[[:space:]]*($|#)/) next
-    eq = index($0, "="); if (eq == 0) next
-    k = substr($0, 1, eq-1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
-    if (k !~ /^[A-Za-z_][A-Za-z0-9_]*$/) next
+    if (!is_key($0)) next
+    eq = index($0, "="); k = substr($0, 1, eq-1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
     val[k] = substr($0, eq+1)
     if (!(k in seen)) { ord[++m] = k; seen[k] = 1 }
     next
   }
   {
-    # auto-heal: drop orphan/malformed lines (keep ONLY key=, #comment, blank) so a corrupted .env self-cleans
-    if ($0 !~ /^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=/ && $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/) next
-    eq = index($0, "=")
-    if (eq > 0) {
-      ck = substr($0, 1, eq-1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", ck)
+    # auto-heal: keep ONLY a well-formed key= line (bounded name), a #comment, or a blank line; drop everything else
+    # (orphan base64, half-written values) so a corrupted .env self-cleans.
+    if (!is_key($0) && $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/) next
+    if (is_key($0)) {
+      eq = index($0, "="); ck = substr($0, 1, eq-1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", ck)
       if (ck in val && !(ck in done)) { print ck "=" val[ck]; done[ck] = 1; next }
     }
     print $0
@@ -50,8 +64,14 @@ cp -p -- "$envf" "$envf.bak"
 mv -- "$out" "$envf"
 chmod 600 "$envf"
 
+# Names-only output. Bounded key length (KEYMAX=64) so an orphan base64 line can NEVER be mistaken for a key and
+# have its value printed. awk emits ONLY the LHS of a well-formed, short-named `key=` line.
 echo "nuc-set-env: keys now in $envf:"
-grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' "$envf" | sed 's/=$//' | sort | sed 's/^/  - /'
+awk -v KEYMAX=64 '
+  { eq = index($0, "="); if (eq == 0 || eq - 1 > KEYMAX) next
+    k = substr($0, 1, eq - 1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
+    if (k ~ /^[A-Za-z_][A-Za-z0-9_]*$/) print k }
+' "$envf" | sort | sed 's/^/  - /'
 
 if [ "${NUC_RESTART:-1}" = "1" ]; then
   if [ -f "$dir/docker-compose.yml" ] || [ -f "$dir/compose.yml" ] || [ -f "$dir/compose.yaml" ]; then
