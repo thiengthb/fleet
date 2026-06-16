@@ -50,31 +50,24 @@ auto_pilot: true   # <- opt this plan into the unattended loop
 Do **not** opt in `2026-06-16-self-running-agent.md` itself (it touches governance — keep it human-driven). With **no**
 plan opted in, a scheduled run does nothing but the once/day C3 gap-analysis.
 
-## 4. Register the scheduled task ("run only when logged on" — required)
+## 4. Register the scheduled task ("run only when logged on" — required; ADMIN required)
 
-Run in PowerShell (if it errors on permissions, run PowerShell as Administrator):
+`Register-ScheduledTask` needs an **elevated** shell — CONFIRMED 2026-06-17: even a per-user, logged-on-only task is
+denied (`0x80070005 Access is denied`) from a non-elevated shell. The agent therefore CANNOT self-arm the trigger
+(ledger #63); a human runs this once in **PowerShell launched as Administrator**:
 ```powershell
-$repo   = 'C:\project\miniserver-platform'
-$script = Join-Path $repo '.claude\scripts\auto-pilot-scheduled.ps1'
-
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-            -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$script`"" -WorkingDirectory $repo
-
-# At-logon trigger + repeat every 4h (research: best fit for "a few times/day while the PC is on").
-$trigger = New-ScheduledTaskTrigger -AtLogOn
-$rep     = New-ScheduledTaskTrigger -Once -At (Get-Date) `
-             -RepetitionInterval (New-TimeSpan -Hours 4) -RepetitionDuration (New-TimeSpan -Days 3650)
-$trigger.Repetition = $rep.Repetition
-
-# Interactive = "run only when user is logged on" => has your DPAPI creds; Session 0 would fail auth silently.
-$principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
-$settings  = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew `
-             -ExecutionTimeLimit (New-TimeSpan -Hours 2) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-
-Register-ScheduledTask -TaskName 'MiniServer-AutoPilot' -Action $action -Trigger $trigger `
-  -Principal $principal -Settings $settings `
-  -Description 'MiniServer auto-pilot self-run (logged-on only); advances opted-in plans + once/day propose.'
+powershell -ExecutionPolicy Bypass -File "C:\project\miniserver-platform\nuc-platform\plans\self-running-agent-sandbox\scripts\register-task.ps1"
 ```
+Expect: `REGISTERED: MiniServer-AutoPilot (user=TNT-LAPTOP\trann, repeat=4h, at-logon)`. The script (`register-task.ps1`)
+is idempotent (unregisters a prior task first), pins the run-as user to the real logged-on user (NOT the elevating
+identity — see its `-RunAsUser`), and sets the at-logon + every-4h trigger, Interactive/Limited principal (DPAPI creds;
+Session 0 would fail auth silently), 2h time limit.
+
+> **Two silent-failure traps the wrapper now handles (verified live 2026-06-17), so claude survives under Task Scheduler:**
+> ① a console child inherits the task's console group and dies with `STATUS_CONTROL_C_EXIT` (`0xC000013A`) the instant
+> `claude.exe` starts → fixed by launching it in its OWN console via `Start-Process` (see `Invoke-ConsoleChild`); ②
+> `Start-Process -ArgumentList` mangles space-bearing args (`Bash(git merge:*)` split at the space; the prompt garbled →
+> claude no-op'd) → fixed by a generated runner script that reads the prompt from a file and **splats** to claude.
 
 ## 5. Verify (T3 — the "did it really fire" check)
 

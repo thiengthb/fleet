@@ -45,6 +45,31 @@ try {
   $orchestrator = Join-Path $PSScriptRoot 'auto-pilot-run.ps1'
   if (-not (Test-Path -LiteralPath $orchestrator)) { Write-Error "orchestrator not found: $orchestrator"; return }
 
+  # Resolve the REAL claude binary behind the claude.ps1 npm shim (we launch the .exe directly - see Invoke-ConsoleChild).
+  $claudeCmd = (Get-Command claude -ErrorAction SilentlyContinue).Source
+  $claudeExe = if ($claudeCmd) { Join-Path (Split-Path $claudeCmd -Parent) 'node_modules/@anthropic-ai/claude-code/bin/claude.exe' } else { 'claude' }
+
+  # Launch a console child (claude.exe / the orchestrator powershell) in its OWN hidden console, decoupled from the
+  # Task Scheduler launch context. ROOT CAUSE (verified 2026-06-17): under Task Scheduler "run only when user is logged
+  # on", a console child inherits the task's console group and dies the instant claude.exe starts with
+  # STATUS_CONTROL_C_EXIT (0xC000013A) - zero output. Start-Process WITHOUT -NoNewWindow gives the child a fresh
+  # (hidden) conhost so it survives. DO NOT add -RedirectStandardOutput/-NoNewWindow: those force UseShellExecute=false,
+  # which removes the fresh console and reintroduces the bug. Trade-off: the child's stdout is not folded into this
+  # transcript (it owns its console); we log the exit code and rely on git / the idea-queue as the readable artifact.
+  function Invoke-ConsoleChild {
+    param([Parameter(Mandatory)][string] $FilePath, [string[]] $ArgumentList, [string] $OutLog)
+    if ($OutLog) {
+      # Capture child stdout/stderr to FILES (not a PS pipeline -> safe from the ledger #60 native-stderr trap). This
+      # is also how we learn whether claude actually did the work vs silently no-op'd under the scheduler.
+      $p = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WorkingDirectory $RepoRoot `
+             -Wait -PassThru -RedirectStandardOutput $OutLog -RedirectStandardError "$OutLog.err"
+    } else {
+      $p = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WorkingDirectory $RepoRoot `
+             -WindowStyle Hidden -Wait -PassThru
+    }
+    return $p.ExitCode
+  }
+
   function Get-UncheckedCount([string] $path) {
     $lines = Get-Content -LiteralPath $path
     @($lines | Where-Object { $_ -match '^\s*-\s*\[ \]' -and $_ -notmatch '\(GATE\)' }).Count
@@ -78,8 +103,10 @@ try {
     Write-Host "[scheduled] --- advancing plan: $rel"
     $psArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $orchestrator, '-Plan', $rel, '-MaxBatches', "$MaxBatches", '-Model', $Model)
     if ($DryRun) { $psArgs += '-DryRun' }
-    # Child powershell so the orchestrator's $ErrorActionPreference='Stop' / any throw cannot abort this wrapper.
-    & powershell.exe @psArgs
+    # Child powershell (own hidden console - Invoke-ConsoleChild) so (a) the orchestrator's claude survives the Task
+    # Scheduler context and (b) its $ErrorActionPreference='Stop' / any throw cannot abort this wrapper.
+    $rc = Invoke-ConsoleChild -FilePath 'powershell.exe' -ArgumentList $psArgs
+    Write-Host "[scheduled] plan run exit: $rc"
   }
 
   # --- 2) C3 self-sourcing proposer: ONLY when no actionable plan work remains, once/day, propose-only ---
@@ -97,20 +124,39 @@ try {
   }
   else {
     $proposePrompt = "No approved-plan work remains. Run the /idea sort gap-analysis pass (autonomy Layer C3): propose AT MOST 1-2 NEW inbox ideas, each grounded in an EXTERNAL signal (INVENTORY drift, missing test coverage, a documented gap, or prior-art) - NOT opinion. Respect the WIP cap (active <= 5). Surface them in your digest for the supervisor. Do NOT promote past inbox, do NOT accept/plan/build anything, do NOT push or open a PR. If nothing is genuinely worth proposing, say so and STOP - that 'nothing worth proposing' return is the correct, expected outcome."
-    $disallow = @('Bash(git merge:*)', 'Bash(docker:*)', 'Bash(ssh:*)', 'Bash(rm:*)')
-    $claudeArgs = @('-p', $proposePrompt, '--model', $Model, '--permission-mode', 'acceptEdits', '--disallowedTools') + $disallow
     if ($DryRun) {
-      Write-Host "[scheduled][dry-run] C3 would run: CLAUDE_AUTONOMOUS=1 claude $($claudeArgs -join ' ')"
+      Write-Host "[scheduled][dry-run] C3 would run: CLAUDE_AUTONOMOUS=1 claude -p <prompt> --model $Model --permission-mode acceptEdits --disallowedTools Bash(git merge:*) Bash(docker:*) Bash(ssh:*) Bash(rm:*)"
     }
     else {
       Write-Host '[scheduled] C3: no approved-plan work left - running one bounded gap-analysis batch (propose-only).'
-      $env:CLAUDE_AUTONOMOUS = '1'
+      # Pass the prompt + disallow rules to claude via a generated RUNNER script + PowerShell SPLATTING (correct
+      # quoting). Start-Process -ArgumentList mangles space-bearing args (verified 2026-06-17: `Bash(git merge:*)` was
+      # split at the space + the prompt was garbled -> claude no-op'd with a generic reply). The runner reads the
+      # prompt from a file and splats; Start-Process only ever sees `powershell -File <runner>` (no args to mangle).
+      # CLAUDE_AUTONOMOUS is set INSIDE the runner so the gated child has it (the parent wrapper never touches its env).
+      $promptFile = Join-Path $LogDir "c3-prompt-$stamp.txt"
+      $runner     = Join-Path $LogDir "c3-runner-$stamp.ps1"
+      $c3out      = Join-Path $LogDir "c3-$stamp.out.log"
+      Set-Content -LiteralPath $promptFile -Value $proposePrompt -Encoding ascii
+      $runnerBody = @"
+`$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath '$RepoRoot'
+`$env:CLAUDE_AUTONOMOUS = '1'
+`$prompt = Get-Content -LiteralPath '$promptFile' -Raw
+`$disallow = @('Bash(git merge:*)','Bash(docker:*)','Bash(ssh:*)','Bash(rm:*)')
+& claude -p `$prompt --model '$Model' --permission-mode acceptEdits --disallowedTools `$disallow
+exit `$LASTEXITCODE
+"@
+      Set-Content -LiteralPath $runner -Value $runnerBody -Encoding ascii
       try {
-        & claude @claudeArgs
-        Set-Content -LiteralPath $ProposeMarker -Value (Get-Date -Format 'yyyy-MM-dd') -Encoding ascii
+        $rc = Invoke-ConsoleChild -FilePath 'powershell.exe' `
+                -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $runner) -OutLog $c3out
+        Write-Host "[scheduled] C3 claude exit: $rc  (output captured: $c3out)"
+        # Only burn the once/day throttle on a clean run; a nonzero exit retries next scheduled fire.
+        if ($rc -eq 0) { Set-Content -LiteralPath $ProposeMarker -Value (Get-Date -Format 'yyyy-MM-dd') -Encoding ascii }
+        else { Write-Host '[scheduled] C3 claude nonzero exit - NOT marking throttle (retry next run).' }
       }
       catch { Write-Host "[scheduled] C3 gap-analysis error: $_" }
-      finally { Remove-Item Env:\CLAUDE_AUTONOMOUS -ErrorAction SilentlyContinue }
     }
   }
 
