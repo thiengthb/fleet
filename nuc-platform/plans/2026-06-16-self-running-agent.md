@@ -3,7 +3,7 @@ title: Self-running agent — scheduled auto-start + self-sourced work (C3) + as
 kind: feature # feature | system-change | fix | refactor | chore
 status: active # draft → active → done | abandoned
 created: 2026-06-16
-updated: 2026-06-16 # Phase 1 wrapper + C3 + Phase 3 Q&A trust core all built in sandbox + verified (parse + temp-harness dry-run; gate-answer 26/26). Bot side (D2) + SKILL step (D5) drafted; awaiting human install
+updated: 2026-06-16 # INSTALLED to live + committed (253106a): Phase 1 wrapper (smoke-tested, main untouched) + Phase 3 worker (gate-answer/ask-cli, 26/26 from live). C3 live in the wrapper. PENDING (human): elevated task registration (T2), Phase 3 governance (settings allowlist + SKILL D5) + bot (D2)
 # NOTE: deliberately NOT auto_pilot:true — this plan builds the self-running machinery and touches governance
 # (scripts/skills/scheduled-task), so it stays human-driven; do not let the unattended loop advance it.
 related:
@@ -117,18 +117,21 @@ fire-rate (T3) before investing in Phase 3.
   `auto_pilot: true`), advances each via the **unchanged** `auto-pilot-run.ps1` in a child shell, ASCII-only, documents
   the logged-on requirement. **Verified 2026-06-16:** parse OK + temp-harness dry-run — opt-in filter (ignores
   non-opted-in active plans), `(GATE)` exclusion, balanced-objective C3 gate, and `-NoPropose` all behave correctly.
-- [ ] (GATE) T2 — **human install:** `cp` the wrapper to `.claude/scripts/`, register the Task Scheduler task
-  ("run only when user is logged on"; at-logon trigger + repeat every 4 h, indefinitely). Exact command in
-  `self-running-agent-sandbox/INSTALL.md`. (governance — propose-don't-install.)
-- [ ] T3 — **first live scheduled fire validated:** a dated transcript was written, a batch actually ran while the user was
-  away, `main` untouched, zero T4 crossed. (Confirms no Session-0 silent auth death.)
+- [~] T2 — **wrapper INSTALLED to live + committed (253106a) + smoke-tested; scheduled-task registration PENDING (admin).**
+  Wrapper `cp`'d to `.claude/scripts/` (now tracked). `Register-ScheduledTask` returns Access-denied from a non-elevated
+  shell → the human must run it in an **elevated** PowerShell ("run only when user is logged on"; at-logon + 4 h repeat).
+  Command in `self-running-agent-sandbox/INSTALL.md §4`. (governance — propose-don't-install.)
+- [~] T3 — **manual-invoke run VALIDATED 2026-06-16:** wrapper → orchestrator → a fresh Sonnet worker advanced a throwaway
+  opted-in plan on `auto/smoke-test`, committed locally, self-stopped; `main` untouched local+origin, nothing pushed →
+  **zero T4** (verified independently). **Scheduled-task fire still pending** (gated on T2's registration + confirms no
+  Session-0 silent auth death).
 
 ### Phase 2 — C3 self-sourcing proposer (built into the wrapper)
 - [x] C3.1 — **gap-analysis pass built + verified.** In the wrapper: when **no actionable safe-zone step** remains across
   opted-in plans, fire ONE bounded batch running `/idea sort` gap-analysis — propose ≤2 **externally-grounded** `inbox`
   ideas, respect the WIP cap, **never** promote/plan/build/push, **once/day** throttle (marker file). Verified in the same
   harness (dry-run line fires only at 0 actionable steps; `-NoPropose` disables).
-- [ ] (GATE) C3.2 — installed together with T2 (same wrapper).
+- [x] C3.2 — **installed (in the wrapper, 253106a).** C3 code is live; it fires once the task is registered (T2) or on a manual run.
 - [ ] C3.3 — **first live gap-analysis observed:** proposes grounded `inbox` ideas OR correctly returns "nothing worth
   proposing"; nothing promoted past `inbox`; appears in the digest/transcript for the supervisor.
 
@@ -141,6 +144,7 @@ fire-rate (T3) before investing in Phase 3.
 - [x] D3 — **worker side built/verified.** New `ask-cli.mjs` (`ask`/`check`/`consume`/`report`) — sibling of gate-cli,
   reuses gate-verify's jti store. The printed answer is **DATA** (never executed — authenticity != authority). Tested in
   the same 26/26 run (ask → check `none` → answer → check returns the text → consume → replay `none` → report).
+  **Installed to live + committed (253106a); re-verified 26/26 from the live location.**
 - [~] D2 — **bot side drafted (untestable locally — nuc-ops-bot not on this machine).** `bot/ask_answer.py`: `tasks.loop`
   polls `asks/` → posts the question to a thread; `on_message` captures an **allowed** user's reply (same
   `guards.user_allowed`) → **reuses gate_approval's RS256 signer** with an answer payload → writes `answers/<id>.json`;
