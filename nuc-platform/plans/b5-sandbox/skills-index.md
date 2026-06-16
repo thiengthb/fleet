@@ -1,3 +1,5 @@
+Total skills indexed: 36
+
 # Skills Index (B5 loop-smoke)
 
 | Skill | One-line description |
