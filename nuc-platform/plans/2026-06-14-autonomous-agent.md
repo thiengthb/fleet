@@ -165,7 +165,12 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 > genuinely-distinct residue is C3's *unattended* path (the orchestrator invoking gap-analysis inside a no-human batch).
 - [x] C1 — *Realized by `/idea`*: `/idea sort` gap-analysis (grounded in INVENTORY drift / missing test coverage / a documented gap / prior-art, NOT opinion) + `/idea analyze` → research-then-design → RFC-lite `proposal.md` → halts. Skill `.claude/skills/idea/SKILL.md`; queue `nuc-platform/10-idea-queue.md`.
 - [x] C2 — *Realized by `/idea`*: bounded backlog = WIP cap `active ≤ 5`; Reflexion accept/reject memory = the `outcome:` oracle (with *why*); **"nothing worth proposing" is now a first-class gap-analysis output** (anti-churn, added to the skill 2026-06-14).
-- [ ] C3 — **Unattended** proposer integration (the residue, NOT yet built): the `auto-pilot` orchestrator invokes `/idea sort` gap-analysis inside a no-human batch, enforces the bounded-backlog throttle in-loop, surfaces 1–2 grounded `inbox` ideas via the digest, and **halts** — no proposal auto-enters build; rejected patterns not re-proposed. (Interactive C1/C2 above already work in a supervised session; this wires them into the unattended loop — gated on B4/B5 being live.)
+- [~] C3 — **Unattended proposer integration — built in sandbox 2026-06-16, awaiting human install.** Realized in the new
+  scheduled wrapper `auto-pilot-scheduled.ps1` (NOT by editing the 24/24-verified orchestrator): when no actionable plan
+  work remains it fires ONE bounded `/idea sort` gap-analysis batch (≤2 externally-grounded `inbox` ideas, **once/day**
+  throttle, propose-only, halts — nothing auto-enters build; rejected patterns not re-proposed). Verified via temp-harness
+  dry-run. Wired into the wider **self-running** feature (scheduled auto-start + async Discord Q&A): full plan
+  `nuc-platform/plans/2026-06-16-self-running-agent.md`.
 
 ## Out of scope
 

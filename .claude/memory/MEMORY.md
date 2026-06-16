@@ -16,3 +16,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified
 - [Legible proposals, plain language](legible-proposals-plain-language.md) — flag the recommended option, name the skill/process behind any approve gate, explain in everyday language
 - [Never print secret file contents](never-print-secret-file-contents.md) — inspect .env/keys by count/length only, never grep -o/cat the values (a leak forces rotation)
+- [Route questions via Discord, don't block](route-questions-via-discord-not-blocking.md) — user often away from machine; ask async via Discord + leave readable minutes; don't overclaim autonomy
