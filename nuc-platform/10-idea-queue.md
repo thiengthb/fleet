@@ -37,9 +37,22 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     last /idea sort: 2026-06-14. Phase-2 interest model LIVE. idea-0010 (testing/spec, the exploration-floor WILDCARD)
-     + idea-0011 (skill-proposer) ACCEPTED 2026-06-14 → moved to Done (graduated to build plans). idea-0006 (E2E) folded
-     into idea-0010. Active set back to just idea-0005 (Phase 4). Next wildcard check due at the next /idea sort. -->
+     last /idea sort: 2026-06-17 (C3 autonomous gap-analysis). idea-0012 GATE-IN → active (supervisor-accepted, the first
+     C3-sourced idea promoted) — monitoring coverage gap (exploration-floor WILDCARD: ops/reliability, orthogonal). -->
+
+### idea-0012 — nuc-monitor coverage gap: extend monitoring to journal + yakudoku
+state: active · source: agent (C3 gap-analysis 2026-06-17) · created: 2026-06-17 · updated: 2026-06-17 (supervisor gate-in: accepted — first C3-sourced idea promoted)
+gate: pre-assessed pass · moscow: should · reach: 2 impact: 2 confidence: 0.9 effort: 1 · base: 3.6 · interest: 0.3 · **rank: 3.76**
+proposal: null · outcome: null
+> INVENTORY §1 (the SINGLE source of truth) documents Monitor = "(not yet)" for journal, yakudoku-web, and yakudoku-core
+> — 3 of 6 running product/platform containers are unmonitored. nuc-monitor already covers todo/n8n/authentik/
+> jobhunter-bot/nuc-ops-bot via health pings. Both apps expose health routes already in production (journal `/api/health`
+> on the `journal-public` router; yakudoku `/api/health` on `yakudoku-public`). Extension = additive Python in nuc-monitor
+> (no new infra). Risk: a journal Postgres failure or yakudoku outage goes unreported to Discord. External signal: INVENTORY
+> §1 three "(not yet)" entries. **Exploration-floor WILDCARD for this sort** — ops/reliability domain, orthogonal to all
+> prior accepted ideas (which cluster around agent-OS/autonomy/testing/skill-proposer).
+
+---
 
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
