@@ -3,7 +3,7 @@ title: Self-running agent — scheduled auto-start + self-sourced work (C3) + as
 kind: feature # feature | system-change | fix | refactor | chore
 status: active # draft → active → done | abandoned
 created: 2026-06-16
-updated: 2026-06-16 # INSTALLED to live + committed (253106a): Phase 1 wrapper (smoke-tested, main untouched) + Phase 3 worker (gate-answer/ask-cli, 26/26 from live). C3 live in the wrapper. PENDING (human): elevated task registration (T2), Phase 3 governance (settings allowlist + SKILL D5) + bot (D2)
+updated: 2026-06-17 # TRIGGER ARMED + self-running VERIFIED LIVE (57ef365/8f4d60b): task fires → C3 self-sourced idea-0012 (gated in), zero T4. Fixed 2 Task-Scheduler→claude launch traps (console 0xC000013A + Start-Process arg-mangle). PENDING (human/future): opted-in PLAN path live test, Phase 3 bot (D2) + SKILL D5; tune 4h cadence (R-A)
 # NOTE: deliberately NOT auto_pilot:true — this plan builds the self-running machinery and touches governance
 # (scripts/skills/scheduled-task), so it stays human-driven; do not let the unattended loop advance it.
 related:
@@ -117,14 +117,15 @@ fire-rate (T3) before investing in Phase 3.
   `auto_pilot: true`), advances each via the **unchanged** `auto-pilot-run.ps1` in a child shell, ASCII-only, documents
   the logged-on requirement. **Verified 2026-06-16:** parse OK + temp-harness dry-run — opt-in filter (ignores
   non-opted-in active plans), `(GATE)` exclusion, balanced-objective C3 gate, and `-NoPropose` all behave correctly.
-- [~] T2 — **wrapper INSTALLED to live + committed (253106a) + smoke-tested; scheduled-task registration PENDING (admin).**
-  Wrapper `cp`'d to `.claude/scripts/` (now tracked). `Register-ScheduledTask` returns Access-denied from a non-elevated
-  shell → the human must run it in an **elevated** PowerShell ("run only when user is logged on"; at-logon + 4 h repeat).
-  Command in `self-running-agent-sandbox/INSTALL.md §4`. (governance — propose-don't-install.)
-- [~] T3 — **manual-invoke run VALIDATED 2026-06-16:** wrapper → orchestrator → a fresh Sonnet worker advanced a throwaway
-  opted-in plan on `auto/smoke-test`, committed locally, self-stopped; `main` untouched local+origin, nothing pushed →
-  **zero T4** (verified independently). **Scheduled-task fire still pending** (gated on T2's registration + confirms no
-  Session-0 silent auth death).
+- [x] T2 — **trigger ARMED 2026-06-17.** Human ran `register-task.ps1` (idempotent; run-as user pinned, not the elevating
+  id) in an **elevated** shell → task `MiniServer-AutoPilot` = at-logon + every-4h, Interactive/Limited, `State=Ready`.
+  Confirmed empirically the **admin wall is real** (`Register-ScheduledTask` denied non-elevated even for a per-user
+  logged-on task — ledger #63 stands; the agent cannot self-arm). Wrapper now in `.claude/scripts/` (tracked, committed).
+- [x] T3 — **scheduled fire VERIFIED LIVE 2026-06-17.** `Start-ScheduledTask` → task ran under the logged-on user,
+  `LastTaskResult=0`, full transcript written (no Session-0 silent death). Fixed TWO launch traps first (see C3.3): the
+  console-Ctrl+C death (`0xC000013A`) and `Start-Process` arg-mangling. **`main` untouched local+origin, nothing pushed →
+  zero T4.** (Earlier manual-invoke run on `auto/smoke-test` 2026-06-16 corroborates.) NOTE: the **opted-in PLAN** path
+  under Task Scheduler is still unverified live (no `auto_pilot:true` plan yet) — same `Invoke-ConsoleChild` fix by analogy.
 
 ### Phase 2 — C3 self-sourcing proposer (built into the wrapper)
 - [x] C3.1 — **gap-analysis pass built + verified.** In the wrapper: when **no actionable safe-zone step** remains across
@@ -132,8 +133,12 @@ fire-rate (T3) before investing in Phase 3.
   ideas, respect the WIP cap, **never** promote/plan/build/push, **once/day** throttle (marker file). Verified in the same
   harness (dry-run line fires only at 0 actionable steps; `-NoPropose` disables).
 - [x] C3.2 — **installed (in the wrapper, 253106a).** C3 code is live; it fires once the task is registered (T2) or on a manual run.
-- [ ] C3.3 — **first live gap-analysis observed:** proposes grounded `inbox` ideas OR correctly returns "nothing worth
-  proposing"; nothing promoted past `inbox`; appears in the digest/transcript for the supervisor.
+- [x] C3.3 — **first live gap-analysis OBSERVED 2026-06-17.** The armed task fired a real ~240s C3 batch → proposed
+  **idea-0012** (nuc-monitor coverage gap, grounded in INVENTORY §1) to `inbox` + correctly declined 4 other gaps;
+  captured digest in `~/.claude/auto-pilot-logs/c3-*.out.log`; nothing promoted past inbox, zero T4. Supervisor gated
+  idea-0012 in (→ active) — first C3-sourced idea promoted (Reflexion oracle). Required fixing two Task-Scheduler→claude
+  launch traps: ① console child dies `0xC000013A` → own-console `Start-Process` (`Invoke-ConsoleChild`); ② `Start-Process
+  -ArgumentList` mangles space-bearing args (prompt + `Bash(git merge:*)`) → generated runner script + PowerShell splat.
 
 ### Phase 3 — Async Discord Q&A + reporting
 - [x] D1 — **answer-token protocol designed + trust core built/verified.** New `gate-answer.mjs` `verifyAnswerToken`
