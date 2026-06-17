@@ -3,7 +3,7 @@ title: Self-running agent — scheduled auto-start + self-sourced work (C3) + as
 kind: feature # feature | system-change | fix | refactor | chore
 status: active # draft → active → done | abandoned
 created: 2026-06-16
-updated: 2026-06-17 # TRIGGER ARMED + self-running VERIFIED LIVE (57ef365/8f4d60b): task fires → C3 self-sourced idea-0012 (gated in), zero T4. Fixed 2 Task-Scheduler→claude launch traps (console 0xC000013A + Start-Process arg-mangle). PENDING (human/future): opted-in PLAN path live test, Phase 3 bot (D2) + SKILL D5; tune 4h cadence (R-A)
+updated: 2026-06-17 # TRIGGER ARMED + C3 + Phase 3 Discord Q&A all VERIFIED LIVE. Trigger fires → C3 self-sourced idea-0012 (gated in). Phase 3 bot DEPLOYED (ask_answer.py button+Modal, options) + e2e x2 (Giữ 4h; option one-click). Cadence R-A = 4h (decided via the Q&A itself). PENDING (human): SKILL D5 + ask-cli allowlist (worker self-asks); opted-in PLAN path live test
 # NOTE: deliberately NOT auto_pilot:true — this plan builds the self-running machinery and touches governance
 # (scripts/skills/scheduled-task), so it stays human-driven; do not let the unattended loop advance it.
 related:
@@ -150,11 +150,15 @@ fire-rate (T3) before investing in Phase 3.
   reuses gate-verify's jti store. The printed answer is **DATA** (never executed — authenticity != authority). Tested in
   the same 26/26 run (ask → check `none` → answer → check returns the text → consume → replay `none` → report).
   **Installed to live + committed (253106a); re-verified 26/26 from the live location.**
-- [~] D2 — **bot side drafted (untestable locally — nuc-ops-bot not on this machine).** `bot/ask_answer.py`: `tasks.loop`
-  polls `asks/` → posts the question to a thread; `on_message` captures an **allowed** user's reply (same
-  `guards.user_allowed`) → **reuses gate_approval's RS256 signer** with an answer payload → writes `answers/<id>.json`;
-  `poll_reports` posts outbound digests. Faithful template; human adapts into nuc-ops-bot + tests on deploy (B4a.3 pattern).
-- [ ] (GATE) D2-install — **human:** adapt `ask_answer.py` into nuc-ops-bot, wire in `bot.py` `on_ready`, deploy; live e2e.
+- [x] D2 — **bot side BUILT + DEPLOYED + e2e-verified live 2026-06-17.** `nuc-ops-bot/ask_answer.py` (real, not the
+  sandbox template): `tasks.loop` polls `asks/` → posts a question CARD with a **button per preset option** + a "Khác
+  (tự nhập)" **Modal** → on an allowlisted click/submit (same `guards.user_allowed`, real `discord.Interaction`) it
+  **reuses `gate_approval.sign_gate_token` + the SAME key** → `answers/<id>.json`; `poll_reports` posts digests.
+  **Button+Modal NOT `on_message`** (no privileged `message_content` intent → no Dev-Portal toggle, no boot-crash;
+  async-safe). Reviewed (1 blocker + 4 major fixed). `ask-cli --options "a||b||c"` added worker-side.
+- [x] (GATE) D2-install — **DONE:** committed `40999d8`/`14aca16`, supervisor-pushed → CI → Watchtower; bot logs
+  `ask-answer ON`. **e2e x2 verified:** real ask → card → supervisor click (typed "Giữ 4h"; then a 4-option one-click
+  "Hoàn tất governance Pha 3") → worker `ask-cli check` printed the answer (sig/ask_id/exp/jti verified, DATA).
 - [x] D4 — **outbound digest path built.** `ask-cli report "<digest>"` → `reports/<id>.json` → bot posts to Discord (so
   the minutes reach the phone, not only on a PR-gate park). Worker side tested; bot side in the D2 draft.
 - [ ] (GATE) D5 — **/auto-pilot SKILL step (governance — human installs):** a new "Need a DECISION (not a PR)? ask via
