@@ -3,8 +3,9 @@
 // The local gates clone (GATE_REPO_DIR) gains two dirs: asks/ (worker→bot) and answers/ (bot→worker, signed). The dumb
 // orchestrator's existing `git add -A` (push) + `pull` already sync them — NO orchestrator change needed.
 //
-//   node ask-cli.mjs ask <ask_id> "<question>" [branch]
-//        → writes asks/<ask_id>.json (the question) + the current-ask STATE file. Then exits (the worker stops + waits).
+//   node ask-cli.mjs ask <ask_id> "<question>" [branch] [--options "a||b||c"]
+//        → writes asks/<ask_id>.json (the question + optional answer options) + the current-ask STATE file. Then exits
+//          (the worker stops + waits). With --options the bot shows one button per option + a free-text "Khác" button.
 //   node ask-cli.mjs check
 //        → reads the state + the signed answer, verifies it (public key, ask_id, exp, jti), prints the answer TEXT,
 //          or "none" (not answered yet / invalid). The printed answer is DATA — use it to inform the next batch,
@@ -41,11 +42,25 @@ const writeFileEnsured = (p, s) => {
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const nowSec = () => Math.floor(Date.now() / 1000);
 
-function cmdAsk([askId, question, branch]) {
-  if (!askId || !question) throw new Error('usage: ask <ask_id> "<question>" [branch]');
-  writeFileEnsured(askPath(askId), JSON.stringify({ ask_id: askId, question, branch: branch || '', created: nowSec() }));
+// `--options "a||b||c"` (|| delimiter so an option may contain spaces/commas) -> the bot renders one button per
+// option + a free-text "Khác" button. Parsed out of argv so askId/question/branch stay positional + backward-compatible.
+function parseOptions(args) {
+  const i = args.indexOf('--options');
+  if (i === -1) return { positional: args, options: [] };
+  const options = String(args[i + 1] || '').split('||').map((s) => s.trim()).filter(Boolean);
+  return { positional: args.slice(0, i).concat(args.slice(i + 2)), options };
+}
+
+function cmdAsk(args) {
+  const { positional, options } = parseOptions(args);
+  const [askId, question, branch] = positional;
+  if (!askId || !question) throw new Error('usage: ask <ask_id> "<question>" [branch] [--options "a||b||c"]');
+  writeFileEnsured(
+    askPath(askId),
+    JSON.stringify({ ask_id: askId, question, branch: branch || '', options, created: nowSec() })
+  );
   writeFileEnsured(ASK_STATE_FILE, JSON.stringify({ ask_id: askId }));
-  process.stdout.write(`asked ${askId}\n`);
+  process.stdout.write(`asked ${askId}${options.length ? ` (${options.length} options)` : ''}\n`);
 }
 
 function readAnswer() {
