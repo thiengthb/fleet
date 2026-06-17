@@ -96,7 +96,9 @@ catches "Postgres down" by putting the DB ping inside the app's own HEALTHCHECK.
 - [ ] P2 (GATE — T4, human) — Deploy: push each changed repo to `main` (journal, yakudoku, nuc-monitor) → CI builds →
       Watchtower auto-pulls. **Push to main = T4 = human only.** After deploy, verify a real `unhealthy` → Discord alert
       end-to-end (stop journal's Postgres briefly, or use a deliberately failing healthcheck on a throwaway). PARK here.
-- [ ] P3 — `/session-wrap`: distill into `decisions.md` (nuc-monitor + each app), close this plan.
+- [~] P3 — `/session-wrap`: distilled into `decisions.md` (nuc-monitor + journal + yakudoku), day-log `2026-06-17-05`,
+      ledger §A, journal `00-map` route line (2026-06-17). **Plan stays `active`** — closes (`status: done`) only after P2
+      deploy + live verification finishes.
 
 ## Decisions to distill
 
