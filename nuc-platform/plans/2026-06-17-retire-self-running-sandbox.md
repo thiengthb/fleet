@@ -3,7 +3,7 @@ title: Retire the superseded self-running-agent sandbox (auto-pilot test subject
 status: active # draft → active → done | abandoned
 auto_pilot: true # opted in 2026-06-17 (supervisor consent) — unattended loop may advance this plan
 created: 2026-06-17
-updated: 2026-06-17 # batch-1 done: S1 disposition confirmed (4 scripts identical, ask_answer.py diverged — deployed is canonical); S2 marked sandbox superseded in 2026-06-16 plan; S3 refs annotated (D5 text embedded inline, ledger #63 annotated, logs left as historical). Parked at S4 (destructive gate).
+updated: 2026-06-17 # batch-2: no new safe work (S1-S3 complete); gate-cli/ask-cli blocked by permissions this session; S4 still parked awaiting human decision on register-task.ps1 home.
 related:
   - nuc-platform/plans/2026-06-16-self-running-agent.md
   - nuc-platform/plans/self-running-agent-sandbox/INSTALL.md
