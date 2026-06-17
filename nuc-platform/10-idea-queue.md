@@ -40,20 +40,6 @@
      last /idea sort: 2026-06-17 (C3 autonomous gap-analysis). idea-0012 GATE-IN → active (supervisor-accepted, the first
      C3-sourced idea promoted) — monitoring coverage gap (exploration-floor WILDCARD: ops/reliability, orthogonal). -->
 
-### idea-0012 — nuc-monitor coverage gap: extend monitoring to journal + yakudoku
-state: active · source: agent (C3 gap-analysis 2026-06-17) · created: 2026-06-17 · updated: 2026-06-17 (supervisor gate-in: accepted — first C3-sourced idea promoted)
-gate: pre-assessed pass · moscow: should · reach: 2 impact: 2 confidence: 0.9 effort: 1 · base: 3.6 · interest: 0.3 · **rank: 3.76**
-proposal: null · outcome: null
-> INVENTORY §1 (the SINGLE source of truth) documents Monitor = "(not yet)" for journal, yakudoku-web, and yakudoku-core
-> — 3 of 6 running product/platform containers are unmonitored. nuc-monitor already covers todo/n8n/authentik/
-> jobhunter-bot/nuc-ops-bot via health pings. Both apps expose health routes already in production (journal `/api/health`
-> on the `journal-public` router; yakudoku `/api/health` on `yakudoku-public`). Extension = additive Python in nuc-monitor
-> (no new infra). Risk: a journal Postgres failure or yakudoku outage goes unreported to Discord. External signal: INVENTORY
-> §1 three "(not yet)" entries. **Exploration-floor WILDCARD for this sort** — ops/reliability domain, orthogonal to all
-> prior accepted ideas (which cluster around agent-OS/autonomy/testing/skill-proposer).
-
----
-
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
 gate: pass · moscow: could · reach: 2 impact: 1 confidence: 0.8 effort: 2 · base: 0.8 · interest: 0.4 · **rank: 0.85**
@@ -64,6 +50,22 @@ proposal: null · outcome: null
 ---
 
 ## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
+
+### idea-0012 — nuc-monitor coverage gap: extend monitoring to journal + yakudoku
+state: done · source: agent (C3 gap-analysis 2026-06-17) · created: 2026-06-17 · updated: 2026-06-17
+gate: pre-assessed pass · moscow: should · reach: 2 impact: 2 confidence: 0.9 effort: 1 · base: 3.6 · interest: 0.3 · rank: 3.76
+proposal: plans/2026-06-17-nuc-monitor-app-health-proposal.md
+outcome: **accept — Option D** (2026-06-17, supervisor re-decided after the analysis surfaced the invariant conflict).
+First chose A, then switched to **D** when the agent flagged (honest-critique) that A violates nuc-monitor's documented
+"no edge/no port" invariant and that **D is strictly better**: read Docker's `State.Health.Status` over the *existing*
+`docker.sock` (no network change), with the deep DB check living inside each app's `HEALTHCHECK`. Graduated → build plan
+`plans/2026-06-17-nuc-monitor-app-health-build.md`. *Reflexion bias:* **read the TARGET's invariants/CLAUDE.md before
+recommending an option** — propose at the layer that respects existing isolation (docker.sock) over one that relaxes a
+guardrail (joining `edge`); prefer the option that needs no infra/network change when it's also more capable.
+> The first C3-sourced idea promoted to a plan. Real gap: `check_docker` only sees container *running* state, never app
+> liveness — D closes it by alerting on `unhealthy` (edge-triggered, recovery on `healthy`) via docker.sock; deep readiness
+> (Postgres ping) is pushed into each app's in-container HEALTHCHECK. 2 external sources (K8s liveness/readiness; blackbox
+> internal-vs-public probing). Exploration-floor WILDCARD for the 2026-06-17 sort (ops/reliability, orthogonal to prior accepts).
 
 ### idea-0010 — Testing & spec discipline: tiered SDD-lite + selective TDD + contract testing
 state: done · source: user · created: 2026-06-14 · updated: 2026-06-14
