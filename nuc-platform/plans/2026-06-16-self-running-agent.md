@@ -10,7 +10,7 @@ related:
   [
     nuc-platform/plans/2026-06-14-autonomous-agent.md (parent — Layer C3 residue + B5 done),
     nuc-platform/plans/2026-06-14-discord-control-plane.md (B4 gate-token protocol this extends),
-    nuc-platform/plans/self-running-agent-sandbox/ (drafts — human installs; SUPERSEDED — retiring via 2026-06-17-retire-self-running-sandbox.md),
+    (RETIRED 2026-06-17 via 2026-06-17-retire-self-running-sandbox.md — drafts installed; register-task.ps1 → .claude/scripts/; rest git-rm'd, in history),
     .claude/scripts/auto-pilot-run.ps1 (UNCHANGED orchestrator the wrapper calls),
     .claude/skills/idea/SKILL.md (the gap-analysis C3 invokes),
     nuc-ops-bot (repo — Discord bot, Phase 3),
@@ -120,7 +120,8 @@ fire-rate (T3) before investing in Phase 3.
 - [x] T2 — **trigger ARMED 2026-06-17.** Human ran `register-task.ps1` (idempotent; run-as user pinned, not the elevating
   id) in an **elevated** shell → task `MiniServer-AutoPilot` = at-logon + every-4h, Interactive/Limited, `State=Ready`.
   Confirmed empirically the **admin wall is real** (`Register-ScheduledTask` denied non-elevated even for a per-user
-  logged-on task — ledger #63 stands; the agent cannot self-arm). Wrapper now in `.claude/scripts/` (tracked, committed).
+  logged-on task — ledger #63 stands; the agent cannot self-arm). Wrapper now in `.claude/scripts/` (tracked, committed);
+  `register-task.ps1` relocated to `.claude/scripts/register-task.ps1` (2026-06-17, retire-sandbox S4) — re-arm = run it elevated.
 - [x] T3 — **scheduled fire VERIFIED LIVE 2026-06-17.** `Start-ScheduledTask` → task ran under the logged-on user,
   `LastTaskResult=0`, full transcript written (no Session-0 silent death). Fixed TWO launch traps first (see C3.3): the
   console-Ctrl+C death (`0xC000013A`) and `Start-Process` arg-mangling. **`main` untouched local+origin, nothing pushed →
@@ -161,9 +162,12 @@ fire-rate (T3) before investing in Phase 3.
   "Hoàn tất governance Pha 3") → worker `ask-cli check` printed the answer (sig/ask_id/exp/jti verified, DATA).
 - [x] D4 — **outbound digest path built.** `ask-cli report "<digest>"` → `reports/<id>.json` → bot posts to Discord (so
   the minutes reach the phone, not only on a PR-gate park). Worker side tested; bot side in the D2 draft.
-- [ ] (GATE) D5 — **/auto-pilot SKILL step (governance — human installs):** Insert "Step 5.5 — Need a DECISION (not a PR)?
-  Ask via Discord and stop" into `.claude/skills/auto-pilot/SKILL.md` after the Step 5 block. Text (captured from
-  `self-running-agent-sandbox/INSTALL.md §Phase 3` before sandbox removal — S4 of retire plan):
+- [x] D5 — **/auto-pilot SKILL step INSTALLED 2026-06-17 (supervisor).** Step 5.5 ("Need a DECISION? Ask via Discord")
+  is live in `.claude/skills/auto-pilot/SKILL.md` + the `Bash(node .claude/scripts/ask-cli.mjs *)` allowlist entry in
+  `.claude/settings.local.json`. **Worker-initiated ask round-trip e2e-VERIFIED 2026-06-17** (worker mint → push → bot
+  3-button card → supervisor click → RS256-signed answer → `ask-cli check` read "Opt-in 1 plan…" as DATA) AND a headless
+  probe confirmed a `claude -p --permission-mode acceptEdits` worker can execute `ask-cli` (the batch-2 worker's
+  "permission-blocked" note was a confabulation, caught by probe). Original insert text preserved below (INSTALL.md retired):
   > If progress needs a human DECISION that is NOT a PR-push (an ambiguous step, a design choice, "which approach?"), do NOT
   > guess and do NOT park silently. Mint `ask_id = ASK-<slug>-<6 hex>` and run
   > `node .claude/scripts/ask-cli.mjs ask <ask_id> "<one concrete question>" <branch>` (the orchestrator pushes it; the bot

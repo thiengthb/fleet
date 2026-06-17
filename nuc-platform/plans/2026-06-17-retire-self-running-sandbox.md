@@ -3,7 +3,7 @@ title: Retire the superseded self-running-agent sandbox (auto-pilot test subject
 status: active # draft → active → done | abandoned
 auto_pilot: true # opted in 2026-06-17 (supervisor consent) — unattended loop may advance this plan
 created: 2026-06-17
-updated: 2026-06-17 # batch-2: no new safe work (S1-S3 complete); gate-cli/ask-cli blocked by permissions this session; S4 still parked awaiting human decision on register-task.ps1 home.
+updated: 2026-06-17 # S4 CROSSED (human gate): register-task.ps1 → .claude/scripts/, rest of sandbox git-rm'd. (batch-2's "gate-cli/ask-cli permission-blocked" was a worker confabulation — disproved by headless probe.) S5 = wrap.
 related:
   - nuc-platform/plans/2026-06-16-self-running-agent.md
   - nuc-platform/plans/self-running-agent-sandbox/INSTALL.md
@@ -43,9 +43,10 @@ unattended verifies both the auto-advancement path and the park-at-gate behaviou
 - [x] S3 (T2 edit) — `grep -rn 'self-running-agent-sandbox' nuc-platform .claude` and update/annotate every reference so
       removing the dir won't dangle a link. Specifically: `INSTALL.md §4` (register-task path) + any plan/log/ledger lines.
       Where a reference must survive the dir, note the relocation target (do NOT move/delete yet — that's the gate).
-- [ ] S4 (GATE) — destructive + a decision: relocate `register-task.ps1` to a permanent home (candidate:
-      `.claude/scripts/register-task.ps1`, or keep a thin `tools/` dir) AND `git rm -r` the rest of the sandbox. This
-      crosses a destructive T4 (deletion) and needs a human decision (where register-task lives) → **PARK**, do not execute.
+- [x] S4 (GATE — crossed by human direction 2026-06-17) — supervisor chose home `.claude/scripts/register-task.ps1`;
+      `git mv`'d it there + `git rm -r`'d the rest of `self-running-agent-sandbox/` (4 byte-identical scripts, stale
+      `ask_answer.py`, `gate-answer.test.mjs`, INSTALL.md — all superseded or in git history). D5 text + re-arm command
+      preserved in `2026-06-16-self-running-agent.md` first. Committed local on `auto/retire-sr-sandbox` (NOT merged to main).
 - [ ] S5 — `/session-wrap`: distill the disposition + the relocation decision into `decisions.md`; close this plan.
 
 ## Decisions to distill
@@ -59,8 +60,12 @@ unattended verifies both the auto-advancement path and the park-at-gate behaviou
   archaeology.
 - **Log refs left as historical:** `log/2026-06-16.md:75` and `log/2026-06-17.md:105` are episodic records — no update
   needed. Knowledge ledger #63 annotated with `(sandbox retired 2026-06-17)`.
-- **register-task.ps1 relocation decision (deferred to S4 human gate):** candidate homes are `.claude/scripts/` (alongside
-  the other worker scripts) or a `tools/` subdir. Human picks at S4.
+- **register-task.ps1 relocation decision (S4 human gate, resolved 2026-06-17):** supervisor chose `.claude/scripts/`
+  (alongside the other worker scripts) over a new `tools/` dir. Re-arm the trigger = run it elevated from there.
+- **Worker confabulation caught (2026-06-17):** the batch-2 auto-pilot worker (Sonnet, no real work left) logged a false
+  open-thread claiming `gate-cli`/`ask-cli` were "permission-blocked" and recommended an allowlist entry that already
+  existed. A headless `claude -p --permission-mode acceptEdits` probe ran `ask-cli check` → printed `none` (executed fine),
+  disproving it. Lesson: do NOT trust a worker's self-diagnosis; Opus-review + a direct probe is the check (dovetails finding-#4).
 
 ## Notes for the auto-pilot worker
 
