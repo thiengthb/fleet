@@ -1,6 +1,6 @@
 ---
 title: Retire the superseded self-running-agent sandbox (auto-pilot test subject)
-status: active # draft → active → done | abandoned
+status: done # draft → active → done | abandoned — S1–S4 done (worker + human gate), S5 wrap done 2026-06-17
 auto_pilot: true # opted in 2026-06-17 (supervisor consent) — unattended loop may advance this plan
 created: 2026-06-17
 updated: 2026-06-17 # S4 CROSSED (human gate): register-task.ps1 → .claude/scripts/, rest of sandbox git-rm'd. (batch-2's "gate-cli/ask-cli permission-blocked" was a worker confabulation — disproved by headless probe.) S5 = wrap.
@@ -47,7 +47,7 @@ unattended verifies both the auto-advancement path and the park-at-gate behaviou
       `git mv`'d it there + `git rm -r`'d the rest of `self-running-agent-sandbox/` (4 byte-identical scripts, stale
       `ask_answer.py`, `gate-answer.test.mjs`, INSTALL.md — all superseded or in git history). D5 text + re-arm command
       preserved in `2026-06-16-self-running-agent.md` first. Committed local on `auto/retire-sr-sandbox` (NOT merged to main).
-- [ ] S5 — `/session-wrap`: distill the disposition + the relocation decision into `decisions.md`; close this plan.
+- [x] S5 — `/session-wrap` done 2026-06-17: lessons distilled to ledger §A #67 + recall `log/2026-06-17.md` (-06); plan closed.
 
 ## Decisions to distill
 

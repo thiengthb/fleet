@@ -1,7 +1,7 @@
 ---
 title: Self-running agent — scheduled auto-start + self-sourced work (C3) + async Discord Q&A
 kind: feature # feature | system-change | fix | refactor | chore
-status: active # draft → active → done | abandoned
+status: done # draft → active → done | abandoned — Phase 1/2/3 all verified live + opted-in-plan path proven (retire-sandbox) 2026-06-17
 created: 2026-06-16
 updated: 2026-06-17 # TRIGGER ARMED + C3 + Phase 3 Discord Q&A all VERIFIED LIVE. Trigger fires → C3 self-sourced idea-0012 (gated in). Phase 3 bot DEPLOYED (ask_answer.py button+Modal, options) + e2e x2 (Giữ 4h; option one-click). Cadence R-A = 4h (decided via the Q&A itself). PENDING (human): SKILL D5 + ask-cli allowlist (worker self-asks); opted-in PLAN path live test
 # NOTE: deliberately NOT auto_pilot:true — this plan builds the self-running machinery and touches governance
