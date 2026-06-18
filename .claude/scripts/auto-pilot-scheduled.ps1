@@ -36,6 +36,20 @@ Set-Location -LiteralPath $RepoRoot
 
 $LogDir = if ($env:AUTOPILOT_LOG_DIR) { $env:AUTOPILOT_LOG_DIR } else { Join-Path $HOME '.claude/auto-pilot-logs' }
 if (-not (Test-Path -LiteralPath $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
+
+# Single-flight lock: do NOT start a new cycle if the previous one is still running (prevents pile-up under the 4h Task
+# Scheduler repeat when a cycle runs long; together with -MaxBatches it bounds per-window cost). A stale lock whose PID
+# is gone is reclaimed. ASCII-only.
+$LockFile = Join-Path $LogDir 'auto-pilot.lock'
+if (Test-Path -LiteralPath $LockFile) {
+  $lockPid = (Get-Content -LiteralPath $LockFile -Raw -ErrorAction SilentlyContinue).Trim()
+  $alive = $false
+  if ($lockPid -match '^\d+$') { $alive = $null -ne (Get-Process -Id ([int]$lockPid) -ErrorAction SilentlyContinue) }
+  if ($alive) { Write-Host "[scheduled] previous cycle still running (PID $lockPid) - exiting to avoid overlap."; return }
+  Write-Host "[scheduled] stale lock (PID $lockPid gone) - reclaiming."
+}
+Set-Content -LiteralPath $LockFile -Value "$PID" -Encoding ascii
+
 $stamp = Get-Date -Format 'yyyy-MM-dd_HHmmss'
 $transcript = Join-Path $LogDir "auto-pilot-$stamp.log"
 Start-Transcript -LiteralPath $transcript -Append | Out-Null
@@ -163,5 +177,6 @@ exit `$LASTEXITCODE
   Write-Host "[scheduled] done $(Get-Date -Format o)  transcript=$transcript"
 }
 finally {
+  Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
   Stop-Transcript | Out-Null
 }
