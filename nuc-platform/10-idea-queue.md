@@ -37,8 +37,39 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     last /idea sort: 2026-06-17 (C3 autonomous gap-analysis). idea-0012 GATE-IN → active (supervisor-accepted, the first
-     C3-sourced idea promoted) — monitoring coverage gap (exploration-floor WILDCARD: ops/reliability, orthogonal). -->
+     last /idea sort: 2026-06-18 (C3 autonomous gap-analysis). 2 new inbox proposals: idea-0013 (MCP OAuth
+     shim extraction, catalog extract-candidate signal) + idea-0014 (NUC volume backup, INVENTORY §2 gap,
+     exploration-floor WILDCARD). Awaiting supervisor gate. idea-0012 done (graduated 2026-06-17). -->
+
+## Inbox (captured — awaiting supervisor gate before entering active)
+
+### idea-0013 — Extract MCP OAuth shim to `@thiengthb/mcp-auth`
+state: inbox · source: agent (C3 gap-analysis 2026-06-18) · created: 2026-06-18
+gate: null · moscow: null · proposal: null · outcome: null
+> **External signal:** `08-SHARED-ASSETS.md` row 1 explicitly flags "DUPLICATED — extract candidate (built 2×;
+> extract at 3rd app **or now if churn has stopped**)". Churn check: both `todo` and `yakudoku/web` have had
+> stable MCP OAuth since 2026-06-13 with no changes. Code is near-identical across repos (auth 38≈39, oauth
+> 86≈89, token 63≈67, authorize 124≈129, register 32=32 lines). Security-sensitive glue — a shared package
+> means one audit covers all consumers and prevents drift. Gate question: has churn truly stopped, or is
+> `journal` likely to need MCP soon (which would be the third consumer and the natural extraction trigger)?
+
+---
+
+### idea-0014 — NUC volume backup strategy (ops data-safety)
+state: inbox · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18
+gate: null · moscow: null · proposal: null · outcome: null
+> **External signal (INVENTORY §2 gap):** `INVENTORY §1` documents 6 named data volumes (`todo_data`,
+> `journal_db`, `yakudoku_data`, `n8n_data`, `authentik_database`, `authentik_media`) on a single self-hosted
+> machine. `INVENTORY §2` has **no backup component** — no backup mechanism is documented anywhere in the
+> platform docs (INVENTORY, known-traps, 01-architecture-and-operations). A disk failure or accidental
+> `docker volume rm` = unrecoverable data loss for all user apps. Prior art: **Restic** (deduplicating,
+> encrypted, B2/S3/local target) is the standard self-hosted Docker volume backup tool (CLI: `restic backup`,
+> snapshots, automated via systemd timer or Task Scheduler; no daemon required). Fits "extend existing infra"
+> — a cron task on the NUC, no new service needed.
+> **Exploration-floor WILDCARD** for the 2026-06-18 sort (ops data-safety, orthogonal to prior accepts which
+> are all autonomy/knowledge-OS/testing).
+
+---
 
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
