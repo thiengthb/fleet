@@ -65,6 +65,24 @@ Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; ke
   → hand to `/project-plan` (the idea graduates to a `docs/plans/` or `nuc-platform/plans/` roadmap), set `done` when shipped.
   On `reject` → `deferred` (with `revisit_when`) or `dead`. The `why` accumulates as Reflexion memory that biases future
   gap-analysis away from rejected patterns.
+
+### Autonomous graduation (Phase 1 / S1.1 — the idea→plan bridge)
+
+When the loop runs unattended, the scheduled wrapper detects an **accepted-but-ungraduated** idea (an `outcome: accept`
+block still sitting ABOVE the `## Done` divider) and fires ONE bounded graduation batch. That batch graduates the idea
+into a **`draft`** plan — it does **not** auto-execute it:
+
+- Writes `nuc-platform/plans/<date>-<slug>.md` from `project-plan/templates/plan.md`, carrying Goal / Context / Approach /
+  Prior-art forward from the proposal + the supervisor's chosen option (named in the `outcome:` line). Frontmatter is
+  **`status: draft` + `auto_pilot: false`** — so the plan-advance pass (which needs `active` + `auto_pilot: true`) will
+  NOT pick it up. Execution waits for the **enrol gate** (S1.3, a separate Discord approval).
+- Idempotent: if a draft/active plan already references the idea, it does not create a duplicate.
+- Sets the idea **`graduated_plan: <plan path>`** and moves its block under `## Done` (so it isn't re-graduated).
+- A genuine framing ambiguity is recorded in the plan's *Open questions* (the human resolves it at the enrol gate) — the
+  graduation step itself does not guess and does not yet ask via Discord.
+
+This keeps **propose-don't-execute** intact through automation: an accept becomes a *draft* (proposal-grade) plan, never a
+running one, until the supervisor approves enrol.
 - **`/idea defer <id> [when]` · `/idea kill <id> "<reason>"` · `/idea revive <id>`** — lifecycle moves. `kill` = move the
   block to the **Tombstones** section with its reason (never delete — so we don't re-litigate). Prune to `dead` a
   `deferred` idea that has failed re-scoring twice or is fundamentally unfit.

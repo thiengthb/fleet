@@ -12,6 +12,11 @@
 - **States:** `inbox` (captured, ungated) → `active` (gated-in, ranked) → `analyzing` (top-1 deep-dive) → `proposed`
   (has a `proposal.md`, awaiting human) → `done` (became a plan / shipped) · `deferred` (someday/maybe, has
   `revisit_when`) · `dead` (pruned — keep the tombstone + reason, don't delete the block).
+- **Graduation (`outcome: accept` → plan):** on accept the idea graduates to a `docs/plans/`/`nuc-platform/plans/`
+  roadmap and moves under `## Done` with a **`graduated_plan: <path>`** link. Unattended, the auto-pilot wrapper does
+  this automatically (Phase 1 / S1.1) but only to a **`draft`** plan (`auto_pilot: false`) — it parks for the **enrol
+  gate** (a separate supervisor approval) before the plan can execute. Propose-don't-execute survives the automation:
+  accept ⇒ a *draft* plan, never a running one.
 - **Gate FIRST, score SECOND:** an idea enters `active` only after a feasibility+fit gate (`moscow: must|should|could|wont`
   + "does it fit the system?"). `wont` / no-fit → `deferred` or `dead`.
 - **Ranking:** coarse RICE `base = reach×impact×confidence / effort` (ordinal HINT, not truth — real rigor lives in the

@@ -1,9 +1,9 @@
 ---
 title: Closed-loop driver — chain the verified autonomy pieces into one self-perpetuating, Discord-supervised cycle
 kind: system-change # REQUIRES prior art before `active`
-status: active # accepted by supervisor 2026-06-18 — Phase 0 in progress
+status: active # accepted by supervisor 2026-06-18 — Phase 1 in progress
 created: 2026-06-18
-updated: 2026-06-18 # Phase 0 COMPLETE (S0.1-S0.4 done + verified live); Phase 1 next
+updated: 2026-06-18 # Phase 1 S1.1 DONE (idea→draft-plan graduation, verified); S1.2 (planning Q&A) + S1.3 (enrol gate) next
 related:
   - nuc-platform/plans/2026-06-14-autonomous-agent.md # Layers A/B/C — governance + executor (done); this is the missing Layer-C outer driver
   - nuc-platform/plans/2026-06-14-agent-os-evolution.md # memory/interest/RAG infra that UNDERPINS this (not the loop itself)
@@ -106,9 +106,9 @@ scope here, noted as a follow-up idea).
 
 ### Phase 1 — Idea→plan bridge (the first missing link)
 
-- [ ] S1.1 — Design the `/idea outcome accept` → auto-create `draft` plan flow: on accept, generate a plan file from the idea's proposal template, carrying Goal/Context/Prior-art forward · Files: propose diff for `.claude/skills/idea/SKILL.md` + `auto-pilot-scheduled.ps1` cycle logic · Test: AC-2 (draft plan auto-appears after accept)
-- [ ] S1.2 — Wire planning-time Q&A: when the draft plan has an open question, the cycle mints an `ask-cli` question (Discord, with `--options`) and PARKS until answered; answer = DATA · Files: `auto-pilot-scheduled.ps1` + `/auto-pilot` · Test: AC-2 (mid-plan question reaches Discord, answer consumed)
-- [ ] S1.3 — Add the enrol gate: present the finalised draft plan via Discord; on "enrol" approval set `status: active` + `auto_pilot: true`; default-deny + queue on timeout · Files: propose diff (governance) + bot side · Test: AC-3 (no enrol → no autonomous execution)
+- [x] S1.1 — `outcome: accept` → auto-create `draft` plan. APPLIED 2026-06-18 (interactive, supervisor-approved): `auto-pilot-scheduled.ps1` gained `Test-HasUngraduatedAccept` (line-anchored `outcome: accept` ABOVE `## Done`, prose-safe) + `Invoke-AutonomousClaude` helper + a graduation phase (one bounded batch → `draft` plan, `auto_pilot: false`, idempotent, parks for the enrol gate, NEVER auto-enrols) ahead of C3; `/idea` SKILL + `10-idea-queue.md` schema document graduation + the `graduated_plan:` field. Verified: parse OK, dry-run on the real queue skips correctly (false-positive on the header prose found + fixed), detection unit-tested True/False/False. · Test: AC-2 (draft appears, no enrol)
+- [ ] S1.2 — Wire planning-time Q&A: when graduation hits a real framing ambiguity, mint an `ask-cli` question (Discord, `--options`) and PARK until answered; answer = DATA. **Needs the gate-repo pull/push sync** (today only `auto-pilot-run.ps1` does it; the graduation batch bypasses the orchestrator) — so add a minimal gate-sync around the graduation batch (or route graduation through a sync wrapper) · Files: `auto-pilot-scheduled.ps1` + `/idea`/`/auto-pilot` · Test: AC-2 (mid-plan question reaches Discord, answer consumed). *S1.1 currently records ambiguities in the plan's Open-questions instead.*
+- [ ] S1.3 — Add the enrol gate: present the finalised draft plan via Discord; on "enrol" approval set `status: active` + `auto_pilot: true`; default-deny + queue on timeout. Needs a gate-cli/ask-cli decision (binary approve vs options) + the Python bot side · Files: propose diff (governance) + bot side · Test: AC-3 (no enrol → no autonomous execution)
 
 ### Phase 2 — Auto-wrap + retro→todo (the genuine gap)
 

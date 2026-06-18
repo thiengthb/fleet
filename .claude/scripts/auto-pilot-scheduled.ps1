@@ -6,9 +6,12 @@
        on the native claude exe (ledger #60: that turns a benign warning into a terminating error, silent worker death).
     2. Discovers opted-in active plans (frontmatter `status: active` AND `auto_pilot: true`) and advances each one
        orchestrator run via the UNCHANGED, 24/24-verified auto-pilot-run.ps1.
-    3. C3 self-sourcing: when NO actionable safe-zone plan work remains, fires ONE bounded /idea gap-analysis batch
-       (propose-only, <=2 externally-grounded inbox ideas, never builds), throttled to once per calendar day.
-    4. Closes the transcript.
+    3. Idea->plan bridge (Phase 1, S1.1): when an idea the supervisor ACCEPTED has no plan yet (an `outcome: accept`
+       block still ABOVE the queue's `## Done` divider), fires ONE bounded graduation batch that writes a DRAFT plan
+       (status: draft, auto_pilot: false) from the proposal and PARKS it for the enrol gate - it NEVER auto-enrols.
+    4. C3 self-sourcing: when NO actionable safe-zone plan work remains AND nothing is awaiting graduation, fires ONE
+       bounded /idea gap-analysis batch (propose-only, <=2 externally-grounded inbox ideas, never builds), once/day.
+    5. Closes the transcript.
 
   Why a wrapper (not an edit to auto-pilot-run.ps1): keeps the verified orchestrator + autonomy-gate byte-identical
   (zero risk to a critical, hook-bearing file); plan-discovery, scheduling, logging and the GLOBAL gap-analysis pass are
@@ -19,12 +22,13 @@
   DPAPI-protected ~/.claude auth + gh/git credentials, so claude would fail silently (researched 2026-06-16). ASCII-only.
 
   Usage (manual test before scheduling): ./auto-pilot-scheduled.ps1 -DryRun
-                                         ./auto-pilot-scheduled.ps1 [-MaxBatches 6] [-Model sonnet] [-NoPropose]
+                                         ./auto-pilot-scheduled.ps1 [-MaxBatches 6] [-Model sonnet] [-NoPropose] [-NoGraduate]
 #>
 param(
   [int] $MaxBatches = 6,
   [string] $Model = 'sonnet',
   [switch] $NoPropose,
+  [switch] $NoGraduate,
   [switch] $DryRun
 )
 
@@ -84,6 +88,46 @@ try {
     return $p.ExitCode
   }
 
+  # Run ONE bounded autonomous `claude -p` batch (CLAUDE_AUTONOMOUS=1) from a prompt string, via a generated runner +
+  # PowerShell SPLATTING - the same proven launch the C3 block uses (Start-Process -ArgumentList mangles space-bearing
+  # args; the runner reads the prompt from a file + splats the disallow list so Start-Process only sees `-File <runner>`).
+  # The C3 block below predates this helper and is kept BYTE-STABLE (the 24/24-verified path); new batches use this form.
+  function Invoke-AutonomousClaude {
+    param([Parameter(Mandatory)][string] $Prompt, [Parameter(Mandatory)][string] $Tag)
+    $promptFile = Join-Path $LogDir "$Tag-prompt-$stamp.txt"
+    $runner     = Join-Path $LogDir "$Tag-runner-$stamp.ps1"
+    $outLog     = Join-Path $LogDir "$Tag-$stamp.out.log"
+    Set-Content -LiteralPath $promptFile -Value $Prompt -Encoding ascii
+    $runnerBody = @"
+`$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath '$RepoRoot'
+`$env:CLAUDE_AUTONOMOUS = '1'
+`$prompt = Get-Content -LiteralPath '$promptFile' -Raw
+`$disallow = @('Bash(git merge:*)','Bash(docker:*)','Bash(ssh:*)','Bash(rm:*)')
+& claude -p `$prompt --model '$Model' --permission-mode acceptEdits --disallowedTools `$disallow
+exit `$LASTEXITCODE
+"@
+    Set-Content -LiteralPath $runner -Value $runnerBody -Encoding ascii
+    return (Invoke-ConsoleChild -FilePath 'powershell.exe' `
+              -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $runner) -OutLog $outLog)
+  }
+
+  # Phase 1 idea->plan bridge trigger (CHEAP over-approximation; the graduation batch is the real judge). "An accepted
+  # idea awaits graduation" = a block ABOVE the `## Done` divider with a STRUCTURED outcome field set to accept (a
+  # graduated idea is MOVED under `## Done`, so anything still above it with an accept verdict has no plan yet). The
+  # field is anchored to LINE START (`outcome: accept...`) - that excludes documentation/blockquote prose that merely
+  # mentions "outcome: accept" inline (e.g. the file header). A false positive only fires a cheap no-op batch.
+  $IdeaQueue = Join-Path $RepoRoot 'nuc-platform/10-idea-queue.md'
+  function Test-HasUngraduatedAccept {
+    if (-not (Test-Path -LiteralPath $IdeaQueue)) { return $false }
+    $lines = @(Get-Content -LiteralPath $IdeaQueue)
+    $doneHit = $lines | Select-String -SimpleMatch '## Done' | Select-Object -First 1
+    $doneIdx = if ($doneHit) { $doneHit.LineNumber - 1 } else { $lines.Count }
+    if ($doneIdx -le 0) { return $false }
+    $region = $lines[0..($doneIdx - 1)]
+    return @($region | Where-Object { $_ -match '^\s*outcome:\s*\**\s*accept' }).Count -gt 0
+  }
+
   function Get-UncheckedCount([string] $path) {
     $lines = Get-Content -LiteralPath $path
     @($lines | Where-Object { $_ -match '^\s*-\s*\[ \]' -and $_ -notmatch '\(GATE\)' }).Count
@@ -123,6 +167,36 @@ try {
     Write-Host "[scheduled] plan run exit: $rc"
   }
 
+  # --- 1b) Phase 1 idea->plan bridge: graduate an accepted-but-ungraduated idea into a DRAFT plan (S1.1) ---
+  # Approved work (the supervisor said accept), so it runs regardless of remaining plan steps - but it NEVER auto-enrols:
+  # the batch writes status: draft / auto_pilot: false and parks for the (later, separate) enrol gate. One bounded batch.
+  $hasUngraduated = Test-HasUngraduatedAccept
+  $ungraduated = (-not $NoGraduate) -and $hasUngraduated
+  $graduatePrompt = "An idea in nuc-platform/10-idea-queue.md has been ACCEPTED by the supervisor (its outcome contains 'accept') but is NOT yet under the queue's '## Done' section - it has no plan yet. Graduate the SINGLE such idea (highest in the file) into a DRAFT plan (autonomy Layer C idea->plan bridge):
+1. IDEMPOTENCY FIRST: glob nuc-platform/plans/*.md; if a draft/active plan already references this idea id or its proposal, do NOT create a duplicate - just ensure the idea block is moved under '## Done' with a 'graduated_plan:' link, commit locally, and STOP.
+2. Read the idea block + its 'proposal:' link. Create branch auto/graduate-<idea-id> (NEVER main).
+3. Write a DRAFT plan nuc-platform/plans/<today>-<slug>.md from .claude/skills/project-plan/templates/plan.md, carrying Goal / Context / Approach / Prior art forward from the proposal and the supervisor's chosen option (named in the outcome line). Frontmatter MUST be 'status: draft' and 'auto_pilot: false' - it must NOT auto-execute until the supervisor approves the SEPARATE enrol gate.
+4. If the proposal leaves a real framing ambiguity you cannot resolve, record it under the plan's 'Open questions' section. Do NOT guess and do NOT ask via Discord in this step - the human resolves open questions at the enrol gate.
+5. Set the idea 'graduated_plan: <plan path>' and move its block under '## Done' with 'state: done'.
+6. Do NOT set status: active, do NOT set auto_pilot: true, do NOT push, do NOT open a PR, do NOT build any plan step. Commit locally only. Emit a digest naming the idea + the draft plan path."
+  if ($NoGraduate) {
+    Write-Host '[scheduled] graduation disabled (-NoGraduate).'
+  }
+  elseif (-not $ungraduated) {
+    Write-Host '[scheduled] no accepted-but-ungraduated idea - graduation phase skipped.'
+  }
+  elseif ($DryRun) {
+    Write-Host '[scheduled][dry-run] graduation WOULD run: an accepted idea has no plan -> write a DRAFT plan (status: draft, auto_pilot: false), park for the enrol gate.'
+  }
+  else {
+    Write-Host '[scheduled] graduation: an accepted idea has no plan - running one bounded graduation batch (draft plan only, NO enrol).'
+    try {
+      $rc = Invoke-AutonomousClaude -Prompt $graduatePrompt -Tag 'graduate'
+      Write-Host "[scheduled] graduation claude exit: $rc"
+    }
+    catch { Write-Host "[scheduled] graduation error: $_" }
+  }
+
   # --- 2) C3 self-sourcing proposer: ONLY when no actionable plan work remains, once/day, propose-only ---
   $remaining = 0
   foreach ($p in $plans) { $remaining += (Get-UncheckedCount $p) }
@@ -132,6 +206,9 @@ try {
   }
   elseif ($remaining -gt 0) {
     Write-Host '[scheduled] C3 skipped - approved-plan work still remains (balanced objective: plan progress first).'
+  }
+  elseif ($hasUngraduated) {
+    Write-Host '[scheduled] C3 skipped - an accepted idea is awaiting graduation (approved work first).'
   }
   elseif (Test-ProposedToday) {
     Write-Host '[scheduled] C3 skipped - gap-analysis already ran today (once/day throttle).'
