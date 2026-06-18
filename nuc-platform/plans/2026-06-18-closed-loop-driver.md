@@ -3,7 +3,7 @@ title: Closed-loop driver — chain the verified autonomy pieces into one self-p
 kind: system-change # REQUIRES prior art before `active`
 status: active # accepted by supervisor 2026-06-18 — Phase 0 in progress
 created: 2026-06-18
-updated: 2026-06-18 # accepted; Phase 0 (reliability + finish wiring) started
+updated: 2026-06-18 # Phase 0 COMPLETE (S0.1-S0.4 done + verified live); Phase 1 next
 related:
   - nuc-platform/plans/2026-06-14-autonomous-agent.md # Layers A/B/C — governance + executor (done); this is the missing Layer-C outer driver
   - nuc-platform/plans/2026-06-14-agent-os-evolution.md # memory/interest/RAG infra that UNDERPINS this (not the loop itself)
@@ -102,7 +102,7 @@ scope here, noted as a follow-up idea).
 - [x] S0.2 — `/auto-pilot` Step 1.5 now trusts `gate-cli check` verbatim (no hand-re-verify); Opus recommended for the gate-cross re-run · APPLIED 2026-06-18; skill-proposal `auto-pilot-trust-gate-cli.md` marked `installed` · Test: AC-1
 - [x] S0.3 — Single-flight lock on the scheduled wrapper (no overlapping cycles; bounds per-window cost with `-MaxBatches`) · APPLIED 2026-06-18; `.ps1` re-parsed clean · Test: AC-7. (Finer token-budget cap deferred to Phase 3 — claude `-p` has no clean token ceiling; `-MaxBatches` + lock bound it for now.)
 - Note — interactive supervised edits applied directly (not via the proposals/ flow). When the loop runs UNATTENDED the same class of change MUST still route through a proposal + human commit (autonomy contract §3); the proposal dir is the unattended path, not a blanket requirement when the supervisor is approving live.
-- [ ] S0.4 — After the 3 changes are committed: enrol ONE small pilot plan with `auto_pilot: true` and run a real cycle end-to-end for a baseline transcript · Files: a chosen `status: active` plan · Test: AC-6 (baseline minutes in day-log) · BLOCKED on S0.1–S0.3 commit
+- [x] S0.4 — Baseline DONE 2026-06-18: a throwaway pilot (`auto_pilot: true`) was discovered by the scheduled wrapper (DryRun: "opted-in active plans: 1"; lock clean; C3 correctly skipped while work remained), then one LIVE batch (sonnet worker) advanced P1 → local commit `971c6ef` → day-log episodic block → digest → clean stop (no gate). The just-fixed skill ran live without issue. Pilot retired (branch + both files deleted). · Test: AC-6 ✓ (minutes in day-log)
 
 ### Phase 1 — Idea→plan bridge (the first missing link)
 
