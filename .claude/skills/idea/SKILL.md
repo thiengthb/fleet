@@ -78,8 +78,10 @@ into a **`draft`** plan — it does **not** auto-execute it:
   NOT pick it up. Execution waits for the **enrol gate** (S1.3, a separate Discord approval).
 - Idempotent: if a draft/active plan already references the idea, it does not create a duplicate.
 - Sets the idea **`graduated_plan: <plan path>`** and moves its block under `## Done` (so it isn't re-graduated).
-- A genuine framing ambiguity is recorded in the plan's *Open questions* (the human resolves it at the enrol gate) — the
-  graduation step itself does not guess and does not yet ask via Discord.
+- A genuine framing ambiguity (one the chosen option does not settle) is asked to the supervisor via Discord (`ask-cli`
+  with `--options`) and the same question recorded in the plan's *Open questions*; the batch then PARKS and resumes with
+  the answer on a later cycle (S1.2). It never guesses, and asks at most ONE pending question per draft (a pending-ask
+  guard prevents duplicates). Most accepted ideas name the chosen option and need no question.
 
 This keeps **propose-don't-execute** intact through automation: an accept becomes a *draft* (proposal-grade) plan, never a
 running one, until the supervisor approves enrol.
