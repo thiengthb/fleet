@@ -1,55 +1,29 @@
-# Phase 5 governance proposals — skill-law refactor
+# Governance proposals — agent proposes, human applies
 
-Two files need a tiny edit each. Agent **must not** commit them (autonomy contract §3 — `CLAUDE.md` and the
-docs-standard are governance). Apply manually:
+The agent **must not** edit live governance (`CLAUDE.md`, `nuc-platform/05-*`, `.claude/hooks/**`, `.claude/skills/**`) —
+autonomy contract §3 / CVE-2025-53773. It drafts a `.proposed` drop-in here; a **human** copies it over the real file.
 
-## Files
+## Status (2026-06-19)
 
-- `CLAUDE.md.proposed` — replaces lines 50-59 (the "Coding" section body) of `CLAUDE.md`
-- `05-documentation-standard.md.proposed` — adds a new §7.1 to `nuc-platform/05-documentation-standard.md`
-  (between the existing §7 enforcement bullets and the `## 8. Quick checklist` section)
+| Proposal | Target | Status |
+|----------|--------|--------|
+| `CLAUDE.md.proposed` | `CLAUDE.md` (Coding section) | ✅ APPLIED (interactive, supervisor-approved) |
+| `05-documentation-standard.md.proposed` | `nuc-platform/05-documentation-standard.md` (§7.1) | ✅ APPLIED |
+| `autonomy-gate.mjs.proposed` + `.test.mjs.proposed` | `.claude/hooks/autonomy-gate.mjs` (+ test) | ⏳ AWAITS HUMAN INSTALL — verified 34/34 |
+| `2026-06-19-enrol-gate-hook-hardening.md` | (design record for the two `.proposed` above) | Option A chosen + implemented |
 
-The `.proposed` files are **complete drop-in replacements** — diff them against the originals to confirm the change
-is what you expect, then either copy-paste the section or replace the whole file.
+> The two doc `.proposed` files are kept after applying only as a diff record; they may be deleted.
 
-## Quickest path (PowerShell, Windows)
+## Apply the enrol-gate hardening (human)
 
-```powershell
-# Inspect the proposed change
-Compare-Object (Get-Content CLAUDE.md) (Get-Content nuc-platform/proposals/CLAUDE.md.proposed)
-Compare-Object (Get-Content nuc-platform/05-documentation-standard.md) (Get-Content nuc-platform/proposals/05-documentation-standard.md.proposed)
-
-# Accept (overwrite the originals with the proposals)
-Copy-Item nuc-platform/proposals/CLAUDE.md.proposed CLAUDE.md -Force
-Copy-Item nuc-platform/proposals/05-documentation-standard.md.proposed nuc-platform/05-documentation-standard.md -Force
-
-# Commit
-git add CLAUDE.md nuc-platform/05-documentation-standard.md
-git commit -m "docs(skills): codify SKILL=procedure / references=LAW pattern"
-
-# Clean up the proposals dir (optional)
-Remove-Item nuc-platform/proposals -Recurse -Force
-```
-
-## Alternative — `git diff` to review byte-by-byte
-
-```powershell
-git diff --no-index CLAUDE.md nuc-platform/proposals/CLAUDE.md.proposed
-git diff --no-index nuc-platform/05-documentation-standard.md nuc-platform/proposals/05-documentation-standard.md.proposed
+```bash
+cp nuc-platform/proposals/autonomy-gate.mjs.proposed      .claude/hooks/autonomy-gate.mjs
+cp nuc-platform/proposals/autonomy-gate.test.mjs.proposed .claude/hooks/autonomy-gate.test.mjs
+node .claude/hooks/autonomy-gate.test.mjs   # expect: 34/34 PASS
 ```
 
 ## Why this is gated
 
-The `09-autonomy-contract.md` blocks the agent from editing its own governance (CVE-2025-53773 lesson).
-That class includes `CLAUDE.md` and `nuc-platform/05-*`. **Agent proposes, human commits.**
-
-## Reverting
-
-If you decide not to apply, just delete the `.proposed` files:
-
-```powershell
-Remove-Item nuc-platform/proposals -Recurse -Force
-```
-
-The branch `auto/skill-law-refactor` already has the safe-zone work committed (`d0ec36d`); it is independent of
-this Phase 5 step.
+`09-autonomy-contract.md` blocks the agent from editing its own governance. **Agent proposes, human commits** — even in
+an interactive session the auto-mode classifier enforces the `.claude/hooks|skills/**` boundary, so the final `cp` is a
+human move by design.

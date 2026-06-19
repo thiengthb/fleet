@@ -1,8 +1,22 @@
 # Proposal — harden the enrol gate in `autonomy-gate.mjs` (defense-in-depth)
 
-> **Status:** PROPOSED (agent-authored 2026-06-19). The agent **must not** edit `.claude/hooks/autonomy-gate.mjs` —
-> it is governance (autonomy contract §3, CVE-2025-53773 lesson). **Human reviews + commits.** This file describes the
-> change + the tradeoff; it is intentionally NOT a drop-in `.proposed` because the design choice is the human's to make.
+> **Status:** IMPLEMENTED as a verified drop-in (2026-06-19, interactive supervisor session chose **Option A**). The agent
+> **must not** install it into `.claude/hooks/` — that is governance (autonomy contract §3, CVE-2025-53773 lesson); a
+> **human applies** the two `.proposed` drop-ins below. The original proposal text + the Option A/B/C tradeoff is kept
+> for the record.
+>
+> **Apply (human):**
+> ```bash
+> cp nuc-platform/proposals/autonomy-gate.mjs.proposed      .claude/hooks/autonomy-gate.mjs
+> cp nuc-platform/proposals/autonomy-gate.test.mjs.proposed .claude/hooks/autonomy-gate.test.mjs
+> node .claude/hooks/autonomy-gate.test.mjs   # expect: 34/34 PASS
+> ```
+> The drop-in implements **Option A**: a PreToolUse write that introduces `auto_pilot: true` into `nuc-platform/plans/*.md`
+> is allowed **iff** a valid, signed, unconsumed `ASK-enrol-*` answer (text `enrol`/`yes`) currently authorizes it
+> (verified via the shared `verifyAnswerToken` core); otherwise hard-blocked (fail-closed). Verified: 34/34 e2e
+> (23 existing B4b + 11 new enrol cases — valid-answer ALLOW, no/expired/reject/replayed/cross-channel/non-enrol-ask
+> BLOCK, non-plan + non-arming writes unaffected). Residual gap (documented in the hook): a raw Bash redirection writing
+> `auto_pilot: true` is not caught — Edit/Write is the worker's normal path.
 
 ## Context
 
