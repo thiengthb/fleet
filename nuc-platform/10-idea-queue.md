@@ -42,28 +42,17 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     last /idea sort: 2026-06-19 (C3 autonomous gap-analysis). No new proposals — 2 inbox ideas
-     (idea-0013, idea-0014) still awaiting supervisor gate; no new externally-grounded gaps found.
-     interest re-derived: idea-0005 stays 0.4 (no new signals). Wildcard: idea-0014 (ops/data-safety).
+     2026-06-19 SUPERVISOR GATE: idea-0014 (Restic backup) ACCEPTED → active, rank 2.7 (wildcard, base-only),
+     next = write a proposal. idea-0013 (extract MCP OAuth) DEFERRED → revisit when journal/3rd app adds MCP.
+     last /idea sort: 2026-06-19 (C3 autonomous gap-analysis); interest re-derived: idea-0005 stays 0.4.
      idea-0012 done (graduated 2026-06-17 → build plan). -->
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
-### idea-0013 — Extract MCP OAuth shim to `@thiengthb/mcp-auth`
-state: inbox · source: agent (C3 gap-analysis 2026-06-18) · created: 2026-06-18
-gate: null · moscow: null · proposal: null · outcome: null
-> **External signal:** `08-SHARED-ASSETS.md` row 1 explicitly flags "DUPLICATED — extract candidate (built 2×;
-> extract at 3rd app **or now if churn has stopped**)". Churn check: both `todo` and `yakudoku/web` have had
-> stable MCP OAuth since 2026-06-13 with no changes. Code is near-identical across repos (auth 38≈39, oauth
-> 86≈89, token 63≈67, authorize 124≈129, register 32=32 lines). Security-sensitive glue — a shared package
-> means one audit covers all consumers and prevents drift. Gate question: has churn truly stopped, or is
-> `journal` likely to need MCP soon (which would be the third consumer and the natural extraction trigger)?
-
----
-
 ### idea-0014 — NUC volume backup strategy (ops data-safety)
-state: inbox · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18
-gate: null · moscow: null · proposal: null · outcome: null
+state: active · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18 · updated: 2026-06-19
+gate: pass · moscow: must · reach: 3 impact: 3 confidence: 0.9 effort: 3 · base: 2.7 · interest: n/a (wildcard — base only) · **rank: 2.7**
+proposal: null · outcome: null
 > **External signal (INVENTORY §2 gap):** `INVENTORY §1` documents 6 named data volumes (`todo_data`,
 > `journal_db`, `yakudoku_data`, `n8n_data`, `authentik_database`, `authentik_media`) on a single self-hosted
 > machine. `INVENTORY §2` has **no backup component** — no backup mechanism is documented anywhere in the
@@ -74,6 +63,9 @@ gate: null · moscow: null · proposal: null · outcome: null
 > — a cron task on the NUC, no new service needed.
 > **Exploration-floor WILDCARD** for the 2026-06-18 sort (ops data-safety, orthogonal to prior accepts which
 > are all autonomy/knowledge-OS/testing).
+> **Gated in 2026-06-19** (supervisor accept): data-loss prevention is the highest real risk in the queue; fits
+> "extend existing infra" (cron/Task-Scheduler + Restic, no new service). NEXT: write a proposal (backup target +
+> credential handling + restore test — the proposal owns the real rigor, not this rank hint).
 
 ---
 
@@ -169,6 +161,18 @@ outcome: **accept** — supervisor took full scope (B4a+B4b) 2026-06-14; B4b's `
 ---
 
 ## Deferred (someday/maybe — has a revisit trigger)
+
+### idea-0013 — Extract MCP OAuth shim to `@thiengthb/mcp-auth`
+state: deferred · source: agent (C3 gap-analysis 2026-06-18) · created: 2026-06-18 · updated: 2026-06-19 · revisit_when: journal (or any 3rd app) adds an MCP server — the rule-of-three extraction trigger
+gate: defer · moscow: could · interest: n/a
+> **External signal:** `08-SHARED-ASSETS.md` row 1 explicitly flags "DUPLICATED — extract candidate (built 2×;
+> extract at 3rd app **or now if churn has stopped**)". Churn check: both `todo` and `yakudoku/web` have had
+> stable MCP OAuth since 2026-06-13 with no changes. Code is near-identical across repos (auth 38≈39, oauth
+> 86≈89, token 63≈67, authorize 124≈129, register 32=32 lines). Security-sensitive glue — a shared package
+> means one audit covers all consumers and prevents drift.
+> **Deferred 2026-06-19** (supervisor): only 2 stable consumers → extracting now is premature coupling (rule of
+> three); the security "one audit covers all" pull doesn't override until the 3rd consumer (journal MCP) makes it
+> concrete. Revisit at that trigger.
 
 ### idea-0002 — RAG/vector memory MIGRATION (pgvector — build at volume trigger)
 state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: corpus crosses ~200K tokens / ~150 files (RAG-threshold research)
