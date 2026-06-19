@@ -42,9 +42,10 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     last /idea sort: 2026-06-18 (C3 autonomous gap-analysis). 2 new inbox proposals: idea-0013 (MCP OAuth
-     shim extraction, catalog extract-candidate signal) + idea-0014 (NUC volume backup, INVENTORY §2 gap,
-     exploration-floor WILDCARD). Awaiting supervisor gate. idea-0012 done (graduated 2026-06-17). -->
+     last /idea sort: 2026-06-19 (C3 autonomous gap-analysis). No new proposals — 2 inbox ideas
+     (idea-0013, idea-0014) still awaiting supervisor gate; no new externally-grounded gaps found.
+     interest re-derived: idea-0005 stays 0.4 (no new signals). Wildcard: idea-0014 (ops/data-safety).
+     idea-0012 done (graduated 2026-06-17 → build plan). -->
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
