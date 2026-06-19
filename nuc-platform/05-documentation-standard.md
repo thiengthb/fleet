@@ -197,6 +197,22 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
 - **`/nuc-new-project`**: a newly created project has already run `/project-docs scaffold` → born-documented.
 - **`/nuc-health-audit`**: checks that every project in §0 has the full doc-set per the §3 table (platform-level drift).
 
+### 7.1 Skill structure — SKILL.md = procedure, references/<domain>.md = LAW
+
+A heavy skill auto-loads on every match of its `description` trigger, so the body cost is paid each time. To keep that
+cost bounded:
+
+- **`SKILL.md`** holds the **procedure** (numbered workflow + done-when checklist) and trigger metadata only.
+- **`references/<domain>.md`** holds **LAW**: declarative `IF <condition> → <action>` bullets or tight tables — no
+  prose. Each file is loaded on demand from the procedure step that needs it.
+- **Mandatory split:** if a skill body contains ≥ 3 sections that are pure declarative rules (naming tables, bans,
+  "must use X" lists, if/then policies), those sections MUST be split into `references/`. Codified in
+  `/skill-authoring`; template at `.claude/skills/skill-authoring/templates/reference-rule.md`.
+- Living examples:
+  `coding-convention/references/{naming,git-commit,typescript-style,ui-rules,react-rules,backend-rules}.md`,
+  `react-ui-craft/references/{architecture,components,motion,ux,security}.md`.
+- Measure: report SKILL.md bytes before/after on every refactor; target ≥ 40 % drop on the auto-fire path.
+
 ---
 
 ## 8. Quick checklist when touching a project

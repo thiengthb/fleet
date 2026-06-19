@@ -49,14 +49,18 @@ project-lifecycle change; every add/remove-app skill MUST update it (anti-drift)
 
 ## Coding — skill `/coding-convention` (MANDATORY before writing/editing code or committing)
 
-Core rules (full checklist in the skill):
-- **Conventional Commits in English** (`feat(scope): …`); commit/push only when the user asks.
-- **Naming:** dirs/files kebab-case · React components PascalCase (named export, `<Name>Props`) · funcs/vars camelCase ·
-  types PascalCase · constants/env UPPER_SNAKE · DB columns/API fields snake_case. **ESM, Node ≥ 22.**
-- **Format = Prettier** (`semi:true`, singleQuote, printWidth 100, tabWidth 2, trailingComma all) from the skill's
-  `templates/`; run `prettier --write` before committing.
-- **Install the `commit-msg` + `pre-commit` hooks** from the skill's `hooks/` at repo-init (commit-msg enforces
-  Conventional Commits + lowercase description; pre-commit reminds to update docs).
+Procedure + checklist live in `/coding-convention/SKILL.md`. The actual rules load on demand from
+`coding-convention/references/<domain>.md` — pull only the file the task touches:
+
+- naming / general style (`const`/`===`/early return) → `references/naming.md`
+- commit message + branch + hook setup → `references/git-commit.md`
+- TS / JS, Prettier, lint/build gate → `references/typescript-style.md`
+- mandatory frontend stack + 5 UI rules → `references/ui-rules.md`
+- React component / hook / state / server-vs-client → `references/react-rules.md`
+- server action / route handler / Prisma / health endpoint → `references/backend-rules.md`
+
+Hard invariants (SKILL only loads procedure): English Conventional Commits + `commit-msg` / `pre-commit` hooks installed
+at repo-init; ESM + Node ≥ 22; Prettier from the skill's `templates/`; never commit/push unless asked.
 
 ## Frontend — skill `/react-ui-craft` (MANDATORY for any React/Next UI)
 
