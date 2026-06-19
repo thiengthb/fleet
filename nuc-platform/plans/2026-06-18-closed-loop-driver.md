@@ -1,7 +1,7 @@
 ---
 title: Closed-loop driver — chain the verified autonomy pieces into one self-perpetuating, Discord-supervised cycle
 kind: system-change # REQUIRES prior art before `active`
-status: active # accepted by supervisor 2026-06-18 — Phases 1+2 COMPLETE (Phase 1 RUNTIME-verified); Phase 3 next
+status: active # 2026-06-19 — Phases 1+2 COMPLETE; S3.3 enrol round-trip PROVEN LIVE via Discord; S3.1/S3.2/S3.4 remain
 created: 2026-06-18
 updated: 2026-06-19 # Phases 1+2 COMPLETE. Phase 1 graduation+enrol RUNTIME-verified by a LIVE local smoke test (sonnet worker graduated synthetic idea-9999 → correct draft plan [draft/auto_pilot:false/enrol:pending], no spurious Q&A; enrol batch minted an ask + PARKED, plan NOT armed without a signed answer). The smoke test caught + fixed a real bug: Test-HasUngraduatedAccept matched the Rules-prose `## Done` substring → graduation never fired (commit 1dd928c; vindicates ledger #71 wiring≠runtime). Still open: Phase 2 reflect batch not yet runtime-run; live DISCORD round-trip (gate-clone) + branch-state coherence unproven (S3.x); enrol-arming hook-hardening proposed (proposals/2026-06-19-…)
 related:
@@ -120,7 +120,8 @@ scope here, noted as a follow-up idea).
 
 - [ ] S3.1 — Wire the full cycle in `auto-pilot-scheduled.ps1`: advance plans → if idle, gap-analysis → on accepted idea, graduate (Phase 1) → on enrol, execute → auto-wrap (S2.1) → retro (S2.2) → re-rank + ask (S2.3) → exit. Bounded, fresh, budget-capped, retry cap = 3 then escalate to Discord · Files: propose diff (governance) · Test: AC-6/AC-7 (one full unattended cycle, Discord-only, no T4)
 - [ ] S3.2 — Watchdog: detect a stalled/no-progress cycle (gate approved but not crossed; same step twice) → escalate to Discord, never silently retry forever · Files: cycle logic · Test: AC-7 (stall is surfaced, not looped)
-- [ ] S3.3 — Live end-to-end demonstration the supervisor can WATCH: a real idea → Discord-accept → auto-plan (with a mid-plan question) → execute → wrap → retro → next-ask, captured in one transcript · Test: all ACs (the "I can finally see it run" milestone)
+- [~] S3.3 — Enrol round-trip PROVEN LIVE 2026-06-19 (the core HITL milestone). Provisioning was already in place (gate-clone → private `nuc-agent-gates`, bot `nuc-ops-bot` Up+healthy, polls every 25s). Ran a synthetic demo idea → graduation wrote a draft plan → enrol batch minted `ASK-enrol-b3e7d2` + pushed → bot posted the Discord card → supervisor clicked **enrol** → bot wrote the RS256-signed answer → `ask-cli check` verified it → next cycle ARMED the plan (`status: active` + `auto_pilot: true`, `enrol: pending` removed) + consumed the ask. Cleaned up (throwaway branches deleted, idea/plan/gates state cleared; authoritative dry-run confirms opted-in=0). **Still pending for full S3.3:** the planning-Q&A round-trip (demo idea had no ambiguity so S1.2's Discord ask path is wired-but-not-live-proven) and the single-transcript execute→wrap→retro→next-ask chain. · Test: AC-2/AC-3/AC-6 ✓ (enrol round-trip)
+- [ ] S3.4 (NEW, from S3.3 findings) — Reliability fixes the live demo surfaced: (a) `Invoke-GatePush` SILENTLY swallows a failed `git push` (`catch {}`) — the enrol ask was committed locally but the push failed once, so the ask never reached Discord until pushed by hand; a worker would then park forever. Surface/retry the push failure (ties to S3.2 watchdog). (b) `ask-cli`/`gate-cli` write under `~/.claude/agent-gates` even when it is not the synced clone — verify the push actually landed. · Files: `auto-pilot-scheduled.ps1` (gate-sync), `/auto-pilot`
 
 ### Phase 4 — Memory/harness redesign (DEFERRED — research-after, per user)
 
