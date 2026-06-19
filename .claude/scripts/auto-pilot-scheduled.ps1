@@ -167,6 +167,45 @@ exit `$LASTEXITCODE
     return $false
   }
 
+  # --- Retry-cap registry (S3.1): a batch that keeps FAILING (nonzero exit) must NOT re-fire forever ---
+  # Complements the watchdog: the watchdog catches GLOBAL no-progress; this caps a SINGLE target's consecutive failures.
+  # Per-target streak count persists in $LogDir/retry-state.json (machine-bound runtime state, like watchdog-state.json).
+  # On the $RetryCap-th consecutive nonzero exit, escalate ONCE to Discord and BLOCK that target (skip it) until a human
+  # intervenes - clearing the state file or fixing the cause; a clean (exit 0) run clears the streak. Other phases keep
+  # running (a blocked graduation does not stall plan-advance). A correctly-PARKED batch exits 0, so parking is not a
+  # failure (that case is the watchdog's, not the retry-cap's).
+  $RetryState = Join-Path $LogDir 'retry-state.json'
+  $RetryCap = 3
+  function Read-RetryMap {
+    $h = @{}
+    if (Test-Path -LiteralPath $RetryState) {
+      try { $o = Get-Content -LiteralPath $RetryState -Raw | ConvertFrom-Json; if ($o) { $o.PSObject.Properties | ForEach-Object { $h[$_.Name] = [int]$_.Value } } } catch {}
+    }
+    return $h
+  }
+  function Test-RetryBlocked([string] $key) { return ([int](Read-RetryMap)[$key]) -ge $RetryCap }
+  function Set-RetryOutcome([string] $key, [int] $exitCode, [string] $label) {
+    $h = Read-RetryMap
+    if ($exitCode -eq 0) {
+      if ($h.ContainsKey($key)) { $h.Remove($key) }  # a clean run clears the streak
+    }
+    else {
+      $n = ([int]$h[$key]) + 1
+      $h[$key] = $n
+      if ($n -eq $RetryCap) {
+        $msg = "RETRY-CAP: the '$label' batch failed $n times in a row (nonzero exit). The loop will STOP re-firing it until you intervene - check the latest transcript, then clear '$RetryState' or fix the cause. Other phases keep running."
+        try {
+          node .claude/scripts/ask-cli.mjs report $msg | Out-Null
+          if (Invoke-GatePush) { Write-Host "[scheduled] retry-cap: escalated '$label' to Discord after $n consecutive failures (now blocked until a human clears it)." }
+          else { Write-Host "[scheduled] retry-cap: '$label' hit the cap but the Discord publish push failed - will retry the publish next cycle." }
+        }
+        catch { Write-Host "[scheduled] retry-cap: escalation error: $_" }
+      }
+      else { Write-Host "[scheduled] retry-cap: '$label' failure $n/$RetryCap (will retry next cycle)." }
+    }
+    ($h | ConvertTo-Json -Compress) | Set-Content -LiteralPath $RetryState -Encoding ascii
+  }
+
   # Phase 1 idea->plan bridge trigger (CHEAP over-approximation; the graduation batch is the real judge). "An accepted
   # idea awaits graduation" = a block ABOVE the `## Done` divider with a STRUCTURED outcome field set to accept (a
   # graduated idea is MOVED under `## Done`, so anything still above it with an accept verdict has no plan yet). The
@@ -231,6 +270,11 @@ exit `$LASTEXITCODE
   Write-Host "[scheduled] opted-in active plans: $($plans.Count)"
   foreach ($p in $plans) {
     $rel = (Resolve-Path -LiteralPath $p -Relative)
+    $rk = "advance:$rel"
+    if (-not $DryRun -and (Test-RetryBlocked $rk)) {
+      Write-Host "[scheduled] --- plan SKIPPED (retry-cap: '$rel' failed ${RetryCap}x in a row, blocked until a human clears it): $rel"
+      continue
+    }
     Write-Host "[scheduled] --- advancing plan: $rel"
     $psArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $orchestrator, '-Plan', $rel, '-MaxBatches', "$MaxBatches", '-Model', $Model)
     if ($DryRun) { $psArgs += '-DryRun' }
@@ -238,6 +282,7 @@ exit `$LASTEXITCODE
     # Scheduler context and (b) its $ErrorActionPreference='Stop' / any throw cannot abort this wrapper.
     $rc = Invoke-ConsoleChild -FilePath 'powershell.exe' -ArgumentList $psArgs
     Write-Host "[scheduled] plan run exit: $rc"
+    if (-not $DryRun) { Set-RetryOutcome $rk $rc "advance $rel" }
   }
 
   # --- 1b) Phase 1 idea->plan bridge: graduate an accepted-but-ungraduated idea into a DRAFT plan (S1.1) ---
@@ -262,14 +307,18 @@ exit `$LASTEXITCODE
   elseif ($DryRun) {
     Write-Host '[scheduled][dry-run] graduation WOULD run: an accepted idea has no plan -> write a DRAFT plan (status: draft, auto_pilot: false), park for the enrol gate.'
   }
+  elseif (Test-RetryBlocked 'graduate') {
+    Write-Host "[scheduled] graduation SKIPPED (retry-cap: failed ${RetryCap}x in a row, blocked until a human clears '$RetryState')."
+  }
   else {
     Write-Host '[scheduled] graduation: an accepted idea has no plan - running one bounded graduation batch (draft plan only, NO enrol).'
     Invoke-GatePull  # fetch any planning answer the bot wrote since the last cycle (S1.2 resume path)
     try {
       $rc = Invoke-AutonomousClaude -Prompt $graduatePrompt -Tag 'graduate'
       Write-Host "[scheduled] graduation claude exit: $rc"
+      Set-RetryOutcome 'graduate' $rc 'graduation'
     }
-    catch { Write-Host "[scheduled] graduation error: $_" }
+    catch { Write-Host "[scheduled] graduation error: $_"; Set-RetryOutcome 'graduate' 1 'graduation' }
     $null = Invoke-GatePush  # publish any planning question/digest the batch minted (S1.2 ask path); warns loudly on failure
   }
 
@@ -295,14 +344,18 @@ exit `$LASTEXITCODE
   elseif ($DryRun) {
     Write-Host '[scheduled][dry-run] enrol gate WOULD run: a framed draft plan is marked enrol: pending -> ask the supervisor (enrol|not yet|reject) via Discord.'
   }
+  elseif (Test-RetryBlocked 'enrol') {
+    Write-Host "[scheduled] enrol gate SKIPPED (retry-cap: failed ${RetryCap}x in a row, blocked until a human clears '$RetryState')."
+  }
   else {
     Write-Host '[scheduled] enrol gate: a framed draft plan awaits arming - running one bounded enrol batch (asks Discord; applies only a signed answer).'
     Invoke-GatePull
     try {
       $rc = Invoke-AutonomousClaude -Prompt $enrolPrompt -Tag 'enrol'
       Write-Host "[scheduled] enrol claude exit: $rc"
+      Set-RetryOutcome 'enrol' $rc 'enrol gate'
     }
-    catch { Write-Host "[scheduled] enrol error: $_" }
+    catch { Write-Host "[scheduled] enrol error: $_"; Set-RetryOutcome 'enrol' 1 'enrol gate' }
     $null = Invoke-GatePush
   }
 
@@ -379,14 +432,18 @@ Commit any decisions.md / ledger / idea-queue changes locally on the current bra
   elseif ($DryRun) {
     Write-Host '[scheduled][dry-run] reflection WOULD run: session-wrap (distil non-obvious) + retro (external-signal-grounded) + /idea sort + one Discord digest with the next-action.'
   }
+  elseif (Test-RetryBlocked 'reflect') {
+    Write-Host "[scheduled] reflection SKIPPED (retry-cap: failed ${RetryCap}x in a row, blocked until a human clears '$RetryState')."
+  }
   else {
     Write-Host '[scheduled] reflection: cycle did work - running one bounded wrap+retro+surface batch (externally grounded).'
     Invoke-GatePull
     try {
       $rc = Invoke-AutonomousClaude -Prompt $reflectPrompt -Tag 'reflect'
       Write-Host "[scheduled] reflection claude exit: $rc"
+      Set-RetryOutcome 'reflect' $rc 'reflection'
     }
-    catch { Write-Host "[scheduled] reflection error: $_" }
+    catch { Write-Host "[scheduled] reflection error: $_"; Set-RetryOutcome 'reflect' 1 'reflection' }
     $null = Invoke-GatePush
   }
 
