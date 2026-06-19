@@ -1,7 +1,7 @@
-// Exhaustive e2e test for the PROPOSED autonomy-gate.mjs (plan B4b.2).
+// Exhaustive e2e test for autonomy-gate.mjs (B4b + S1.3 enrol-gate hardening).
 // Spawns the hook as a subprocess with CLAUDE_AUTONOMOUS=1, a stdin payload, and gate-state files in a temp dir;
 // asserts exit code (0 = allow, 2 = block). Signing here STANDS IN for the Discord bot (sole holder of the priv key).
-// Run: node nuc-platform/plans/b4b-sandbox/hooks/autonomy-gate.test.mjs
+// Run: node .claude/hooks/autonomy-gate.test.mjs
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -76,6 +76,44 @@ function runWrite(filePath, env = {}) {
   return res.status;
 }
 
+// ---- S1.3 enrol-gate helpers: sign an ANSWER token (kind:'answer') + a current-ask env ----
+const ASK_ID = 'ASK-enrol-ab12cd';
+function mintAnswer(over = {}, key = privateKey) {
+  const payload = { kind: 'answer', ask_id: ASK_ID, answer: 'enrol', iat: nowSec - 10, exp: nowSec + 900, jti: 'ans-' + Math.abs(over.jtiSeed ?? 1), ...over };
+  delete payload.jtiSeed;
+  const b64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = sign('RSA-SHA256', Buffer.from(b64, 'ascii'), key).toString('base64url');
+  return `${b64}.${sig}`;
+}
+function setupAskEnv({ token, askId = ASK_ID, writePubkey = true, writeState = true, writeAnswer = true, nonceJtis = [] } = {}) {
+  const dir = mkdtempSync(join(tmpdir(), 'ask-e2e-'));
+  const pub = join(dir, 'pub.pem');
+  const askState = join(dir, 'current-ask.json');
+  const repoDir = join(dir, 'agent-gates');
+  const ansDir = join(repoDir, 'answers');
+  const nonce = join(dir, 'nonce.json');
+  mkdirSync(ansDir, { recursive: true });
+  if (writePubkey) writeFileSync(pub, publicKey);
+  if (writeState) writeFileSync(askState, JSON.stringify({ ask_id: askId }));
+  if (writeAnswer && token) writeFileSync(join(ansDir, `${askId}.json`), JSON.stringify({ token }));
+  if (nonceJtis.length) writeFileSync(nonce, JSON.stringify(Object.fromEntries(nonceJtis.map((j) => [j, nowSec + 900]))));
+  return { _dir: dir, GATE_PUBKEY_FILE: pub, ASK_STATE_FILE: askState, GATE_REPO_DIR: repoDir, GATE_NONCE_FILE: nonce };
+}
+function runWriteContent(filePath, content, env = {}) {
+  const base = { ...process.env, CLAUDE_AUTONOMOUS: '1' };
+  const { _dir, ...envVars } = env;
+  const res = spawnSync(process.execPath, [HOOK], {
+    input: JSON.stringify({ tool_name: 'Write', tool_input: { file_path: filePath, content } }),
+    env: { ...base, ...envVars },
+    encoding: 'utf8',
+  });
+  if (_dir) rmSync(_dir, { recursive: true, force: true });
+  return res.status;
+}
+const PLAN = 'nuc-platform/plans/2026-06-19-demo.md';
+const ARM = '---\nstatus: active\nauto_pilot: true\nenrol: pending\n---\n# demo\n';
+const NOARM = '---\nstatus: draft\nauto_pilot: false\n---\n# demo\n';
+
 const ALLOW = 0;
 const BLOCK = 2;
 let pass = 0;
@@ -139,6 +177,28 @@ check('autonomous: safe local commit → ALLOW', () =>
   assert.equal(runGate('git commit -m "wip"', setupEnv({ token: mint() })), ALLOW));
 check('INTERACTIVE (marker unset): git push origin main → ALLOW (gate stands down)', () =>
   assert.equal(runGate('git push origin main', {}, { autonomous: false }), ALLOW));
+
+// --- S1.3 enrol gate: arming a plan (auto_pilot: true) requires a SIGNED enrol answer ---
+check('arm plan WITH valid signed enrol answer → ALLOW', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ token: mintAnswer() })), ALLOW));
+check('arm plan with NO enrol answer → BLOCK (self-arm prevented)', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ writeAnswer: false })), BLOCK));
+check('arm plan with "reject" enrol answer → BLOCK', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ token: mintAnswer({ answer: 'reject', jtiSeed: 2 }) })), BLOCK));
+check('arm plan with "not yet" enrol answer → BLOCK', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ token: mintAnswer({ answer: 'not yet', jtiSeed: 3 }) })), BLOCK));
+check('arm plan with EXPIRED enrol answer → BLOCK', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ token: mintAnswer({ exp: nowSec - 1, jtiSeed: 4 }) })), BLOCK));
+check('arm plan whose current ask is NOT an enrol ask → BLOCK', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ askId: 'ASK-other-zz99', token: mintAnswer({ ask_id: 'ASK-other-zz99', jtiSeed: 5 }) })), BLOCK));
+check('arm plan with replayed enrol jti → BLOCK', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ token: mintAnswer({ jti: 'ans-used' }), nonceJtis: ['ans-used'] })), BLOCK));
+check('arm plan with an APPROVE (gate) token mis-used as an answer → BLOCK (kind!=answer)', () =>
+  assert.equal(runWriteContent(PLAN, ARM, setupAskEnv({ token: mint({ jtiSeed: 7 }) })), BLOCK));
+check('write plan WITHOUT auto_pilot:true (no enrol answer) → ALLOW', () =>
+  assert.equal(runWriteContent(PLAN, NOARM, setupAskEnv({ writeAnswer: false })), ALLOW));
+check('write auto_pilot:true to a NON-plan file → ALLOW (enrol gate scoped to plans)', () =>
+  assert.equal(runWriteContent('nuc-platform/docs/x.md', ARM, setupAskEnv({ writeAnswer: false })), ALLOW));
 
 let failed = 0;
 for (const c of cases) {

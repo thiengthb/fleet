@@ -13,6 +13,11 @@
 // NONE of T4 (push main / deploy / destroy / governance edits), is ever unlockable by any token.
 // Default-deny + fail-closed: any missing file / bad signature / metacharacter / mismatch ⇒ block.
 //
+// Enrol gate (S1.3 hardening): arming a plan for unattended execution — writing `auto_pilot: true`
+// into a nuc-platform/plans/*.md file — is gate-ENFORCED, not merely prompt-promised. A buggy /
+// confused / prompt-injected worker may NOT self-arm; the write is allowed iff a valid, signed,
+// unconsumed ENROL answer (text 'enrol'/'yes') from the supervisor currently authorizes it.
+//
 // Modes:
 //   - Interactive / supervised (marker UNSET): exit 0 — the human + Claude Code's own permission
 //     prompts are the gate; this hook stands down so it never disrupts hands-on work.
@@ -26,6 +31,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { readPayload } from './_util.mjs';
 import { verifyGateToken, loadConsumedJtis } from '../scripts/gate-verify.mjs';
+import { verifyAnswerToken } from '../scripts/gate-answer.mjs';
 
 const AUTONOMOUS = process.env.CLAUDE_AUTONOMOUS === '1';
 
@@ -48,6 +54,9 @@ const STATE_FILE = process.env.GATE_STATE_FILE || join(HOME, '.claude', 'state',
 const TOKEN_DIR = process.env.GATE_TOKEN_DIR || join(HOME, '.claude', 'agent-gates', 'gates');
 const PUBKEY_FILE = process.env.GATE_PUBKEY_FILE || join(process.cwd(), '.claude', 'keys', 'gate-approval.pub.pem');
 const NONCE_FILE = process.env.GATE_NONCE_FILE || join(HOME, '.claude', 'agent-gate-nonces.json');
+// Enrol-answer plumbing (mirrors ask-cli.mjs; shares the pinned key + consumed-jti store).
+const ASK_STATE_FILE = process.env.ASK_STATE_FILE || join(HOME, '.claude', 'state', 'current-ask.json');
+const ASK_REPO_DIR = process.env.GATE_REPO_DIR || join(HOME, '.claude', 'agent-gates');
 
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 
@@ -87,6 +96,44 @@ function gateApproves(cmd, kind) {
   }
 }
 
+// A write "introduces auto_pilot: true" iff its new content carries a frontmatter line `auto_pilot: true`.
+// [^\S\n]* = same-line whitespace only (never matches across lines). Checks the field actually written by each tool.
+const AUTO_PILOT_TRUE = /^[^\S\n]*auto_pilot:[^\S\n]*true\b/im;
+function introducesAutoPilotTrue(tool, input) {
+  if (tool === 'Write') return AUTO_PILOT_TRUE.test(String(input.content || ''));
+  if (tool === 'Edit') return AUTO_PILOT_TRUE.test(String(input.new_string || ''));
+  if (tool === 'MultiEdit')
+    return Array.isArray(input.edits) && input.edits.some((e) => AUTO_PILOT_TRUE.test(String(e?.new_string || '')));
+  return false;
+}
+
+// Returns { ok:true } ONLY if a valid, fresh, unconsumed ENROL answer currently authorizes arming a plan.
+// The answer must (a) belong to an ASK-enrol-* ask, (b) verify (signature, ask_id, exp, jti) against the pinned
+// key, and (c) say 'enrol'/'yes' — the same affirmative the enrol worker arms on. Fail-closed throughout.
+function enrolAuthorizes() {
+  try {
+    if (!existsSync(ASK_STATE_FILE)) return { ok: false, reason: 'no current-ask state' };
+    const askId = readJson(ASK_STATE_FILE)?.ask_id;
+    if (typeof askId !== 'string' || !askId) return { ok: false, reason: 'current ask has no ask_id' };
+    if (!/^ask-enrol-/i.test(askId)) return { ok: false, reason: `current ask '${askId}' is not an enrol ask` };
+    const ansPath = join(ASK_REPO_DIR, 'answers', `${askId}.json`);
+    if (!existsSync(ansPath)) return { ok: false, reason: 'no signed enrol answer yet' };
+    const token = readJson(ansPath)?.token;
+    if (typeof token !== 'string' || !token) return { ok: false, reason: 'enrol answer file malformed' };
+    if (!existsSync(PUBKEY_FILE)) return { ok: false, reason: 'approval public key missing' };
+    const publicKeyPem = readFileSync(PUBKEY_FILE, 'utf8');
+    const nowSec = Math.floor(Date.now() / 1000);
+    const { set: consumedJtis } = loadConsumedJtis(NONCE_FILE, nowSec);
+    const r = verifyAnswerToken({ token, publicKeyPem, expectedAskId: askId, nowSec, consumedJtis });
+    if (!r.ok) return { ok: false, reason: r.reason };
+    const ans = String(r.answer || '').trim().toLowerCase();
+    if (!/^(enrol|yes)\b/.test(ans)) return { ok: false, reason: `enrol answer is '${ans}', not an affirmative` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: 'enrol-gate error (fail-closed): ' + (e?.message || e) };
+  }
+}
+
 try {
   const payload = await readPayload();
   const tool = payload.tool_name || '';
@@ -115,6 +162,22 @@ try {
         );
       }
     }
+
+    // ---- Enrol gate: arming a plan (auto_pilot: true) is gate-enforced, not prompt-promised (S1.3 hardening). ----
+    // A buggy/confused/prompt-injected worker must not self-arm a plan for unattended execution without a SIGNED
+    // enrol answer. Residual gap (documented): a raw Bash redirection writing auto_pilot:true into a plan is NOT
+    // caught here — Edit/Write is the worker's normal write path; a bash-write would need its own gate if it ever
+    // becomes a vector. Fail-closed: no valid enrol answer ⇒ block (safe — the worker just stays parked).
+    if (/nuc-platform\/plans\/[^/]*\.md$/.test(fp) && introducesAutoPilotTrue(tool, input)) {
+      const v = enrolAuthorizes();
+      if (!v.ok) {
+        block(
+          `arming a plan (auto_pilot: true in ${input.file_path}) — ${v.reason}. A plan may be armed for unattended ` +
+            `execution ONLY after a valid, signed ENROL answer from the supervisor (Discord). PARK and await it.`,
+        );
+      }
+    }
+
     process.exit(0); // any other file (branch code, docs, plans, tests) is safe-zone T1/T2
   }
 
