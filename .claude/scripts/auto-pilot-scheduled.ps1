@@ -128,16 +128,27 @@ exit `$LASTEXITCODE
   $GateRepoDir = if ($env:GATE_REPO_DIR) { $env:GATE_REPO_DIR } else { Join-Path $HOME '.claude/agent-gates' }
   function Test-GateRepo { Test-Path -LiteralPath (Join-Path $GateRepoDir '.git') }
   function Invoke-GatePull { if (Test-GateRepo) { try { git -C $GateRepoDir pull --quiet --ff-only | Out-Null } catch {} } }
+  # S3.4 reliability: git push FAILS WITHOUT THROWING in PowerShell (it sets $LASTEXITCODE, no exception) - so the old
+  # blanket `catch {}` never caught a failed push: a minted ask/report committed locally but NEVER reached the remote,
+  # and a worker parks forever waiting for an answer that was never published (S3.3 live demo: pushed by hand). Fix:
+  # check $LASTEXITCODE explicitly, retry ONCE after a `pull --ff-only` (the common non-fast-forward case where the bot
+  # pushed an answer concurrently), and on final failure emit a LOUD warning instead of swallowing it. Returns $true on
+  # success or no-op, $false on a real push failure (callers surface it; the local commit is preserved for next cycle).
   function Invoke-GatePush {
-    if (-not (Test-GateRepo)) { return }
-    try {
-      $dirty = git -C $GateRepoDir status --porcelain
-      if ($dirty) {
-        git -C $GateRepoDir add -A | Out-Null
-        git -C $GateRepoDir commit -q -m 'gate: agent graduation ask/report' | Out-Null
-        git -C $GateRepoDir push -q | Out-Null
-      }
-    } catch {}
+    if (-not (Test-GateRepo)) { return $true }
+    $dirty = git -C $GateRepoDir status --porcelain
+    if (-not $dirty) { return $true }
+    git -C $GateRepoDir add -A | Out-Null
+    git -C $GateRepoDir commit -q -m 'gate: agent ask/report' | Out-Null
+    git -C $GateRepoDir push -q 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) { return $true }
+    # likely a non-fast-forward (bot wrote concurrently): rebase on the remote and retry once.
+    Write-Host '[scheduled] gate push failed once - pulling --ff-only and retrying.'
+    git -C $GateRepoDir pull --quiet --ff-only 2>&1 | Out-Null
+    git -C $GateRepoDir push -q 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) { return $true }
+    Write-Host '[scheduled] WARNING: gate push FAILED (retry exhausted) - the ask/report is committed LOCALLY but did NOT reach the gates remote, so the supervisor will NOT see it this cycle. Check the gates clone auth/network; next cycle will retry the push.'
+    return $false
   }
 
   # Phase 1 idea->plan bridge trigger (CHEAP over-approximation; the graduation batch is the real judge). "An accepted
@@ -243,7 +254,7 @@ exit `$LASTEXITCODE
       Write-Host "[scheduled] graduation claude exit: $rc"
     }
     catch { Write-Host "[scheduled] graduation error: $_" }
-    Invoke-GatePush  # publish any planning question/digest the batch minted (S1.2 ask path)
+    $null = Invoke-GatePush  # publish any planning question/digest the batch minted (S1.2 ask path); warns loudly on failure
   }
 
   # --- 1c) Phase 1 enrol gate (S1.3): ask the supervisor to ARM a framed draft plan for unattended execution ---
@@ -276,7 +287,7 @@ exit `$LASTEXITCODE
       Write-Host "[scheduled] enrol claude exit: $rc"
     }
     catch { Write-Host "[scheduled] enrol error: $_" }
-    Invoke-GatePush
+    $null = Invoke-GatePush
   }
 
   # --- 2) C3 self-sourcing proposer: ONLY when no actionable plan work remains, once/day, propose-only ---
@@ -360,7 +371,7 @@ Commit any decisions.md / ledger / idea-queue changes locally on the current bra
       Write-Host "[scheduled] reflection claude exit: $rc"
     }
     catch { Write-Host "[scheduled] reflection error: $_" }
-    Invoke-GatePush
+    $null = Invoke-GatePush
   }
 
   Write-Host "[scheduled] done $(Get-Date -Format o)  transcript=$transcript"
