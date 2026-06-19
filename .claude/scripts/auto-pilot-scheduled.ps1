@@ -135,17 +135,33 @@ exit `$LASTEXITCODE
   # pushed an answer concurrently), and on final failure emit a LOUD warning instead of swallowing it. Returns $true on
   # success or no-op, $false on a real push failure (callers surface it; the local commit is preserved for next cycle).
   function Invoke-GatePush {
-    if (-not (Test-GateRepo)) { return $true }
+    if (-not (Test-GateRepo)) {
+      # S3.4(b): GATE_REPO_DIR is NOT a git clone. If the dir is simply absent, the feature isn't provisioned -> silent
+      # no-op is correct. But if it EXISTS and already holds pending asks/reports, those can NEVER reach Discord (no
+      # remote to push to) - a worker would park forever waiting on an answer that was never published. Warn loudly.
+      if (Test-Path -LiteralPath $GateRepoDir) {
+        $pending = @(Get-ChildItem -LiteralPath $GateRepoDir -Recurse -File -Filter '*.json' -ErrorAction SilentlyContinue |
+                     Where-Object { $_.DirectoryName -match '[\\/](asks|reports)$' })
+        if ($pending.Count -gt 0) {
+          Write-Host "[scheduled] WARNING: $($pending.Count) ask/report file(s) are staged under '$GateRepoDir' but it is NOT a git clone (.git missing) - they CANNOT reach Discord. Provision the gates clone (git remote) so asks/reports publish."
+          return $false
+        }
+      }
+      return $true
+    }
     $dirty = git -C $GateRepoDir status --porcelain
     if (-not $dirty) { return $true }
     git -C $GateRepoDir add -A | Out-Null
     git -C $GateRepoDir commit -q -m 'gate: agent ask/report' | Out-Null
-    git -C $GateRepoDir push -q 2>&1 | Out-Null
+    # NOTE: no `2>&1` on the native git here - under Start-Transcript that turns benign git stderr into a terminating
+    # ErrorRecord (ledger #60). git push FAILS WITHOUT THROWING anyway, so we read $LASTEXITCODE; stderr flows to the
+    # transcript as readable text. (Old blanket `catch {}` never caught a failed push - it set $LASTEXITCODE, no throw.)
+    git -C $GateRepoDir push -q | Out-Null
     if ($LASTEXITCODE -eq 0) { return $true }
-    # likely a non-fast-forward (bot wrote concurrently): rebase on the remote and retry once.
+    # likely a non-fast-forward (the bot wrote an answer concurrently): rebase on the remote and retry ONCE.
     Write-Host '[scheduled] gate push failed once - pulling --ff-only and retrying.'
-    git -C $GateRepoDir pull --quiet --ff-only 2>&1 | Out-Null
-    git -C $GateRepoDir push -q 2>&1 | Out-Null
+    git -C $GateRepoDir pull --quiet --ff-only | Out-Null
+    git -C $GateRepoDir push -q | Out-Null
     if ($LASTEXITCODE -eq 0) { return $true }
     Write-Host '[scheduled] WARNING: gate push FAILED (retry exhausted) - the ask/report is committed LOCALLY but did NOT reach the gates remote, so the supervisor will NOT see it this cycle. Check the gates clone auth/network; next cycle will retry the push.'
     return $false
@@ -372,6 +388,80 @@ Commit any decisions.md / ledger / idea-queue changes locally on the current bra
     }
     catch { Write-Host "[scheduled] reflection error: $_" }
     $null = Invoke-GatePush
+  }
+
+  # --- 4) Watchdog (S3.2): catch a STALLED loop and escalate ONCE to Discord - never silently retry forever ---
+  # The loop must not spin invisibly. Progress is measured by a fingerprint = the multiset of ALL local branch tips (any
+  # new commit on any branch moves it). A cycle that DID work but moved no tip made no progress. We must NOT false-alarm
+  # on a cycle correctly PARKED on a human decision (an unanswered ask / an undecided gate) - that is expected waiting,
+  # and the supervisor was already pinged. Conversely, a human decision sitting UNCONSUMED (an answered ask / an APPROVED
+  # gate the worker never crossed) IS a stall (stronger signal). Escalate only after $StallThreshold consecutive
+  # no-progress, not-parked cycles, and only ONCE (an `escalated` flag) so it never spams. State persists in $LogDir
+  # (machine-bound runtime state, like last-propose.txt - NOT knowledge).
+  $WatchdogState = Join-Path $LogDir 'watchdog-state.json'
+  $StallThreshold = 2
+  if ($DryRun) {
+    Write-Host '[scheduled][dry-run] watchdog WOULD run: compare a branch-tip fingerprint + ask/gate state vs the prior cycle; on >=2 no-progress cycles (NOT parked on a human decision) escalate ONCE to Discord, then stop re-alerting.'
+  }
+  elseif (-not $didWork) {
+    Write-Host '[scheduled] watchdog: idle cycle (no work attempted) - nothing to watch.'
+  }
+  else {
+    $fingerprint = ((git -C $RepoRoot for-each-ref --format='%(objectname)' refs/heads) | Sort-Object) -join ','
+    $askStateFile  = Join-Path $HOME '.claude/state/current-ask.json'
+    $gateStateFile = Join-Path $HOME '.claude/state/current-gate.json'
+    $askPending  = Test-Path -LiteralPath $askStateFile
+    $gatePending = Test-Path -LiteralPath $gateStateFile
+    $askAnswer = ''; $gateDecision = ''
+    if ($askPending)  { try { $askAnswer    = ("$(node .claude/scripts/ask-cli.mjs check  | Select-Object -First 1)").Trim() } catch {} }
+    if ($gatePending) { try { $gateDecision = ("$(node .claude/scripts/gate-cli.mjs check | Select-Object -First 1)").Trim() } catch {} }
+    # human ACTED but the worker did not pick it up (answer/approval sitting unconsumed) = a real stall
+    $answeredNotConsumed = (($askPending -and $askAnswer -and $askAnswer -ne 'none') -or ($gatePending -and $gateDecision -eq 'approve'))
+    # correctly WAITING on an undecided human gate = expected, NOT a stall
+    $parkedAwaiting = (-not $answeredNotConsumed) -and ( `
+        ($askPending  -and ($askAnswer    -eq 'none' -or -not $askAnswer)) -or `
+        ($gatePending -and ($gateDecision -eq 'none' -or -not $gateDecision)) )
+
+    $prev = $null
+    if (Test-Path -LiteralPath $WatchdogState) { try { $prev = Get-Content -LiteralPath $WatchdogState -Raw | ConvertFrom-Json } catch {} }
+    $prevFp     = if ($prev) { [string]$prev.fingerprint } else { '' }
+    $prevStalls = if ($prev -and $prev.stalls) { [int]$prev.stalls } else { 0 }
+    $prevEsc    = if ($prev) { [bool]$prev.escalated } else { $false }
+
+    $madeProgress = ($fingerprint -ne $prevFp)
+    $healthy = (($madeProgress -or $parkedAwaiting) -and (-not $answeredNotConsumed))
+    $stalls    = if ($healthy) { 0 } else { $prevStalls + 1 }
+    $escalated = if ($healthy) { $false } else { $prevEsc }
+
+    if ($parkedAwaiting) {
+      Write-Host '[scheduled] watchdog: loop is correctly parked awaiting a human decision (ask/gate pending) - not a stall; counter reset.'
+    }
+    elseif ($healthy) {
+      Write-Host '[scheduled] watchdog: progress detected (a branch tip moved) - stall counter reset.'
+    }
+    else {
+      $why = if ($answeredNotConsumed) {
+        'a human decision is sitting UNCONSUMED (the worker did not pick up an answered ask / approved gate)'
+      } else {
+        'no new commit on any branch and the loop is NOT parked on a human gate (a stuck/looping worker or a failed publish)'
+      }
+      Write-Host "[scheduled] watchdog: NO-PROGRESS cycle ($stalls/$StallThreshold) - $why."
+      if ($stalls -ge $StallThreshold -and -not $escalated) {
+        $msg = "WATCHDOG: the auto-pilot loop has made no progress for $stalls consecutive cycles - $why. It will NOT keep retrying silently. Check the latest transcript and the gates clone; the loop likely needs a sharper plan step, a manual push, or your gate decision."
+        try {
+          node .claude/scripts/ask-cli.mjs report $msg | Out-Null
+          if (Invoke-GatePush) {
+            Write-Host '[scheduled] watchdog: escalated to Discord (one-shot) - escalated flag set so it will not spam.'
+            $escalated = $true
+          } else {
+            Write-Host '[scheduled] watchdog: escalation could NOT be published (gate push failed) - will retry next cycle (escalated flag NOT set).'
+          }
+        } catch { Write-Host "[scheduled] watchdog: escalation error: $_" }
+      }
+    }
+
+    $state = [ordered]@{ fingerprint = $fingerprint; stalls = $stalls; escalated = $escalated; updated = (Get-Date -Format o) } | ConvertTo-Json -Compress
+    Set-Content -LiteralPath $WatchdogState -Value $state -Encoding ascii
   }
 
   Write-Host "[scheduled] done $(Get-Date -Format o)  transcript=$transcript"
