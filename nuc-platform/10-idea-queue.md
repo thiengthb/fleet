@@ -50,9 +50,9 @@
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
 ### idea-0014 — NUC volume backup strategy (ops data-safety)
-state: active · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18 · updated: 2026-06-19
+state: proposed · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18 · updated: 2026-06-19
 gate: pass · moscow: must · reach: 3 impact: 3 confidence: 0.9 effort: 3 · base: 2.7 · interest: n/a (wildcard — base only) · **rank: 2.7**
-proposal: null · outcome: null
+proposal: nuc-platform/plans/2026-06-19-idea-0014-nuc-backup-proposal.md · outcome: null (awaiting supervisor accept → /project-plan)
 > **External signal (INVENTORY §2 gap):** `INVENTORY §1` documents 6 named data volumes (`todo_data`,
 > `journal_db`, `yakudoku_data`, `n8n_data`, `authentik_database`, `authentik_media`) on a single self-hosted
 > machine. `INVENTORY §2` has **no backup component** — no backup mechanism is documented anywhere in the
