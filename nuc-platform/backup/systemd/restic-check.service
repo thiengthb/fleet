@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly restic repository integrity check
+After=network-online.target
+Wants=network-online.target
+OnFailure=restic-notify-failure.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/restic/backup.env
+ExecStart=/usr/bin/restic check --read-data-subset=25%%

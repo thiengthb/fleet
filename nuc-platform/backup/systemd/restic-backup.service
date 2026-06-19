@@ -1,0 +1,13 @@
+[Unit]
+Description=NUC Docker volume backup (restic -> Backblaze B2)
+After=network-online.target docker.service
+Wants=network-online.target
+OnFailure=restic-notify-failure.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/restic/backup.env
+ExecStart=/usr/local/sbin/restic-backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
