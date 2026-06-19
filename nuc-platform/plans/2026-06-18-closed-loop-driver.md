@@ -125,7 +125,7 @@ scope here, noted as a follow-up idea).
 
 ### Phase 4 — Memory/harness redesign (DEFERRED — research-after, per user)
 
-- [ ] S4.* — VISION.md (separate from rules), automatic episodic compaction, routing/INDEX for on-demand loading, RAG/pgvector foundation. Cross-references `agent-os-evolution.md` Phase 4 + RAG. **Not started until Phases 0–3 ship**; the agent researches the design then proposes (research-before-design), human accepts.
+- [~] S4.* — VISION.md (separate from rules), automatic episodic compaction, routing/INDEX for on-demand loading, RAG/pgvector foundation. Cross-references `agent-os-evolution.md` Phase 4 + RAG. **OPENED 2026-06-19** — proposal scaffold `plans/2026-06-19-phase4-memory-harness-proposal.md` (foundation grounded in the 2026-06-14 research; the 3 NEW mechanisms are `research: PENDING`). Cloud one-off agent `trig_01NbfRyWaLHNmrUa1oK8w6g9` scheduled (2026-06-19T10:20Z) to fill the research → PR → `status: proposed` → human accept (research-before-design preserved).
 
 ## Out of scope
 
