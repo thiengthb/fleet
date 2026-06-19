@@ -1,0 +1,7 @@
+[Unit]
+Description=Notify Discord when a restic backup/check unit fails
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/restic/backup.env
+ExecStart=/usr/local/sbin/notify-failure.sh
