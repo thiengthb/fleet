@@ -1,9 +1,9 @@
 ---
 title: Closed-loop driver — chain the verified autonomy pieces into one self-perpetuating, Discord-supervised cycle
 kind: system-change # REQUIRES prior art before `active`
-status: active # accepted by supervisor 2026-06-18 — Phases 1+2 COMPLETE; Phase 3 (outer driver + watchdog + live demo) next
+status: active # accepted by supervisor 2026-06-18 — Phases 1+2 COMPLETE (Phase 1 RUNTIME-verified); Phase 3 next
 created: 2026-06-18
-updated: 2026-06-19 # Phases 1+2 COMPLETE (graduation, planning Q&A, enrol gate, auto-wrap+retro+surface — all wiring-verified). Phase 3 (S3.1 full-cycle order [already mostly wired], S3.2 watchdog, S3.3 LIVE e2e demo) next. Open: enrol-arming hook-hardening proposed (proposals/2026-06-19-…); branch-state coherence + live Discord round-trip still unproven (S3.x)
+updated: 2026-06-19 # Phases 1+2 COMPLETE. Phase 1 graduation+enrol RUNTIME-verified by a LIVE local smoke test (sonnet worker graduated synthetic idea-9999 → correct draft plan [draft/auto_pilot:false/enrol:pending], no spurious Q&A; enrol batch minted an ask + PARKED, plan NOT armed without a signed answer). The smoke test caught + fixed a real bug: Test-HasUngraduatedAccept matched the Rules-prose `## Done` substring → graduation never fired (commit 1dd928c; vindicates ledger #71 wiring≠runtime). Still open: Phase 2 reflect batch not yet runtime-run; live DISCORD round-trip (gate-clone) + branch-state coherence unproven (S3.x); enrol-arming hook-hardening proposed (proposals/2026-06-19-…)
 related:
   - nuc-platform/plans/2026-06-14-autonomous-agent.md # Layers A/B/C — governance + executor (done); this is the missing Layer-C outer driver
   - nuc-platform/plans/2026-06-14-agent-os-evolution.md # memory/interest/RAG infra that UNDERPINS this (not the loop itself)
