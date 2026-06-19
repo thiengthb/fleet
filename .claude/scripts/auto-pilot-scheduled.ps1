@@ -16,7 +16,10 @@
        `status: active` + `auto_pilot: true` (arming the plan for advancement); it NEVER self-arms without an answer.
     5. C3 self-sourcing: when NO actionable safe-zone plan work remains AND nothing is awaiting graduation, fires ONE
        bounded /idea gap-analysis batch (propose-only, <=2 externally-grounded inbox ideas, never builds), once/day.
-    6. Closes the transcript.
+    6. End-of-cycle reflection (Phase 2, S2.1-S2.3): when the cycle DID work, fires ONE bounded batch that session-wraps
+       (distil non-obvious decisions), runs an EXTERNALLY-grounded retro that files preventive follow-ups as propose-only
+       inbox ideas, re-sorts the queue, and pushes ONE Discord digest with the next-action. Idle cycles skip it.
+    7. Closes the transcript.
 
   Why a wrapper (not an edit to auto-pilot-run.ps1): keeps the verified orchestrator + autonomy-gate byte-identical
   (zero risk to a critical, hook-bearing file); plan-discovery, scheduling, logging and the GLOBAL gap-analysis pass are
@@ -27,13 +30,14 @@
   DPAPI-protected ~/.claude auth + gh/git credentials, so claude would fail silently (researched 2026-06-16). ASCII-only.
 
   Usage (manual test before scheduling): ./auto-pilot-scheduled.ps1 -DryRun
-                                         ./auto-pilot-scheduled.ps1 [-MaxBatches 6] [-Model sonnet] [-NoPropose] [-NoGraduate]
+                                         ./auto-pilot-scheduled.ps1 [-MaxBatches 6] [-Model sonnet] [-NoPropose] [-NoGraduate] [-NoReflect]
 #>
 param(
   [int] $MaxBatches = 6,
   [string] $Model = 'sonnet',
   [switch] $NoPropose,
   [switch] $NoGraduate,
+  [switch] $NoReflect,
   [switch] $DryRun
 )
 
@@ -324,6 +328,36 @@ exit `$LASTEXITCODE
       }
       catch { Write-Host "[scheduled] C3 gap-analysis error: $_" }
     }
+  }
+
+  # --- 3) Phase 2 end-of-cycle REFLECTION: session-wrap + retro->todo + surface-next (S2.1-S2.3) ---
+  # Runs ONCE per cycle, only when the cycle actually DID work (an opted-in plan existed, or graduation/enrol fired) -
+  # an idle cycle skips it (no churn). Grounds the retro in EXTERNAL signal only (git diff/log, test/lint/gate outcomes),
+  # never the agent's own opinion (the self-correction coherence trap). Ends with one Discord digest + a next-action.
+  $didWork = ($plans.Count -gt 0) -or $ungraduated -or $awaitingEnrol
+  $reflectPrompt = "The autonomous cycle just finished its work batches. Run the end-of-cycle REFLECTION (closed-loop Phase 2). Ground EVERY claim in EXTERNAL signal ONLY - git diff/log since the cycle started, test/lint/gate outcomes in the logs, and the plan files - NEVER grade your own reasoning (the self-correction coherence trap). Work in order:
+1. SESSION-WRAP (S2.1): follow the /session-wrap procedure for what changed this cycle. Distil any NON-OBVIOUS decision or pitfall from the cycle's commits up into the right decisions.md or nuc-platform/06-knowledge-ledger.md. The per-batch day-log digests are already written by /auto-pilot - do NOT duplicate them. If nothing non-obvious changed, record nothing (that is the normal, correct outcome).
+2. RETRO (S2.2): review this cycle's git diff and any test/lint/gate FAILURES in the logs. Summarise pros, cons, and bugs grounded ONLY in those signals. For each REAL preventive follow-up (a bug a test caught, a gap a diff revealed), file a propose-only inbox idea with the /idea add procedure - NEVER auto-accept, NEVER invent a follow-up from opinion. No externally-grounded follow-up -> file nothing.
+3. SURFACE NEXT (S2.3): run the /idea sort procedure (re-rank + at least one wildcard), then push ONE Discord digest with  node .claude/scripts/ask-cli.mjs report '<digest>'  stating, in plain language: what the cycle did, the current top idea candidate, and a single clear next-action for the supervisor.
+Commit any decisions.md / ledger / idea-queue changes locally on the current branch. Do NOT push, do NOT open a PR, do NOT build a plan step, do NOT set any idea outcome to accept."
+  if ($NoReflect) {
+    Write-Host '[scheduled] reflection disabled (-NoReflect).'
+  }
+  elseif (-not $didWork) {
+    Write-Host '[scheduled] idle cycle (no plan work, no graduation/enrol) - reflection skipped.'
+  }
+  elseif ($DryRun) {
+    Write-Host '[scheduled][dry-run] reflection WOULD run: session-wrap (distil non-obvious) + retro (external-signal-grounded) + /idea sort + one Discord digest with the next-action.'
+  }
+  else {
+    Write-Host '[scheduled] reflection: cycle did work - running one bounded wrap+retro+surface batch (externally grounded).'
+    Invoke-GatePull
+    try {
+      $rc = Invoke-AutonomousClaude -Prompt $reflectPrompt -Tag 'reflect'
+      Write-Host "[scheduled] reflection claude exit: $rc"
+    }
+    catch { Write-Host "[scheduled] reflection error: $_" }
+    Invoke-GatePush
   }
 
   Write-Host "[scheduled] done $(Get-Date -Format o)  transcript=$transcript"

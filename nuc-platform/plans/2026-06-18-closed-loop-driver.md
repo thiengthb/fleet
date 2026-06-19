@@ -1,9 +1,9 @@
 ---
 title: Closed-loop driver — chain the verified autonomy pieces into one self-perpetuating, Discord-supervised cycle
 kind: system-change # REQUIRES prior art before `active`
-status: active # accepted by supervisor 2026-06-18 — Phase 1 COMPLETE; Phase 2 next
+status: active # accepted by supervisor 2026-06-18 — Phases 1+2 COMPLETE; Phase 3 (outer driver + watchdog + live demo) next
 created: 2026-06-18
-updated: 2026-06-19 # Phase 1 COMPLETE (S1.1 graduation + S1.2 planning Q&A + S1.3 enrol gate, all verified); Phase 2 (auto-wrap + retro→todo) next. Hook-hardening for enrol arming proposed (proposals/2026-06-19-enrol-gate-hook-hardening.md)
+updated: 2026-06-19 # Phases 1+2 COMPLETE (graduation, planning Q&A, enrol gate, auto-wrap+retro+surface — all wiring-verified). Phase 3 (S3.1 full-cycle order [already mostly wired], S3.2 watchdog, S3.3 LIVE e2e demo) next. Open: enrol-arming hook-hardening proposed (proposals/2026-06-19-…); branch-state coherence + live Discord round-trip still unproven (S3.x)
 related:
   - nuc-platform/plans/2026-06-14-autonomous-agent.md # Layers A/B/C — governance + executor (done); this is the missing Layer-C outer driver
   - nuc-platform/plans/2026-06-14-agent-os-evolution.md # memory/interest/RAG infra that UNDERPINS this (not the loop itself)
@@ -112,9 +112,9 @@ scope here, noted as a follow-up idea).
 
 ### Phase 2 — Auto-wrap + retro→todo (the genuine gap)
 
-- [ ] S2.1 — Auto-chain `/session-wrap` at the end of each cycle (digest → day-log; distil decisions) · Files: propose diff for `auto-pilot-scheduled.ps1` + `/auto-pilot` Step 6 · Test: AC-4 (wrap runs with no human invoke)
-- [ ] S2.2 — Build the retro step: after a cycle, score the batch against EXTERNAL signal (test/lint/gate/git-diff), summarise pros/cons/bugs, and file preventive follow-ups as propose-only `inbox` ideas (Reflexion-grounded, NOT self-opinion) · Files: new retro logic in the cycle + `/idea add` calls · Test: AC-5 (retro files an inbox idea grounded in a real signal; never auto-accepts)
-- [ ] S2.3 — Re-prioritise + surface next: after retro, run `/idea sort`, then post the top candidate + a single clear next-action prompt to Discord (fold in Option C's discipline) · Files: cycle logic · Test: AC-6 (cycle ends with one Discord summary + next-action ask)
+- [x] S2.1 — Auto-wrap shipped (APPLIED 2026-06-19, interactive). One end-of-cycle `reflect` batch runs the `/session-wrap` procedure to distil any NON-OBVIOUS decision into `decisions.md`/`06-knowledge-ledger.md` (per-batch day-log digests already written by `/auto-pilot` Step 6, so no `/auto-pilot` edit needed — not duplicated). · Test: AC-4 ✓ (runs with no human invoke; gated on `$didWork` so idle cycles skip)
+- [x] S2.2 — Retro shipped (same `reflect` batch). Reviews the cycle's git diff + test/lint/gate FAILURES and files real preventive follow-ups as propose-only `inbox` ideas via `/idea add`; **prompt hard-binds the retro to EXTERNAL signal only, never self-opinion** (AC-5 / the coherence trap), and "file nothing" is the correct outcome when no grounded follow-up exists. Never auto-accepts. · Test: AC-5
+- [x] S2.3 — Surface-next shipped (same batch): runs `/idea sort` (re-rank + wildcard) then pushes ONE Discord digest via `ask-cli report` with what the cycle did + top candidate + a single next-action (Option C discipline folded in). Batch is gate-sync wrapped so the digest reaches Discord. · Test: AC-6. Verified: parse OK, dry-run both branches (idle→skip; opted-in plan→reflection WOULD run).
 
 ### Phase 3 — Close the loop (the outer driver)
 
