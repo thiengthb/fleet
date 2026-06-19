@@ -42,32 +42,13 @@
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
-     2026-06-19 SUPERVISOR GATE: idea-0014 (Restic backup) ACCEPTED → active, rank 2.7 (wildcard, base-only),
-     next = write a proposal. idea-0013 (extract MCP OAuth) DEFERRED → revisit when journal/3rd app adds MCP.
+     2026-06-19 SUPERVISOR GATE: idea-0014 (Restic backup) ACCEPTED → proposal → graduated to build plan
+     nuc-platform/plans/2026-06-19-idea-0014-nuc-backup.md (status: active). idea-0013 (extract MCP OAuth)
+     DEFERRED → revisit when journal/3rd app adds MCP.
      last /idea sort: 2026-06-19 (C3 autonomous gap-analysis); interest re-derived: idea-0005 stays 0.4.
      idea-0012 done (graduated 2026-06-17 → build plan). -->
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
-
-### idea-0014 — NUC volume backup strategy (ops data-safety)
-state: proposed · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18 · updated: 2026-06-19
-gate: pass · moscow: must · reach: 3 impact: 3 confidence: 0.9 effort: 3 · base: 2.7 · interest: n/a (wildcard — base only) · **rank: 2.7**
-proposal: nuc-platform/plans/2026-06-19-idea-0014-nuc-backup-proposal.md · outcome: null (awaiting supervisor accept → /project-plan)
-> **External signal (INVENTORY §2 gap):** `INVENTORY §1` documents 6 named data volumes (`todo_data`,
-> `journal_db`, `yakudoku_data`, `n8n_data`, `authentik_database`, `authentik_media`) on a single self-hosted
-> machine. `INVENTORY §2` has **no backup component** — no backup mechanism is documented anywhere in the
-> platform docs (INVENTORY, known-traps, 01-architecture-and-operations). A disk failure or accidental
-> `docker volume rm` = unrecoverable data loss for all user apps. Prior art: **Restic** (deduplicating,
-> encrypted, B2/S3/local target) is the standard self-hosted Docker volume backup tool (CLI: `restic backup`,
-> snapshots, automated via systemd timer or Task Scheduler; no daemon required). Fits "extend existing infra"
-> — a cron task on the NUC, no new service needed.
-> **Exploration-floor WILDCARD** for the 2026-06-18 sort (ops data-safety, orthogonal to prior accepts which
-> are all autonomy/knowledge-OS/testing).
-> **Gated in 2026-06-19** (supervisor accept): data-loss prevention is the highest real risk in the queue; fits
-> "extend existing infra" (cron/Task-Scheduler + Restic, no new service). NEXT: write a proposal (backup target +
-> credential handling + restore test — the proposal owns the real rigor, not this rank hint).
-
----
 
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
@@ -79,6 +60,19 @@ proposal: null · outcome: null
 ---
 
 ## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
+
+### idea-0014 — NUC volume backup strategy (ops data-safety)
+state: done · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18 · updated: 2026-06-19
+gate: pass · moscow: must · reach: 3 impact: 3 confidence: 0.9 effort: 3 · base: 2.7 · interest: n/a (wildcard — base only) · rank: 2.7
+proposal: nuc-platform/plans/2026-06-19-idea-0014-nuc-backup-proposal.md
+graduated_plan: nuc-platform/plans/2026-06-19-idea-0014-nuc-backup.md
+outcome: **accept** (2026-06-19, supervisor) — Option B (Restic → Backblaze B2, app-consistent DB dumps via pg_dump/SQLite
+.backup, systemd timer, nuc-monitor Discord alert). Graduated to the build plan above (status: active).
+> **Reflexion signal:** an ops/data-safety gap accepted on real-risk grounds (the highest un-mitigated risk on the
+> platform — zero backup of 8 data volumes on one machine). The exploration-floor WILDCARD (orthogonal to the prior
+> autonomy/knowledge-OS/testing accepts) paid off — bias future sorts toward surfacing concrete data-safety/ops gaps.
+
+---
 
 ### idea-0012 — nuc-monitor coverage gap: extend monitoring to journal + yakudoku
 state: done · source: agent (C3 gap-analysis 2026-06-17) · created: 2026-06-17 · updated: 2026-06-17
