@@ -20,6 +20,15 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 - **One job per skill.** If the description needs "and", it's probably two skills.
 - **Lean `SKILL.md`; depth in `references/`** (progressive disclosure) — the description + body load into context every
   session, so keep them tight. ~28 skills already cost ~4k tokens; every addition is a context tax.
+- **SKILL.md = procedure; `references/<domain>.md` = LAW.** A skill body holds the *workflow* (numbered steps + the
+  `done-when` checklist); declarative rules ("if X then Y", naming tables, mandatory stack lists) go into
+  `references/<domain>.md` and are read on-demand from a procedure step. Format inside a reference file is bullets
+  `IF <cond> → <action>` or a tight table — **no prose**. Template: `templates/reference-rule.md`.
+- **The ≥ 3 LAW rule (mandatory).** If a skill's body holds **3 or more sections that are pure declarative rules**
+  (naming tables, bans, "must use X" lists, if/then policies), those sections MUST be split into `references/<domain>.md`
+  files. The procedure stays in `SKILL.md` and links down at the step that uses each rule. Living examples:
+  `react-ui-craft/references/{architecture,components,motion,ux,security}.md`,
+  `coding-convention/references/{naming,git-commit,typescript-style,ui-rules,react-rules,backend-rules}.md`.
 - **kebab-case name** = the directory name. **Narrow description** that states *when* to use it AND a boundary —
   "complements X / NOT for Y / defers Z to …" — so it doesn't fire at the wrong time or collide with a sibling skill.
 - **Authoring is TDD: test the trigger.** Before finishing, read the new description against the existing skill list:
@@ -56,6 +65,7 @@ Keep the prohibition wording out of the literal token form too (e.g. write "comp
 ## Done when
 
 - [ ] Distinct job, narrow description with a boundary, kebab name, lean body (depth in `references/`).
+- [ ] **≥ 3 LAW-shaped sections in the body ⇒ split into `references/<domain>.md`** (use `templates/reference-rule.md`); SKILL.md cites each reference at the procedure step that needs it.
 - [ ] (If adopted) scripts read or dropped; conflicts stripped; dangling refs removed; attribution added.
 - [ ] Grep-guard clean; frontmatter valid; trigger doesn't collide with an existing skill.
 - [ ] Ledger updated; committed in English Conventional Commits.

@@ -17,8 +17,8 @@ self_verify:
   description_what_and_when: n/a # extension — the host skill already carries what+when
   no_overlap: extends /auto-pilot Step 1.5; does NOT duplicate it or any other skill (deduped against the full set)
 review:
-  outcome: null # installed | rejected
-  why: null
+  outcome: installed # installed 2026-06-18 (interactive, supervisor-approved) as part of closed-loop-driver Phase 0 S0.2
+  why: B5 finding #4 fix — the Step 1.5 guard ("trust gate-cli verbatim, never hand-re-verify") was applied to .claude/skills/auto-pilot/SKILL.md; the Opus-for-gate-cross companion note recorded under the plan.
 ---
 
 # Proposed extension: `/auto-pilot` Step 1.5 — TRUST `gate-cli check`, never hand-re-verify
