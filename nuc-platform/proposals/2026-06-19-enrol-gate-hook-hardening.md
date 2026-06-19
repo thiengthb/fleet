@@ -1,22 +1,16 @@
 # Proposal — harden the enrol gate in `autonomy-gate.mjs` (defense-in-depth)
 
-> **Status:** IMPLEMENTED as a verified drop-in (2026-06-19, interactive supervisor session chose **Option A**). The agent
-> **must not** install it into `.claude/hooks/` — that is governance (autonomy contract §3, CVE-2025-53773 lesson); a
-> **human applies** the two `.proposed` drop-ins below. The original proposal text + the Option A/B/C tradeoff is kept
-> for the record.
+> **Status:** ✅ INSTALLED 2026-06-19 (PR #8; interactive supervisor authorized **Option A**). The verified `.proposed`
+> drop-ins were applied to `.claude/hooks/autonomy-gate.mjs` (+ test) and then removed from this dir; the change lives in
+> git history. This file is kept as the **design-decision record** (Option A/B/C + why) for the Reflexion trail — distil
+> into `06-knowledge-ledger.md` / `decisions.md` at the next `/session-wrap`.
 >
-> **Apply (human):**
-> ```bash
-> cp nuc-platform/proposals/autonomy-gate.mjs.proposed      .claude/hooks/autonomy-gate.mjs
-> cp nuc-platform/proposals/autonomy-gate.test.mjs.proposed .claude/hooks/autonomy-gate.test.mjs
-> node .claude/hooks/autonomy-gate.test.mjs   # expect: 34/34 PASS
-> ```
-> The drop-in implements **Option A**: a PreToolUse write that introduces `auto_pilot: true` into `nuc-platform/plans/*.md`
-> is allowed **iff** a valid, signed, unconsumed `ASK-enrol-*` answer (text `enrol`/`yes`) currently authorizes it
-> (verified via the shared `verifyAnswerToken` core); otherwise hard-blocked (fail-closed). Verified: 34/34 e2e
-> (23 existing B4b + 11 new enrol cases — valid-answer ALLOW, no/expired/reject/replayed/cross-channel/non-enrol-ask
-> BLOCK, non-plan + non-arming writes unaffected). Residual gap (documented in the hook): a raw Bash redirection writing
-> `auto_pilot: true` is not caught — Edit/Write is the worker's normal path.
+> **What shipped (Option A):** a PreToolUse write that introduces `auto_pilot: true` into `nuc-platform/plans/*.md` is
+> allowed **iff** a valid, signed, unconsumed `ASK-enrol-*` answer (text `enrol`/`yes`) currently authorizes it (verified
+> via the shared `verifyAnswerToken` core); otherwise hard-blocked (fail-closed). Verified: **34/34 e2e** at the install
+> location (23 existing B4b + 11 new enrol cases — valid-answer ALLOW, no/expired/reject/replayed/cross-channel/
+> non-enrol-ask BLOCK, non-plan + non-arming writes unaffected). Residual gap (documented in the hook): a raw Bash
+> redirection writing `auto_pilot: true` is not caught — Edit/Write is the worker's normal path.
 
 ## Context
 

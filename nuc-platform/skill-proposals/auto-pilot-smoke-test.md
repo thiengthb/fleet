@@ -15,8 +15,8 @@ self_verify:
   description_what_and_when: yes
   no_overlap: complements /verification-before-completion (general "run it, read output, then claim") as its autonomy-specific application, and /auto-pilot (the thing under test); does not duplicate either, nor /testing-standard (which owns code test tiers, not live autonomous-batch verification).
 review:
-  outcome: null # installed | rejected
-  why: null
+  outcome: installed # installed 2026-06-19 (PR #8, interactive supervisor-authorized)
+  why: rule-of-three held (S0.4 pilot / graduation smoke / S3.3 enrol live); the cleanup-to-zero-residue discipline (no armed plan left for the scheduler) was the recurring value worth capturing. Installed at .claude/skills/auto-pilot-smoke-test/.
 ---
 
 # Proposed skill: auto-pilot-smoke-test
