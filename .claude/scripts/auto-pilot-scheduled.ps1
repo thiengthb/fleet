@@ -149,7 +149,10 @@ exit `$LASTEXITCODE
   function Test-HasUngraduatedAccept {
     if (-not (Test-Path -LiteralPath $IdeaQueue)) { return $false }
     $lines = @(Get-Content -LiteralPath $IdeaQueue)
-    $doneHit = $lines | Select-String -SimpleMatch '## Done' | Select-Object -First 1
+    # Anchor to the `## Done` H2 HEADING (line start), NOT any substring - the Rules prose mentions `## Done` mid-line
+    # (a backtick'd reference), and SimpleMatch would wrongly treat that as the divider and exclude every real idea
+    # (caught by the 2026-06-19 graduation smoke test: graduation never fired because region collapsed to the header).
+    $doneHit = $lines | Select-String -Pattern '^##\s+Done' | Select-Object -First 1
     $doneIdx = if ($doneHit) { $doneHit.LineNumber - 1 } else { $lines.Count }
     if ($doneIdx -le 0) { return $false }
     $region = $lines[0..($doneIdx - 1)]
