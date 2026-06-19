@@ -149,18 +149,27 @@ exit `$LASTEXITCODE
       }
       return $true
     }
+    # CRITICAL (found LIVE by the full-S3.3 demo, 2026-06-19): under Start-Transcript + the script's
+    # $ErrorActionPreference='Stop', a native git command that writes to stderr (a FAILED push) is wrapped into a
+    # TERMINATING NativeCommandError (ledger #60) - which aborted the ENTIRE wrapper at the push line BEFORE $LASTEXITCODE
+    # could be read or the retry could run. (This is exactly the failure mode the old blanket `catch {}` had been
+    # accidentally masking; removing it in S3.4a exposed the crash.) Force native errors NON-terminating for THIS function
+    # so we branch on the exit code ourselves; restored automatically on return (function-local preference).
+    $ErrorActionPreference = 'Continue'
     $dirty = git -C $GateRepoDir status --porcelain
     if (-not $dirty) { return $true }
     git -C $GateRepoDir add -A | Out-Null
     git -C $GateRepoDir commit -q -m 'gate: agent ask/report' | Out-Null
-    # NOTE: no `2>&1` on the native git here - under Start-Transcript that turns benign git stderr into a terminating
-    # ErrorRecord (ledger #60). git push FAILS WITHOUT THROWING anyway, so we read $LASTEXITCODE; stderr flows to the
-    # transcript as readable text. (Old blanket `catch {}` never caught a failed push - it set $LASTEXITCODE, no throw.)
     git -C $GateRepoDir push -q | Out-Null
     if ($LASTEXITCODE -eq 0) { return $true }
-    # likely a non-fast-forward (the bot wrote an answer concurrently): rebase on the remote and retry ONCE.
-    Write-Host '[scheduled] gate push failed once - pulling --ff-only and retrying.'
-    git -C $GateRepoDir pull --quiet --ff-only | Out-Null
+    # The real failure is a non-fast-forward: the bot pushed (an answer/status) concurrently, so local + origin DIVERGED
+    # (local has our new ask/report commit, origin has the bot's). `pull --ff-only` CANNOT reconcile a divergence (it
+    # refuses) - we must REBASE our commit onto the bot's, then push. The gates repo is disjoint state files (agent writes
+    # asks/reports, bot writes answers) so the rebase does not conflict in practice; abort + fall through to the WARNING
+    # if it ever does.
+    Write-Host '[scheduled] gate push failed once - rebasing on the remote and retrying.'
+    git -C $GateRepoDir pull --rebase --quiet | Out-Null
+    if ($LASTEXITCODE -ne 0) { git -C $GateRepoDir rebase --abort | Out-Null }
     git -C $GateRepoDir push -q | Out-Null
     if ($LASTEXITCODE -eq 0) { return $true }
     Write-Host '[scheduled] WARNING: gate push FAILED (retry exhausted) - the ask/report is committed LOCALLY but did NOT reach the gates remote, so the supervisor will NOT see it this cycle. Check the gates clone auth/network; next cycle will retry the push.'
