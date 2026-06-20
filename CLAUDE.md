@@ -206,6 +206,32 @@ switch model mid-conversation — switching re-reads the FULL history at the new
 - **Only suggest the user switch** when the WHOLE session is clearly mismatched (e.g. a long bulk-mechanical run on
   Opus) — suggest once, and tell them to use **`s`** (session-only) so they don't overwrite their global default.
 
+### Web research — the biggest token sink (read before any research / `/deep-research`)
+
+A WebFetch dumps a whole page (~5–50k tokens) into context; fan-out × pages × Opus-rate × refetch is how "30 min of
+research = a whole session". **Default to the cheapest tier; escalate only when a tier proves insufficient, and say so
+before escalating.** Four rules:
+1. **Search wide, fetch narrow.** WebSearch snippets are cheap and usually answer the question. NEVER WebFetch a page
+   unless a snippet is *both* load-bearing for the conclusion *and* insufficient on its own. Most facts come from snippets.
+2. **Distill at the edge, synthesize at the center.** A fetch subagent's raw page MUST die in its isolated context — it
+   returns ONLY `claim + 1–2-sentence extract + URL`, never the page or long quotes. That way page-tokens are paid once,
+   at cheap-model rate, and never re-billed into the main Opus thread every subsequent turn.
+3. **Model by job (research flavour of the token lever).** Mechanical web work → cheap model; judgment → Opus main loop:
+
+   | Research task | Model |
+   |---|---|
+   | Plan questions, assign disjoint sources, set the page budget, synthesize the cited report, resolve contradictions | **Opus (main loop)** |
+   | Scout: WebSearch only → titles+snippets+URLs, **no fetch** | **Haiku** |
+   | Fetch one greenlit URL → 3–8-line extract + cite (raw page dies here) | **Sonnet** (Haiku if trivial) |
+   | Adversarially verify ONE load-bearing claim, 1 pass | **Sonnet** |
+4. **Hard caps + dedup.** Main loop owns the fetched-URL set, assigns disjoint sources, never refetches. Three tiers:
+   - **Quick lookup (DEFAULT for any unqualified "research X"):** main loop self-runs 1–2 WebSearch, fetches ≤2 pages
+     only when a snippet is load-bearing+insufficient. **No subagent fan-out.** Most "research" is really this.
+   - **Standard** (escalate when Quick falls short): 1 Haiku scout → Opus picks ≤5 URLs → Sonnet fetch+distill (disjoint)
+     → Opus synthesize. **≤5 pages, ≤1 verify pass.**
+   - **Deep** (ONLY on an explicit "deep/kỹ/thorough" ask): ≤2 scouts, ≤12 pages, dedup URLs, verify only load-bearing
+     claims. The only tier allowed near the old cost — never the silent default.
+
 ## Project lifecycle & ops — use the right skill, don't improvise
 
 | When | Skill | Key points |
