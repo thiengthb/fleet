@@ -50,6 +50,22 @@
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
+### idea-0015 — Migrate Watchtower → maintained drop-in fork `nickfedor/watchtower`
+state: active · source: agent (Quick-research finding 2026-06-20) · created: 2026-06-20 · updated: 2026-06-20
+gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.8 effort: 1 · base: 4.8 · interest: 0.6 · **rank: 5.23**
+proposal: null · outcome: null
+> **External signal (web, 2026-06-20):** `containrrr/watchtower` repo ARCHIVED 2025-12-17 — maintainers stepped away, no
+> further patches/security fixes. Auto-pull still works today but the tool is now unmaintained. Touches **Invariant #7**
+> (Watchtower needs `DOCKER_API_VERSION=1.44`) and the whole NUC deploy chain (every app auto-updates via it).
+> Recommended path per sources = drop-in fork `nickfedor/watchtower` (full API compat, claims "just change the image").
+> Cheap + platform-wide risk mitigation → high base. **NOT yet verified:** the drop-in claim + that `DOCKER_API_VERSION=1.44`
+> still applies — confirm in `/idea analyze` (Standard research) before any change. Sources: linuxiac, GitHub Discussion
+> #2135, craftmycloud, linuxhandbook.
+> *Interest 0.6:* similar shape to accepted idea-0014 (ops/data-safety) + idea-0012 (ops/reliability) — supervisor has
+> accepted concrete ops-risk mitigations on real-risk grounds.
+
+---
+
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
 gate: pass · moscow: could · reach: 2 impact: 1 confidence: 0.8 effort: 2 · base: 0.8 · interest: 0.4 · **rank: 0.85**
