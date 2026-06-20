@@ -35,10 +35,12 @@ lean-first (supervisor-approved 2026-06-20).
       **Governance (.claude/skills) → propose-don't-execute: a human reviews + approves each removal.**
 - [ ] **(optional) Structural CLAUDE.md cut** — if more byte-cut is wanted, move heavy sections (lifecycle table,
       autonomous-agent detail) to on-demand reference docs, leaving pointers. Only if #5/#6 prove insufficient.
-- [ ] **#7 Make `prior-art-check.mjs` stakes-aware** — the hook currently forces ≥2 external URLs on EVERY
-      `kind: feature|system-change` plan, regardless of stakes (it blocked this very plan). Align it with the new P-tier
-      rule: only gate genuinely-novel P3 designs, not internally-grounded refactors/cleanups. Governance hook → propose,
-      human commits. (Live evidence of the old mandatory-research rule still wired in.)
+- [x] **#7 `prior-art-check.mjs` is already P-tier-compatible — NO rewrite needed** (resolved by reading the hook
+      2026-06-20). It is ADVISORY (exit 2, non-blocking — the plan write succeeds; it only nudges) and fires ONLY for
+      `kind: feature|system-change` + `status: active`, exempting `fix/refactor/chore`. That maps cleanly onto the
+      P-tiers: a P3 design → `kind: feature|system-change` → nudged to cite prior art (correct); P1/P2 internal work →
+      `kind: refactor|chore` → silent (correct). The only real gap was documentation — **pick `kind:` by P-tier** — which
+      §Thinking & process now implies. My earlier "the hook blocked the plan" was wrong: it nudged.
 
 ## Out of scope / notes
 
