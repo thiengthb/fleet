@@ -3,7 +3,7 @@ title: Autonomous agent — governed self-execution + research-grounded self-pro
 kind: feature # feature | system-change | fix | refactor | chore
 status: active # draft → active → done | abandoned
 created: 2026-06-14
-updated: 2026-06-16 # B5 PASSED — full unattended loop (throwaway plan, supervised from phone): 3 fresh-context batches, subagent-delegated wide read, phone-approved gate crossing (PR #2), zero T4 crossed (main untouched, verified independently). Finding #4 REPRODUCED on the cross step (1st Sonnet worker misdiagnosed approve→none; 2nd crossed) → SKILL-fix proposed. Operator re-hit the documented 2>&1-on-native-exe trap (ledger #60) on the first launch — run the orchestrator plainly/foreground. Layer B essentially complete; Layer C3 (unattended proposer) is the remaining optional residue
+updated: 2026-06-20 # B5 PASSED — full unattended loop (throwaway plan, supervised from phone): 3 fresh-context batches, subagent-delegated wide read, phone-approved gate crossing (PR #2), zero T4 crossed (main untouched, verified independently). Finding #4 REPRODUCED on the cross step (1st Sonnet worker misdiagnosed approve→none; 2nd crossed) → SKILL-fix proposed. Operator re-hit the documented 2>&1-on-native-exe trap (ledger #60) on the first launch — run the orchestrator plainly/foreground. Layer B essentially complete; Layer C3 (unattended proposer) is the remaining optional residue. **FROZEN 2026-06-20 (supervisor decision): Layer A+B declared DONE; C3 DEFERRED indefinitely (R5) — do NOT install the proposer until a real-use trial on a genuine app-feature plan proves the executor earns its keep. Build-more is sunk-cost; the open question is adopt-vs-shelve, decided by real usage, not more features.**
 related:
   [
     nuc-platform/plans/2026-06-14-discord-control-plane.md (accepted RFC — B4 design),
@@ -165,7 +165,7 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 > genuinely-distinct residue is C3's *unattended* path (the orchestrator invoking gap-analysis inside a no-human batch).
 - [x] C1 — *Realized by `/idea`*: `/idea sort` gap-analysis (grounded in INVENTORY drift / missing test coverage / a documented gap / prior-art, NOT opinion) + `/idea analyze` → research-then-design → RFC-lite `proposal.md` → halts. Skill `.claude/skills/idea/SKILL.md`; queue `nuc-platform/10-idea-queue.md`.
 - [x] C2 — *Realized by `/idea`*: bounded backlog = WIP cap `active ≤ 5`; Reflexion accept/reject memory = the `outcome:` oracle (with *why*); **"nothing worth proposing" is now a first-class gap-analysis output** (anti-churn, added to the skill 2026-06-14).
-- [~] C3 — **Unattended proposer integration — built in sandbox 2026-06-16, awaiting human install.** Realized in the new
+- [~] C3 — **Unattended proposer integration — DEFERRED 2026-06-20 (freeze decision; sandbox built, NOT installed — see R5).** Realized in the new
   scheduled wrapper `auto-pilot-scheduled.ps1` (NOT by editing the 24/24-verified orchestrator): when no actionable plan
   work remains it fires ONE bounded `/idea sort` gap-analysis batch (≤2 externally-grounded `inbox` ideas, **once/day**
   throttle, propose-only, halts — nothing auto-enters build; rejected patterns not re-proposed). Verified via temp-harness
@@ -198,7 +198,7 @@ executor — researched & REJECTED 2026-06-20** (was previously "a noted later o
 - **R2 — nuc-ops-bot approval mechanism** (flag-file vs API) must not widen its existing Docker-control attack surface.
 - **R3 — Sonnet quality** for plan-advancing + for grounded gap-analysis; some steps may need Opus → note per-step (validate in B3/C3).
 - **R4 — batch sizing** sweet spot (cold-reload cost vs in-batch compaction).
-- **R5 — proposer is the highest-risk layer**: even gated, a steady stream of plausible proposals can slowly steer the platform. Mitigate with the bounded backlog + the "nothing-worth-doing" norm + periodic human direction-setting; revisit whether Layer C is even wanted after Layer B is lived-in.
+- **R5 — proposer is the highest-risk layer**: even gated, a steady stream of plausible proposals can slowly steer the platform. Mitigate with the bounded backlog + the "nothing-worth-doing" norm + periodic human direction-setting; revisit whether Layer C is even wanted after Layer B is lived-in. **→ RESOLVED 2026-06-20: Layer C (C3) is DEFERRED until Layer B is actually lived-in on a real plan (the freeze decision). The honest finding that drove it: no clean-fit `active` plan exists for an executor real-use trial today (every active plan is near-done, governance-locked, ssh/ops-gated, or implemented-awaiting-commit) — so the trial fires on the NEXT genuine app-feature `/project-plan`, not on a manufactured throwaway. Reopen C3 only if that real use proves the executor valuable AND a proposer is then wanted.**
 
 ## Decisions to distill
 
