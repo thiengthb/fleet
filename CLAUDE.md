@@ -64,24 +64,18 @@ at repo-init; ESM + Node ≥ 22; Prettier from the skill's `templates/`; never c
 
 ## Frontend — skill `/react-ui-craft` (MANDATORY for any React/Next UI)
 
-The shared frontend engineering standard — complements `/coding-convention` (that owns naming/commits/Prettier; this owns
-architecture/composition/state/motion/UX-states/security). `SKILL.md` + 5 refs (`architecture`/`components`/`motion`/`ux`/
-`security`): read SKILL first, open a ref when needed.
-- **Stack (running in `todo`):** React 19 (Server Components, Actions, `use`, `useActionState`, `useOptimistic`,
-  ref-as-prop — **NO `forwardRef`**) + Next.js App Router *or* React+Vite + Tailwind v4 (tokens via `@theme`+OKLCH, **no
-  `tailwind.config.js`**) + shadcn/ui (own the components, theme via CSS vars) + Motion v12 (`motion/react`) + TS. A
-  different stack → keep the principles, don't force a rewrite.
-- **7-step:** ① frame job+data → ② plan structure (boundaries, server/client) → ③ scaffold SYSTEM (tokens+primitives)
-  before screens → ④ compose (small components, props-as-API, `cn()`) → ⑤ motion last → ⑥ handle EVERY state
-  (loading/empty/error/optimistic) → ⑦ self-review vs the quality floor + security.
-- **Quality floor (ship by default):** accessible (semantic HTML, labeled controls, `focus-visible`, contrast ≥4.5:1) ·
-  responsive ≥360px · motion-safe (`prefers-reduced-motion`) · type-safe (no `any` at the boundary, parse with Zod) ·
-  performant (animate only `transform`/`opacity`, lazy-load heavy) · secure.
-- **Security (read `references/security.md` first):** no secret in the client bundle (only `NEXT_PUBLIC_*`/`VITE_*` reach
-  the client = public); no unsanitized `dangerouslySetInnerHTML`; a Server Action/Route Handler MUST auth + Zod-validate
-  server-side; the client gets only a minimal DTO; `npm audit` clean of high/critical; no stack trace in prod.
-- **Mandatory UI:** shadcn/ui only (don't hand-roll) · dark/light via CSS vars, **no hardcoded colors** · toast via sonner ·
-  icons via lucide · build the reusable thing ONCE (shared stock, don't duplicate).
+Owns architecture/composition/state/motion/UX-states/security (`/coding-convention` owns naming/commits/Prettier). Read
+`SKILL.md` first; open a ref (`architecture`/`components`/`motion`/`ux`/`security`) when needed — the 7-step + full detail
+live there.
+- **Stack (running in `todo`):** React 19 (Server Components/Actions, `use`, `useActionState`, `useOptimistic`,
+  ref-as-prop — **NO `forwardRef`**) + Next.js App Router *or* React+Vite + Tailwind v4 (`@theme`+OKLCH, **no
+  `tailwind.config.js`**) + shadcn/ui + Motion v12 + TS. Different stack → keep the principles, don't rewrite.
+- **Quality floor (ship by default):** accessible · responsive ≥360px · motion-safe · type-safe (Zod at the boundary) ·
+  performant (animate only `transform`/`opacity`) · handle EVERY state (loading/empty/error/optimistic). **Security:** no
+  secret in the client bundle (only `NEXT_PUBLIC_*`/`VITE_*` reach it); Server Actions/Route Handlers auth + Zod-validate
+  server-side and return a minimal DTO; no unsanitized `dangerouslySetInnerHTML`; no prod stack traces.
+- **Mandatory UI:** shadcn/ui only · dark/light via CSS vars (**no hardcoded colors**) · sonner toast · lucide icons ·
+  build the reusable thing ONCE.
 
 ## In-app user guide — skill `/user-guide` (MANDATORY for any app with a UI)
 
@@ -103,8 +97,10 @@ update `08-SHARED-ASSETS.md` in the same change.
 
 Full standard: **`nuc-platform/05-documentation-standard.md`**. Goal: understand a project in one cheap read; knowledge accumulates
 across sessions instead of evaporating.
-- **Context-loading path (3 tiers):** `INVENTORY §0` → `<project>/docs/00-map.md` (AI-primer, always read first on entry)
-  → `docs/` + `docs/decisions.md` (only when the task needs it). **Keep each `CLAUDE.md` thin** (rules+invariants+pointers);
+- **Context-loading path (JIT — read on need, NOT reflexively):** a trivial/chat turn or a single-file edit needs NONE
+  of these. When a task TOUCHES a project, read that `<project>/docs/00-map.md` (AI-primer); read `INVENTORY §0` only for
+  a project-lifecycle / ops change; go deeper (`docs/` + `docs/decisions.md`) only when the task needs it. Front-loading
+  all three every session is the per-session token tax to avoid. **Keep each `CLAUDE.md` thin** (rules+invariants+pointers);
   heavy spec lives in `docs/` (it costs context every turn).
 - **Two pillars per project:** `docs/00-map.md` (essence·modules·flows·invariants·secrets) + `docs/decisions.md`
   (append-only why-log). A web-app adds `01-product`/`02-technical`/`03-user-guide` (05 §3).
@@ -156,55 +152,55 @@ durable contract + decision tiers in `09-autonomy-contract.md`; build roadmap in
   install**. **Propose-don't-install:** the agent NEVER writes to `.claude/skills/` (drafting the sandbox = T2; installing
   = a human move = T4, gate-blocked). Adapts Hermes' detect+draft, refuses its auto-install (ADAS/Anthropic safety).
 
-## Thinking & process
+## Thinking & process — match weight to the change (P-tiers), practice-first
 
-- **`/idea`** — the intake front-door: a living backlog of platform-native ideas in `nuc-platform/10-idea-queue.md`
-  (capture · gate-then-score · re-sort after each big feature · deep-analyze top-1 · push back on biased/infeasible/dup
-  · defer/prune). The planning spine is **`/idea` (candidate) → `/brainstorming`+proposal (analyze) → `/project-plan`
-  (accepted)** — don't conflate. Propose-don't-execute: a human accepts before an idea becomes a plan.
-- **`/brainstorming`** — at the START of a non-trivial feature/design/refactor: frame the real problem, 2-3 distinct
-  approaches + tradeoffs, recommend with reasoning. Diverge → converge into `/project-plan`.
-- **`/honest-critique`** — at DECISION points (user proposes / asks "should I…" / you're about to agree): truth over
-  comfort, lead with the counter-case, separate fact from preference, red-team your own output, concede fast. **No
-  reflexive "You're absolutely right!"** — the user values honest pushback.
-- **Before claiming done / committing:** `/lint-and-validate` (lint+types+audit, incl. Python) →
-  `/verification-before-completion` (run it, read the output, THEN claim — evidence, not "should work").
-- **Debugging:** `/systematic-debugging` — root cause before any fix; ≥3 failed fixes ⇒ question the architecture.
+**Practice-first: aim for a working, run-it-and-see result FAST; add ceremony only where the stakes earn it.** Match
+process weight to the change, mirroring the autonomy T1–T4 by reversibility × blast-radius:
+
+| Tier | The change | Process |
+|---|---|---|
+| **P1 — trivial / reversible** | copy/text, a small fix, a CRUD shape built before | `/coding-convention` only. **SKIP** brainstorm / research / plan-file / docs. Build → run → done |
+| **P2 — medium** | a small feature, one module, a non-obvious bug | + tests + `/verification-before-completion`. Research ONLY on a real unknown (a Quick-tier lookup), **never by default** |
+| **P3 — large / irreversible / novel** | architecture, a new dependency, security, schema/data, topology | Full spine: `/brainstorming` → research-before-design (≥2 sources, tiered) → proposal → `/project-plan` → docs |
+
+- **Thin-slice first (the auto-pilot lesson):** build the smallest END-TO-END thing that actually RUNS (build → execute →
+  observe) BEFORE governance / docs / exhaustive tests. Machinery-before-value is how a feature dies across sessions —
+  "verified" but never used.
+- **`/honest-critique`** — at every decision point (always; it's cheap): truth over comfort, lead with the counter-case,
+  red-team your own output, concede fast. **No reflexive "You're absolutely right!"**
+- **The spine is P3-only:** `/idea` (backlog: capture · gate-then-score · push back on biased/infeasible/dup) →
+  `/brainstorming` (frame + 2-3 approaches + tradeoffs) → `/project-plan` (persist multi-session work). Propose-don't-execute:
+  a human accepts before an idea becomes a plan. **Do NOT run this spine for P1/P2** — that's the ceremony tax to cut.
+- **Before commit (scale depth to the change):** `/lint-and-validate` → `/verification-before-completion` (run it, read
+  the output, THEN claim). **Debug:** `/systematic-debugging` (root cause first; ≥3 failed fixes ⇒ question the architecture).
 
 > **Reference skills (auto-fire by topic):** data → `/prisma-expert`+`/database-design` · React perf →
 > `/react-best-practices` · Dockerfile → `/docker-expert` · MCP → `/mcp-builder` · external-API →
 > `/api-integration-specialist` · Python async → `/async-python-patterns` · system decision → `/architecture` ·
-> deps → `/dependabot-review`+`/supply-chain-guard` · testing → `/testing-standard` (the router: tiers + acceptance
-> criteria + contract tests, standard `nuc-platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder`
-> (per-tier how-to) · authoring a skill → `/skill-authoring`. Catalog + verdicts: `nuc-platform/07-SKILL-CANDIDATES.md`.
+> deps → `/dependabot-review`+`/supply-chain-guard` · testing → `/testing-standard` (router; standard
+> `nuc-platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
+> `/skill-authoring`. Catalog + verdicts: `nuc-platform/07-SKILL-CANDIDATES.md`.
 
 ## Model routing — staff work by weight (token discipline)
 
-**Token discipline targets the *right* amount, never the *minimum*** — never trade away reasoning depth on the task in
-front of you; it only removes wasted context and over-powered staffing on mechanical work. A strong model on a hard
-problem should think as much as the problem needs.
+**Targets the *right* amount, never the *minimum*** — never trade away the reasoning depth the task needs; only cut
+wasted context + over-powered staffing on mechanical work.
 
-Model choice is a **session-level** decision, NOT per-task. Do NOT make a habit of analyzing each task and asking to
-switch model mid-conversation — switching re-reads the FULL history at the new model and **drops the prompt cache**
-(thrashing *costs* tokens, doesn't save them), and the agent cannot switch its own model anyway (only the user can).
-- **`/model` picker gotcha:** **Enter = persists to `~/.claude/settings.json` → new default for ALL future/other
-  sessions** (easy to accidentally make a weak model the global default); press **`s`** to switch the current session
-  ONLY. Concurrent sessions are independent until they relaunch.
-- **Session rubric (set once, at start):** architectural / security / multi-file reasoning / ambiguous / UI-craft / a
-  codebase a strong model already shaped → **Opus** (a weak model contaminates strong-model work — the risk is
-  asymmetric, lean Opus when unsure). A whole session of well-specified bulk-mechanical work → Sonnet is fine.
-- **The real token lever (no quality tradeoff):** keep **Opus as the main loop = orchestrator + reviewer**, and delegate
-  heavy-but-mechanical work (wide reads, fan-out search, bulk transforms, migrations) to **subagents on a cheaper model**
-  via the Agent tool's per-agent `model: 'sonnet'|'haiku'`. Subagent context is isolated (doesn't bloat the main thread —
-  the real cost saving) and Opus **reviews the output before accepting it**, so the weak model works in a sandbox under
-  review and never commits unreviewed. Set `model:` per delegation; do NOT flip `CLAUDE_CODE_SUBAGENT_MODEL` globally
-  (that's a cross-session side-effect).
-- **Announce every downgrade (notify, don't gate):** when spawning a subagent on a model **weaker than the main loop**,
-  state it up front *before* spawning, then proceed (the user can interrupt). One compact block, one line each:
-  `label: 2–3-word task → model` (e.g. `Explore: grep auth usages → haiku`). Subagents that inherit the main model get
-  NO line — no downgrade = no contamination risk = noise. This is the user's control surface over staffing.
-- **Only suggest the user switch** when the WHOLE session is clearly mismatched (e.g. a long bulk-mechanical run on
-  Opus) — suggest once, and tell them to use **`s`** (session-only) so they don't overwrite their global default.
+Model choice is **session-level**, not per-task (switching mid-session re-reads full history + drops the prompt cache =
+*costs* tokens; the agent can't switch itself anyway — only the user can).
+- **`/model` gotcha:** **Enter = persists to global `~/.claude/settings.json`** (new default for ALL sessions); press
+  **`s`** to switch THIS session only.
+- **Session rubric (set once):** architectural / security / multi-file / ambiguous / UI-craft / a strong-model-shaped
+  codebase → **Opus** (lean Opus when unsure — weak-model contamination is asymmetric). A whole session of well-specified
+  bulk-mechanical work → Sonnet.
+- **The real token lever (no quality tradeoff):** Opus = main loop (orchestrator + reviewer); delegate heavy-but-mechanical
+  work (wide reads, fan-out search, bulk transforms, migrations) to **cheaper-model subagents** (Agent tool per-agent
+  `model: 'sonnet'|'haiku'`). Their context is isolated (the real saving) and Opus reviews before accepting. Don't flip
+  `CLAUDE_CODE_SUBAGENT_MODEL` globally (cross-session side-effect).
+- **Announce every downgrade (notify, don't gate):** before spawning a subagent weaker than the main loop, state it up
+  front — one line each `label: 2–3-word task → model` (e.g. `Explore: grep auth usages → haiku`). Same-model subagents
+  get no line. This is the user's control surface over staffing.
+- **Suggest a session switch** only when the WHOLE session is mismatched — once, and tell them to use **`s`** (session-only).
 
 ### Web research — the biggest token sink (read before any research / `/deep-research`)
 

@@ -20,3 +20,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Ask with options, not open-ended](ask-with-options-not-open-ended.md) — present a list of concrete options + a free-input fallback when asking the user (chat AskUserQuestion / Discord --options)
 - [Execute over handoff](execute-over-handoff.md) — do the work end-to-end (edit/run/commit when asked), don't hand back manual steps; preserve the "auto" feel
 - [Preview visual changes before commit](preview-visual-changes-before-commit.md) — on UI/color/design work, show a preview (static Artifact) + get approval before committing; diff isn't enough
+- [Direct over subagent for known context](direct-over-subagent-for-known-context.md) — for internal investigation I already hold context for, work directly (Read/Grep/Bash); don't fan-out subagents
