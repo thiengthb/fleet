@@ -30,9 +30,16 @@ lean-first (supervisor-approved 2026-06-20).
 - [ ] **#1 Shopify MCP** — disconnect the connector at claude.ai. *USER action* (cannot be done from the repo). ~1–2k/session, zero relevance.
 - [ ] **#5 JIT context** — stop mandating the full 3-tier read on every session entry; read a project's `00-map.md` only
       when the task actually touches that project. Edit the context-loading rule in `CLAUDE.md` §Documentation. ~3–5k/session.
-- [ ] **#6 Skill cull 37 → ~28** — review each skill; merge/retire niche ones (candidates: `auto-pilot-smoke-test`,
-      `skill-proposer`, `nuc-scheduled-maintenance`) to cut the every-session description tax. ~3–5k/session.
-      **Governance (.claude/skills) → propose-don't-execute: a human reviews + approves each removal.**
+- [~] **#6 Skill cull — revised after measurement + the self-mod guard.**
+  - **#6a (trim descriptions) DROPPED** — low ROI (~45 tok/skill/session vs the careful per-edit cost + trigger-break risk).
+  - **#6b (merge 2 niche skills) — handed to the human to run.** `auto-pilot-smoke-test` → `auto-pilot/references/smoke-test.md`;
+    `nuc-scheduled-maintenance` → `nuc-health-audit/references/scheduled-maintenance.md` (de-registers the top-level skill =
+    drops its ~120-tok description, content preserved as a reference). The auto-mode **self-modification guard correctly
+    BLOCKED the agent** from editing `.claude/skills/**` even under verbal approval — per the contract, skill changes are a
+    human move. Commands handed off 2026-06-20.
+  - **`skill-proposer` KEPT** — load-bearing governance (CLAUDE.md §Autonomous "Proposer for SKILLS" + `09-autonomy-contract`
+    §skill-induction = the sanctioned T2 propose-a-change for skills). Removing it to save ~120 tok would mean unpicking the
+    contract — a bad trade. Not merged.
 - [ ] **(optional) Structural CLAUDE.md cut** — if more byte-cut is wanted, move heavy sections (lifecycle table,
       autonomous-agent detail) to on-demand reference docs, leaving pointers. Only if #5/#6 prove insufficient.
 - [x] **#7 `prior-art-check.mjs` is already P-tier-compatible — NO rewrite needed** (resolved by reading the hook
