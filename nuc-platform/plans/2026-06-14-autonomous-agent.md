@@ -175,8 +175,22 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 ## Out of scope
 
 Auto-merge/deploy ever; the agent editing its own governance; cloud routines; a NUC daemon; programmatic
-quota-reset detection; token-maximization; per-action approval (use plan-level); Agent-SDK rewrite (CLI `claude -p`
-is v1 — SDK + context-editing/memory-tool betas are a noted later option).
+quota-reset detection; token-maximization; per-action approval (use plan-level); **Agent-SDK rewrite of the
+executor — researched & REJECTED 2026-06-20** (was previously "a noted later option").
+
+> **Why rejected (2026-06-20, research-grounded — deep-research run + runner code read).** The stated upside of
+> migrating `auto-pilot-run.*` to the Claude Agent SDK is "built-in context management for long runs." But the
+> §Execution model above ALREADY solves that, more simply: a dumb 0-token loop spawns a FRESH `claude -p` worker
+> per batch (never `--continue`), so context never grows/compacts; durable state lives on disk (plan + git). This
+> is exactly Anthropic's own recommended long-running-agent pattern (anthropic.com/engineering/effective-harnesses-
+> for-long-running-agents; effective-context-engineering-for-ai-agents — both confirm fresh-context + external
+> file-state). Migrating would (a) gain ~nothing on context, (b) forfeit the clean 0-token dumb-loop, (c) require
+> re-wiring + re-verifying the whole gate stack (`autonomy-gate.mjs` is a Claude Code PreToolUse hook; the SDK's
+> hook surface differs) — i.e. real effort + risk into the most safety-critical layer for no real gain. The SDK's
+> only genuine adds (typed outputs, in-process multi-agent) are not needed by a headless plan-advance worker.
+> Server-side compaction / context-editing / memory-tool betas remain irrelevant for the same reason (the worker
+> never accumulates the context they trim). Re-open ONLY if a future need requires programmatic multi-agent
+> orchestration *inside one process* that the fresh-worker model genuinely can't express.
 
 ## Open questions / risks
 
