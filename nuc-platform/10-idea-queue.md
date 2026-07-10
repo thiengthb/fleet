@@ -45,8 +45,11 @@
      2026-06-19 SUPERVISOR GATE: idea-0014 (Restic backup) ACCEPTED → proposal → graduated to build plan
      nuc-platform/plans/2026-06-19-idea-0014-nuc-backup.md (status: active). idea-0013 (extract MCP OAuth)
      DEFERRED → revisit when journal/3rd app adds MCP.
-     last /idea sort: 2026-06-19 (C3 autonomous gap-analysis); interest re-derived: idea-0005 stays 0.4.
-     idea-0012 done (graduated 2026-06-17 → build plan). -->
+     last /idea sort: 2026-07-06 (C3 autonomous gap-analysis); interest re-derived (coarse, oracle-based).
+     idea-0012 done (graduated 2026-06-17 → build plan).
+     2026-07-06 NEW INBOX: idea-0016 (pinned-image staleness alert) + idea-0017 (journal MCP, WILDCARD).
+     2026-07-08 C3 gap-analysis pass: +idea-0018 (sacrificial-record testing gap). Ranking/interest of
+     existing active ideas NOT re-derived this pass (scoped to gap-analysis only, per supervisor ask). -->
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
@@ -72,6 +75,66 @@ gate: pass · moscow: could · reach: 2 impact: 1 confidence: 0.8 effort: 2 · b
 proposal: null · outcome: null
 > `cost: S/M/L` on plan steps + post-hoc calibration; auto-pilot reads `cost` not a fixed step count. Research confirmed
 > a-priori token forecasting is unreliable (r≈0.39) → enforcement (p99 + hard cap), not prediction. Modest payoff; lower rank.
+
+---
+
+### idea-0016 — Pinned-image staleness alerting for n8n + Authentik
+state: inbox · source: agent (C3 gap-analysis 2026-07-06) · created: 2026-07-06 · updated: 2026-07-06
+gate: null · moscow: null · proposal: null · outcome: null
+> **External signal:** INVENTORY §1 documents n8n (`2.25.7`) and Authentik (`2026.5.2`) as manually-pinned
+> images with no Watchtower label and **no staleness alert** — the platform has zero mechanism to detect when a
+> security patch or new version is released for these two apps. Authentik is the central IdP; a missed CVE patch
+> is a critical exposure. External prior art: **Renovate Bot** (MIT, 50k+ GitHub stars — widely adopted for
+> Docker Compose version bumping, issues auto-PRs when a new tag appears); alternative: a lightweight nuc-monitor
+> scheduled check against the GitHub Releases API + a Discord alert (reusing the existing alert path). Neither
+> option is in the queue today.
+> *RICE (pre-gate, rough):* Reach 2 · Impact 3 · Confidence 0.8 · Effort 2 → base 2.4 · interest 0.6
+> (similar shape to accepted idea-0014/0012/0015 — ops-risk mitigation on real documented gaps) · **rank ≈ 2.62**
+
+---
+
+### idea-0017 — journal MCP server (exploration-floor WILDCARD)
+state: inbox · source: agent (C3 gap-analysis 2026-07-06, exploration-floor WILDCARD) · created: 2026-07-06 · updated: 2026-07-06
+gate: null · moscow: null · proposal: null · outcome: null
+> **Documented trigger + external signal:** (1) idea-0013 is deferred with
+> `revisit_when: "journal (or any 3rd app) adds an MCP server"` — this idea IS that trigger. (2)
+> `08-SHARED-ASSETS.md` flags the MCP OAuth shim as "DUPLICATED — extract candidate (built 2×; extract at 3rd
+> app)"; journal = the 3rd consumer, activating the rule-of-three extraction of `@thiengthb/mcp-auth`. (3) Both
+> sibling web-apps (`todo`, `yakudoku`) already expose MCP servers using the near-identical shim — journal is the
+> only `web-app` without one. **Product gap:** Claude can create todos and practice sessions via MCP but cannot
+> create or retrieve journal entries. Implementation path: copy the OAuth shim from yakudoku (auth 38, oauth 86,
+> token 63, authorize 124, register 32 lines) + define journal-specific tools (create entry, search entries,
+> retrieve by date).
+> *WILDCARD flag:* orthogonal to the ops/testing/autonomy accept history → ranked on base only, no interest term.
+> *RICE (pre-gate, rough):* Reach 2 · Impact 2 · Confidence 0.7 · Effort 2 → base 1.4 · **rank 1.4 (base, wildcard)**
+
+---
+
+### idea-0018 — Codify the "sacrificial record" rule into the testing standard (live-verification-vs-real-data gap)
+state: inbox · source: agent (C3 gap-analysis 2026-07-08) · created: 2026-07-08 · updated: 2026-07-08
+gate: null · moscow: null · proposal: null · outcome: null
+> **Documented gap:** the 2026-07-06 `sakubun` incident — a live `submit_review` verification wrote a fake rating
+> onto the user's REAL item 「中」, corrupting its FSRS schedule; recovery only worked because `ReviewLog` happened
+> to be append-only (delete the injected rows, replay the rest through `ts-fsrs`). This was distilled to a
+> knowledge-ledger line scoped **"every app with user state / any live verification"** (platform-wide, not
+> sakubun-only) — but `11-testing-standard.md` (the canonical routing doc, shipped by idea-0010, `done`) has **no
+> rule** covering "verify a write path without touching real user data"; grep for
+> sacrificial/fixture/seed/production-data turns up nothing. Every app with user-writable state and a live/MCP
+> verification step (`todo`, `journal`, `yakudoku`, `sakubun`) can hit the same incident, and not all of them have
+> an append-only log to make recovery possible the way sakubun's did.
+> **External prior art:** the "canary"/synthetic-record pattern (AWS CloudWatch Synthetics, industry canary
+> testing) — verify a live write path against a dedicated synthetic/marked record, never a real user's, and
+> clean up or replay after. Sources: sreschool.com "What is Canary check?", AWS Cloud Operations Blog
+> ("Testing and debugging Amazon CloudWatch Synthetics canary locally").
+> **Scope guess (for `/idea analyze` to firm up):** add a short rule + a copy-in helper pattern (create a
+> marked/`__test__` record → verify → delete or replay) to `11-testing-standard.md`, referencing the sakubun
+> incident as the worked example. Small effort — mostly a doc addition + a reusable snippet, not new
+> infrastructure.
+> *RICE (pre-gate, rough):* Reach 3 (todo/journal/yakudoku/sakubun all have user-writable state + live
+> verification) · Impact 2 (process fix, not itself a security hole — but the failure mode is data corruption)
+> · Confidence 0.7 · Effort 1 → base 4.2 · interest 0.6 (similar shape to accepted idea-0010 [testing discipline]
+> and idea-0014 [data-safety] — supervisor has accepted both a testing-standard fix and a data-safety-driven gap
+> before) · **rank ≈ 4.58**
 
 ---
 

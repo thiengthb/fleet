@@ -22,3 +22,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Preview visual changes before commit](preview-visual-changes-before-commit.md) — on UI/color/design work, show a preview (static Artifact) + get approval before committing; diff isn't enough
 - [Direct over subagent for known context](direct-over-subagent-for-known-context.md) — for internal investigation I already hold context for, work directly (Read/Grep/Bash); don't fan-out subagents
 - [Practice-first, lean ceremony](practice-first-lean-ceremony.md) — working result before token-saving; match process ceremony to stakes (P-tiers), thin-slice before governance; over-engineering is the enemy
+- [Feature-atomic commits](feature-atomic-commits.md) — prefers one commit per feature even when edits are tangled across shared files; reconstruct intermediate states to split
