@@ -24,3 +24,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Practice-first, lean ceremony](practice-first-lean-ceremony.md) — working result before token-saving; match process ceremony to stakes (P-tiers), thin-slice before governance; over-engineering is the enemy
 - [Feature-atomic commits](feature-atomic-commits.md) — prefers one commit per feature even when edits are tangled across shared files; best fix = commit-as-you-go (don't let the batch pile up)
 - [Design for generality](design-for-generality.md) — build parameterized by settings + adaptive from data, never hardcoded to the current case (e.g. N3); keep logic multi-user-ready
+- [Check prior decisions early](check-prior-decisions-early.md) — during design chat, cross-check the idea vs existing plans/decisions/built code BEFORE endorsing; user iterates fast and may reverse his own recent work
