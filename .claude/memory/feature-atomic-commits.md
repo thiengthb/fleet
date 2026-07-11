@@ -16,8 +16,14 @@ even though separating tangled shared-file edits costs extra work. Asked for it 
 This complements [[concise-commit-messages]] (each subject still short) — it's about commit *boundaries*,
 not message length.
 
-**How to apply:** When about to commit a diff spanning multiple features, offer/do the split by feature.
-For tangled shared files, reconstruct each intermediate state (back up final files → revert to feature-1's
+**How to apply:** BEST — **commit each feature AS you finish it** (build → gate → commit) so the tangle
+never forms; this is the real fix and avoids the reconstruction entirely. Only when a multi-feature batch
+has ALREADY piled up: reconstruct each intermediate state (back up final files → revert to feature-1's
 state → stage+commit → restore next feature's state → commit → restore all → commit the rest) rather than
-staging hunks blindly — `git add -p` can't cleanly split a single rewritten function. Verify with
-`git show --stat` per commit + a clean final `git status`. Full recipe: ledger 2026-07-10 line.
+staging hunks blindly — `git add -p` isn't available interactively here and can't split a single rewritten
+function. Verify with a per-commit leak-grep + a clean final `git status`.
+
+**Cost lesson (2026-07-11):** at 5 features across 12 shared files (some edited on the SAME line — e.g. a
+catalog summary), reconstruction took ~40 fragile edits — disproportionate. That's what makes commit-as-
+you-go the default, not the fallback. Also: do NOT use `--no-verify` (let the commit-msg/pre-commit hooks
+run; hooks here only warn, never block). Keep commit subjects ≤72 chars. Recipe detail: ledger #92 + #(commit-as-you-go), 2026-07-10/11.
