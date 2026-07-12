@@ -19,7 +19,7 @@ load_priority: high
 | CSS | **Tailwind v4** (`@tailwindcss/postcss`, `@import "tailwindcss"` in `app/globals.css`); theme via CSS variables |
 | Sans font | **Inter** (`next/font/google`, subset `["latin","vietnamese"]`) — Geist has NO Vietnamese subset |
 | Mono font | **Geist Mono** |
-| Icons | **lucide-react** — **NEVER** another icon set |
+| Icons | **lucide-react ONLY** — **NEVER** another icon set (no react-icons / heroicons / tabler / @radix-ui/react-icons / font-awesome / feather / …). `components.json` → `"iconLibrary": "lucide"` |
 | Toasts | **sonner** (`<Toaster position="bottom-center" />`, `@/components/ui/sonner`) — **NEVER** `alert()` / another toast lib |
 | Theme | **next-themes** — `<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>` |
 | Data | **Server Actions** (`app/actions.ts`) + **Prisma** (`lib/db.ts`); **Route Handlers** for machine/HTTP endpoints |
@@ -36,7 +36,10 @@ load_priority: high
    - **NEVER** hardcode colors (`bg-white`, `text-black`, `#fff`, `bg-gray-900`) — they break in the other theme.
    - **ALWAYS** use shadcn CSS variables: `bg-background`, `text-foreground`, `text-muted-foreground`, `border`, `bg-card`, …
 3. **Responsive, mobile-first.** Base styles target mobile; scale up with `sm: md: lg:`. Every screen works ≥ 360 px wide. **NEVER** ship horizontal overflow on a phone.
-4. **Toast = sonner; icons = lucide.** Action feedback (save / delete / error) via `toast()`, not `alert()` / `confirm()`. Icons only from `lucide-react`.
+4. **Toast = sonner; icons = lucide-ONLY.** Action feedback (save / delete / error) via `toast()`, not `alert()` / `confirm()`.
+   - **Every icon comes from `lucide-react`** — no other icon library, and no hand-rolled `<svg>` icon glyph. Need a glyph lucide lacks → pick the nearest lucide icon, don't reach for another set.
+   - **Exception — data-viz is not an icon.** A custom `<svg>` that *renders data* (progress/score ring, gauge, sparkline, chart) is allowed; lucide has no dynamic-value equivalent. Reference: `yakudoku` `ScoreRing`. The ban is on decorative/UI *icons*, not on SVG as a drawing surface.
+   - Platform-wide as of 2026-07-12: all repos are lucide-only (audited). Keep it that way — a non-lucide icon import is a review-blocking finding.
 5. **Basic a11y & UX:**
    - **IF** a button is icon-only **→** include a label / `aria-label`.
    - Use `<TooltipProvider>` for tooltips.

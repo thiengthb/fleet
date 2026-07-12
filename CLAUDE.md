@@ -74,8 +74,9 @@ live there.
   performant (animate only `transform`/`opacity`) · handle EVERY state (loading/empty/error/optimistic). **Security:** no
   secret in the client bundle (only `NEXT_PUBLIC_*`/`VITE_*` reach it); Server Actions/Route Handlers auth + Zod-validate
   server-side and return a minimal DTO; no unsanitized `dangerouslySetInnerHTML`; no prod stack traces.
-- **Mandatory UI:** shadcn/ui only · dark/light via CSS vars (**no hardcoded colors**) · sonner toast · lucide icons ·
-  build the reusable thing ONCE.
+- **Mandatory UI:** shadcn/ui only · dark/light via CSS vars (**no hardcoded colors**) · sonner toast · **lucide icons
+  ONLY** (never another icon set / no hand-rolled `<svg>` icon; SVG that renders *data* — score-ring/gauge/sparkline —
+  is exempt) · build the reusable thing ONCE.
 
 ## In-app user guide — skill `/user-guide` (MANDATORY for any app with a UI)
 
