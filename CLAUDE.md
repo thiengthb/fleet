@@ -75,8 +75,9 @@ live there.
   secret in the client bundle (only `NEXT_PUBLIC_*`/`VITE_*` reach it); Server Actions/Route Handlers auth + Zod-validate
   server-side and return a minimal DTO; no unsanitized `dangerouslySetInnerHTML`; no prod stack traces.
 - **Mandatory UI:** shadcn/ui only · dark/light via CSS vars (**no hardcoded colors**) · sonner toast · **lucide icons
-  ONLY** (never another icon set / no hand-rolled `<svg>` icon; SVG that renders *data* — score-ring/gauge/sparkline —
-  is exempt) · build the reusable thing ONCE.
+  ONLY** (never another icon set / no hand-rolled `<svg>` icon / **no emoji as a UI icon-marker**; exempt: SVG that
+  renders *data* — score-ring/gauge/sparkline — and emoji inside a text protocol the model emits verbatim) · build the
+  reusable thing ONCE.
 
 ## In-app user guide — skill `/user-guide` (MANDATORY for any app with a UI)
 

@@ -37,9 +37,10 @@ load_priority: high
    - **ALWAYS** use shadcn CSS variables: `bg-background`, `text-foreground`, `text-muted-foreground`, `border`, `bg-card`, …
 3. **Responsive, mobile-first.** Base styles target mobile; scale up with `sm: md: lg:`. Every screen works ≥ 360 px wide. **NEVER** ship horizontal overflow on a phone.
 4. **Toast = sonner; icons = lucide-ONLY.** Action feedback (save / delete / error) via `toast()`, not `alert()` / `confirm()`.
-   - **Every icon comes from `lucide-react`** — no other icon library, and no hand-rolled `<svg>` icon glyph. Need a glyph lucide lacks → pick the nearest lucide icon, don't reach for another set.
+   - **Every icon comes from `lucide-react`** — no other icon library, no hand-rolled `<svg>` icon glyph, and **no emoji used as a UI icon/marker** (section headers, status chips, button glyphs, nav markers). Need a glyph lucide lacks → pick the nearest lucide icon, don't reach for another set or an emoji.
    - **Exception — data-viz is not an icon.** A custom `<svg>` that *renders data* (progress/score ring, gauge, sparkline, chart) is allowed; lucide has no dynamic-value equivalent. Reference: `yakudoku` `ScoreRing`. The ban is on decorative/UI *icons*, not on SVG as a drawing surface.
-   - Platform-wide as of 2026-07-12: all repos are lucide-only (audited). Keep it that way — a non-lucide icon import is a review-blocking finding.
+   - **Exception — emoji inside a TEXT protocol the model emits verbatim** (e.g. sakubun's MCP display-contract blocks 📋/📊/🎯 that Claude pastes literally) are *content*, not UI chrome — leave them. The ban is on emoji rendered as icons in the app's OWN JSX.
+   - **Audit properly:** grep icon-library imports AND inline `<svg>` AND emoji in rendered `app/`+`components/` (skip code comments + the text-protocol emoji above). A library-only sweep MISSES emoji-as-icons — the 2026-07-12 miss. Platform-wide the app UIs are lucide-only; a non-lucide icon (import OR emoji) is a review-blocking finding.
 5. **Basic a11y & UX:**
    - **IF** a button is icon-only **→** include a label / `aria-label`.
    - Use `<TooltipProvider>` for tooltips.
