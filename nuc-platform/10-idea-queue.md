@@ -49,7 +49,10 @@
      idea-0012 done (graduated 2026-06-17 → build plan).
      2026-07-06 NEW INBOX: idea-0016 (pinned-image staleness alert) + idea-0017 (journal MCP, WILDCARD).
      2026-07-08 C3 gap-analysis pass: +idea-0018 (sacrificial-record testing gap). Ranking/interest of
-     existing active ideas NOT re-derived this pass (scoped to gap-analysis only, per supervisor ask). -->
+     existing active ideas NOT re-derived this pass (scoped to gap-analysis only, per supervisor ask).
+     2026-07-17 C3 gap-analysis pass: +idea-0019 (live-refresh/session-state parity check for todo/journal)
+     + idea-0020 (codify MCP model-in-the-loop eval into 11-testing-standard.md). Scoped to gap-analysis only
+     (no re-sort/re-rank of existing actives, no promotion past inbox), per supervisor ask. -->
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
@@ -135,6 +138,53 @@ gate: null · moscow: null · proposal: null · outcome: null
 > · Confidence 0.7 · Effort 1 → base 4.2 · interest 0.6 (similar shape to accepted idea-0010 [testing discipline]
 > and idea-0014 [data-safety] — supervisor has accepted both a testing-standard fix and a data-safety-driven gap
 > before) · **rank ≈ 4.58**
+
+---
+
+### idea-0019 — Live-refresh + sessionStorage UI-state parity check for todo/journal (external-writer staleness)
+state: inbox · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-17 · updated: 2026-07-17
+gate: null · moscow: null · proposal: null · outcome: null
+> **Documented gap:** two dated 2026-07-14 knowledge-ledger lessons (#106, #107) generalize sakubun's fixes to
+> **named siblings by pattern, not by verified audit**: (1) "any RSC app with an external writer (sakubun MCP;
+> **todo/journal bots**)" needs a client `router.refresh()` on window-focus + light poll, because a Server-Component
+> page won't see writes made out-of-band; (2) "table-heavy web apps (sakubun; **todo/journal lists**)" need
+> sessionStorage-backed UI state because plain `<Link>` nav drops URL query params. `INVENTORY.md` confirms **todo**
+> ships a live MCP write path (`todo` = "Smart todo + MCP", row 34/66) — a real external writer, same shape as the
+> sakubun MCP that motivated the fix. No idea/audit currently checks whether todo (the platform's **reference
+> web-app**, copied by other repos) already has this staleness handling or is silently missing it.
+> **Not yet verified:** whether todo already implements an equivalent (may already be fine) — this is a
+> check-and-backfill candidate, not a confirmed bug. Scope for `/idea analyze`: (a) read todo's list/detail pages
+> for a live-refresh or polling mechanism, (b) if absent, port `sakubun/components/live-refresh.tsx` +
+> `use-session-state.ts` (small, already-built, already reused-once components) rather than re-deriving from scratch.
+> *RICE (pre-gate, rough):* Reach 2 (todo confirmed MCP writer; journal unconfirmed) · Impact 2 (stale-UI correctness
+> bug, not security) · Confidence 0.6 (gap existence unverified — audit first) · Effort 1 (copy-in from sakubun,
+> `08-SHARED-ASSETS.md` code-reuse candidate) → base 2.4 · interest 0.5 (similar shape to accepted idea-0012 —
+> extending an already-shipped, already-proven pattern to sibling apps on a documented coverage gap) · **rank ≈ 2.58**
+
+---
+
+### idea-0020 — Codify "MCP model-in-the-loop eval" as its own testing-standard rule (unit-tests-can't-catch-this gap)
+state: inbox · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-17 · updated: 2026-07-17
+gate: null · moscow: null · proposal: null · outcome: null
+> **Documented gap:** three separate dated knowledge-ledger incidents from one MCP server (sakubun) — 2026-07-06
+> (#56, display-contract paraphrasing), 2026-07-09 (#98 restated), 2026-07-11 (#98, a required-schema-field dead-end
+> for model recovery) — each explicitly states **"unit tests can't catch this"** / needs **"a model-in-the-loop
+> eval"**, and scopes the lesson to **"every MCP server (yakudoku, sakubun, future)"**. `11-testing-standard.md`
+> (the canonical routing doc, itself shipped by idea-0010) has a pyramid row for **"Cross-repo HTTP seams (…MCP)"**
+> routed to consumer-driven contract tests (§4) — but a contract test checks request/response SHAPE, not whether the
+> calling model paraphrases/reorders/mishandles a tool result or a required-arg rejection. Grep confirms
+> `11-testing-standard.md` has zero mention of "model-in-the-loop" or "eval". **todo** and **yakudoku** both run MCP
+> servers in production today (`INVENTORY.md` rows 34/66, 10) — the same failure class is live risk there too, not
+> just in local-only sakubun.
+> **Scope guess (for `/idea analyze` to firm up):** add a tier/row to `11-testing-standard.md` distinct from the
+> contract-test row — "MCP tool-schema / display-contract behavior" → model-in-the-loop eval (a subagent role-playing
+> the client, graded on pass criteria), referencing `sakubun/eval/display-contract-eval.md` as the worked template.
+> Doc-only addition, no new infra.
+> *RICE (pre-gate, rough):* Reach 3 (todo, yakudoku, every future MCP app route through this standard) · Impact 2
+> (process/testing-discipline fix, prevents a recurring class of model-behavior bugs) · Confidence 0.8 (pattern
+> already proven 3× in practice, low design uncertainty — mostly transcribing a working recipe) · Effort 1 (doc
+> addition) → base 4.8 · interest 0.6 (same shape as accepted idea-0010 — a testing-standard codification) ·
+> **rank ≈ 5.23**
 
 ---
 
