@@ -305,3 +305,37 @@ with each other across three different layers.*
 8. **Pin versions deliberately.** `traefik:v3.7` (new enough to live with Docker 29,
    minor-pinned so it won't jump a major on its own). The `latest` tag is only for things with a
    watcher (the app managed by watchtower, rollback-able via the SHA tag).
+
+---
+
+## 8. LATER TRAP (2026-07-18): a native module's binding vanishes in a Next `standalone` Docker build
+
+**Symptom.** `sakubun` container built fine, started, then crashed at first DB access with
+`better-sqlite3: Could not locate the bindings file` (tried `build/Release/better_sqlite3.node` etc.).
+It had worked on every previous rebuild.
+
+**Trigger.** A dependency was added with `npm install <pkg>` run on a **Windows** dev box, which
+regenerated `package-lock.json`. (No relation to the added package itself.)
+
+**Failure mechanism (two compounding causes).**
+1. A lockfile regenerated on a **different OS** can make `npm ci` on Linux **skip better-sqlite3's
+   native build** (its install/prebuild step doesn't run as before). Verified: `docker build --target
+   build` then `run ls node_modules/better-sqlite3/build/Release` → empty.
+2. Next `output: 'standalone'` traces files with `@vercel/nft`; the `.node` binding is loaded by the
+   `bindings` package via a **runtime filesystem lookup nft can't trace**, so the standalone prune drops
+   it (leaving only `lib/` + `package.json`).
+
+**Fix (Dockerfile, deterministic).**
+- deps stage: `RUN npm ci && npm rebuild better-sqlite3` — `npm rebuild` re-runs the install script and
+  **prebuild-install fetches the prebuilt** `.node`. (A *source* build — `--build-from-source` — FAILS:
+  node-gyp times out fetching node headers in the build sandbox. Use the prebuilt path.)
+- runtime stage: `COPY --from=build /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3`
+  over the pruned standalone copy. `next.config.ts` `outputFileTracingIncludes` did **not** help (there
+  was no binding in the build stage to include).
+
+**Lesson.** ① Any project with a **native dep** (`better-sqlite3`, `sharp`, …) + Next `standalone` must
+force-restore the binding (`npm rebuild` + `COPY` into standalone) — don't trust nft to carry it. ② After
+adding ANY dependency (especially from a non-Linux machine), **rebuild and confirm the container actually
+starts** (`docker inspect -f '{{.State.Health.Status}}'` + `docker logs`), because a native transitive
+dep can lose its binding silently while the image build still succeeds. Detail: `sakubun/docs/decisions.md`
+2026-07-18.
