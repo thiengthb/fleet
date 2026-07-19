@@ -26,4 +26,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Design for generality](design-for-generality.md) — build parameterized by settings + adaptive from data, never hardcoded to the current case (e.g. N3); keep logic multi-user-ready
 - [Check prior decisions early](check-prior-decisions-early.md) — during design chat, cross-check the idea vs existing plans/decisions/built code BEFORE endorsing; user iterates fast and may reverse his own recent work
 - [User edits files concurrently](user-edits-files-concurrently.md) — user edits in their own IDE mid-session; re-check git status/diff before build+commit, stage only my files, surface conflicts don't auto-merge
-- [Apply features across all surfaces](apply-features-across-all-surfaces.md) — add a control/behavior via the shared component to EVERY applicable surface (default on), not just the one place asked; reuse, don't special-case
+- [Apply features across all surfaces](apply-features-across-all-surfaces.md) — apply a control/behavior/RULE to EVERY applicable surface via the shared component, name the exceptions; he audits for completeness
