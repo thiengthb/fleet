@@ -339,3 +339,20 @@ adding ANY dependency (especially from a non-Linux machine), **rebuild and confi
 starts** (`docker inspect -f '{{.State.Health.Status}}'` + `docker logs`), because a native transitive
 dep can lose its binding silently while the image build still succeeds. Detail: `sakubun/docs/decisions.md`
 2026-07-18.
+
+## 9. LATER TRAP (2026-07-19): `docker compose up -d --build` silently kept the OLD image (full cache hit)
+
+**Symptom.** After editing source, `docker compose up -d --build <svc>` printed "Container … Running"
+(not "Recreated") and the container kept running the OLD code. The build produced a **byte-identical image
+(same sha)** — every layer was a cache hit — so `compose up` saw no change and didn't recreate.
+
+**Why.** `--build` reuses the BuildKit layer cache; when the resulting image digest equals what's already
+running, `compose up` treats the service as up-to-date and skips recreation. The image `CreatedAt` also
+stays at the original build time (top layer unchanged) — that's the tell.
+
+**Fix / verify.** When a rebuild must pick up source changes and you suspect a stale image:
+`docker compose build --no-cache <svc>` then `docker compose up -d --force-recreate <svc>`. Then VERIFY
+the new code is actually live — never trust "Running": confirm `docker ps` CreatedAt is fresh, compare
+`docker inspect <svc> -f '{{.Image}}'` (or `docker images <img>`) sha before-vs-after, and grep a known new
+string inside the running bundle (`docker exec <svc> sh -c "grep -rl <marker> .next"`). Applies to the
+LOCAL docker-compose dev deploys (the NUC's Watchtower pull path is unaffected — it keys on a new tag).
