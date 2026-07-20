@@ -16,6 +16,12 @@ that it reversed `drop-vocab-grammar-focus` (done) AND superseded `anki-vocab-pu
 and risks silently reversing settled architecture. The user is the supervisor: he needs the continuity
 check surfaced so he reverses **consciously**, not by accident.
 
+**The same check applies before BUILDING, not only before endorsing.** 2026-07-20 I added a "câu bạn đã
+dịch" section to sakubun's item page while the review-log table on that same page already rendered those
+sentences from the same `ReviewLog` rows — and I had edited that very file earlier in the session, for a
+different reason. The user caught it. Opening a file for one purpose is not the same as reading what it
+already does: before adding a view of some data, check what the surrounding surface already renders.
+
 **How to apply:** before agreeing with a design direction, glob `docs/plans/` + skim `decisions.md` for
 the area it touches. If the idea reverses/overlaps a prior decision or a shipped feature, **name it
 plainly, present options, flag the recommended one** (per [[legible-proposals-plain-language]]) and let
