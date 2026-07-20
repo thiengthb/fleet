@@ -356,3 +356,31 @@ the new code is actually live — never trust "Running": confirm `docker ps` Cre
 `docker inspect <svc> -f '{{.Image}}'` (or `docker images <img>`) sha before-vs-after, and grep a known new
 string inside the running bundle (`docker exec <svc> sh -c "grep -rl <marker> .next"`). Applies to the
 LOCAL docker-compose dev deploys (the NUC's Watchtower pull path is unaffected — it keys on a new tag).
+
+## 10. LATER TRAP (2026-07-20): compose PREFIXES a named volume, and the wrong name fails SILENTLY
+
+**Symptom.** A restore "succeeds" and the app comes back empty, or a backup runbook looks correct and
+does nothing.
+
+**Cause.** A volume declared in `docker-compose.yml` as
+
+```yaml
+volumes:
+  sakubun_data:
+```
+
+does NOT exist on the host under that name. Compose prefixes it with the project name (the directory),
+so the real volume is `sakubun_sakubun_data`. Check with `docker volume ls`.
+
+**Why it is dangerous rather than merely wrong.** `docker run -v sakubun_data:/data ...` does not
+error. Docker treats an unknown name as a request to CREATE a volume, so the command happily makes an
+empty one and the restore writes into a volume nothing reads. The user sees no failure and believes
+their data is back.
+
+**Rule.** Before putting a `docker run -v <name>:...` line into a runbook, a `/guide` page or any
+user-facing copy, confirm the name with `docker volume ls`. In sakubun the stale bare name had been
+sitting in `app/guide/page.tsx` for weeks before a restore test exposed it.
+
+**Related.** `sakubun/scripts/verify-restore.sh` (proves the round-trip end to end),
+`sakubun/docs/decisions.md` 2026-07-20 "A backup is a claim until a restore has been performed".
+
