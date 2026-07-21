@@ -476,5 +476,13 @@ endpoint on it must be explicitly bypassed** — the app authorizes machines its
 will see `/api/mcp` "unprotected at the edge" and may be tempted to re-add Access to it — **do not**; that
 re-breaks MCP. The Bypass carve-out is deliberate and load-bearing.
 
+**Update 2026-07-22 — CF Access REMOVED from sakubun entirely (multi-user go-live).** With the app's own
+better-auth login + open registration live, both Access applications (the whole-host gate AND the `api/mcp`
+bypass) were deleted, so `sakubun.thientnse.site` now has **no Cloudflare Access at all** — the app self-auths
+(better-auth session for the web, per-user Bearer for MCP, admin-only `/api/backup`). Deleting the bypass too is
+harmless: with no gate there is no hole to keep. Verified: `/login` → 200 (app), `/api/health` → `{"ok":true}`,
+`/api/mcp` → 401 JSON. So a `/nuc-health-audit` now sees the WHOLE sakubun host edge-open **by design** — do NOT
+"re-secure" it with Access. The bypass-carve-out lesson above still applies to any OTHER host kept behind Access.
+
 **Related.** `sakubun/app/api/[transport]/route.ts` (`withMcpAuth` Bearer gate), `sakubun/lib/mcp-key.ts`
-(`verifyMcpToken`), `sakubun/docs/decisions.md` 2026-07-21.
+(`verifyMcpToken`), `sakubun/docs/decisions.md` 2026-07-21 + 2026-07-22 (G6 open-up).
