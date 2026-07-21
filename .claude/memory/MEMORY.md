@@ -14,6 +14,7 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
 - [Sandbox-propose governance](sandbox-propose-governance.md) — never edit live governance; propose a tested sandbox copy, human installs
 - [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified
+- [Report state from the tool](report-state-from-the-tool.md) — read counts/coverage/unpushed-N from git/query AT report time; don't recite a remembered number (miscounted commits twice in one session)
 - [Legible proposals, plain language](legible-proposals-plain-language.md) — flag the recommended option, name the skill/process behind any approve gate, explain in everyday language
 - [Never print secret file contents](never-print-secret-file-contents.md) — inspect .env/keys by count/length only, never grep -o/cat the values (a leak forces rotation)
 - [Route questions via Discord, don't block](route-questions-via-discord-not-blocking.md) — user often away from machine; ask async via Discord + leave readable minutes; don't overclaim autonomy
