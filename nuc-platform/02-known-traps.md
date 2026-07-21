@@ -384,3 +384,97 @@ sitting in `app/guide/page.tsx` for weeks before a restore test exposed it.
 **Related.** `sakubun/scripts/verify-restore.sh` (proves the round-trip end to end),
 `sakubun/docs/decisions.md` 2026-07-20 "A backup is a claim until a restore has been performed".
 
+## 11. LATER TRAP (2026-07-21): a root-seeded volume makes an app running as `USER node` hit "readonly database"
+
+**Symptom.** Seeding a throwaway volume with a real SQLite DB (to verify an image build), the container's
+`prisma migrate deploy` fails at startup with **`SQLite database error: attempt to write a readonly database`** —
+even though the file is present and readable, and the same image runs fine against its own fresh volume.
+
+**Cause.** The DB was piped in via a **root** helper container
+(`docker run -i -v vol:/data alpine sh -c 'cat > /data/sakubun.db'`), so `/data` AND the file are **root-owned**.
+The app image runs as `USER node` (uid 1000). SQLite's write path — and Prisma's SQLite migrations, which use a
+RedefineTables rebuild — must create a **journal/WAL file in the directory**, not just write the file. A
+root-owned directory is read-only to uid 1000, so the whole migration is "readonly".
+
+**Why it hides.** The normal flow never trips it: the app container starts with an EMPTY volume and creates the
+DB itself, so everything is already `node`-owned. The trap only appears when you pre-seed a volume from outside.
+
+**Rule.** After seeding a volume for an app that runs as non-root, `chown -R <uid>:<gid> /data` to the app's user
+(uid 1000 for `node:alpine`). Bake it into the seed step: `sh -c 'cat > /data/db && chown -R 1000:1000 /data'`.
+
+**Related.** `sakubun/scripts/verify-image.sh`, `sakubun/docs/decisions.md` 2026-07-21 "Verify a rebuilt image
+against a COPY of the real volume".
+
+
+## 12. LATER TRAP (2026-07-21): `build: .` + `migrate deploy`-at-start bakes UNCOMMITTED WIP into the live image
+
+**Symptom.** You are ready to rebuild the live container to ship a merged, pushed feature — but the working
+tree ALSO holds someone's in-progress WIP (a modified `schema.prisma`, an untracked new migration dir). A plain
+`docker compose up -d --build` (or `docker build .`) would silently ship that WIP.
+
+**The failure mechanism.** The Dockerfile does `COPY . .` from the **working directory**, not from git — so a
+modified `prisma/schema.prisma` and an untracked `prisma/migrations/<wip>/` land in the image. Worse, the runtime
+`CMD` runs `prisma migrate deploy` on startup, which applies **every** migration in the image — so the WIP
+migration hits the **live volume** (real data), not just the image. Committed-and-pushed ≠ what gets built.
+
+**Fix.** Build the image from a **clean git worktree at the exact pushed commit**, never from the dirty tree:
+`git worktree add ../.build <commit>; docker build -t <img> ../.build`, then `docker compose up -d --no-build`
+(so compose uses the pre-built image instead of re-building from `.`). The author's WIP is left untouched in the
+main tree. `--no-build` is the load-bearing flag — without it `up` may rebuild from the dirty context.
+
+**Lesson.** When `build: .` meets a shared working tree, "what's committed" and "what builds" diverge. Pin the
+build to a commit (worktree) and forbid the implicit rebuild (`--no-build`). Verify: `grep -c 'model Group' the
+worktree schema` before building. (Belt: back up the live volume first — the OLD image's `/api/backup` is still
+un-authed pre-cutover.)
+
+**Related.** `sakubun/Dockerfile` (`COPY . .`, `CMD … migrate deploy`), `sakubun/docker-compose.yml` (`build: .`).
+
+## 13. LATER TRAP (2026-07-21): better-auth rejects `localhost` when `baseURL` is the public domain
+
+**Symptom.** After deploying an authed app (better-auth) reachable both on `localhost:PORT` (the host) and
+`https://app.domain` (the tunnel), sign-in/up from the localhost page fails with HTTP **403** and the container
+logs `ERROR [Better Auth]: Invalid origin: http://localhost:PORT` (code `INVALID_ORIGIN`).
+
+**The failure mechanism.** better-auth validates the request `Origin` against `baseURL` (set to the public domain
+for correct prod cookies/callbacks). A same-app request from `localhost` is a DIFFERENT origin → rejected. The
+public URL works (origin matches); localhost does not.
+
+**Fix.** Add `trustedOrigins: ['http://localhost:PORT', 'https://app.domain', …]` to the better-auth config (keep
+`baseURL` = the domain). Then BOTH work. Note: the fix only takes effect on the next image rebuild — until then
+use the public URL. Guard the operator against a mid-deploy dead-end: tell them "register via the public URL now,
+localhost after the rebuild".
+
+**Lesson.** `baseURL` is single-valued but a home-server app has two legitimate origins (host + tunnel).
+`trustedOrigins` is the multi-origin knob; set it the moment the app is reachable on more than one host.
+
+**Related.** `sakubun/lib/auth.ts` (`trustedOrigins`), `sakubun/docs/decisions.md` 2026-07-21.
+
+## 14. LATER TRAP (2026-07-21): Cloudflare Access gating a whole host also blocks the app's MACHINE endpoint
+
+**Symptom.** An MCP client (Claude Desktop via `mcp-remote`) can't connect to a home-server app's
+`/api/mcp`, failing with `Streamable HTTP error: Unexpected content type: text/html` — even though the
+Bearer token is correct and the human can log into the web UI just fine.
+
+**The failure mechanism.** The host (`sakubun.thientnse.site`) sits behind a **Cloudflare Access** application
+(operator-only, added to keep the app private pre-auth). CF Access gates **every path on the host**, including
+`/api/mcp`. A browser carries the CF Access cookie so the human gets through; a **machine** client has no CF
+Access credential, so CF returns a **302 → `*.cloudflareaccess.com` login (HTML)** instead of forwarding to the
+app. `mcp-remote` POSTs JSON and gets HTML back → "Unexpected content type: text/html". The app's own Bearer
+token never even reaches it. Confirm with `curl -sD - -X POST https://host/api/mcp …` → look for
+`Www-Authenticate: Cloudflare-Access` + a `Location:` to `cloudflareaccess.com`.
+
+**Fix.** A machine endpoint must NOT sit behind interactive SSO (the platform invariant: never forward-auth an
+endpoint a machine client calls automatically — the app already guards it with a Bearer token). Carve `/api/mcp`
+out of CF Access: **Zero Trust → Access → Applications → Add → Self-hosted**, subdomain + **Path `api/mcp`**,
+policy **Action = Bypass / Include = Everyone**. Access matches the most specific path, so only `/api/mcp` is
+released; the rest of the host stays gated. Verify: the same curl now returns the app's **`401` + `Content-Type:
+application/json` + `Www-Authenticate: Bearer`** (the app's own gate), and an `initialize` with a real token
+returns the MCP `serverInfo`.
+
+**Lesson / anti-regression.** ① Whenever a host is put behind Cloudflare Access (or any edge SSO), **any machine
+endpoint on it must be explicitly bypassed** — the app authorizes machines itself. ② A later `/nuc-health-audit`
+will see `/api/mcp` "unprotected at the edge" and may be tempted to re-add Access to it — **do not**; that
+re-breaks MCP. The Bypass carve-out is deliberate and load-bearing.
+
+**Related.** `sakubun/app/api/[transport]/route.ts` (`withMcpAuth` Bearer gate), `sakubun/lib/mcp-key.ts`
+(`verifyMcpToken`), `sakubun/docs/decisions.md` 2026-07-21.
