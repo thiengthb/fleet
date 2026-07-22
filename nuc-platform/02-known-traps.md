@@ -486,3 +486,27 @@ harmless: with no gate there is no hole to keep. Verified: `/login` → 200 (app
 
 **Related.** `sakubun/app/api/[transport]/route.ts` (`withMcpAuth` Bearer gate), `sakubun/lib/mcp-key.ts`
 (`verifyMcpToken`), `sakubun/docs/decisions.md` 2026-07-21 + 2026-07-22 (G6 open-up).
+
+---
+
+## 15. LATER TRAP (2026-07-22): a Docker build failing with `EROFS` / `read-only file system` = the daemon's disk is FULL
+
+**Symptom.** `docker compose up -d --build` (or any BuildKit build) fails mid-`npm ci` with
+`npm error code EROFS ... read-only file system, open '/root/.npm/_cacache/...'` and/or
+`failed to solve: failed to create lease: read-only file system`. Looks like a permissions or cache-mount
+bug; it is neither. A flaky-network `ECONNRESET` during `npm ci` can appear first and mask it.
+
+**Root cause.** Docker Desktop's VM disk filled up. When the backing filesystem runs out of space it flips
+**read-only**, so every write (a BuildKit cache mount, BuildKit's lease store) fails with `EROFS`.
+
+**Fix.** Free space with the safe, reversible prunes — do NOT touch named volumes (that's your data):
+`docker system df` (see the breakdown) → `docker builder prune -f` (build cache is usually the biggest, GBs)
++ `docker image prune -f` (dangling images). Then rebuild. (2026-07-22: freed ~5.5 GB this way and the build
+went green.)
+
+**Watch.** BuildKit cache mounts (`--mount=type=cache`) make rebuilds fast but the cache **regrows** every
+build (back to ~5.9 GB soon after) — prune periodically. LOCAL-dev-specific while the NUC is down (deploy =
+local rebuilds), but the same "EROFS = disk full" logic applies to the NUC if `/var/lib/docker` ever fills.
+
+**Related.** `sakubun/Dockerfile` (the cache mounts + npm fetch-retries added the same session);
+`sakubun/docs/decisions.md` 2026-07-22.
