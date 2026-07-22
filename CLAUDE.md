@@ -67,6 +67,11 @@ at repo-init; ESM + Node ≥ 22; Prettier from the skill's `templates/`; never c
 Owns architecture/composition/state/motion/UX-states/security (`/coding-convention` owns naming/commits/Prettier). Read
 `SKILL.md` first; open a ref (`architecture`/`components`/`motion`/`ux`/`security`) when needed — the 7-step + full detail
 live there.
+- **Page-frame consistency = platform std `nuc-platform/12-ui-layout-standard.md`:** every page body = a shared
+  `PageShell` (vertical rhythm + a width tier + the breadcrumb slot); the app shell `<main>` owns horizontal width only;
+  breadcrumbs replace page titles on EVERY page; sidebar footer stacks + collapses to icons (logout = destructive);
+  animation = **Motion** wrapped once in `<MotionConfig reducedMotion="user">` + a small reusable variant vocab. Reference
+  impl: `sakubun/components/{page-shell,app-breadcrumbs,motion-primitives}.tsx`.
 - **Stack (running in `todo`):** React 19 (Server Components/Actions, `use`, `useActionState`, `useOptimistic`,
   ref-as-prop — **NO `forwardRef`**) + Next.js App Router *or* React+Vite + Tailwind v4 (`@theme`+OKLCH, **no
   `tailwind.config.js`**) + shadcn/ui + Motion v12 + TS. Different stack → keep the principles, don't rewrite.
