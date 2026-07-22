@@ -15,29 +15,36 @@ frame consistency**: the container, spacing rhythm, breadcrumb, and animation ba
 px-4 sm:px-6` and nothing else — no vertical padding, no `space-y`. Pages never re-set the horizontal
 container.
 
-**2. Every page body is a `PageShell`.** One shared component owns the rest of the frame, so pages stop
-copy-pasting (and drifting) `py-8 space-y-6 max-w-* + breadcrumb`:
+**2. Every page body is a `PageShell` — STRICT, no exceptions.** One shared component owns the rest of the
+frame, so pages stop copy-pasting (and drifting) `py-8 space-y-6 max-w-* + breadcrumb`. If a route renders
+UI, it renders it inside a `PageShell`:
 
 - vertical rhythm — `py-8 space-y-6` (one value, one place);
-- an optional content **width tier** — `full` (default, inherits the shell's `max-w-7xl`; for data-dense
-  pages: tables, dashboards, history), `wide` (`max-w-5xl`), `narrow` (`max-w-3xl` — detail/admin), `form`
-  (`max-w-2xl`). Different widths for form-vs-data pages are legitimate; random per-page max-widths are not;
-- the **breadcrumb slot** (see rule 3).
+- content **width tier** — `full` is the DEFAULT and the norm: data pages AND content/form pages use it so
+  the whole app reads at one width. The narrower tiers (`wide` max-w-5xl, `narrow` max-w-3xl, `form`
+  max-w-2xl) exist but are used sparingly — only when reading-width genuinely helps. Do NOT scatter random
+  per-page max-widths;
+- the **breadcrumb slot** (see rule 3);
+- **tabs beside the breadcrumb** — a tabbed page passes its `<TabsList>` (plus any right-aligned action,
+  e.g. a Save button) as `headerAside`, so the tabs share the breadcrumb's row (like `/resources`). The
+  component that owns `<Tabs>` owns the `PageShell`: `<Tabs><PageShell section=… headerAside={<TabsList/>}>
+  …<TabsContent/>…</PageShell></Tabs>`; that page's file then renders no second `PageShell`.
 
-A page whose header needs a custom layout (breadcrumb sharing a row with a `<TabsList>`, a Save button)
-omits the auto-breadcrumb and renders its own via the `breadcrumb` slot — it still uses `PageShell` for
-the container + rhythm.
+A detail page with a custom trail passes a `breadcrumb` node (the full parent chain) instead of `section`.
 
-**3. Breadcrumbs replace page titles — on EVERY page.** No page ships without one. The breadcrumb names
-the page (so drop the redundant `<h1>`); keep only sub-info a crumb can't carry (an email line, an
-operational caveat). One central route→crumb map (`app-breadcrumbs.tsx`) holds label + href + icon +
-hover-description per section; a new page adds its entry there in the same change. Detail pages nest the
-full parent chain (`Section → Subsection → Chi tiết`) instead of a bespoke back-link.
+**3. Breadcrumbs replace page titles — on EVERY page — and carry the description.** No page ships without
+a breadcrumb. It names the page (drop the redundant `<h1>`), and the page's **description lives in the
+crumb's hover description** (`CRUMBS[section].description`), NOT as a paragraph on the page (like
+`/resources`). Keep on the page only sub-info a static crumb can't carry (e.g. a per-user email line).
+One central route→crumb map (`app-breadcrumbs.tsx`) holds label + href + icon + description per section; a
+new page adds its entry there in the same change. Detail pages nest the full parent chain
+(`Section → Subsection → Chi tiết`) instead of a bespoke back-link.
 
-**4. Sidebar footer stacks; controls collapse to icons.** Footer controls (theme toggle, logout, …) are a
-vertical stack of full-width rows when expanded and centred icons on the collapsed icon rail — never a
-horizontal row that overflows the ~3rem rail. Destructive footer actions (logout) use `variant="destructive"`.
-The brand mark stays visible above the collapse toggle when collapsed (hide the wordmark, not the logo).
+**4. Sidebar footer = two collapsible action buttons.** Footer controls (theme toggle, logout, …) are
+compact action buttons that reveal their label on hover: side by side on one row when the sidebar is
+expanded, stacked into a centred icon column on the collapsed ~3rem rail (never a horizontal row that
+overflows it). Destructive footer actions (logout) use `variant="destructive"`. The brand mark stays
+visible above the collapse toggle when collapsed (hide the wordmark, not the logo).
 
 **5. Animation baseline = Motion, reduced-motion global.** Motion (`motion/react`) is the animation
 library; wrap the app once in `<MotionConfig reducedMotion="user">` so no component re-implements the
