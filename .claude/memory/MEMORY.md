@@ -29,3 +29,4 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [User edits files concurrently](user-edits-files-concurrently.md) — user edits in their own IDE mid-session; re-check git status/diff before build+commit, stage only my files, surface conflicts don't auto-merge
 - [Apply features across all surfaces](apply-features-across-all-surfaces.md) — apply a control/behavior/RULE to EVERY applicable surface via the shared component, name the exceptions; he audits for completeness
 - [Capability over rearrangement](capability-over-rearrangement.md) — judge UI work by what it lets the user DO; restructuring a familiar screen reads as loss (two redesigns rejected)
+- [NUC down, deploy local-only](nuc-down-deploy-local-only.md) — NUC is broken + no VPS (as of 2026-07-22); deploy = LOCAL only, don't SSH/operate the NUC or treat push as going-live; re-verify before assuming it's back
