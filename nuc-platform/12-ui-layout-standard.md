@@ -19,7 +19,9 @@ container.
 frame, so pages stop copy-pasting (and drifting) `py-8 space-y-6 max-w-* + breadcrumb`. If a route renders
 UI, it renders it inside a `PageShell`:
 
-- vertical rhythm — `py-8 space-y-6` (one value, one place);
+- vertical rhythm — `py-6 space-y-4` (one value, one place; tightened from `py-8 space-y-6` on
+  2026-07-23 so data-dense pages get more usable height and the auto-fit pagination leaves less dead
+  space below the controls — the auto-fit reserve in `components/ui/use-fit-rows.ts` tracks this `py-6`);
 - content **width tier** — `full` is the DEFAULT and the norm: data pages AND content/form pages use it so
   the whole app reads at one width. The narrower tiers (`wide` max-w-5xl, `narrow` max-w-3xl, `form`
   max-w-2xl) exist but are used sparingly — only when reading-width genuinely helps. Do NOT scatter random
