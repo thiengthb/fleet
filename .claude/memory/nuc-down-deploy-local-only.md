@@ -21,3 +21,12 @@ the NUC pipeline (Watchtower/ghcr/Traefik), unless the user explicitly says the 
 `git push` is still fine (it preserves code on GitHub) but pushing ≠ it goes live. **Re-verify this
 state before assuming the NUC/VPS is usable again** — it's a temporary situation, not permanent. Links:
 [[verify-end-state-not-upload]], [[execute-over-handoff]], [[practice-first-lean-ceremony]].
+
+**Update 2026-07-24 — a LOCAL deploy CAN be public, via a local `cloudflared` tunnel (no NUC needed).**
+`sakubun` now runs on this machine (`docker compose up -d --build`) AND is publicly reachable at
+`sakubun.thientnse.site` through a `cloudflared` container the user runs locally with a Cloudflare Tunnel
+token (dashboard-managed ingress → `http://host.docker.internal:3789`; on Linux the container needs
+`--add-host host.docker.internal:host-gateway`). So "local-only deploy" no longer means "unreachable from
+the internet" — the tunnel bypasses the NUC/Traefik entirely and terminates TLS at Cloudflare. It lives in
+a gitignored `docker-compose.tunnel.yml` + `.env.tunnel` (chmod 600) in the sakubun repo. Still no NUC:
+`git push` does not auto-deploy, and the running container must be rebuilt by hand to pick up new code.
