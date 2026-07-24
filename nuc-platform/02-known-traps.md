@@ -510,3 +510,28 @@ local rebuilds), but the same "EROFS = disk full" logic applies to the NUC if `/
 
 **Related.** `sakubun/Dockerfile` (the cache mounts + npm fetch-retries added the same session);
 `sakubun/docs/decisions.md` 2026-07-22.
+
+## 16. LATER TRAP (2026-07-24): Docker Desktop on Linux is a SEPARATE daemon — its GUI can't see native-engine containers, and launching it hijacks the CLI context
+
+**Symptom.** `docker ps` in a terminal shows the sakubun stack (running, healthy), yet Docker Desktop's GUI
+shows NO containers — and sometimes `docker ps` itself then shows nothing either.
+
+**Cause.** A Linux box can run TWO independent Docker daemons: the native Engine (systemd,
+`unix:///var/run/docker.sock`, context `default`) and Docker Desktop (its own VM,
+`~/.docker/desktop/docker.sock`, context `desktop-linux`). They share NO containers, images, or volumes, and
+the Docker Desktop GUI only ever shows its OWN daemon. Installing / launching Docker Desktop silently switches
+the CLI's active context to `desktop-linux` — so a stack living on the native engine vanishes from BOTH the GUI
+(different daemon) and `docker ps` (context now points at the empty Desktop daemon).
+
+**Fix — pick ONE daemon.** Either (a) keep the stack on the native engine and pin the CLI with
+`docker context use default` (use Portainer / lazydocker if you want a GUI that reads native); or (b) MIGRATE
+the stack into Docker Desktop so GUI + CLI + rebuilds all agree — copy the named volume across daemons:
+`docker --context default run --rm -v <vol>:/from alpine tar cf - -C /from . | docker --context desktop-linux run --rm -i -v <vol>:/to alpine tar xf - -C /to`,
+verify by comparing the DB file's `sha256sum` on both sides, then `compose up -d --build` on `desktop-linux`.
+Trade-off of (b): the stack is tied to Docker Desktop RUNNING — it does NOT come up on boot like a
+systemd-managed engine, so enable "Start Docker Desktop when you log in". (2026-07-24: chose (b) for sakubun on
+the local Ubuntu box while the NUC is down; data verified byte-identical, old native volume then removed.)
+
+**Watch.** Docker Desktop re-grabs the context to `desktop-linux` every time it starts — after (a) the context
+can silently flip back, so `docker context show` before any rebuild. LOCAL-dev-specific (the canonical NUC only
+ever pulls prebuilt images — Docker Desktop is not part of it); relevant only while deploying locally.
