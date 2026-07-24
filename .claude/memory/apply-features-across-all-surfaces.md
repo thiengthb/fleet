@@ -22,6 +22,14 @@ carried to completion, so a half-applied convention is worse than none: it reads
 being false. When I announce a rule, I sweep the whole surface it claims to cover in the same pass, and I
 name the exceptions explicitly (with the reason) so a gap never looks like an oversight.
 
+**Corollary — if the shared component doesn't exist yet, UNIFY first; don't decorate two parallel ones.**
+2026-07-22: two `/history` tabs rendered the same entity (a graded sentence) with two divergent components
+(`HistoryCard` compact+modal vs `FeedCard` inline). I added the requested icons onto BOTH — he immediately
+said they "không giống gì với nhau hết". The fix he approved was to extract ONE shell (`SentenceCardShell`)
+and rebuild both on it. Lesson: when a request is "make X and Y match" (or "add this to both"), the first
+move is to unify the component, THEN add the feature to the one shell — decorating two parallel components
+is the wrong instinct.
+
 **How to apply:** build the behavior INTO the reusable component (sensible default ON), then verify it
 shows up everywhere that component is used — enumerate the call sites and check them, rather than wiring
 one spot. For a rule: grep the whole surface, list every hit, decide each one, and state the deliberate

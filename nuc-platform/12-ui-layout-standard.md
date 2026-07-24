@@ -56,6 +56,32 @@ reusable variants/components (`fadeUp`, `StaggerGroup`/`StaggerItem`, `Reveal` �
 reads as one system. Pre-existing CSS-keyframe animations can stay; migrate them to Motion opportunistically
 when you're already touching them, not in a big-bang rewrite.
 
+## Typography — the type scale
+
+Font size is a shared backbone, not a per-component choice. One scale, four roles, top → bottom:
+
+| Token | px | Role |
+|---|---|---|
+| `text-lg` | 18 | section / hero heading in chrome (use sparingly) |
+| `text-base` | 16 | `CardTitle`, lead-emphasis |
+| **`text-sm`** | **14** | **BODY BASELINE** — set ONCE on `PageShell`; page content inherits it |
+| `text-xs` | 12 | meta / caption / timestamp / badge |
+
+The baseline is the point: because `PageShell` sets `text-sm`, a bare content block is 14px, so a heading
+(which opts UP to `text-base`/`text-lg`) is ALWAYS larger than its content — content can never outgrow its
+title. Headings opt up only when they ARE headings; meta opts down to `text-xs`. Two hard rules:
+
+1. **No display size (`text-xl` and above) in app chrome.** Bigger sizes belong to heroes (landing /
+   marketing / auth / error pages) and DATA-DISPLAY (large metric numbers, gauges, glyphs, scaled UI
+   mockups) — never body or title text. This caps chrome at `text-lg`.
+2. **No arbitrary font size** (`text-[13px]`, `text-[0.8rem]`, …) — everything maps to the scale.
+
+In sakubun both are GATE-ENFORCED by `lib/type-scale.test.ts` (a `DISPLAY_ALLOW` list carries the named
+hero/data-display exemptions, each with a reason — add to it, never weaken the regex). A sibling rule —
+**bounded single-line text must `truncate` in a `min-w-0` parent** (multi-line uses `line-clamp-N`) so text
+never overflows its box — is contextual, so it is locked in `docs/ui-patterns.json` (`text-must-truncate`)
+and shown by the write-time hook instead of a unit test.
+
 ## Applying it to a new app
 
 Copy `page-shell.tsx` + `app-breadcrumbs.tsx` shape from sakubun (adapt the section map to the app's

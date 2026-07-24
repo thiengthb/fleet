@@ -52,7 +52,20 @@
      existing active ideas NOT re-derived this pass (scoped to gap-analysis only, per supervisor ask).
      2026-07-17 C3 gap-analysis pass: +idea-0019 (live-refresh/session-state parity check for todo/journal)
      + idea-0020 (codify MCP model-in-the-loop eval into 11-testing-standard.md). Scoped to gap-analysis only
-     (no re-sort/re-rank of existing actives, no promotion past inbox), per supervisor ask. -->
+     (no re-sort/re-rank of existing actives, no promotion past inbox), per supervisor ask.
+     2026-07-21 C3 gap-analysis pass: +idea-0021 (verify NUC backup script's SQLITE_DBS/PG_DUMPS volume/container
+     names against the 2026-07-20 compose-prefix trap, before the accepted idea-0014 backup plan's first run).
+     Scoped to gap-analysis only (no re-sort/re-rank of existing actives, no promotion past inbox); considered a
+     2nd candidate (cross-project no-emoji-test enforcement gap, ledger #134) but could not verify sibling repos
+     from this machine (only miniserver-platform is checked out here) — held back rather than propose ungrounded.
+     2026-07-24 C3 gap-analysis pass: +idea-0022 (backfill the guide-coverage drift gate, shipped in sakubun
+     2026-07-23, to todo/yakudoku — the ledger entry's own stated scope). Scoped to gap-analysis only (no
+     re-sort/re-rank of existing actives, no promotion past inbox); inbox already held 6 un-gated ideas
+     (0016-0021) so only 1 new candidate proposed rather than padding the backlog — "at most 1-2" does not mean
+     "always 2". Considered but held back as ungrounded: the 2026-07-24 streak-beacon pattern (ledger, scoped
+     "todo IF it adds streaks" — a hypothetical, todo has no streak feature today, not a live gap) and the
+     2026-07-22 EROFS/disk-full trap's NUC corollary (real risk in principle, but the NUC is currently down per
+     memory `nuc-down-deploy-local-only` — proposing NUC-disk monitoring now is premature until it's back up). -->
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
@@ -78,6 +91,68 @@ gate: pass · moscow: could · reach: 2 impact: 1 confidence: 0.8 effort: 2 · b
 proposal: null · outcome: null
 > `cost: S/M/L` on plan steps + post-hoc calibration; auto-pilot reads `cost` not a fixed step count. Research confirmed
 > a-priori token forecasting is unreliable (r≈0.39) → enforcement (p99 + hard cap), not prediction. Modest payoff; lower rank.
+
+---
+
+### idea-0021 — Verify the NUC backup script's volume/container names against the newly-documented compose-prefix trap before first run
+state: inbox · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21 · updated: 2026-07-21
+gate: null · moscow: null · proposal: null · outcome: null
+> **Documented gap:** `02-known-traps.md` §10 (added 2026-07-20, commit `2d1c756`) and knowledge-ledger line
+> 2026-07-20 ("compose PREFIXES a named volume with the project name … every project on this platform") document
+> that a `docker-compose.yml` volume named e.g. `sakubun_data` actually exists on the host as
+> `sakubun_sakubun_data`, and that quoting the bare name in a runbook/script is wrong in the silent-failure
+> direction — sakubun had exactly this bug sitting in `app/guide/page.tsx` for weeks, only caught by
+> `verify-restore.sh` (ledger 2026-07-20, "a backup is a claim until a restore has been performed").
+> **Where this applies on the platform's own accepted backup plan (idea-0014, `nuc-platform/plans/2026-06-19-idea-0014-nuc-backup.md`, status active):**
+> `nuc-platform/backup/backup.env.example` line 19 sets `SQLITE_DBS=yakudoku_data:db.sqlite3,n8n_data:database.sqlite`
+> — **bare, un-prefixed volume names**, the exact pattern the trap warns about — and `restic-backup.sh:56` builds
+> `src="/var/lib/docker/volumes/$vol/_data/$rel"` directly from that config, i.e. the same class of path
+> construction as the `docker run -v <name>` case that silently created an empty volume in the sakubun incident.
+> (Checked: the raw `restic backup $VOLUME_PATHS` step backs up `/var/lib/docker/volumes` by filesystem path, not
+> by docker-cli volume name, so that step is NOT exposed — only the SQLite-dump and `PG_DUMPS` container-name
+> config surfaces are.) The plan's own step 1 ("Verify volumes + engines on the live NUC … `docker volume ls`")
+> already exists but is unchecked, and neither the script comments nor `backup.env.example` cross-reference the
+> newly-added trap doc, so step 1 could be done without the specific "must be the compose-prefixed name" nuance
+> in mind. **Not yet verified:** whether this fails loud (the script's `set -e`/`ERR` trap + optional Discord
+> webhook) or goes unnoticed — that depends on live NUC config not checked from this machine.
+> **Scope guess (for `/idea analyze` or a direct plan addendum — supervisor's call, small either way):** (a) run
+> `docker volume ls` on the NUC and correct `SQLITE_DBS`/`PG_DUMPS` to the real prefixed names before first backup,
+> (b) add a one-line cross-reference from `restic-backup.sh`/`backup.env.example` to `02-known-traps.md §10`, (c)
+> confirm `restic-restore-test.sh`'s manual row-count check would actually catch an empty/wrong-source dump.
+> *RICE (pre-gate, rough):* Reach 2 (one script, but it is the single mitigation for ALL 8 platform volumes) ·
+> Impact 3 (an unverified backup is the platform's highest documented risk resurfacing under a false sense of
+> safety) · Confidence 0.7 (the bare-name mismatch is directly observed in committed config; loud-vs-silent
+> failure not yet confirmed live) · Effort 1 (verification + a doc cross-reference, reuses the plan's existing
+> step 1) → base 4.2 · interest 0.6 (same shape as accepted idea-0014 — a concrete, real-risk data-safety gap) ·
+> **rank ≈ 4.58**
+
+---
+
+### idea-0022 — Backfill the guide-coverage drift gate (sakubun) to todo/yakudoku's `/guide` pages
+state: inbox · source: agent (C3 gap-analysis 2026-07-24) · created: 2026-07-24 · updated: 2026-07-24
+gate: null · moscow: null · proposal: null · outcome: null
+> **Documented gap, stated by its own source:** `06-knowledge-ledger.md` 2026-07-23 ("Keep the in-app guide in
+> sync with features is a rule too") records that sakubun's `/guide` had drifted ~10 features behind the code
+> silently, and ships the fix as a `docs/guide-coverage.json` registry (route/MCP-prompt/capability → `ref`
+> string that must appear in the guide source) + a test that fails on an unclassified route/prompt or a stale
+> `ref`, plus a once-per-session PreToolUse nudge before a route/MCP-catalog edit. **The ledger line's own scope
+> field says "any app with an in-app `/guide` (sakubun now; **todo/yakudoku next**)"** — i.e. the follow-up was
+> already named, not inferred by this pass. `INVENTORY.md` confirms both are live production web-apps with an
+> in-app guide mandated by `CLAUDE.md`'s `/user-guide` skill (`todo/app/guide/page.tsx` is literally the skill's
+> reference impl) and both run an MCP server (`todo` row 34/66; `yakudoku` row 36/70-71) — the exact
+> route-drift **and** MCP-prompt-drift surfaces the gate targets. Without it, todo/yakudoku have no mechanism
+> to catch a shipped feature/tool that never made it into their guide, same failure mode sakubun just had.
+> **Not yet verified** (no other repo checked out on this machine): whether todo/yakudoku's guides are already
+> drifted today, or just lack the gate pre-emptively — either way the mechanism is missing. Scope for `/idea
+> analyze`: port `guide-coverage.json` + `lib/guide-coverage.test.ts` + `.claude/hooks/guide-coverage-reminder.mjs`
+> from sakubun (already-built, already-proven — a copy-in per `/code-reuse`, not a redesign).
+> *RICE (pre-gate, rough):* Reach 2 (todo + yakudoku, both confirmed live with a guide + MCP surface) · Impact 2
+> (prevents silent doc drift, same class as the incident that motivated the gate — not a security hole but a
+> real supervisor-legibility gap, echoing CLAUDE.md's own "legible decision surface" invariant) · Confidence 0.8
+> (mechanism already built + proven once, low design uncertainty — porting, not inventing) · Effort 2 (three
+> files × two separate codebases, more than a single doc edit) → base 1.6 · interest 0.6 (same shape as accepted
+> idea-0012 — extending an already-shipped, already-proven gate/monitoring pattern to sibling apps on a
+> documented, source-named gap) · **rank ≈ 1.74**
 
 ---
 

@@ -83,6 +83,12 @@ live there.
   ONLY** (never another icon set / no hand-rolled `<svg>` icon / **no emoji as a UI icon-marker**; exempt: SVG that
   renders *data* — score-ring/gauge/sparkline — and emoji inside a text protocol the model emits verbatim) · build the
   reusable thing ONCE.
+- **Locked UI patterns — skill `/ui-pattern-lock` (the user must never state a UI preference twice).** A project's
+  repeated-correction registry is `<project>/docs/ui-patterns.json`, gate-enforced by `lib/ui-pattern-lock.test.ts` and
+  printed by a PreToolUse hook before the session's first `.tsx` write. **The moment the user corrects or re-states a UI
+  pattern, STOP the edit and lock it FIRST** (append an entry — `forbid` / `require-with` / `manual`), then resume.
+  Locking is DATA, not a new test file. An exception goes in that entry's `allow` map with a reason; never weaken a
+  check to go green. Rules that were merely written down have already been broken three times — that is why this exists.
 
 ## In-app user guide — skill `/user-guide` (MANDATORY for any app with a UI)
 

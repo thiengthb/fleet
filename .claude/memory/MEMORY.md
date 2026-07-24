@@ -13,7 +13,7 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier in-repo, syncs via git
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
 - [Sandbox-propose governance](sandbox-propose-governance.md) — never edit live governance; propose a tested sandbox copy, human installs
-- [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified
+- [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified (containerized app ⇒ rebuild the container + prove it's in the running image, not just "committed")
 - [Report state from the tool](report-state-from-the-tool.md) — read counts/coverage/unpushed-N from git/query AT report time; don't recite a remembered number (miscounted commits twice in one session)
 - [Legible proposals, plain language](legible-proposals-plain-language.md) — flag the recommended option, name the skill/process behind any approve gate, explain in everyday language
 - [Never print secret file contents](never-print-secret-file-contents.md) — inspect .env/keys by count/length only, never grep -o/cat the values (a leak forces rotation)
@@ -26,11 +26,11 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Feature-atomic commits](feature-atomic-commits.md) — prefers one commit per feature even when edits are tangled across shared files; best fix = commit-as-you-go (don't let the batch pile up)
 - [Design for generality](design-for-generality.md) — build parameterized by settings + adaptive from data, never hardcoded to the current case (e.g. N3); keep logic multi-user-ready
 - [Check prior decisions early](check-prior-decisions-early.md) — cross-check vs existing plans/decisions/built code before endorsing AND before building; user iterates fast and may reverse his own recent work
-- [User edits files concurrently](user-edits-files-concurrently.md) — user edits in their own IDE mid-session; re-check git status/diff before build+commit, stage only my files, surface conflicts don't auto-merge
+- [User edits files concurrently](user-edits-files-concurrently.md) — user (OR a parallel Claude session on the same tree) edits mid-session; re-check git status/diff before build+commit, stage only my files, surface conflicts don't auto-merge, re-run before blaming a gate
 - [Apply features across all surfaces](apply-features-across-all-surfaces.md) — apply a control/behavior/RULE to EVERY applicable surface via the shared component, name the exceptions; he audits for completeness
 - [Capability over rearrangement](capability-over-rearrangement.md) — judge UI work by what it lets the user DO; restructuring a familiar screen reads as loss (two redesigns rejected)
 - [NUC down, deploy local-only](nuc-down-deploy-local-only.md) — NUC is broken + no VPS (as of 2026-07-22); deploy = LOCAL only, don't SSH/operate the NUC or treat push as going-live; re-verify before assuming it's back
-- [Enforce rules with gates](enforce-rules-with-gates.md) — a rule he states must be ENFORCED (gate test + CLAUDE.md invariant + doc), not just documented, so he never has to repeat it; regression twice = add a test
+- [Enforce rules with gates](enforce-rules-with-gates.md) — a rule he states must be ENFORCED (gate test + CLAUDE.md invariant + doc), not just documented, so he never has to repeat it; regression twice = add a test; him repeating a UI pattern = STOP the edit and lock it FIRST via `/ui-pattern-lock`
 - [Verify target DB before test-writes](verify-target-db-before-test-writes.md) — local-only deploy: prod container shares port 3789 with dev; confirm which server/DB before any test-signup, use a spare port, clean up in the prod volume DB not ./dev.db (I once polluted prod)
 - [Rebuild container to review](rebuild-container-to-review.md) — after app-visible edits, rebuild+restart the local Docker container (batch edits, verify healthy+200) so the user sees the running result; skip for doc-only changes
 - [Prefers minimal, uncluttered UI](prefers-minimal-uncluttered-ui.md) — strip secondary/decorative elements (milestone banners, captions, toolbars over empty grids, redundant icons); "bớt đi" = remove not shrink; lean but consistent across surfaces
