@@ -168,6 +168,8 @@
 
 ---
 
+| 2026-07-24 | **A regex "lint gate" must match CLASS TOKENS (whitespace/boundary-delimited), not substrings, and STRIP comments before scanning string literals.** Writing sakubun's truncate gate, two false positives bit: the import path `@/components/ui/truncate` matched the bare substring `truncate`; and an apostrophe inside a `// don't…` comment paired with another quote into a bogus "string literal" that contained the word. Also prove the gate has teeth (revert one real fix → it must go red) so a green is not vacuous. | every project's regex gate tests (no-emoji / layout / type-scale / spoken-line / truncate; todo & yakudoku too) | `sakubun/lib/truncate.test.ts`; `sakubun/docs/decisions.md` 2026-07-24 "truncate gate" |
+
 ## B. Pointers to each project's knowledge log
 
 > Each project has its own `docs/decisions.md` (if established). This table is just a table of contents — read the detail in that file.
