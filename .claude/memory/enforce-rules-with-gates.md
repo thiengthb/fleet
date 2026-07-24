@@ -20,3 +20,14 @@ regressed twice.
 written + agent-read-each-session + machine-blocked. Prefer making the wrong thing structurally
 impossible (required types, one shared component) over a lint message. Related:
 [[apply-features-across-all-surfaces]], [[practice-first-lean-ceremony]].
+
+**Extension (2026-07-23, his own words: "bị một vài lần tôi đã quá khó chịu"): him repeating a UI
+pattern is a DEFECT SIGNAL, and the capture now has a home — skill `/ui-pattern-lock`.** The reason
+rules kept staying prose was economic, not motivational: each gate cost ~80 lines of bespoke test, so
+"write it in the doc" always won. Now a lock is one entry in `<project>/docs/ui-patterns.json`, run by
+a generic gate, printed by a PreToolUse hook before the session's first `.tsx` write. **How to apply:**
+the second time he states a UI preference — or the first time he says "tôi đã nói rồi" / "sao không
+dùng X" — STOP the edit in progress and lock it FIRST, in his words, then resume; locking afterwards is
+the order that has already failed. Do NOT seed the registry with rules he never asked for (he stops
+trusting a noisy list) — ask him to name the ones that actually annoy him. If he raises an
+already-locked pattern again, the check is too weak: tighten it, never just re-acknowledge.
