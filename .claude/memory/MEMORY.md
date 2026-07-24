@@ -26,7 +26,7 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Feature-atomic commits](feature-atomic-commits.md) — prefers one commit per feature even when edits are tangled across shared files; best fix = commit-as-you-go (don't let the batch pile up)
 - [Design for generality](design-for-generality.md) — build parameterized by settings + adaptive from data, never hardcoded to the current case (e.g. N3); keep logic multi-user-ready
 - [Check prior decisions early](check-prior-decisions-early.md) — cross-check vs existing plans/decisions/built code before endorsing AND before building; user iterates fast and may reverse his own recent work
-- [User edits files concurrently](user-edits-files-concurrently.md) — user edits in their own IDE mid-session; re-check git status/diff before build+commit, stage only my files, surface conflicts don't auto-merge
+- [User edits files concurrently](user-edits-files-concurrently.md) — user (OR a parallel Claude session on the same tree) edits mid-session; re-check git status/diff before build+commit, stage only my files, surface conflicts don't auto-merge, re-run before blaming a gate
 - [Apply features across all surfaces](apply-features-across-all-surfaces.md) — apply a control/behavior/RULE to EVERY applicable surface via the shared component, name the exceptions; he audits for completeness
 - [Capability over rearrangement](capability-over-rearrangement.md) — judge UI work by what it lets the user DO; restructuring a familiar screen reads as loss (two redesigns rejected)
 - [NUC down, deploy local-only](nuc-down-deploy-local-only.md) — NUC is broken + no VPS (as of 2026-07-22); deploy = LOCAL only, don't SSH/operate the NUC or treat push as going-live; re-verify before assuming it's back
