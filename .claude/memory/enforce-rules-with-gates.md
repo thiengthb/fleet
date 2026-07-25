@@ -31,3 +31,12 @@ dùng X" — STOP the edit in progress and lock it FIRST, in his words, then res
 the order that has already failed. Do NOT seed the registry with rules he never asked for (he stops
 trusting a noisy list) — ask him to name the ones that actually annoy him. If he raises an
 already-locked pattern again, the check is too weak: tighten it, never just re-acknowledge.
+
+**Extension (2026-07-25): be PROACTIVE, not just reactive — and fix-while-passing.** He asked that ANY UI
+pattern recurring many times be turned into a strict rule to tighten it, **especially layout-related UI**,
+without waiting for him to complain; and that **while editing code I also fix spots currently violating the
+existing strict UI rules** (don't walk past a violation). So: during a refactor/extraction, when a pattern
+hits rule-of-three (esp. layout — the `12-ui-layout-standard` concern), extract the shared component AND lock
+it (`docs/ui-patterns.json` + a gate where mechanically checkable); and repair any strict-rule violation found
+in a file I'm already touching. This is captured as a standing principle in
+`sakubun/docs/plans/2026-07-24-optimization-maintainability-v2.md` (P1.8 + AC-8).
