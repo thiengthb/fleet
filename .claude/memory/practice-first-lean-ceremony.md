@@ -17,7 +17,12 @@ and wants to reach a runnable end-to-end result fast.
 
 **Gates are ceremony too — run longer between them.** Evidence (2026-07-19 optimization pass): across 5
 `AskUserQuestion` checkpoints the user picked my flagged recommendation **5/5**, and twice answered a status report
-with just "tiếp tục theo khuyến nghị của bạn". Stopping to confirm a *scope* decision I've already justified with
+with just "tiếp tục theo khuyến nghị của bạn". Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
+batch (perf + dedup + dead-code + e2e, each self-gated with lint/test/build/knip + a per-step commit) ran across one
+turn with the user repeatedly answering "làm theo khuyến nghị" — they are comfortable with LONG autonomous runs
+*provided* I checkpoint at the genuine forks (a folder-reorg grouping, a `practice.ts` split boundary) and preview
+visual deltas. The pattern that works: execute + commit-as-you-go through the reversible mechanical steps, pause only
+where their decision or eye is actually needed. Stopping to confirm a *scope* decision I've already justified with
 evidence is the ceremony tax in another form. So: when a call is **reversible, local, and backed by something checkable**
 (a diff, a hash, a measured LOC, a verified vendored-file comparison) → decide it, state the reasoning, and keep going;
 batch several such steps before reporting. **Still gate on:** anything irreversible/outward (push, deploy, deleting
