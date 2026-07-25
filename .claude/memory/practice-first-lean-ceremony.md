@@ -17,13 +17,23 @@ and wants to reach a runnable end-to-end result fast.
 
 **Gates are ceremony too — run longer between them.** Evidence (2026-07-19 optimization pass): across 5
 `AskUserQuestion` checkpoints the user picked my flagged recommendation **5/5**, and twice answered a status report
-with just "tiếp tục theo khuyến nghị của bạn". Stopping to confirm a *scope* decision I've already justified with
+with just "tiếp tục theo khuyến nghị của bạn". Stopping to confirm a _scope_ decision I've already justified with
 evidence is the ceremony tax in another form. So: when a call is **reversible, local, and backed by something checkable**
 (a diff, a hash, a measured LOC, a verified vendored-file comparison) → decide it, state the reasoning, and keep going;
 batch several such steps before reporting. **Still gate on:** anything irreversible/outward (push, deploy, deleting
 data), a **visual/design** change (they want a preview + approval — see [[preview-visual-changes-before-commit]]), or a
-genuine fork where I'd need *their* knowledge (e.g. "is this feature still in flight?"). Keep offering options when
+genuine fork where I'd need _their_ knowledge (e.g. "is this feature still in flight?"). Keep offering options when
 asking (see [[ask-with-options-not-open-ended]]) — ask less often, not less clearly.
+
+**An ACCEPTED plan is standing authorization for its phases** (2026-07-26, sakubun guide/landing plan). After approving
+the plan he said **"hãy đi hết đến g giúp tôi mà không cần hỏi"** and, before that, answered five consecutive
+phase-completion reports with just **"tiếp"** — never once redirecting. So once a plan file is accepted: execute
+phase → gate (tsc/lint/test/build) → rebuild+verify → record in the plan → commit, then move to the next phase without
+asking. Report per phase (he reads them), but a question at each boundary is the ceremony tax. Still stop for: a genuine
+BLOCKER (his F1 screenshots — no browser here, and faking them with mockups would defeat the step), anything
+irreversible/outward (push/deploy), and a real fork needing his knowledge. Deviating from the plan's own text is fine
+when the plan is wrong — but say so out loud and record why in the plan file (e.g. dropping its 14-day "Mới" badge
+because it would have marked 12 of 17 rows and meant nothing).
 
 **How to apply:** Match process weight to the change via the **P-tiers** (P1 trivial/reversible → `/coding-convention`
 only, skip the spine · P2 medium → + tests · P3 large/irreversible/novel → full spine + research-before-design). See
