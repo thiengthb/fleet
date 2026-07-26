@@ -12,6 +12,7 @@ working with this user is learned that `CLAUDE.md`/docs don't already record. Ti
 - [Commit message Windows encoding](commit-message-windows-encoding.md) — never pipe a PowerShell here-string to git (BOM + dash mangling); use a UTF-8 file or Bash heredoc
 - [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier in-repo, syncs via git
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
+- [Originate and challenge my premises](originate-and-challenge-my-premises.md) — propose beyond the spec; test HIS intuitions against research and name what they get wrong (obedient execution reads as failure)
 - [Sandbox-propose governance](sandbox-propose-governance.md) — never edit live governance; propose a tested sandbox copy, human installs
 - [Verify end state, not upload](verify-end-state-not-upload.md) — never claim done from an intermediate green step; verify the user-facing result or say it's unverified (containerized app ⇒ rebuild the container + prove it's in the running image, not just "committed")
 - [Report state from the tool](report-state-from-the-tool.md) — read counts/coverage/unpushed-N from git/query AT report time; don't recite a remembered number (miscounted commits twice in one session)

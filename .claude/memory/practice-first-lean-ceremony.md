@@ -17,7 +17,10 @@ and wants to reach a runnable end-to-end result fast.
 
 **Gates are ceremony too — run longer between them.** Evidence (2026-07-19 optimization pass): across 5
 `AskUserQuestion` checkpoints the user picked my flagged recommendation **5/5**, and twice answered a status report
-with just "tiếp tục theo khuyến nghị của bạn". Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
+with just "tiếp tục theo khuyến nghị của bạn". Reinforced again 2026-07-27 (executing three sakubun plans): **7/7**
+flagged recommendations accepted across two `AskUserQuestion` calls, and **three** separate turns answered a full
+status report with only "tiếp tục theo khuyến nghị" / "bạn hãy rebuild rồi tiếp tục" — spanning 5 commits, a live
+schema migration and a container redeploy. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
 batch (perf + dedup + dead-code + e2e, each self-gated with lint/test/build/knip + a per-step commit) ran across one
 turn with the user repeatedly answering "làm theo khuyến nghị" — they are comfortable with LONG autonomous runs
 *provided* I checkpoint at the genuine forks (a folder-reorg grouping, a `practice.ts` split boundary) and preview
