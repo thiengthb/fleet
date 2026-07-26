@@ -38,3 +38,15 @@ is down (see [[nuc-down-deploy-local-only]]) the ONLY thing that makes a change 
 in the running image (e.g. grep the bundle inside the container / hit the health endpoint), not just that the build
 exited 0. Pre-flight first: `docker logs <app> --timestamps | grep '\[mcp\]'` for a live session, and say up front if
 the rebuild will bundle the user's unfinished WIP from the working tree. Pairs with [[execute-over-handoff]].
+
+**Extension (2026-07-26): an ABSENCE-only check passes on a crashed page — an error boundary answers HTTP 200.** I
+declared sakubun's new guest-viewable `/guide` verified because `curl` (no cookie) returned 200 with zero app-nav
+links, zero sidebar markup and zero "Đăng xuất". Every one of those was true **of the error page** — the route was
+crashing (a shared chrome component called a context hook that throws outside its provider) and had been broken for a
+whole session. The moment a browser actually opened it, the failure was the first thing on screen. **How to apply:**
+(1) never build a check purely out of "X is not present" — assert POSITIVE, page-specific content (a heading, the tab
+labels) *plus* the absence of the error string, so the two cannot both be satisfied by a dead page; (2) treat "HTTP
+200" as meaning "the server replied", never "the page works"; (3) a crash from React context, and any state applied on
+mount (deep links), are invisible to static tests AND to served HTML — that class needs a real browser (Playwright),
+which is also the only proof that survives when the Chrome extension is offline. Sharpens the 2026-07-23 extension
+above: my own green check is the proxy to distrust first.
