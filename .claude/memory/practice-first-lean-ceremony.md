@@ -30,7 +30,14 @@ MORE turns of the same phrasing carried phases 5, 6 and 8 of the same plan — 5
 migration, a UI change he approved from a preview, and one plan step I RECOMMENDED DELETING (its storage)
 rather than building. He accepted the deletion without discussion. The pattern to keep: a recommendation
 to NOT build something is as acceptable to him as one to build it, provided the argument is concrete —
-so propose subtraction as readily as addition. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
+so propose subtraction as readily as addition. **Extended AGAIN the same day (the eval day): four more
+consecutive "theo khuyến nghị của bạn"** carried Phase 7, the first-ever run of a behavioural eval
+(~50 Sonnet subagent trials in three waves), a consent fix, and the A–F half — 5 more commits, 4 container
+rebuilds, and description changes to a live agent surface. Two things that specifically kept working:
+(a) reporting a FAILURE prominently ("1/3 trials wrote without consent", "my own fixture was wrong three
+times") never drew a correction or a loss of latitude — he answers with "tiếp tục" either way, so lead
+with the bad number; (b) refusing to fire a pre-written conclusion ("cut the digest") on evidence I judged
+confounded was accepted silently. He wants the judgement exercised, not the instruction obeyed. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
 batch (perf + dedup + dead-code + e2e, each self-gated with lint/test/build/knip + a per-step commit) ran across one
 turn with the user repeatedly answering "làm theo khuyến nghị" — they are comfortable with LONG autonomous runs
 *provided* I checkpoint at the genuine forks (a folder-reorg grouping, a `practice.ts` split boundary) and preview
