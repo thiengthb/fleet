@@ -17,6 +17,14 @@ exactly when a long autonomous stretch makes me most likely to recite instead of
 works in long hands-off stretches (see [[route-questions-via-discord-not-blocking]],
 [[execute-over-handoff]]) and audits my status summaries for accuracy.
 
+**The same root, in the shell (2026-07-28):** I ran `./scripts/rebuild-and-verify.sh 2>&1 | tail -22`
+and the harness reported **exit code 0** while the script had actually printed `FAIL compose build/up`
+and exited 1 — Docker Desktop had died mid-build. A pipeline's exit status is the LAST command's, so
+`| tail` (or `| head`, `| grep`) silently launders any failure into success. **Never pipe a command
+whose exit code I intend to trust; capture output to a file, or check `${PIPESTATUS[0]}`, or run it
+bare.** This is the pipe-shaped version of the same mistake: reading a green that was never measuring
+the thing.
+
 **How to apply:** before writing any state-number into a summary, run the one cheap command that
 produces it (`git log origin/main..HEAD | wc -l`, a `count(*)`), and quote THAT. If I catch myself
 about to type a figure without having just observed it, that is the tell — stop and check. Narrower
