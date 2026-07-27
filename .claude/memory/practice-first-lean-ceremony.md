@@ -25,7 +25,12 @@ with only "hãy tiếp tục theo khuyến nghị" / "tiếp tục", across 9 co
 user data, six container rebuilds and a UI change — and the one turn that was not that phrasing was
 "Ok và hãy tiếp tục hoàn thành" (approve the preview, then finish the phase). Read "tiếp tục theo khuyến
 nghị" as: execute the ordering I just proposed, do not re-ask, and report at the end of the wave. He is
-watching (`/context` between turns) — he is not absent, he is delegating. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
+watching (`/context` between turns) — he is not absent, he is delegating. **Extended the same day**: four
+MORE turns of the same phrasing carried phases 5, 6 and 8 of the same plan — 5 more commits, a third live
+migration, a UI change he approved from a preview, and one plan step I RECOMMENDED DELETING (its storage)
+rather than building. He accepted the deletion without discussion. The pattern to keep: a recommendation
+to NOT build something is as acceptable to him as one to build it, provided the argument is concrete —
+so propose subtraction as readily as addition. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
 batch (perf + dedup + dead-code + e2e, each self-gated with lint/test/build/knip + a per-step commit) ran across one
 turn with the user repeatedly answering "làm theo khuyến nghị" — they are comfortable with LONG autonomous runs
 *provided* I checkpoint at the genuine forks (a folder-reorg grouping, a `practice.ts` split boundary) and preview
