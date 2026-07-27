@@ -20,7 +20,12 @@ and wants to reach a runnable end-to-end result fast.
 with just "tiếp tục theo khuyến nghị của bạn". Reinforced again 2026-07-27 (executing three sakubun plans): **7/7**
 flagged recommendations accepted across two `AskUserQuestion` calls, and **three** separate turns answered a full
 status report with only "tiếp tục theo khuyến nghị" / "bạn hãy rebuild rồi tiếp tục" — spanning 5 commits, a live
-schema migration and a container redeploy. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
+schema migration and a container redeploy. Reinforced HARD 2026-07-27 (the tutor-loop day): **six** consecutive turns answered a full status report
+with only "hãy tiếp tục theo khuyến nghị" / "tiếp tục", across 9 commits, TWO live schema migrations on real
+user data, six container rebuilds and a UI change — and the one turn that was not that phrasing was
+"Ok và hãy tiếp tục hoàn thành" (approve the preview, then finish the phase). Read "tiếp tục theo khuyến
+nghị" as: execute the ordering I just proposed, do not re-ask, and report at the end of the wave. He is
+watching (`/context` between turns) — he is not absent, he is delegating. Reinforced 2026-07-25 (opt-v2 execution): a **9-step** autonomous
 batch (perf + dedup + dead-code + e2e, each self-gated with lint/test/build/knip + a per-step commit) ran across one
 turn with the user repeatedly answering "làm theo khuyến nghị" — they are comfortable with LONG autonomous runs
 *provided* I checkpoint at the genuine forks (a folder-reorg grouping, a `practice.ts` split boundary) and preview

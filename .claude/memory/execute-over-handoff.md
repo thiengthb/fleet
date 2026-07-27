@@ -12,6 +12,14 @@ manual apply-steps: "làm giúp tôi, đỡ mất công tôi phải thủ công 
 **Why:** they are a solo, hands-off supervisor who is often away from the keyboard; manual handoffs break the momentum
 that makes an autonomous agent worth having. The value is the agent closing the loop, not narrating it.
 
+**When the remaining step is genuinely THEIRS, say it ONCE per session and then stop** (2026-07-27). Across
+one long session I raised `git push` at the end of five consecutive reports; they never did it and never
+objected — they simply kept saying "tiếp tục". Repeating an ask they have visibly parked does not make it
+happen, it just spends the top of every report on the same paragraph. State it once with the stake ("N
+commits including a live migration sit on one machine"), offer to do it ("bảo tôi push thì tôi push"), then
+carry the count in the status table without the sermon. Same for anything else they alone can run (their
+Claude Desktop gates).
+
 **How to apply:** once they've approved the direction, carry it through (edit → verify → commit when asked → report the
 result) rather than stopping at "here's what you should run." Still confirm before genuinely irreversible / outward
 actions, and still surface real decisions as options. Pairs with [[ask-with-options-not-open-ended]] and
