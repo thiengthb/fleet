@@ -136,11 +136,18 @@ of correct. A reviewer who cites Stripe at a project that locked the opposite pa
 - **Wait for the URL to leave `/login`, not for `networkidle`.** These apps sign in through a client
   handler and redirect after it resolves, so the network goes idle while the page is still `/login` —
   checking then reports a failed login that actually succeeded.
-- **A tooltip opened by focus covers the NEXT tab stop.** Found on `sakubun /settings` at 360px: tabbing
-  to the notification bell opens its tooltip, which stays open and lands on top of the first settings
-  control — SC 2.4.11, invisible to a screenshot and to axe, and only reachable by a real keyboard walk.
-  Narrow viewports make it far worse. Always re-run a `focus-obscured` hit interactively before
-  reporting it: the check is sound, but 10 hits on one page is the shape of one mechanism, not ten bugs.
+- **`focus-obscured` needs a settle delay, and it lies twice without one.** Measured on `sakubun
+  /settings` at 360px: **14** hits with no delay, **2** at 150ms, still 2 at 400ms — 12 of the 14 were
+  the *previous* tab stop's tooltip caught mid-exit-animation, not an obstruction. The script now
+  re-probes after 220ms and only records a hit that survives. Of the 2 survivors, both turned out to be
+  `nextjs-portal`, the **dev-server overlay**, which does not exist in a production build — so the real
+  count was **zero**. Two lessons: an `elementFromPoint` check on an animated UI must settle before it
+  is believed, and a dev server injects furniture the audit must ignore (prefer auditing a production
+  build; the script filters `nextjs-portal` explicitly).
+- **A count that collapses under scrutiny is the normal case, not the exception.** 122 authed findings
+  reduced to 7 distinct defects; 14 focus obstructions reduced to 0. Always report distinct causes with
+  their route span, never the raw finding count — the raw number reads as severity and is mostly
+  repetition.
 
 ## 6. When it runs (P-tier mapping — matched to `CLAUDE.md` §Thinking)
 
