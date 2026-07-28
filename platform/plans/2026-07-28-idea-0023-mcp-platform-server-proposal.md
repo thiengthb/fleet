@@ -1,7 +1,7 @@
 ---
 title: MCP platform server — one-way delivery of skills/rules to other machines, with filtered lesson backflow
 kind: system-change
-status: draft
+status: accepted # accepted 2026-07-28 by the supervisor — Option A; Step 0 kill-switch PASSED 2026-07-28 (58.9%)
 created: 2026-07-28
 ---
 
@@ -157,6 +157,30 @@ and this proposal should be rejected in its favour.
 Filled by the supervisor ONLY. **accept ⇒ becomes a `/project-plan` build (starting at Step 0's measurement) ·
 reject (reason) · deferred (until …)**. The agent's job ends at present + wait.
 
-- **Decision:**
-- **Date / by:**
-- **Why:**
+- **Decision:** **accept** — Option A (hybrid: MCP for skills/rules at tiers 1+2, private plugin marketplace for hooks).
+- **Date / by:** 2026-07-28 · supervisor ("làm theo đề xuất của bạn"). Recorded in `registries/idea-queue.md` idea-0023
+  `outcome:` the same day; this block was left blank and is backfilled 2026-07-29 so the queue and the proposal agree.
+  **The accept is the queue's, not this backfill's** — the agent does not fill its own decision gate.
+- **Why:** the supervisor asked for it directly and twice (multi-machine harness, then "only expose a small surface"),
+  and Option B fails the second framing outright. Graduation was deliberately **sequenced, not immediate**, behind two
+  things that would have forced the build plan to be written twice.
+
+### Graduation status — both gates cleared, 2026-07-29
+
+| Gate | Set by | State |
+| --- | --- | --- |
+| The `fleet` rename lands (it rewrites every path this build references) | queue `outcome:` | ✅ done — `plans/2026-07-28-fleet-rename-and-restructure.md`, incl. the D3 handoff closed 2026-07-29 |
+| `cloud` exists as DATA in the `target` enum | this proposal, consequence 2 | ✅ done — `inventory.md §0` enum + `targets/cloud/README.md` (written, **not yet exercised**) |
+| **Step 0 — the kill-switch measurement** | this proposal, pre-committed | ✅ **PASS** — 58.9% verification-shaped (95% CI ≈ 46–72%, n=56 of 515 rule statements), lower bound above the 40% line. `scripts/rule-classify.mjs` + a committed hand-labelled data file, seeded sample, ties counted **against** the proposal. Commit `4ab9583` |
+
+**What Step 0 changed about the design, beyond passing.** The split is not random: what stays server-side is
+naming, formatting, secrets-in-images, icon choice, Server Action authz, test isolation, volume/port declarations —
+all decidable from the artifact. What must still be transmitted is the **process spine** (research before designing,
+propose don't execute, thin-slice first, critique before flipping to active, announce a model downgrade). Those leave
+no trace in the output, which is *why* they cannot be reviewed into existence. So tier 2 is not "most of the rulebook
+minus a remainder" — it is **the artifact-shaped half**, and the transmitted half has a name.
+
+**Still open, and NOT cleared by the above:** `idea-0013` (extract `@thiengthb/mcp-auth`) is a prerequisite for
+**hosting/auth (Steps 3+), not for Step 1** — the thin slice runs on this machine against a scratch project and needs
+no OAuth. That is the sequencing the build plan should take: Step 1 first, `idea-0013` before anything is exposed
+off-machine.
