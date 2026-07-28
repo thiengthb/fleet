@@ -32,6 +32,21 @@ the order that has already failed. Do NOT seed the registry with rules he never 
 trusting a noisy list) — ask him to name the ones that actually annoy him. If he raises an
 already-locked pattern again, the check is too weak: tighten it, never just re-acknowledge.
 
+**Extension (2026-07-28): the same standard applies to a rule aimed at ME, and to WORK ITSELF, not just
+UI.** After I listed his pending tasks, he asked for "một cơ chế nào đó (và cho thêm những dự án sau
+này)" so that a plan needing time-based testing carries a reminder plus "một bản các bước thực hiện đầy
+đủ … mà mỗi lần không cần phải hỏi lại các bước rồi phải nhớ đến ngày nào" — and that I should
+**proactively offer to continue an unfinished plan in any session, whatever project he happens to be
+in.** Built as `.claude/hooks/plan-checkin.mjs` (`checkin:` frontmatter + a REQUIRED `## Check-in
+runbook`, surfaced at SessionStart across every project, with dangling-plan drift and config defects).
+
+**How to apply:** two things he considers unacceptable to leave to human memory — (1) a DATE he must
+remember, and (2) STEPS he must re-ask for. Whenever work depends on either, build the reminder and
+write the runbook in the same change; never answer "I'll remind you" or re-explain steps in chat that
+should live in a file. Same for behavioural rules I write into a prompt: ask what would OBSERVE a
+violation, and if nothing would, move it into code (2026-07-28 quiz — three protocol rules all drifted
+because nothing could see them). Related: [[legible-proposals-plain-language]], [[execute-over-handoff]].
+
 **Extension (2026-07-25): be PROACTIVE, not just reactive — and fix-while-passing.** He asked that ANY UI
 pattern recurring many times be turned into a strict rule to tighten it, **especially layout-related UI**,
 without waiting for him to complain; and that **while editing code I also fix spots currently violating the
