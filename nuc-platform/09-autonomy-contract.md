@@ -12,13 +12,32 @@ Code's own permission prompts are the gate, and `autonomy-gate.mjs` stands down.
 gate error blocks — a halted run is safe, an ungated one is not. (Reading an unparseable hook payload counts as an
 error: the gate uses a strict parser, not the lenient shared one.)
 
-> ⚠ **OPEN RISK — the marker currently has no setter.** `CLAUDE_AUTONOMOUS=1` was set by the home-grown auto-pilot
-> orchestrator, retired 2026-07-28 as superseded by Claude Code's native scheduled/remote agents. **Nothing sets it
-> today.** A scheduled or remote (cloud) agent is just as unattended, but is not known to set this variable — so the
-> gate may stand down for precisely the runs that need it. This has **not** been verified either way. Before running an
-> unattended remote agent against this repo: verify empirically what the environment exposes, then either re-scope the
-> marker or set it explicitly in the run's configuration. Until then, treat remote runs as **ungated** and supervise
-> them. Everything below still describes the intended policy; only its trigger is in question.
+> ### The trigger, and what is verified about it (2026-07-28)
+>
+> Enforcement fires when **either** holds:
+>
+> | Condition | Status |
+> |---|---|
+> | `CLAUDE_AUTONOMOUS=1` | explicit opt-in; always honoured |
+> | `CLAUDE_CODE_ENTRYPOINT` is a known non-interactive entrypoint (`sdk-cli`) | **verified by probe** |
+>
+> The env var used to be the *only* trigger, set by the auto-pilot orchestrator retired earlier the same day —
+> leaving nothing to set it. Rather than assume, a probe ran a real `claude -p` with an instrumented hook and settled
+> what the harness exposes: an interactive terminal reports `CLAUDE_CODE_ENTRYPOINT="cli"`, a headless run reports
+> `"sdk-cli"`. A non-interactive run is therefore **self-identifying**, and the gate no longer depends on anyone
+> remembering a variable. (The hook payload also carries `permission_mode`, `session_id`, `cwd` and `tool_use_id`, if a
+> future rule needs them.)
+>
+> ⚠ **Residual, honestly scoped:** that probe covered **local headless only**. What a scheduled or remote **cloud**
+> agent reports is still unverified — it cannot be reached from a local session. So an **unrecognised** entrypoint does
+> not silently pass: the gate stands down but says so **once per session**, as a `systemMessage` to the user *and*
+> `additionalContext` to the model. Blocking on unknown was rejected deliberately — an unrecognised *interactive*
+> entrypoint (an IDE, the desktop app) would break hands-on work, and a gate that obstructs gets switched off.
+>
+> **Therefore: set `CLAUDE_AUTONOMOUS=1` explicitly in the configuration of any scheduled or remote run.** When a cloud
+> entrypoint value is observed, add it to `NON_INTERACTIVE` in `autonomy-gate.mjs` and record it here; if it is an
+> interactive surface, add it to `INTERACTIVE` to silence the notice. Covered by `autonomy-gate.test.mjs` (75 cases,
+> including the widened trigger, the once-per-session notice, and the no-entrypoint case).
 
 ## Decision tiers (reversibility × blast-radius)
 

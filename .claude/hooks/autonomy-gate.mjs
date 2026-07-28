@@ -18,20 +18,63 @@
 // blocked in autonomous mode rather than conditionally unlockable. Roughly 90 lines of crypto
 // plumbing removed; the tier enforcement below is untouched.
 //
-// ⚠ OPEN RISK — READ BEFORE RELYING ON THIS GATE.
-// The trigger is the env var CLAUDE_AUTONOMOUS=1, which was set by the retired local orchestrator.
-// Nothing sets it today. A Claude Code **scheduled or remote (cloud) agent** is just as unattended,
-// but is NOT known to set this var — so this gate may stand down for exactly the runs that need it
-// most. This has NOT been verified empirically either way. Before running an unattended remote agent
-// against this repo, confirm what the environment looks like and re-scope the trigger accordingly.
-// Tracked in nuc-platform/09-autonomy-contract.md.
+// 2026-07-28 (later the same day) — TRIGGER WIDENED, from evidence.
+// The gate used to fire only on CLAUDE_AUTONOMOUS=1, which the retired orchestrator set and nothing
+// sets now. A probe run settled what the harness actually exposes:
+//
+//   interactive terminal (`claude`)  -> CLAUDE_CODE_ENTRYPOINT = "cli"
+//   headless        (`claude -p`)    -> CLAUDE_CODE_ENTRYPOINT = "sdk-cli"
+//
+// So a non-interactive run IS self-identifying, and the gate no longer depends on someone remembering
+// an env var. `sdk-cli` now triggers enforcement on its own.
+//
+// ⚠ RESIDUAL RISK, deliberately not papered over: this was verified for LOCAL headless only. What a
+// scheduled/remote CLOUD agent reports is still unverified — it is not reachable from here. Rather than
+// guess, an UNKNOWN entrypoint does NOT silently pass: it warns once per session (below), loudly, to both
+// the user and the model. Blocking on unknown was rejected on purpose — an unrecognised *interactive*
+// entrypoint (an IDE, the desktop app) would then break hands-on work, and a gate that gets in the way
+// gets disabled. Explicitly set CLAUDE_AUTONOMOUS=1 in any scheduled/remote run's config.
 //
 // Tiers + full contract: nuc-platform/09-autonomy-contract.md. This is enforcement, not policy.
 
-const AUTONOMOUS = process.env.CLAUDE_AUTONOMOUS === '1';
+import { existsSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-// Supervised run → gate stands down (human is in control).
-if (!AUTONOMOUS) process.exit(0);
+const ENTRYPOINT = process.env.CLAUDE_CODE_ENTRYPOINT || '';
+/** Verified non-interactive: nobody is watching, enforce. */
+const NON_INTERACTIVE = new Set(['sdk-cli']);
+/** Verified interactive: a human + the permission prompts are the gate; stand down. */
+const INTERACTIVE = new Set(['cli']);
+
+const AUTONOMOUS = process.env.CLAUDE_AUTONOMOUS === '1' || NON_INTERACTIVE.has(ENTRYPOINT);
+
+if (!AUTONOMOUS) {
+  // Unrecognised entrypoint → we cannot tell whether a human is present. Say so ONCE per session
+  // instead of standing down quietly; a silent stand-down is how the gap stayed invisible.
+  if (ENTRYPOINT && !INTERACTIVE.has(ENTRYPOINT)) {
+    const marker = join(tmpdir(), `autonomy-gate-unknown-${process.env.CLAUDE_CODE_SESSION_ID || 'nosid'}`);
+    if (!existsSync(marker)) {
+      try {
+        writeFileSync(marker, ENTRYPOINT);
+      } catch {
+        /* best effort — worst case the notice repeats */
+      }
+      const msg =
+        `⚠ autonomy-gate: UNKNOWN entrypoint "${ENTRYPOINT}" — cannot tell if this run is supervised, so the ` +
+        `gate is STANDING DOWN (T3/T4 actions are NOT blocked this session).\n` +
+        `  • unattended run? stop and set CLAUDE_AUTONOMOUS=1 in its configuration.\n` +
+        `  • interactive? add "${ENTRYPOINT}" to INTERACTIVE in .claude/hooks/autonomy-gate.mjs to silence this.`;
+      console.log(
+        JSON.stringify({
+          systemMessage: msg,
+          hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: msg },
+        }),
+      );
+    }
+  }
+  process.exit(0);
+}
 
 function block(reason) {
   console.error(

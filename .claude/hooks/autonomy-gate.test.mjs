@@ -19,16 +19,34 @@ const HOOK = join(HERE, 'autonomy-gate.mjs');
 const ALLOW = 0;
 const BLOCK = 2;
 
-function run(payload, { autonomous = true } = {}) {
+function run(payload, { autonomous = true, entrypoint = 'cli', sid } = {}) {
   const env = { ...process.env };
   if (autonomous) env.CLAUDE_AUTONOMOUS = '1';
   else delete env.CLAUDE_AUTONOMOUS;
+  // The trigger reads the entrypoint, so tests must pin it rather than inherit the runner's.
+  if (entrypoint === null) delete env.CLAUDE_CODE_ENTRYPOINT;
+  else env.CLAUDE_CODE_ENTRYPOINT = entrypoint;
+  env.CLAUDE_CODE_SESSION_ID = sid ?? `test-${Math.random().toString(36).slice(2)}`;
   const r = spawnSync(process.execPath, [HOOK], {
     input: typeof payload === 'string' ? payload : JSON.stringify(payload),
     env,
     encoding: 'utf8',
   });
   return r.status;
+}
+
+/** Same, but returns stdout too — for the unknown-entrypoint notice. */
+function runFull(payload, opts) {
+  const env = { ...process.env };
+  if (opts.autonomous) env.CLAUDE_AUTONOMOUS = '1';
+  else delete env.CLAUDE_AUTONOMOUS;
+  env.CLAUDE_CODE_ENTRYPOINT = opts.entrypoint;
+  env.CLAUDE_CODE_SESSION_ID = opts.sid;
+  return spawnSync(process.execPath, [HOOK], {
+    input: JSON.stringify(payload),
+    env,
+    encoding: 'utf8',
+  });
 }
 
 const bash = (command, opts) => run({ tool_name: 'Bash', tool_input: { command } }, opts);
@@ -133,6 +151,54 @@ for (const [label, cmd] of [
 ]) {
   check(`autonomous: ${label} → ALLOW`, () => assert.equal(bash(cmd), ALLOW));
 }
+
+// ---- Trigger: the gate must recognise an unattended run on its own ----------
+// Verified 2026-07-28 by probing a real `claude -p`: interactive reports
+// CLAUDE_CODE_ENTRYPOINT="cli", headless reports "sdk-cli".
+const PUSH = { tool_name: 'Bash', tool_input: { command: 'git push origin main' } };
+
+check('headless entrypoint (sdk-cli) with NO CLAUDE_AUTONOMOUS → BLOCK', () =>
+  assert.equal(run(PUSH, { autonomous: false, entrypoint: 'sdk-cli' }), BLOCK));
+check('headless entrypoint + governance write → BLOCK', () =>
+  assert.equal(
+    run({ tool_name: 'Write', tool_input: { file_path: '.claude/settings.json' } }, { autonomous: false, entrypoint: 'sdk-cli' }),
+    BLOCK,
+  ));
+check('headless entrypoint + safe command → ALLOW (trigger widened, tiers unchanged)', () =>
+  assert.equal(run({ tool_name: 'Bash', tool_input: { command: 'npm test' } }, { autonomous: false, entrypoint: 'sdk-cli' }), ALLOW));
+check('interactive entrypoint (cli) with NO CLAUDE_AUTONOMOUS → ALLOW (stands down)', () =>
+  assert.equal(run(PUSH, { autonomous: false, entrypoint: 'cli' }), ALLOW));
+check('CLAUDE_AUTONOMOUS=1 still wins even on an interactive entrypoint', () =>
+  assert.equal(run(PUSH, { autonomous: true, entrypoint: 'cli' }), BLOCK));
+
+check('UNKNOWN entrypoint → ALLOW but emits a systemMessage notice', () => {
+  const sid = `unk-${Date.now()}`;
+  const r = runFull(PUSH, { autonomous: false, entrypoint: 'some-future-cloud-runner', sid });
+  assert.equal(r.status, ALLOW, 'must not block an unrecognised entrypoint');
+  assert.match(r.stdout, /UNKNOWN entrypoint/, 'must announce that it cannot tell');
+  assert.match(r.stdout, /systemMessage/, 'notice must reach the user, not just stderr');
+});
+check('UNKNOWN entrypoint notice fires at most ONCE per session', () => {
+  const sid = `unk-once-${Date.now()}`;
+  const first = runFull(PUSH, { autonomous: false, entrypoint: 'some-future-cloud-runner', sid });
+  const second = runFull(PUSH, { autonomous: false, entrypoint: 'some-future-cloud-runner', sid });
+  assert.match(first.stdout, /UNKNOWN entrypoint/);
+  assert.equal(second.stdout.trim(), '', 'second call in the same session must be silent');
+});
+check('no entrypoint at all → ALLOW, no notice (nothing to report)', () => {
+  const r = spawnSync(process.execPath, [HOOK], {
+    input: JSON.stringify(PUSH),
+    env: (() => {
+      const e = { ...process.env };
+      delete e.CLAUDE_AUTONOMOUS;
+      delete e.CLAUDE_CODE_ENTRYPOINT;
+      return e;
+    })(),
+    encoding: 'utf8',
+  });
+  assert.equal(r.status, ALLOW);
+  assert.equal(r.stdout.trim(), '');
+});
 
 // ---- Out of scope + fail-closed --------------------------------------------
 check('autonomous: Read tool → ALLOW (not in scope)', () =>
