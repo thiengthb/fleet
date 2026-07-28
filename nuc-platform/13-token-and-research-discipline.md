@@ -1,4 +1,4 @@
-# 13 — Model routing & web-research discipline (the token levers)
+# 13 — Model routing, parallel execution & web-research discipline
 
 > Moved out of `CLAUDE.md` on 2026-07-28 to keep the always-loaded file under its 200-line budget. `CLAUDE.md` keeps the
 > **decision rules** (the part that must fire without being read on purpose); this file keeps the **reference tables and
@@ -83,3 +83,44 @@ before escalating.**
 - **A scout that fetches** silently converts a Quick lookup into a Deep one. Say "WebSearch ONLY, do not WebFetch" in the
   scout prompt, explicitly.
 - **Re-fetching a URL another subagent already read** is pure waste and invisible unless the main loop keeps the set.
+
+---
+
+## 3. Parallel & asynchronous execution — use the harness, do not build one
+
+Added 2026-07-28, the same day the home-grown auto-pilot was retired. **That is not a coincidence and it is the whole
+point of this section:** the platform spent ~6 sessions building a scheduler and a control plane that the harness then
+shipped natively. Everything below is native. Before writing any orchestration code, re-read that sentence.
+
+### 3.1 The four shapes, and which mechanism each one wants
+
+| Shape | Use | Why not the others |
+|---|---|---|
+| **Fan-out read** — search/scan many files or URLs, keep the answer, discard the material | subagents (`Agent`), one per disjoint slice, cheap model | Their context is isolated, so the raw material never enters — and never re-enters — the main thread. This is the real saving, not the model price. |
+| **Parallel edit** — two or more changes that touch the same tree and must not collide | one agent per **git worktree** (`isolation: "worktree"`) | Same-tree parallel edits corrupt each other silently. A worktree is a real checkout: conflicts surface as merges, not as lost work. |
+| **Long-running** — a build, a test suite, a deploy, a watch | run it in the **background** and get called back on exit | Blocking the loop on a 10-minute build wastes the loop. Poll only what the harness cannot notify you about. |
+| **Recurring** — nightly triage, a weekly audit | `/schedule` (scheduled cloud agent) or a cron routine | This is exactly what auto-pilot was. It is now one call. |
+
+### 3.2 Rules
+
+1. **Parallel only when the work is genuinely independent.** Two agents on overlapping files is not twice the speed, it
+   is a merge conflict plus two half-finished stories. If they must coordinate, they are one task.
+2. **One writer per file, always.** Fan-out is for reading. When several agents must produce edits, give each its own
+   worktree and merge deliberately — never let two write the same working tree.
+3. **The main loop owns the shared state** — the URL set, the task list, the plan file, the decision. Subagents return
+   findings; they do not update the roadmap.
+4. **Do not poll what the harness will tell you.** For work the harness tracks, you are re-invoked on completion; a
+   short polling loop is pure waste. Poll only genuinely external state (a CI run, a remote queue), at a period matched
+   to how fast that state actually changes.
+5. **Announce every downgrade** before spawning a weaker-model subagent (§1) — parallelism must not become an invisible
+   change in who is doing the work.
+6. **Unattended parallel work inherits the autonomy contract** (`09-autonomy-contract.md`), including its **open risk**:
+   the gate's `CLAUDE_AUTONOMOUS` trigger has no setter since the orchestrator was retired, so a remote/scheduled run
+   may be ungated. Verify before running one unsupervised.
+
+### 3.3 Multi-machine
+
+Nothing above is machine-specific: it is the same on the NUC, a PC, a laptop or a cloud runner, because it is the
+harness's own machinery rather than a script installed somewhere. The only per-machine setup this platform has is
+`.claude/settings.local.json` (the memory wiring — `memory-wiring-check.mjs` shouts if it is missing). That is the test
+for anything added here: **if it needs installing per machine, it is probably the wrong mechanism.**

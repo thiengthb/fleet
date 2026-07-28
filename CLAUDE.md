@@ -170,7 +170,7 @@ process weight to the change, mirroring the autonomy T1–T4 by reversibility ×
 > `nuc-platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
 > `/skill-authoring`. Catalog + verdicts: `nuc-platform/07-SKILL-CANDIDATES.md`.
 
-## Model routing & web research — the two token levers (detail: `nuc-platform/13-token-and-research-discipline.md`)
+## Model routing, parallelism & web research — the token levers (detail: `nuc-platform/13-token-and-research-discipline.md` — incl. §3 parallel/async: subagents · worktrees · background · `/schedule`)
 
 **Target the *right* amount, never the *minimum*** — never trade away reasoning depth; only cut wasted context and
 over-powered staffing on mechanical work.
