@@ -28,6 +28,7 @@
 
 | Date | Lesson | Detail |
 | ---------- | --- | --- |
+| 2026-07-28 | Restating a rule does not make it stick; restructuring so compliance is the easy path does | [→](ledger/2026-07.md#2026-07-28-restating-a-rule-does-not-stick-restructuring-does) |
 | 2026-07-28 | Building BESIDE the harness instead of ON it is how good work becomes waste | [→](ledger/2026-07.md#2026-07-28-building-beside-the-harness-instead-of-on-it) |
 | 2026-06-12 | Compute DYNAMICALLY instead of storing derived columns | [→](ledger/2026-06.md#2026-06-12-compute-dynamically-instead-of-storing-derived-columns) |
 | 2026-06-12 | CLAUDE.md thin + heavy spec split into docs/ | [→](ledger/2026-06.md#2026-06-12-claude-md-thin-heavy-spec-split-into-docs) |
