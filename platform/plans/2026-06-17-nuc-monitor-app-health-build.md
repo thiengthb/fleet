@@ -23,7 +23,7 @@ related:
 > `active` — a plan that cannot move should not keep appearing on the dangling-plan clock as if someone were ignoring
 > it. The remaining M3 (an "🩺 Unhealthy" line in the daily heartbeat) is explicitly optional.
 >
-> **Unblock trigger:** the NUC STATUS row in `INVENTORY.md` flips to 🟢 (verified by `/nuc-health-audit`).
+> **Unblock trigger:** the NUC STATUS row in `INVENTORY.md` flips to 🟢 (verified by `/host-audit`).
 
 
 ## Goal
@@ -134,7 +134,7 @@ catches "Postgres down" by putting the DB ping inside the app's own HEALTHCHECK.
 
 1. Read the **NUC STATUS** block at the top of `platform/INVENTORY.md`.
 2. Still 🔴 → push the `checkin:` date out and stop. Nothing else to do; do not re-plan.
-3. Now 🟢 → run `/nuc-health-audit` first (never trust the table blindly after an outage), then execute **P2**:
+3. Now 🟢 → run `/host-audit` first (never trust the table blindly after an outage), then execute **P2**:
    push `journal`, `yakudoku`, `nuc-monitor` to `main`, let CI build, confirm Watchtower pulls, verify the readiness
    endpoints answer and that an intentionally-unhealthy container actually raises the alert. Then close this plan.
 4. M3 (heartbeat "🩺 Unhealthy" line) stays optional — do it only if the alerting proves noisy without it.

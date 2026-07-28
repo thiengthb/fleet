@@ -1,6 +1,6 @@
 ---
-name: nuc-new-project
-description: Bring a new project (or an existing one in MiniServer) onto the NUC platform along the standard trajectory - GitHub Actions build ghcr.io, Watchtower auto-pull, Traefik route, Cloudflare wildcard. Use when the user wants to create a new project, deploy a project to the NUC/miniserver, add a subdomain, or "get this app onto the server".
+name: app-onboard
+description: Onboard a project onto its deploy target and get it actually running — reads `target` from INVENTORY §0 first. On `nuc`: GitHub Actions → ghcr → Watchtower → Traefik → Cloudflare. On `local`: Dockerfile + named volume + a host port + rebuild-and-verify. Use when the user wants to create a new project, deploy an app, add a subdomain, promote a local app to the server, or "get this app running".
 ---
 
 # Skill: Bring a project onto the NUC platform
@@ -11,6 +11,21 @@ The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law; if a user request
 conflicts with an invariant, point out the conflict and ask back before proceeding.
 
 SSH NUC: `ssh thien25@thienminiserver` (key installed). App lives at `/opt/apps/<name>`.
+
+## Step 0 — Read the `target` FIRST (mandatory)
+
+**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
+
+| `target` | What this skill does |
+|---|---|
+| `nuc` | The procedure below. 🔴 **Check `INVENTORY` §NUC STATUS first** — the host has been down since 2026-07-22, so a `git push` deploys nothing. |
+| `local` | No ghcr / Watchtower / Traefik / Authentik. Onboarding = Dockerfile + named volume + **pick a free host port** (check `INVENTORY §0` for collisions) + compose + `docker compose up -d --build`, then verify **healthy and serving**. Stages for repo setup, docs and tests apply unchanged. |
+| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |
+| `none` | This skill does not apply. |
+
+> Unless a section says otherwise, **everything below this line is the `nuc` branch.** This skill was written
+> NUC-first and renamed on 2026-07-28; the `local` column is the honest summary, not a second full procedure.
 
 ## Stage 0 — Gather information (ask the user if unclear)
 
@@ -40,7 +55,7 @@ has a **living reference implementation** — COPY from it instead of rewriting;
 
 | archetype | Reference (copy from) | Take what | Specifics |
 |-----------|----------------------|--------|---------|
-| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (ui-kit), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/nuc-protect-app`). |
+| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (ui-kit), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/app-protect`). |
 | `python-worker` | `nuc-monitor/` | `Dockerfile` (python slim), `deploy.yml`, sample `requirements.txt` | Headless: NO Traefik/port. Join `edge` only if egress is needed. |
 | `node-bot` | `jobhunter-bot/` | `Dockerfile` (node), `deploy.yml`, `package.json` (ESM, Node ≥22) | Headless Discord worker: NO Traefik. Secrets in NUC `.env`. |
 | `monorepo` (→N images) | `yakudoku/` | CI **matrix** building N images from 1 repo, layout `web/ core/ bot/`, compose with multiple services | One image is the **sole DB writer** if using SQLite; internal images do NOT get Traefik labels. |
@@ -174,7 +189,7 @@ docker logs watchtower --since 2m | tail -2    # Scanned goes up, Failed=0
 #    confirm the watchtower log "Found new image ... Stopping ... Started"
 ```
 
-A failure at any step → the debug table in `platform/01-architecture-and-operations.md` section 7.
+A failure at any step → the debug table in `platform/targets/nuc/01-architecture-and-operations.md` section 7.
 If acceptance doesn't pass, do NOT report completion to the user.
 
 ## Stage 6 — Report

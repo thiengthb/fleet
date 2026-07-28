@@ -1,6 +1,6 @@
 ---
 name: supply-chain-guard
-description: Audit a project's dependencies + CI/CD for supply-chain compromise and harden against it — across npm/PyPI workers and the GitHub Actions → ghcr pipeline. Use before a risky deploy, when a supply-chain attack is in the news and you want to check exposure, or to harden a repo's dependency/CI hygiene. Distinct from /security-review (code) and /nuc-health-audit (infra).
+description: Audit a project's dependencies + CI/CD for supply-chain compromise and harden against it — across npm/PyPI workers and the GitHub Actions → ghcr pipeline. Use before a risky deploy, when a supply-chain attack is in the news and you want to check exposure, or to harden a repo's dependency/CI hygiene. Distinct from /security-review (code) and /host-audit (infra).
 ---
 
 # Supply Chain Guard (platform-adapted)
@@ -38,7 +38,7 @@ or a poisoned Action ships itself to the NUC within ≤60s. Two jobs: **detect**
 3. **Rotate every credential reachable from the build/runtime env** — npm/PyPI tokens, the app's `.env` secrets, any
    ghcr/GitHub token, DB passwords. (On this platform secrets live in `.env` chmod 600 on the NUC + GitHub Secrets.)
 4. If filesystem persistence is suspected (rogue systemd unit, `.pth` file, cron): treat the host as compromised — see
-   `platform/02-known-traps.md` and escalate; consider rebuilding via `04-agent-rebuild-runbook.md`.
+   `platform/02-known-traps.md` and escalate; consider rebuilding via `platform/targets/nuc/04-agent-rebuild-runbook.md`.
 
 ## Harden (the durable, never-stale part)
 

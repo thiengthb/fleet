@@ -26,7 +26,7 @@ The NUC has been down since 2026-07-22 and the platform is now expected to run o
 cloud. Today the machine-agnostic agent OS and the NUC-specific deployment law live in the same folder called
 `nuc-platform/`, so the naming actively misinforms. Supervisor decisions (2026-07-28): name = **`fleet`**;
 skills are renamed **and** made target-aware in the same pass, because a `/app-onboard` whose body only knows
-the NUC is a worse lie than `/nuc-new-project`.
+the NUC is a worse lie than `/app-onboard`.
 
 ## Approach & tradeoffs
 
@@ -51,7 +51,8 @@ Ruled out:
 ## Acceptance criteria (Given / When / Then)
 
 - **AC-1** — Given a fresh clone, When `grep -r "nuc-platform" --exclude-dir=.git .` runs, Then it returns
-  zero hits outside `platform/ledger/**` and `platform/log/**` (historical records are not rewritten).
+  zero hits outside `platform/ledger/**`, `platform/log/**` (historical records are not rewritten) **and this plan
+  itself** (the migration's own document is where the old name is the intended subject — see *Decisions to distill*).
 - **AC-2** — Given a session start, When every SessionStart hook runs, Then all four exit 0 with no path error,
   and `plan-checkin.mjs --list` still finds the plans at their new location.
 - **AC-3** — Given `INVENTORY §0`, When a project declares `target: cloud`, Then `platform/targets/cloud/` states
@@ -72,17 +73,17 @@ Ruled out:
 
 **Batch B — the target model** (the part that actually adds capability)
 
-- [ ] B1 — Move `01-architecture-and-operations.md`, `03-SETUP-FROM-SCRATCH.md`, `04-agent-rebuild-runbook.md` → `platform/targets/nuc/` · Files: Modify `CLAUDE.md` pointers · Test: `AC-3`
-- [ ] B2 — Write `platform/targets/local/README.md` from CLAUDE.md Invariants C (move, don't copy) · Files: Modify `CLAUDE.md:Invariants C` · Test: `AC-3`
-- [ ] B3 — Write `platform/targets/cloud/README.md` — NEW invariants for a VPS/cloud target (TLS, secrets, no host-port sprawl, backup, who can reach it) · Files: Create · Test: `AC-3`
-- [ ] B4 — `INVENTORY §0`: add `cloud` to the enum + a row per target explaining when to pick it · Files: Modify `platform/INVENTORY.md` · Test: `AC-3`
+- [x] B1 — Moved the 3 NUC-only docs → `platform/targets/nuc/`; 13 files re-pointed; bare refs in `CLAUDE.md` + 2 skills fixed · Files: Modified `CLAUDE.md`, `supply-chain-guard`, `host-audit` · Test: `AC-3` ✅
+- [x] B2 — Wrote `targets/local/README.md` (5 invariants + verify block); Invariants C **removed** from `CLAUDE.md`, replaced by the per-target table · Files: Modified `CLAUDE.md` · Test: `AC-3` ✅
+- [x] B3 — Wrote `targets/cloud/README.md` — 7 new invariants derived from the NUC's lessons (auth before first deploy, provider TLS, no baked secrets, off-provider backup, pull-only, **cost as an operational property**, stated blast radius) + `targets/README.md` index · Files: Created 2 · Test: `AC-3` ✅
+- [x] B4 — `INVENTORY` retitled (no longer "the NUC's" source of truth); `cloud` added to the enum + a 4-row "pick it when" table; `change-target` added to the lifecycle-change list · Files: Modified `platform/INVENTORY.md` · Test: `AC-3` ✅
 
 **Batch C — skills** (6 renames, target-aware bodies)
 
-- [ ] C1 — `git mv` the six skill dirs: `nuc-new-project→app-onboard`, `nuc-remove-project→app-remove`, `nuc-protect-app→app-protect`, `nuc-set-env→app-env`, `nuc-health-audit→host-audit`, `nuc-scheduled-maintenance→host-maintenance` · Files: Modify each `SKILL.md` frontmatter · Test: `AC-4`
-- [ ] C2 — Give each a Step 0 "read `target` from `INVENTORY §0`; branch to `platform/targets/<target>/`"; move NUC-only procedure into the `nuc` branch · Files: Modify 6 `SKILL.md` · Test: `AC-4`
-- [ ] C3 — Update the 39 files referencing the old skill names, incl. `CLAUDE.md` §"Project lifecycle" · Files: Modify 39 · Test: `AC-1`
-- [ ] C4 — `skill-substrate.json`: re-point the substrate globs at the new names · Files: Modify `.claude/scripts/skill-substrate.json` · Test: `AC-5`
+- [x] C1 — Six skill dirs renamed (`nuc-new-project`→`app-onboard`, `nuc-remove-project`→`app-remove`, `nuc-protect-app`→`app-protect`, `nuc-set-env`→`app-env`, `nuc-health-audit`→`host-audit`, `nuc-scheduled-maintenance`→`host-maintenance`) + `name:` frontmatter synced; verified 0 dir↔frontmatter mismatches across all 37 skills. Also renamed `.claude/scripts/nuc-set-env*` → `app-env*` · Files: 6 `SKILL.md` + 3 scripts · Test: `AC-4` ✅
+- [x] C2 — Each of the 6 gained a mandatory **Step 0 — Read the `target` FIRST** with a per-target table, and a target-aware `description:`. The `local` column is a real summary per skill, not boilerplate; `cloud` says *not defined yet, propose it*; the body is explicitly labelled the `nuc` branch · Files: 6 `SKILL.md` · Test: `AC-4` ✅ 6/6 read `INVENTORY §0`
+- [x] C3 — 43 files re-pointed at the new skill names; verified `nuc-monitor` (a real app, similar prefix) untouched in all 24 of its files · Files: Modified 43 · Test: `AC-1` ✅ 0 stale skill names outside history
+- [x] C4 — `skill-substrate.json` re-pointed by C3's sweep · Files: Modified · Test: `AC-5` ✅ 37 skills, no map drift, 0 NO-SUBSTRATE
 
 **Batch D — close out**
 
@@ -125,6 +126,10 @@ Ruled out:
   turned this plan's own `git mv nuc-platform platform` into `git mv platform platform`. Nothing else in the
   repo was affected, but the general trap is real: the migration's own plan, ledger and decision records are
   precisely the files where the *old* name is the intended subject. Exclude them, or repair them and diff.
+  **It then happened a SECOND time in the same session** — C3's skill-name sweep turned this file's own
+  `nuc-new-project→app-onboard` into `app-onboard→app-onboard`. Knowing the trap did not prevent it, because
+  the sweep was written before the lesson was applied. The fix is not vigilance, it is an exclusion list:
+  **a migration plan must exclude itself from its own rewrites.**
 - **`grep -rl … .` does not always prefix results with `./`, so a `grep -v '^\./path'` filter can be a silent
   no-op.** That is how a first attempt nearly rewrote the immutable `ledger/` and `log/` history — it was
   caught only because a post-check compared the file count, not because the filter reported anything. Do the

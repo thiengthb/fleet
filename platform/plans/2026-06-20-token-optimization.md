@@ -47,7 +47,7 @@ lean-first (supervisor-approved 2026-06-20).
 - [~] **#6 Skill cull — revised after measurement + the self-mod guard.**
   - **#6a (trim descriptions) DROPPED** — low ROI (~45 tok/skill/session vs the careful per-edit cost + trigger-break risk).
   - **#6b (merge 2 niche skills) — handed to the human to run.** `auto-pilot-smoke-test` → `auto-pilot/references/smoke-test.md`;
-    `nuc-scheduled-maintenance` → `nuc-health-audit/references/scheduled-maintenance.md` (de-registers the top-level skill =
+    `host-maintenance` → `host-audit/references/scheduled-maintenance.md` (de-registers the top-level skill =
     drops its ~120-tok description, content preserved as a reference). The auto-mode **self-modification guard correctly
     BLOCKED the agent** from editing `.claude/skills/**` even under verbal approval — per the contract, skill changes are a
     human move. Commands handed off 2026-06-20.

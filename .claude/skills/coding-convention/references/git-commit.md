@@ -53,7 +53,7 @@ cp ".claude/skills/coding-convention/hooks/pre-commit" "<repo>/.git/hooks/pre-co
 | `commit-msg` | **BLOCKS** wrong `type(scope): desc` structure, subject ending with `.`, capitalised first letter of description (forces lowercase, except all-caps acronyms). Skips merge/revert/fixup commits. |
 | `pre-commit` | **REMINDS** (non-blocking) when a commit touches CODE but not `docs/` → consider updating `docs/00-map.md` / `docs/decisions.md`. |
 
-When scaffolding a new project (`/nuc-new-project`), install BOTH the Prettier config and these 2 hooks at the repo-init step.
+When scaffolding a new project (`/app-onboard`), install BOTH the Prettier config and these 2 hooks at the repo-init step.
 
 ## See also
 

@@ -1,6 +1,6 @@
 ---
 name: docker-expert
-description: Author and optimize a single app's Dockerfile — multi-stage builds, layer-cache ordering, small/secure base images, non-root user, EXPOSE + HEALTHCHECK, .dockerignore, BuildKit cache. Use when writing or improving a Dockerfile. NOT for compose/networking/secrets/deploy — those are platform-defined (the NUC only PULLs; CI builds; see /nuc-new-project).
+description: Author and optimize a single app's Dockerfile — multi-stage builds, layer-cache ordering, small/secure base images, non-root user, EXPOSE + HEALTHCHECK, .dockerignore, BuildKit cache. Use when writing or improving a Dockerfile. NOT for compose/networking/secrets/deploy — those are platform-defined (the NUC only PULLs; CI builds; see /app-onboard).
 ---
 
 # Docker Expert — Dockerfile authoring (platform-adapted, narrowed)
@@ -14,7 +14,7 @@ description: Author and optimize a single app's Dockerfile — multi-stage build
 
 - **Compose / orchestration / networking / secrets / deploy** → platform-defined. The NUC compose just pulls an `image:`
   from ghcr; ONE shared `edge` network (no per-app `frontend`/`backend` networks); secrets live in **`.env` (chmod 600)**,
-  never Docker `secrets:` nor baked into ENV/layers. See `/nuc-new-project` + `platform/01-architecture-and-operations.md`.
+  never Docker `secrets:` nor baked into ENV/layers. See `/app-onboard` + `platform/targets/nuc/01-architecture-and-operations.md`.
 - **Building** happens in **GitHub Actions** (`deploy.yml`), pushing `:latest` + `:<sha>` to ghcr — **the NUC never
   builds**. Don't add compose-level image-build steps to a deploy flow (the NUC compose pulls, never builds).
   (`docker build` locally just to test a Dockerfile is fine.)

@@ -87,7 +87,7 @@ two sides still agree — only a human notices a break. As repos/teams multiply 
 
 - A new contributor inherits **one doc (this) + the templates + the skills** — no tribal knowledge.
 - A new repo copies the CI test job (`/vitest-server-actions` §CI) + the contract-test template (`08`) on onboarding
-  (`/nuc-new-project`).
+  (`/app-onboard`).
 - ACs make a change **legible across people**: a reviewer reads the Given/When/Then, not the author's assumptions
   (Spec-Kit's "a clear spec aligns everyone; different developers make conflicting assumptions").
 

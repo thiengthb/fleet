@@ -1,6 +1,6 @@
 ---
 name: project-docs
-description: Generate & sync a project's standard doc set (00-map AI-primer, decisions log, + the 01/02/03 set for web-apps) per platform/05-documentation-standard.md. Two modes — scaffold (create missing docs from the kind's reference app) and audit (detect code↔docs drift, read-only). Use when creating a project, when docs are missing/stale, for the docs step in /nuc-new-project, or when the user says "write docs" / "do the docs still match the code".
+description: Generate & sync a project's standard doc set (00-map AI-primer, decisions log, + the 01/02/03 set for web-apps) per platform/05-documentation-standard.md. Two modes — scaffold (create missing docs from the kind's reference app) and audit (detect code↔docs drift, read-only). Use when creating a project, when docs are missing/stale, for the docs step in /app-onboard, or when the user says "write docs" / "do the docs still match the code".
 ---
 
 # Skill: Standard docs for a project (project-docs)
@@ -52,7 +52,7 @@ Run when the project lacks the doc-set (a new project, or an old one that's empt
 
 ## Mode B — audit (detect code↔docs drift)
 
-Run when you want to know whether the docs still match the code (read-only — report only, like `/nuc-health-audit`).
+Run when you want to know whether the docs still match the code (read-only — report only, like `/host-audit`).
 
 Reconcile and list the mismatches:
 - **Module map (`00-map §3`) vs reality**: new route/model/lib/directory not in the map? A map entry pointing to a

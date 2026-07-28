@@ -1,37 +1,34 @@
-# MiniServer — Shared rules for every project in this folder
+# fleet — Shared rules for every project in this folder
 
 **Two layers. Know which one you are in.** The *agent OS* (conventions, memory, skills, docs, testing, thinking) is
-**machine-agnostic** — identical on the NUC, this PC, a laptop, a cloud runner. The *deployment* layer is **per-target**.
+**machine-agnostic** — identical on the NUC, this PC, a laptop, a VPS. The *deployment* layer is **per-target**.
 
-**Every project declares a `target` in `platform/INVENTORY.md §0`** — `nuc` · `local` · `none`. It is DATA: **read
-it, never assume.** `local` (Docker on a dev machine) is a first-class target, not a degraded `nuc`; promotion is a
-deliberate `/nuc-new-project` change. INVENTORY is the **single source of truth** (app/target/volume/domain/auth) —
-read before any lifecycle change; every add/remove-app skill MUST update it. Ops → `01-architecture-and-operations.md` ·
-traps → `02-known-traps.md` · rebuild → `03-SETUP-FROM-SCRATCH.md` · **NUC reset → `04-agent-rebuild-runbook.md`**.
+**Every project declares a `target` in `platform/INVENTORY.md §0`** — `nuc` · `local` · `cloud` · `none`. It is DATA:
+**read it, never assume.** INVENTORY is the **single source of truth** (app/target/volume/domain/auth) — read before
+any lifecycle change; every add/remove-app skill MUST update it. Cross-cutting infra traps → `platform/02-known-traps.md`.
 
 ## Invariants A — platform-wide (every project, every machine, every target)
 
 1. **Secrets only in `.env`** (chmod 600, in `.gitignore`) — never hardcode a token/key in compose, Dockerfile, or code.
 2. **Never self-code auth** — no hand-rolled login / password hashing / JWT / session minting, on any target. On `nuc`
-   that means Authentik (B8); on `local` it means an established library or no auth at all, never a bespoke one.
+   that means Authentik; on `local`/`cloud` an established library — never a bespoke one.
 3. **App data lives in a named volume** (`<name>_data`), never a bind-mount, on any target — it must survive a rebuild
    and be movable between targets.
 4. **The repo is the source of truth; a running host is a cache.** Nothing is changed only on a host — commit it here.
 
-## Invariants B — `target: nuc` only → `01-architecture-and-operations.md §0` (read before any NUC change)
+## Invariants per target → `platform/targets/<target>/README.md` (read the one that matches, ignore the rest)
 
-Seven, binding only on `target: nuc`: pull-only images · shared `edge` network · public-iff-Traefik-label · dual
-`latest`+SHA tags · Cloudflare TLS · Traefik ≥v3.7 + `DOCKER_API_VERSION=1.44` · Authentik forward-auth. They sit in the
-ops doc because that is where a NUC change already sends you, and the three most damaging (certbot, self-hosted runner,
-host port-publish) are enforced in code by `invariant-warn.mjs` rather than by being remembered.
+| `target` | Means | Its law |
+|---|---|---|
+| `nuc` | git → ghcr → Watchtower → Traefik → `/opt/apps/<name>`. 🔴 host DOWN since 2026-07-22 — a push is a backup, not a release | `targets/nuc/` — 7 invariants (in `01-architecture-and-operations §0`) + ops · setup · agent rebuild runbook |
+| `local` | Docker on a dev machine; ports published to the host, no Traefik/Authentik. **"Deploy" = rebuild the container and verify healthy** | `targets/local/` |
+| `cloud` | A VPS / managed runtime — **public the moment it boots**, and billed while idle | `targets/cloud/` (written 2026-07-28, not yet exercised) |
+| `none` | Not deployed (meta / shared) | — |
 
-## Invariants C — `target: local`
-
-5. **"Deploy" means rebuild the local container** and verify it healthy + serving — not `git push`. A push is only a
-   backup until the NUC target is live again. Ports are published to the host (there is no Traefik); pick a port and
-   record it in `INVENTORY §0`, and check it is not already taken by another local app.
-6. **A local app is still a real app** — same Dockerfile, same named volume, same docs set, same tests. It differs in
-   *routing and auth*, not in engineering standard, so promotion later is a config change and not a rewrite.
+A target is a **choice, not a ranking**: they differ in routing, auth surface and who pays — not in engineering
+standard, so moving between them is a config change. Changing a project's target is a lifecycle change: update
+`INVENTORY §0` in the same turn and re-read the new target's law first. The three most damaging NUC invariants
+(certbot, self-hosted runner, host port-publish) are enforced in code by `invariant-warn.mjs`, not by memory.
 
 ## Conventions
 
@@ -191,9 +188,9 @@ over-powered staffing on mechanical work.
 ## Project lifecycle & ops — use the right skill, don't improvise
 
 **Check the project's `target` first** (INVENTORY §0) — the `/nuc-*` skills apply to `target: nuc` only.
-**onboard/new** → `/nuc-new-project` · **remove** → `/nuc-remove-project` (confirm data loss + no impact FIRST; then
+**onboard/new** → `/app-onboard` · **remove** → `/app-remove` (confirm data loss + no impact FIRST; then
 code → container+volume+image+dir → Authentik provider/group → subdomain 404s → update INVENTORY + `auth-apps.md`) ·
-**audit/cleanup** → `/nuc-health-audit` (**report only** — every destructive action asks) · **protect (login/SSO/authz)**
-→ `/nuc-protect-app`, registry + traps in `authentik/docs/auth-apps.md` · **env/secrets** → `/nuc-set-env` (from the
+**audit/cleanup** → `/host-audit` (**report only** — every destructive action asks) · **protect (login/SSO/authz)**
+→ `/app-protect`, registry + traps in `authentik/docs/auth-apps.md` · **env/secrets** → `/app-env` (from the
 LOCAL mirror `~/.nuc-env/<app>.env` over ssh STDIN; the agent never receives secret values) · **web is broken** → debug
-by layer DNS → tunnel → Traefik → app, symptom table in `01-architecture-and-operations §7`.
+by layer DNS → tunnel → Traefik → app, symptom table in `targets/nuc/01-architecture-and-operations.md §7`.

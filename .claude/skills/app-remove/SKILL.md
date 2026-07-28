@@ -1,11 +1,11 @@
 ---
-name: nuc-remove-project
-description: Remove/retire a project from the NUC completely & safely — delete local code, tear down container + volume + image + dir, clean Authentik config (provider/app/group), verify the subdomain is dead, update INVENTORY.md + auth-apps.md, guide deletion of the GitHub repo + ghcr package. Use when the user says "remove/delete/retire project X", "I don't use app X anymore", "clean up X on the mini server".
+name: app-remove
+description: Remove/retire a project from its target completely and safely — reads `target` from INVENTORY §0 first, then tears down container + volume + image + directory, cleans auth config, verifies the app is really gone, and updates INVENTORY. Use when the user says "remove/delete/retire project X", "I don't use app X anymore", or "clean up X".
 ---
 
 # Skill: Remove a project from the NUC platform (safe, leaving nothing behind)
 
-This is the REVERSE process of `/nuc-new-project`. Goal: cleanly remove a project **without
+This is the REVERSE process of `/app-onboard`. Goal: cleanly remove a project **without
 affecting other services** and **leaving no junk** (orphan volume, hanging Authentik provider,
 wrong registry row, nuc-monitor noise). Work SEQUENTIALLY; each stage has a VERIFICATION.
 
@@ -16,6 +16,21 @@ The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law. The source of trut
 > (what the volume contains, whether it needs a backup) and **CONFIRM with the user** the exact project + that they accept the
 > data loss. If reality contradicts the user's description (e.g. the app is still being called by another service) →
 > stop, tell the user, don't just delete.
+
+## Step 0 — Read the `target` FIRST (mandatory)
+
+**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
+
+| `target` | What this skill does |
+|---|---|
+| `nuc` | The procedure below. 🔴 **Check `INVENTORY` §NUC STATUS first** — the host has been down since 2026-07-22, so a `git push` deploys nothing. |
+| `local` | Stop + remove the container, remove the named volume (after the same data-loss confirmation), remove the image, delete the directory, **free the host port**, update `INVENTORY §0`. Skip every Authentik and subdomain step — there are none. |
+| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |
+| `none` | This skill does not apply. |
+
+> Unless a section says otherwise, **everything below this line is the `nuc` branch.** This skill was written
+> NUC-first and renamed on 2026-07-28; the `local` column is the honest summary, not a second full procedure.
 
 ## Stage 0 — Confirm & build a damage inventory
 
@@ -143,7 +158,7 @@ ssh thien25@thienminiserver 'docker ps --format "{{.Names}}\t{{.Status}}"'
 ```
 - ✅ Every OTHER service is still `Up`/`healthy`, exactly as in the snapshot from Stage 0.
 - ✅ No container/volume/dir/image/route/provider of the removed project remains.
-- ✅ (recommended) Quickly run `/nuc-health-audit` to be sure no orphan is left.
+- ✅ (recommended) Quickly run `/host-audit` to be sure no orphan is left.
 
 ## Report for the user
 

@@ -90,7 +90,7 @@ not copied.
 
 | Skill | Mode | Conflicts to STRIP | Trigger ownership | Risk |
 |---|---|---|---|---|
-| `supply-chain-guard` | **scripts** | Read all `scripts/` line-by-line (it scans deps/CI — confirm read-only, no exfiltration of the lockfile/tokens to a remote). | npm/PyPI/GH-Actions compromise + IOC scan. Distinct from `/security-review` (code) and `/nuc-health-audit` (infra). | **Med-High (scripts)** |
+| `supply-chain-guard` | **scripts** | Read all `scripts/` line-by-line (it scans deps/CI — confirm read-only, no exfiltration of the lockfile/tokens to a remote). | npm/PyPI/GH-Actions compromise + IOC scan. Distinct from `/security-review` (code) and `/host-audit` (infra). | **Med-High (scripts)** |
 | `dependabot-review` | docs | Ensure auto-merge guidance respects "commit/push only when the user asks" — make merge a *suggestion*, not automatic. | Triage Dependabot PRs. | Med (auto-merge wording) |
 
 ### Wave 4 — Worker/bot + MCP
@@ -106,7 +106,7 @@ not copied.
 | Skill | Mode | Conflicts to STRIP | Trigger ownership | Risk |
 |---|---|---|---|---|
 | `architecture` | docs | Keep "start simple"; ensure it hands decisions to `docs/decisions.md` (don't reinvent an ADR log — that's the invariant). | Significant architecture/tradeoff decisions. Defers the *log* to decisions.md, *frontend* to react-ui-craft. | Low-Med (trigger overlap) |
-| `docker-expert` | docs | **Strip/annotate hard:** ignore its `docker-compose build`, `target: production` build-on-host, multi-arch buildx, and Docker `secrets:` advice — the NUC only PULLs, CI builds, secrets are `.env` chmod 600. Keep only Dockerfile authoring (multi-stage, non-root, EXPOSE+HEALTHCHECK, layer cache). | Authoring/optimising a Dockerfile. Defers compose/deploy to `/nuc-new-project`. | **Med (invariant conflict in body)** |
+| `docker-expert` | docs | **Strip/annotate hard:** ignore its `docker-compose build`, `target: production` build-on-host, multi-arch buildx, and Docker `secrets:` advice — the NUC only PULLs, CI builds, secrets are `.env` chmod 600. Keep only Dockerfile authoring (multi-stage, non-root, EXPOSE+HEALTHCHECK, layer cache). | Authoring/optimising a Dockerfile. Defers compose/deploy to `/app-onboard`. | **Med (invariant conflict in body)** |
 | `saas-multi-tenant` | docs | Note auth is **Authentik**, not app-built; keep only the Prisma-middleware/RLS tenant-scoping patterns. | Multi-tenant data isolation. Adopt only if/when an app serves >1 tenant. | Low (defer-friendly) |
 
 ### Wave 6 — BORROW folds (edit existing skills, add NO new skill)
@@ -120,7 +120,7 @@ not copied.
 | `zod-validation-expert` | `/react-ui-craft` | Concrete Zod-at-the-boundary how-to (FormData coercion, server-action parse). | Low |
 | `react-useeffect` | `/react-ui-craft` | "You-might-not-need-an-effect" decision tree (1 bullet + link). | Low |
 | `clean-code` | `/coding-convention` | Design-smell rules (god functions, magic numbers, deep nesting). | Low |
-| `dependency-updater` | `/nuc-health-audit` | Tiered safe-update flow (patch/minor vs major) — Watchtower updates images, not pkg deps. | Low |
+| `dependency-updater` | `/host-audit` | Tiered safe-update flow (patch/minor vs major) — Watchtower updates images, not pkg deps. | Low |
 | `skill-creation-guide` + `writing-skills` | a thin authoring note (or `/coding-convention` appendix) | The adoption-procedure + "skill authoring is TDD" principle so future skill adds stay consistent. | Low |
 
 ### Wave 7 — Integrate & close
@@ -136,7 +136,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - [x] **W3** Adopted `/supply-chain-guard` (read scanners — benign — dropped them; kept hardening + live scan) + `/dependabot-review` (removed auto-merge). Grep-guard CLEAN. ✓
 - [x] **W4** Adopted `/api-integration-specialist` (Express→Route Handler) + `/async-python-patterns` (self-contained) + `/mcp-builder` (self-contained, anchored to todo/yakudoku + forward-auth-exempt invariant; no scripts/refs vendored). Grep-guard CLEAN. ✓
 - [x] **W5** Adopted `/architecture` (self-contained, ADR→decisions.md) + `/docker-expert` (**narrowed** to Dockerfile authoring; compose/secrets/build-on-host stripped into a NOT-this-skill box) + `/saas-multi-tenant` (Authentik+Prisma-extension+SQLite-no-RLS adapt; flagged speculative). Grep-guard CLEAN. ✓
-- [x] **W6** Folded §2 ideas into `/project-plan` (3) + `/coding-convention` (smells) + `/react-ui-craft` (shadcn CLI + Zod) + `/nuc-health-audit` (group L deps). Created `/skill-authoring` (adoption procedure + grep-guard). `react-useeffect` already covered (skipped, no dup). Grep-guard CLEAN (react-ui-craft hits = pre-existing correct *prohibitions*). ✓
+- [x] **W6** Folded §2 ideas into `/project-plan` (3) + `/coding-convention` (smells) + `/react-ui-craft` (shadcn CLI + Zod) + `/host-audit` (group L deps). Created `/skill-authoring` (adoption procedure + grep-guard). `react-useeffect` already covered (skipped, no dup). Grep-guard CLEAN (react-ui-craft hits = pre-existing correct *prohibitions*). ✓
 - [x] **W7** Caught + adopted the missed `/react-best-practices`; added thin CLAUDE.md disciplines + reference-skill index; distilled cross-project lessons into `06-knowledge-ledger.md §A` (adoption procedure, no-pre-install, frozen-IOC); ledger all ADOPTED. Plan → `done`. ✓
 
 ## Out of scope
@@ -165,4 +165,4 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - Why §1b skills are deferred (pre-need install = clutter) → `06-knowledge-ledger.md §A` + `07-SKILL-CANDIDATES.md §1b`.
 - Frozen-IOC-list = false confidence → `06-knowledge-ledger.md §A` + `/supply-chain-guard`.
 - Skill ownership boundaries (architecture↔decisions.md, database-design↔prisma-expert, react-best-practices↔react-ui-craft,
-  docker-expert↔nuc-new-project) → encoded in each skill's description "complements/defers" line + `/skill-authoring`.
+  docker-expert↔app-onboard) → encoded in each skill's description "complements/defers" line + `/skill-authoring`.

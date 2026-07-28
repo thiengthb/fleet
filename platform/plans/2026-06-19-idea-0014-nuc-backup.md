@@ -31,7 +31,7 @@ un-mitigated risk (idea-0014, supervisor-accepted 2026-06-19). Approach + source
 **Option B (chosen):** Restic direct to Backblaze B2 (client-side AES-256, dedup), driven by a `systemd` timer
 (`Persistent=true`). DB volumes get **app-consistent dumps** (Postgres `pg_dump`/`pg_dumpall`; SQLite `.backup`) — never
 a live file copy. Ruled out: **A** local-only (violates 3-2-1) · **C** dual local+B2 (defer — needs a spare drive).
-Secrets via `/nuc-set-env`-style mirror (`/etc/restic/*`, chmod 600); repo password ALSO stored offsite. Fits "extend
+Secrets via `/app-env`-style mirror (`/etc/restic/*`, chmod 600); repo password ALSO stored offsite. Fits "extend
 existing infra": no new always-on service; reuses nuc-monitor Discord for alerts.
 
 ## Prior art & sources
@@ -51,7 +51,7 @@ Full grounding (≥2 sources/question) in the proposal `2026-06-19-idea-0014-nuc
 - [ ] 5 — **Restore drill** (human/ssh): `restic restore latest --target /tmp/restore-test`; load one PG dump + open one SQLite db; verify row counts; delete temp. · Test: a restored DB opens and looks intact (evidence, not exit code)
 - [ ] 6 — **Install schedule** (human/ssh): deploy the units; `systemctl enable --now restic-backup.timer restic-check.timer`. · Test: `systemctl list-timers` shows next run; `journalctl -u restic-backup` after a forced run is clean
 - [ ] 7 — **Wire failure alert** (human/ssh): `OnFailure=` (or a healthchecks heartbeat) → nuc-monitor Discord. · Test: simulate a failure (bad env) → a Discord message arrives
-- [ ] 8 — **Update docs** (agent-doable): `INVENTORY §2` gains a backup component; `02-known-traps.md` (live-DB file-copy hazard); `01-architecture-and-operations` backup section. · Test: docs match the built setup; `/nuc-health-audit` would find no backup-drift
+- [ ] 8 — **Update docs** (agent-doable): `INVENTORY §2` gains a backup component; `02-known-traps.md` (live-DB file-copy hazard); `01-architecture-and-operations` backup section. · Test: docs match the built setup; `/host-audit` would find no backup-drift
 
 ## Out of scope
 Option C dual-repo (later upgrade if a backup drive is added) · Postgres PITR/WAL archiving (overkill at this scale) ·

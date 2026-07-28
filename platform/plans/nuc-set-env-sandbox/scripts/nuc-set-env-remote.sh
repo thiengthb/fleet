@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# nuc-set-env-remote.sh - runs ON THE NUC (the local front-end base64-sends it over ssh, never installs it there).
+# app-env-remote.sh - runs ON THE NUC (the local front-end base64-sends it over ssh, never installs it there).
 # Reads a KEY=VALUE snippet from STDIN and idempotently UPSERTs it into the app's .env:
 #   existing key -> value replaced in place; new key -> appended; every other line (comments, other keys) untouched.
 # Atomic (temp + mv on the same fs), preserves chmod 600, keeps one .env.bak. NEVER prints values. Optional recreate.
@@ -8,19 +8,19 @@
 set -eu
 
 app="${1:-}"
-case "$app" in "" | *[!a-z0-9-]*) echo "nuc-set-env: bad app name '$app'" >&2; exit 2 ;; esac
+case "$app" in "" | *[!a-z0-9-]*) echo "app-env: bad app name '$app'" >&2; exit 2 ;; esac
 envf="${NUC_ENV_FILE:-/opt/apps/$app/.env}"
-[ -f "$envf" ] || { echo "nuc-set-env: no .env at $envf (is the app deployed?)" >&2; exit 3; }
+[ -f "$envf" ] || { echo "app-env: no .env at $envf (is the app deployed?)" >&2; exit 3; }
 dir="$(dirname "$envf")"
 
-snip="$(mktemp "$dir/.snip.XXXXXX")" || { echo "nuc-set-env: cannot write in $dir (permissions?)" >&2; exit 4; }
+snip="$(mktemp "$dir/.snip.XXXXXX")" || { echo "app-env: cannot write in $dir (permissions?)" >&2; exit 4; }
 out="$(mktemp "$dir/.envnew.XXXXXX")"
 chmod 600 "$snip" "$out"
 trap 'rm -f "$snip" "$out"' EXIT
 
 tr -d '\r' > "$snip" # STDIN = the pasted snippet; strip CR so a CRLF mirror never leaves \r on a value
 grep -qE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' "$snip" \
-  || { echo "nuc-set-env: snippet has no KEY=VALUE lines - nothing to do" >&2; exit 5; }
+  || { echo "app-env: snippet has no KEY=VALUE lines - nothing to do" >&2; exit 5; }
 
 # Merge - file1 = snippet (overrides), file2 = existing .env (rewrite matched keys in place, append the rest).
 awk '
@@ -50,16 +50,16 @@ cp -p -- "$envf" "$envf.bak"
 mv -- "$out" "$envf"
 chmod 600 "$envf"
 
-echo "nuc-set-env: keys now in $envf:"
+echo "app-env: keys now in $envf:"
 grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' "$envf" | sed 's/=$//' | sort | sed 's/^/  - /'
 
 if [ "${NUC_RESTART:-1}" = "1" ]; then
   if [ -f "$dir/docker-compose.yml" ] || [ -f "$dir/compose.yml" ] || [ -f "$dir/compose.yaml" ]; then
-    echo "nuc-set-env: recreating '$app' to apply the new env..."
+    echo "app-env: recreating '$app' to apply the new env..."
     (cd "$dir" && docker compose up -d --force-recreate)
   else
-    echo "nuc-set-env: no compose file in $dir - restart the app manually to apply the new env." >&2
+    echo "app-env: no compose file in $dir - restart the app manually to apply the new env." >&2
   fi
 else
-  echo "nuc-set-env: .env updated; container NOT restarted (--no-restart)."
+  echo "app-env: .env updated; container NOT restarted (--no-restart)."
 fi

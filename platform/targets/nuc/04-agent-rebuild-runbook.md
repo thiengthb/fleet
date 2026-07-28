@@ -150,7 +150,7 @@ wildcard hostname `*.thientnse.site → http://traefik:80` + DNS
    `.env` from the user's backup; no backup → use the template in `03` 9.2
    and **tell the user clearly** which variables are empty (`API_KEY`, `GEMINI_API_KEY`).
 4. Other apps (if added after 2026-06): ask the user for the list, or check
-   memory; do each app following the `/nuc-new-project` skill mold.
+   memory; do each app following the `/app-onboard` skill mold.
 5. `docker compose up -d` for each app.
 
 ---

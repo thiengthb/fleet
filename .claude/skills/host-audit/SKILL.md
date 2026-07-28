@@ -1,6 +1,6 @@
 ---
-name: nuc-health-audit
-description: Health-check & sync the NUC platform — reconcile INVENTORY.md against reality (container/volume/route/Authentik), find orphans (volume/image/provider), check subdomains alive, Watchtower scanning, disk/RAM, secret hygiene (.env chmod 600), nuc-monitor baseline. Use when the user says "audit/check the system", "clean up the NUC", "is everything ok", "any junk", or for a periodic run.
+name: host-audit
+description: Health-check a host and reconcile INVENTORY against what is actually running — reads `target` first to know what to check. On `nuc`: containers, volumes, Traefik routes, Authentik providers, subdomains, Watchtower, disk/RAM. On `local`: the local Docker daemon, orphans, port collisions, `.env` permissions. REPORT-ONLY: every destructive action asks. Use for "audit/check the system", "clean up", "is everything ok", "any junk".
 ---
 
 # Skill: Health-check & sync the NUC platform
@@ -11,6 +11,21 @@ and only happen with consent. Source of truth: [`platform/INVENTORY.md`](../../.
 
 SSH NUC: `ssh thien25@thienminiserver`. Run the check groups A–K in order (A–J over SSH; K runs local), gather the results into
 one report with ✅/⚠️/❌ sections then propose fixes.
+
+## Step 0 — Read the `target` FIRST (mandatory)
+
+**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
+
+| `target` | What this skill does |
+|---|---|
+| `nuc` | The procedure below. 🔴 **Check `INVENTORY` §NUC STATUS first** — the host has been down since 2026-07-22, so a `git push` deploys nothing. |
+| `local` | Audit the local Docker daemon: container health, orphan volumes/images, **host-port collisions against `INVENTORY §0`**, `.env` permissions. Skip Traefik, Authentik, subdomain and Watchtower checks entirely. ⚠️ On a machine with two Docker daemons, audit the one the project actually uses — see `CLAUDE.local.md`. |
+| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |
+| `none` | This skill does not apply. |
+
+> Unless a section says otherwise, **everything below this line is the `nuc` branch.** This skill was written
+> NUC-first and renamed on 2026-07-28; the `local` column is the honest summary, not a second full procedure.
 
 ## A. Drift: INVENTORY ↔ reality
 
@@ -54,7 +69,7 @@ for h in $(grep -rhoP "Host\(\`\K[^\`]+" /opt/apps/*/docker-compose.yml | sort -
 done'
 ```
 Expected: open app → `200`; gated app (forward-auth) → `302` to auth. `404/502/530/000` → ❌
-(404=lost route, 502=app dead, 530=tunnel, 000=DNS) — check the debug table `01-architecture-and-operations...` §7.
+(404=lost route, 502=app dead, 530=tunnel, 000=DNS) — check the debug table `platform/targets/nuc/01-architecture-and-operations.md` §7.
 
 ## E. Authentik: providers ↔ registry
 
@@ -67,7 +82,7 @@ echo "--- outpost providers ---"
 curl -s -H "Authorization: Bearer $T" "$B/outposts/instances/?page_size=20" | jq -r ".results[]|select(.name|test(\"Embedded\";\"i\")).providers"'
 ```
 Reconcile with INVENTORY §3 + `auth-apps.md`. A provider pointing to the domain of an **already-removed** app = hanging → ⚠️
-(clean up per `/nuc-remove-project` G3). Every provider must be in the outpost's `providers`.
+(clean up per `/app-remove` G3). Every provider must be in the outpost's `providers`.
 
 ## F. Watchtower still scanning
 
@@ -116,9 +131,9 @@ A mismatch → there may be stale `known_containers`; restart nuc-monitor to res
 
 First reconcile the **§0 classification registry itself**: every row must carry a valid **`domain`**
 (`platform`/`product`/`automation`/`shared`) **and** a `kind` — a row missing or invalid on either (e.g. a project
-added by hand, bypassing `/nuc-new-project`) → ⚠️ fix the classification. Conversely every dev dir under
+added by hand, bypassing `/app-onboard`) → ⚠️ fix the classification. Conversely every dev dir under
 `D:\Projects\MiniServer\` (and every §1 app) must have a §0 row — a missing row = §0 omission (often left by an
-incomplete `/nuc-remove-project`) → ⚠️.
+incomplete `/app-remove`) → ⚠️.
 
 Then reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
 (`platform/05-documentation-standard.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`

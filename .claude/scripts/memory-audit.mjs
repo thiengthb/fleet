@@ -3,7 +3,7 @@
  * memory-audit.mjs — deterministic hygiene report for the agent's memory tiers.
  *
  * REPORT-ONLY. Never writes, moves, or deletes a file. Every finding is a
- * suggestion for a human to act on (same rule as /nuc-health-audit).
+ * suggestion for a human to act on (same rule as /host-audit).
  *
  * Why a script and not the agent's judgement: measuring size, finding an
  * orphaned index line, or computing text overlap is mechanical work. Paying

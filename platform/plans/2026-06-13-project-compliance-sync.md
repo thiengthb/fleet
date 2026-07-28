@@ -68,7 +68,7 @@ thiếu ở cả 3 service Python. Reference (todo/nuc-monitor) cũng có nợ �
 - [x] 9 — **ui-kit**: 00-map + decisions + prettier (P0) ✅. Pushed `59bb521`.
 
 ### Phase 5 — Đóng
-- [x] 10 — Không có inventory drift (đổi chỉ là docs/config/code, không đổi domain/volume/auth/topology) → INVENTORY §0/§1 không cần sửa. **CI 5/5 xanh** = bằng chứng build. Health-audit qua SSH = tùy chọn report-only, chạy `/nuc-health-audit` sau khi Watchtower settle nếu muốn xác nhận image mới healthy (nhất là HEALTHCHECK nuc-monitor).
+- [x] 10 — Không có inventory drift (đổi chỉ là docs/config/code, không đổi domain/volume/auth/topology) → INVENTORY §0/§1 không cần sửa. **CI 5/5 xanh** = bằng chứng build. Health-audit qua SSH = tùy chọn report-only, chạy `/host-audit` sau khi Watchtower settle nếu muốn xác nhận image mới healthy (nhất là HEALTHCHECK nuc-monitor).
 - [x] 11 — `/session-wrap`: ledger §A (3 dòng) + §B (jobhunter/nuc-ops/+infra) + memory + plan → done.
 
 ## Out of scope

@@ -1,8 +1,11 @@
-# INVENTORY — The SINGLE source of truth for the NUC `thienminiserver`
+# INVENTORY — The SINGLE source of truth for every project, on every target
 
-> Every lifecycle change (add/remove/change-domain/change-volume/change-auth-level) **MUST** update
-> this file IMMEDIATELY within the same turn of work. The `/nuc-new-project` and `/nuc-remove-project` skills
-> are required to edit the table below; `/nuc-health-audit` reconciles this file against reality to catch drift.
+> Not a NUC document. Every project in the fleet has a row here regardless of where it runs; the **`target`** column
+> is what decides which deployment law applies (`platform/targets/<target>/README.md`).
+>
+> Every lifecycle change (add/remove/change-domain/change-volume/change-auth-level/**change-target**) **MUST** update
+> this file IMMEDIATELY within the same turn of work. The `/app-onboard` and `/app-remove` skills
+> are required to edit the table below; `/host-audit` reconciles this file against reality to catch drift.
 > If the table and reality differ → treat it as an incident, investigate (don't trust the table blindly).
 
 ## NUC STATUS — read this before any `target: nuc` action
@@ -13,7 +16,7 @@
 | **Effect** | The pull side of the chain is dead: `git push` still builds an image on ghcr, but **nothing deploys anywhere**. A push is a backup, not a release. |
 | **Do NOT** | SSH into the NUC, diagnose Watchtower/Traefik/ghcr delivery, or report a `target: nuc` app as "deployed". |
 | **Meanwhile** | Ship on `target: local` (local Docker). A local app can still be **public** without the NUC via a locally-run `cloudflared` container (Cloudflare Tunnel → `*.thientnse.site`, TLS at Cloudflare) — that is how `sakubun` is reachable today. |
-| **When it returns** | Flip this row to 🟢, re-verify with `/nuc-health-audit` **before** trusting any `target: nuc` row below, and promote any `local` project that was waiting via `/nuc-new-project`. |
+| **When it returns** | Flip this row to 🟢, re-verify with `/host-audit` **before** trusting any `target: nuc` row below, and promote any `local` project that was waiting via `/app-onboard`. |
 
 > This is a **state field, deliberately in the source of truth** rather than in the agent's memory. It used to be a
 > memory the agent had to recall, and the failure mode was exactly what you'd predict: a push was treated as a release,
@@ -32,19 +35,27 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 > **Two orthogonal axes, both metadata on this flat table — NOT nested directories.** Every project sits flat at
 > `D:\Projects\MiniServer\<name>`; this table is the index (better than `ls` — it carries description + repo + path + auth).
 > - **`domain`** = *what it's for* (browse-by-purpose): `platform` · `product` · `automation` · `shared`. Rows are grouped by it.
-> - **`kind`** = *how it's built/deployed* (the operational axis): drives the archetype in `/nuc-new-project` ("Choose
+> - **`kind`** = *how it's built/deployed* (the operational axis): drives the archetype in `/app-onboard` ("Choose
 >   archetype") + which invariants apply.
-> - **`target`** = *where it runs* (added 2026-07-28): `nuc` · `local` · `none`. **This is the field that decides which
->   invariants apply**, and it is DATA — read it, do not assume. `nuc` = deployed via the git→ghcr→Watchtower→Traefik
->   chain to `/opt/apps/<name>`, all NUC invariants bind. `local` = runs on a dev machine (a PC, a laptop) under local
->   Docker; the NUC chain, Traefik labels, the `edge` network and Authentik forward-auth **do not apply**, and "deploy"
->   means rebuild the local container. `none` = not deployed at all (meta / shared).
+> - **`target`** = *where it runs* (added 2026-07-28): `nuc` · `local` · `cloud` · `none`. **This is the field that
+>   decides which invariants apply**, and it is DATA — read it, do not assume. Full law per target lives in
+>   `platform/targets/<target>/README.md`; the one-line version:
+>
+>   | `target` | Runs where | Reachable by | Pick it when |
+>   |---|---|---|---|
+>   | `nuc` | `/opt/apps/<name>` via git→ghcr→Watchtower→Traefik | Cloudflare → Traefik → Authentik | the NUC is up and the app should be permanently hosted |
+>   | `local` | Docker on a dev machine (PC, laptop) | localhost, unless a `cloudflared` tunnel is declared | the consumer is you, at your desk |
+>   | `cloud` | A VPS / managed runtime | **the whole internet, from first boot** | it must answer when your machine is off, to someone who is not you |
+>   | `none` | nowhere | — | meta / shared library |
+>
+>   `cloud` was added 2026-07-28 and **has no project yet**; its law is written ahead of the first use (`idea-0023`)
+>   rather than discovered during it, which is how the NUC's seven invariants were learned the expensive way.
 >
 >   *Why this exists:* the NUC has been down since 2026-07 and the platform still had to keep shipping, but "we deploy
 >   locally right now" lived only in the agent's memory — a fact it had to *remember* rather than *read*, which is
 >   exactly the failure mode this platform keeps re-learning. A `local` project is not a degraded `nuc` project waiting
 >   to be promoted; it is a first-class target. Promotion (`local` → `nuc`) is a deliberate lifecycle change that runs
->   `/nuc-new-project` and updates this row.
+>   `/app-onboard` and updates this row.
 >
 > They don't align (e.g. `nuc-monitor` is domain `platform` but kind `python-worker`), which is exactly why a one-dimensional
 > directory tree can't express both — a flat table with two columns can. The dev-machine layout ≠ the NUC layout (`/opt/apps`
@@ -129,7 +140,7 @@ Notes:
     matching **public key is committed** at `.claude/keys/gate-approval.pub.pem` (trust anchor; the local worker verifies
     against it). Authorization on a click reuses `guards.user_allowed` (user-ID + guild + the approval channel). New bot
     `.env` keys (signing key, fine-grained PAT, `GATES_REPO`, `GATE_APPROVAL_CHANNEL_ID`) are delivered via skill
-    `/nuc-set-env` (never through the chat). Still **no endpoint / no Traefik** — the gates repo is the only channel.
+    `/app-env` (never through the chat). Still **no endpoint / no Traefik** — the gates repo is the only channel.
     Design: `plans/2026-06-14-discord-control-plane.md`; build log: `plans/2026-06-14-autonomous-agent.md` (B4).
 
 ## 2. Infra (`/opt/infra`) + outside the system
@@ -168,7 +179,7 @@ closed `journal_internal` network with the journal app.)
 
 **Clean as of 2026-06-11.** Cleaned up during the audit pass: the `backend_link_data` volume (link-manager),
 `open-webui` (1 GB), `portainer_data` (old Portainer) + dangling images — ~2.6 GB recovered in total.
-Every remaining volume belongs to a living app. When `/nuc-health-audit` finds a new orphan → record it here.
+Every remaining volume belongs to a living app. When `/host-audit` finds a new orphan → record it here.
 
 ---
 

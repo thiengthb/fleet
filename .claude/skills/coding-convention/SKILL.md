@@ -48,7 +48,7 @@ Read the description above and pull the 1-2 reference files the task actually ne
 
 ### 3. Per-repo setup (one-time at repo init)
 
-When scaffolding a new project (skill `/nuc-new-project`), install at the repo-init step:
+When scaffolding a new project (skill `/app-onboard`), install at the repo-init step:
 
 - **Prettier config + ignore** — copy from `templates/`:
   ```sh

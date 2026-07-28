@@ -16,7 +16,7 @@ self_verify:
   description_what_and_when: n/a — an extension carries no description of its own; the host skill's description already covers "migrations"
   no_overlap: >
     Deduped against /prisma-expert (the migrations owner — it currently says only "test before deploy" with no
-    procedure, which is the gap), /database-design (vendor-neutral design, not operations), /nuc-health-audit
+    procedure, which is the gap), /database-design (vendor-neutral design, not operations), /host-audit
     (reconciles INVENTORY vs reality, never migrates), /verification-before-completion (generic "run it and read
     the output", no DB specifics). NO new skill is proposed: the platform has 54 already and this is one section
     of an existing one.

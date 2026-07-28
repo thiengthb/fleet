@@ -63,7 +63,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 
 > **ALL FOLDED ✓ (W6).** `/project-plan` ← max-3-open-Qs + per-task file paths + critique-before-execute + batched
 > execution. `/coding-convention` ← design-smell bullets. `/react-ui-craft` ← shadcn CLI workflow + Zod-at-boundary.
-> `/nuc-health-audit` ← group L dependency-freshness (tiered). `react-useeffect` was **already** in coding-convention §6
+> `/host-audit` ← group L dependency-freshness (tiered). `react-useeffect` was **already** in coding-convention §6
 > (skipped, no dup). `skill-creation-guide` + `writing-skills` → the new **`/skill-authoring`** meta-skill (adoption
 > procedure + grep-guard). The clean-code/zod folds were kept minimal (mostly already covered).
 
@@ -76,7 +76,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 | `web-development/zod-validation-expert` | The concrete "how" of Zod parsing (FormData coercion, server-action integration) — our skill only says "parse with Zod". | `/react-ui-craft` |
 | `development/react-useeffect` | "You-might-not-need-an-effect" decision tree. | `/react-ui-craft` |
 | `development/clean-code` | Design-smell rules (god functions, magic numbers). | `/coding-convention` |
-| `development/dependency-updater` | Tiered safe-update flow (patch/minor auto, major prompt) — Watchtower updates images, not package deps. | `/nuc-health-audit` |
+| `development/dependency-updater` | Tiered safe-update flow (patch/minor auto, major prompt) — Watchtower updates images, not package deps. | `/host-audit` |
 | `web-development/tanstack-query-expert` · `core-web-vitals` · `react-component-performance` · `accessibility` · `development/api-patterns` · `api-design-principles` · `performance-profiling` · `architecture-patterns` | Keep as deeper-reference material if/when the matching need is real. | — |
 
 ---
@@ -204,11 +204,11 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 > `anthropics/skills` from scratch.
 
 ### Custom skill authored this pass (no catalog fit)
-- **`/nuc-scheduled-maintenance`** (2026-06-13 (c), user-requested) — the platform had no skill for *which* NUC upkeep is
+- **`/host-maintenance`** (2026-06-13 (c), user-requested) — the platform had no skill for *which* NUC upkeep is
   worth a cron heartbeat + how to wire it **report-only**. Generic community "cron" skills just reteach the scheduling
   mechanism (which `/schedule` + the Cron* tools already own) and carry no platform knowledge. Owns the what/when/safe-
   wiring lane; hard report-only rule (no destructive action by an unattended agent); defers mechanism→`/schedule`,
-  audit→`/nuc-health-audit`, liveness→`nuc-monitor`. `.claude/skills/nuc-scheduled-maintenance/`.
+  audit→`/host-audit`, liveness→`nuc-monitor`. `.claude/skills/host-maintenance/`.
 
 > **Decided NOT to build:** a "web-browse" skill/agent — fully covered by the built-in `WebSearch`/`WebFetch` tools +
 > `/deep-research`; would be 100% reinvention. A cron *agent* — cron is a mechanism, not a tool-restricted/context-

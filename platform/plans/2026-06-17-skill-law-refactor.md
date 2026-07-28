@@ -148,12 +148,12 @@ Top 10 SKILL.md by bytes (full table on disk via `Get-ChildItem`):
 | Rank | Skill | Bytes | Lines | Has `references/`? | Kind |
 |---:|---|---:|---:|:---:|---|
 | 1 | `coding-convention` | 16 960 | 261 | NO | mixed (LAW-heavy) |
-| 2 | `nuc-new-project` | 10 604 | 184 | NO | procedure (out of scope) |
-| 3 | `nuc-protect-app` | 9 731 | 145 | NO | procedure (out of scope) |
-| 4 | `nuc-remove-project` | 9 679 | 160 | NO | procedure (out of scope) |
+| 2 | `app-onboard` | 10 604 | 184 | NO | procedure (out of scope) |
+| 3 | `app-protect` | 9 731 | 145 | NO | procedure (out of scope) |
+| 4 | `app-remove` | 9 679 | 160 | NO | procedure (out of scope) |
 | 5 | `auto-pilot` | 9 317 | 120 | NO | procedure (out of scope) |
 | 6 | `react-ui-craft` | 8 117 | 85 | **YES (5 refs)** | already-correct shape |
-| 7 | `nuc-health-audit` | 8 057 | 160 | NO | procedure (out of scope) |
+| 7 | `host-audit` | 8 057 | 160 | NO | procedure (out of scope) |
 | 8 | `session-wrap` | 7 598 | 107 | NO | procedure |
 | 9 | `idea` | 7 561 | 83 | NO | procedure |
 | 10 | `project-plan` | 7 473 | 126 | NO | procedure |

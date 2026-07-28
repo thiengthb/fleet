@@ -1,6 +1,6 @@
 ---
-name: nuc-protect-app
-description: Protect an app on the NUC platform with Authentik SSO (require login via forward-auth, restrict who can access by group, or authorize within the app). Use when the user says "protect this project/app", "require login to get in", "only me/group X can access", "add SSO/Authentik", or to put an app behind the IdP.
+name: app-protect
+description: Put an app behind authentication, using whatever the app's target provides — reads `target` from INVENTORY §0 first. On `nuc`: Authentik SSO via forward-auth, group-restricted. On `local`/`cloud`: an established library, never hand-rolled (Invariant A2). Use when the user says "protect this app", "require login", "only me/group X can access", or "add SSO".
 ---
 
 # Skill: Protect an app with Authentik (NUC platform)
@@ -11,6 +11,21 @@ provider/app, UPDATE it after each use of this skill) and `authentik/README.md`.
 The invariants in `D:\Projects\MiniServer\CLAUDE.md` under the "Authentik" section are law.
 
 SSH NUC: `ssh thien25@thienminiserver`. App at `/opt/apps/<name>`.
+
+## Step 0 — Read the `target` FIRST (mandatory)
+
+**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
+
+| `target` | What this skill does |
+|---|---|
+| `nuc` | The procedure below. 🔴 **Check `INVENTORY` §NUC STATUS first** — the host has been down since 2026-07-22, so a `git push` deploys nothing. |
+| `local` | Authentik does not exist here. **Invariant A2 still binds**: an established library, never hand-rolled. If the app is published through a `cloudflared` tunnel it is on the public internet, so auth is **required**, not optional. |
+| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |
+| `none` | This skill does not apply. |
+
+> Unless a section says otherwise, **everything below this line is the `nuc` branch.** This skill was written
+> NUC-first and renamed on 2026-07-28; the `local` column is the honest summary, not a second full procedure.
 
 ## Concepts (read once)
 
@@ -36,7 +51,7 @@ SSH NUC: `ssh thien25@thienminiserver`. App at `/opt/apps/<name>`.
 ## Stage 0 — Determine the protection level (ask the user if unclear)
 
 1. Is the app already running public on the NUC? (has a `Host(...)` router in `/opt/apps/<name>/docker-compose.yml`).
-   No → run the `nuc-new-project` skill first, then come back.
+   No → run the `app-onboard` skill first, then come back.
 2. Which level?
    - **(A) Login only** (any Authentik user) → Stage 2.
    - **(B) Only certain people/groups** can enter → Stage 2 + 3.

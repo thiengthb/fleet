@@ -1,4 +1,4 @@
-# nuc-set-env — install & first use (sandbox → you install)
+# app-env — install & first use (sandbox → you install)
 
 A secure one-command way to push env/secrets into a NUC app's `.env` from a local mirror file. Skill + scripts are
 **governance-class** → built + tested here, you `cp` them into `.claude/` and commit. **Verified:** merge logic
@@ -9,26 +9,26 @@ ssh-transport decodes to byte-identical clean **LF** bash on the NUC (`bash -n` 
 
 | File | Role |
 |---|---|
-| `scripts/nuc-set-env-remote.sh` | runs ON THE NUC (base64-sent over ssh): idempotent upsert into `/opt/apps/<app>/.env`, atomic, chmod 600, `.env.bak`, force-recreate |
-| `scripts/nuc-set-env.ps1` | Windows front-end: reads `~/.nuc-env/<app>.env`, pipes it via ssh STDIN (secret-safe) |
-| `scripts/nuc-set-env.sh` | Git Bash / Linux front-end (parity) |
-| `skills/nuc-set-env/SKILL.md` | the skill doc + the **agent rule** (never request secrets in chat) |
+| `scripts/app-env-remote.sh` | runs ON THE NUC (base64-sent over ssh): idempotent upsert into `/opt/apps/<app>/.env`, atomic, chmod 600, `.env.bak`, force-recreate |
+| `scripts/app-env.ps1` | Windows front-end: reads `~/.nuc-env/<app>.env`, pipes it via ssh STDIN (secret-safe) |
+| `scripts/app-env.sh` | Git Bash / Linux front-end (parity) |
+| `skills/app-env/SKILL.md` | the skill doc + the **agent rule** (never request secrets in chat) |
 
 ## Step 1 — install (you cp + commit)
 
 ```bash
 # from repo root C:\project\miniserver-platform
-mkdir -p .claude/skills/nuc-set-env
-cp platform/plans/nuc-set-env-sandbox/scripts/nuc-set-env-remote.sh .claude/scripts/nuc-set-env-remote.sh
-cp platform/plans/nuc-set-env-sandbox/scripts/nuc-set-env.ps1       .claude/scripts/nuc-set-env.ps1
-cp platform/plans/nuc-set-env-sandbox/scripts/nuc-set-env.sh        .claude/scripts/nuc-set-env.sh
-cp platform/plans/nuc-set-env-sandbox/skills/nuc-set-env/SKILL.md   .claude/skills/nuc-set-env/SKILL.md
+mkdir -p .claude/skills/app-env
+cp platform/plans/app-env-sandbox/scripts/app-env-remote.sh .claude/scripts/app-env-remote.sh
+cp platform/plans/app-env-sandbox/scripts/app-env.ps1       .claude/scripts/app-env.ps1
+cp platform/plans/app-env-sandbox/scripts/app-env.sh        .claude/scripts/app-env.sh
+cp platform/plans/app-env-sandbox/skills/app-env/SKILL.md   .claude/skills/app-env/SKILL.md
 # re-run the merge test from the installed location to confirm:
-cp platform/plans/nuc-set-env-sandbox/tests/merge.test.sh /tmp/merge.test.sh 2>/dev/null || true
-bash platform/plans/nuc-set-env-sandbox/tests/merge.test.sh   # expect 16 passed, 0 failed
+cp platform/plans/app-env-sandbox/tests/merge.test.sh /tmp/merge.test.sh 2>/dev/null || true
+bash platform/plans/app-env-sandbox/tests/merge.test.sh   # expect 16 passed, 0 failed
 ```
 
-Then commit (governance install) and `rm -rf platform/plans/nuc-set-env-sandbox`.
+Then commit (governance install) and `rm -rf platform/plans/app-env-sandbox`.
 
 ## Step 2 — first use: finish the nuc-ops-bot deploy (B4)
 
@@ -45,7 +45,7 @@ GATE_APPROVAL_CHANNEL_ID=<channel id from 3d>
 ```
 Then:
 ```powershell
-.claude/scripts/nuc-set-env.ps1 nuc-ops-bot
+.claude/scripts/app-env.ps1 nuc-ops-bot
 ```
 It merges those into `/opt/apps/nuc-ops-bot/.env` and force-recreates the bot. Confirm the feature is ON:
 ```bash

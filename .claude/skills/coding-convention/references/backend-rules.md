@@ -42,6 +42,6 @@ Order of preference:
 
 ## See also
 
-- `CLAUDE.md` invariant #8 + skill `/nuc-protect-app` — protection workflow
+- `CLAUDE.md` invariant #8 + skill `/app-protect` — protection workflow
 - `authentik/docs/auth-apps.md` — registry + traps
 - `references/typescript-style.md` — `node:` prefix, ESM, async/await on the server

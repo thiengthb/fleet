@@ -3,7 +3,7 @@ status: proposed # draft → proposed (awaiting supervisor accept) → accepted 
 created: 2026-06-19
 kind: proposal # analyze stage of /idea → proposal → /project-plan; NOT a build plan
 idea: idea-0014 # platform/10-idea-queue.md
-related: INVENTORY §1 (volumes), invariant #4 (secrets only in .env), nuc-monitor (Discord alerts), /nuc-set-env
+related: INVENTORY §1 (volumes), invariant #4 (secrets only in .env), nuc-monitor (Discord alerts), /app-env
 research_status: DONE 2026-06-19 (research-before-design — ≥2 external sources per question; see §Sources). Volume
   inventory cross-checked against INVENTORY §1 (the idea undercounted 6→8 volumes; storage engines corrected vs the
   research assumption — n8n/yakudoku are SQLite, not Postgres).
@@ -88,7 +88,7 @@ Discord/nuc-monitor alerting. Upgrade to C if/when a second drive is added.
 ## Secrets handling (invariant #4 — never hardcode/print)
 
 - B2 keys + restic repo password live in `/etc/restic/backup.env` (chmod 600, NOT in git/compose) +
-  `RESTIC_PASSWORD_FILE` (chmod 600); set via the `/nuc-set-env`-style local mirror so the agent never handles the values.
+  `RESTIC_PASSWORD_FILE` (chmod 600); set via the `/app-env`-style local mirror so the agent never handles the values.
 - **The repo password MUST also be stored offsite** (password manager): if the NUC dies, the encrypted B2 repo is
   unrecoverable without it. This is the most dangerous single point of failure.
 

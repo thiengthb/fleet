@@ -38,7 +38,7 @@ references the AC id. Small fix/chore/same-session change ⇒ skip ACs (standard
 ## When to fire
 
 - Deciding *how* to test a change / "should this be TDD?" / writing acceptance criteria.
-- Adding or reviewing tests; onboarding a new repo's CI test job (`/nuc-new-project`).
+- Adding or reviewing tests; onboarding a new repo's CI test job (`/app-onboard`).
 - A change crosses a repo boundary over HTTP (→ contract test, the multi-team guard).
 
 ## Scope discipline

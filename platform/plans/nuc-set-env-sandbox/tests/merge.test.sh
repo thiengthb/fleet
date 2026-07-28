@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Tests the idempotent-upsert merge in nuc-set-env-remote.sh WITHOUT ssh/docker (NUC_ENV_FILE override + NUC_RESTART=0).
+# Tests the idempotent-upsert merge in app-env-remote.sh WITHOUT ssh/docker (NUC_ENV_FILE override + NUC_RESTART=0).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SCRIPT="$HERE/../scripts/nuc-set-env-remote.sh"
+SCRIPT="$HERE/../scripts/app-env-remote.sh"
 pass=0; fail=0
 ok() { if eval "$1"; then pass=$((pass + 1)); else fail=$((fail + 1)); echo "  FAIL: $2"; fi; }
 no() { if eval "$1"; then fail=$((fail + 1)); echo "  FAIL: $2"; else pass=$((pass + 1)); fi; }

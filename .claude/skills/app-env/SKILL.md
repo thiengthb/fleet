@@ -1,13 +1,28 @@
 ---
-name: nuc-set-env
-description: Securely push environment variables / secrets into a NUC app's `/opt/apps/<app>/.env` from a LOCAL mirror file over SSH — idempotent upsert, atomic, chmod 600 preserved. Use whenever an app on the NUC needs env/secret values set or changed (new app, new feature, rotated key). The agent NEVER receives secret values: it directs the user to the mirror file + script.
+name: app-env
+description: Set an app's env vars / secrets without ever exposing the values to the agent — reads `target` from INVENTORY §0 first. On `nuc`: idempotent upsert into `/opt/apps/<app>/.env` over SSH from a LOCAL mirror. On `local`: the project's own gitignored `.env` at chmod 600. Use whenever an app needs env/secret values set, changed or rotated.
 ---
 
-# Skill: set NUC app env/secrets without leaking them (nuc-set-env)
+# Skill: set NUC app env/secrets without leaking them (app-env)
 
 Setting env on a NUC app used to mean "SSH in, hand-edit `.env`, get the dotenv syntax exactly right" — fiddly and
 error-prone. This skill makes it one command **and** keeps secrets out of the chat: values go **keyboard → a local
 mirror file → ssh STDIN → the NUC `.env`**, never through a command line and never through the agent.
+
+## Step 0 — Read the `target` FIRST (mandatory)
+
+**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
+
+| `target` | What this skill does |
+|---|---|
+| `nuc` | The procedure below. 🔴 **Check `INVENTORY` §NUC STATUS first** — the host has been down since 2026-07-22, so a `git push` deploys nothing. |
+| `local` | No SSH. Values go into the project's own `.env` (chmod 600, gitignored) on this machine. **The hard rule is unchanged: the agent never receives the values** — direct the user to the file. |
+| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |
+| `none` | This skill does not apply. |
+
+> Unless a section says otherwise, **everything below this line is the `nuc` branch.** This skill was written
+> NUC-first and renamed on 2026-07-28; the `local` column is the honest summary, not a second full procedure.
 
 ## The hard rule for the agent (security — non-negotiable)
 
@@ -15,7 +30,7 @@ mirror file → ssh STDIN → the NUC `.env`**, never through a command line and
 compromised (cache/logs) and must be rotated. When an app needs env set:
 
 1. Tell the user to put the values in their **local mirror file** `~/.nuc-env/<app>.env` (one `KEY=VALUE` per line).
-2. Tell them to run **`nuc-set-env.ps1 <app>`** (or `.sh`).
+2. Tell them to run **`app-env.ps1 <app>`** (or `.sh`).
 3. The agent only ever discusses / records **key NAMES**, never values.
 
 This mirrors the platform invariant "secrets only in `.env`, never in code/transcript" and the bot's "LLM suggests,
@@ -27,8 +42,8 @@ code re-validates" trust split: the secret path never crosses the model.
 # one-time per app: create the mirror (stays on THIS machine, outside any repo)
 mkdir ~/.nuc-env ; notepad ~/.nuc-env/<app>.env      # KEY=VALUE lines, e.g. GATES_REPO=owner/repo
 # then, any time values change:
-.claude/scripts/nuc-set-env.ps1 <app>                # Windows
-.claude/scripts/nuc-set-env.sh  <app>                # Git Bash / Linux
+.claude/scripts/app-env.ps1 <app>                # Windows
+.claude/scripts/app-env.sh  <app>                # Git Bash / Linux
 #   flags: -NoRestart / --no-restart  ·  -NucHost / $NUC_HOST  ·  -EnvDir / $NUC_ENV_DIR
 ```
 
@@ -36,7 +51,7 @@ It SSHes to `thien25@thienminiserver`, merges the mirror into `/opt/apps/<app>/.
 `docker compose up -d --force-recreate`s the app so the new env takes effect. It prints the resulting **key names**
 (never values).
 
-## What the merge guarantees (see `nuc-set-env-remote.sh`)
+## What the merge guarantees (see `app-env-remote.sh`)
 
 - **Idempotent upsert** — a key already in `.env` is replaced *in place*; a new key is appended; all other lines
   (comments, untouched keys) are preserved. Re-running the same mirror changes nothing.

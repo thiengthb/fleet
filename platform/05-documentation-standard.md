@@ -194,8 +194,8 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
   the full entry into `ledger/YYYY-MM.md` **and** one index row into `06-knowledge-ledger.md` (see §7.2).
 - **A light pre-commit hook** (`coding-convention/hooks/pre-commit`): a commit touching code but NOT touching `docs/`
   → a **non-blocking** warning (doesn't block). It nudges, doesn't obstruct.
-- **`/nuc-new-project`**: a newly created project has already run `/project-docs scaffold` → born-documented.
-- **`/nuc-health-audit`**: checks that every project in §0 has the full doc-set per the §3 table (platform-level drift).
+- **`/app-onboard`**: a newly created project has already run `/project-docs scaffold` → born-documented.
+- **`/host-audit`**: checks that every project in §0 has the full doc-set per the §3 table (platform-level drift).
 
 ### 7.1 Skill structure — SKILL.md = procedure, references/<domain>.md = LAW
 
