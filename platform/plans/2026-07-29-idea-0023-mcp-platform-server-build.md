@@ -158,15 +158,45 @@ invert thin-slice-first and delay the only step that can still falsify the desig
       Files: Created `rulebook/lib/check-component.{ts,test.ts}`, `package.json`, `tsconfig.json`, `.prettierrc`
       (copied from the coding-convention template — without it Prettier had silently used its own defaults) ·
       Test: `AC-2` ✅ — **and the suite was itself mutation-tested**, see below
-- [ ] 1.3 — Wrap it as **one** MCP tool `review_component` over HTTP, plus a server-supplied `instructions` block.
-      Reuse the `mcp-handler` shape already running in `todo` + `sakubun` (extend-don't-rebuild) · Files: Create
-      `fleet-mcp/` (Next route handler at `/api/mcp`), `fleet-mcp/Dockerfile`, `.env` (chmod 600) · Test: `AC-3`, `AC-6`
-- [ ] 1.4 — **Run it end-to-end from a scratch project** holding only `.mcp.json` — including the untrusted-folder
-      approval step, recorded as it actually behaves · Files: Create a scratch project outside this repo ·
-      Test: `AC-1`, `AC-4`
-- [ ] 1.5 — **The falsification gate, and it is the point of Phase 1:** grep the scratch project's disk *and* its
-      session transcripts for verbatim rulebook sentences. **A non-zero count means tier 2 leaks and the confidentiality
-      claim is false as built** — stop and fix before Phase 2, do not explain it away · Files: — · Test: `AC-1`
+- [x] 1.3 — **DONE 2026-07-29.** One tool over Streamable HTTP, stateless (fresh server+transport per request; nothing
+      to keep between calls, and an outage cannot wedge a client in a dead session). **Transport chosen with the
+      supervisor: the plain SDK, no framework** — the `mcp-handler` prior art is a *Next.js adapter*, and this service
+      has one tool and no pages. Recorded cost: when Phase 4 extracts the OAuth shim (`idea-0013`) it must cover two
+      server shapes, not one. 13 more tests via a real client over an in-memory transport, 46 total ·
+      Files: Created `rulebook/server/{mcp-server.ts,http.ts,mcp-server.test.ts}`, `tsconfig.build.json` ·
+      Test: `AC-3` ✅, `AC-6` ✅
+- [x] 1.4 — **DONE 2026-07-29.** `~/projects/scratch-consumer/` — an **8-line `.mcp.json` and one `.tsx`, nothing
+      else** — got 3 real violations back (`icon-set` line 2, `hardcoded-color` line 5, `emoji-as-icon` line 6), each
+      with line, verdict, fix and excerpt. **AC-4 behaved exactly as the docs warned, and better than hoped:** the
+      first headless run was DENIED at the permission prompt, and the consuming session refused to invent a result —
+      *"the state of components/Card.tsx is unknown, not clean … per the server's own guidance, a review that doesn't
+      run must not be read as passing."* That is the `instructions` block and the degraded-vs-clean rule (§C) working
+      in a consumer that had never seen this platform — stronger AC-3 evidence than the unit test ·
+      Files: Created `~/projects/scratch-consumer/{.mcp.json,components/Card.tsx}` (outside every repo) ·
+      Test: `AC-1` (first half) ✅, `AC-3` ✅, `AC-4` ✅
+- [x] 1.5 — **DONE 2026-07-29 — PASS, and the gate was proven able to fail.** `scripts/leak-check.mjs` cuts the rule
+      sources into every 6-word shingle, drops shingles that also occur in ordinary technical prose (so "when to call
+      the tool" cannot count), and intersects against the consumer's disk **and**
+      `~/.claude/projects/<encoded>/*.jsonl`. **0 of 1391 distinctive shingles found.** Then the gate was itself
+      mutation-tested by planting a real rulebook sentence in the consumer: **11 hits, exit 1**, and PASS again once
+      removed — a gate that has never failed is not evidence · Files: Created `rulebook/scripts/leak-check.mjs` ·
+      Test: `AC-1` ✅
+
+### Phase 1 closed 2026-07-29 — what it proved, and the one thing it did NOT
+
+**Proved.** A project holding an 8-line config file gets real, specific, actionable verdicts from the rulebook, and
+1391 distinctive rule shingles reached neither its disk nor its transcript. The thin slice runs.
+
+**Did NOT prove, and this belongs in Phase 3's verdict rather than being discovered later.** The leak gate tests
+whether the rule TEXT travelled. It does not test whether the rules are *reconstructible* from enough verdicts — and
+they partly are. `icon-set`'s fix says "import from `lucide-react`"; `toast-library`'s says "import `toast` from
+`sonner`". A reader collecting verdicts across enough files recovers much of the mandatory-UI list without ever seeing
+the rulebook. That is inherent to a useful verdict: a fix that names no remedy is not a fix.
+
+So the honest claim from Phase 1 is the one the proposal's pre-mortem already predicted would be the honest one:
+**metered, revocable, logged access — not secrecy.** Phase 3 must judge Option A against *that* claim, not the
+stronger one, and the counter-case (Option B) gets correspondingly stronger. Recorded now, while it is inconvenient,
+rather than at the point where it would settle the argument.
 
 **Phase 2 — backflow, quarantine-only (an inbox nobody reads automatically).**
 
