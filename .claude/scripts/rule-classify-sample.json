@@ -1,0 +1,438 @@
+{
+  "seed": 20260728,
+  "n": 60,
+  "population": 515,
+  "sample": [
+    {
+      "id": 1,
+      "file": ".claude/skills/dependabot-review/SKILL.md",
+      "line": 58,
+      "text": "**Conflicts** → skip and report; don't try to resolve a Dependabot rebase by hand.",
+      "class": "G"
+    },
+    {
+      "id": 2,
+      "file": ".claude/skills/async-python-patterns/SKILL.md",
+      "line": 97,
+      "text": "[ ] One `asyncio.run` entrypoint; tasks awaited (no orphan/`create_task` you never await).",
+      "class": "V"
+    },
+    {
+      "id": 3,
+      "file": ".claude/skills/project-docs/SKILL.md",
+      "line": 22,
+      "text": "| kind | Reference to copy structure from | Mandatory file set |",
+      "class": "N"
+    },
+    {
+      "id": 4,
+      "file": ".claude/skills/app-env/SKILL.md",
+      "line": 61,
+      "text": "**Names-only output** — confirms which keys are set; never echoes a value.",
+      "class": "V"
+    },
+    {
+      "id": 5,
+      "file": "platform/13-token-and-research-discipline.md",
+      "line": 109,
+      "text": "| Shape | Use | Why not the others |",
+      "class": "N"
+    },
+    {
+      "id": 6,
+      "file": ".claude/skills/mcp-builder/SKILL.md",
+      "line": 22,
+      "text": "**Guide sync:** every MCP server must have an **MCP tab in the app's `/guide`** (skill `/user-guide`): endpoint + auth,",
+      "class": "V"
+    },
+    {
+      "id": 7,
+      "file": ".claude/skills/react-ui-craft/references/security.md",
+      "line": 59,
+      "text": "**`httpOnly`, `Secure`, `SameSite` cookies** can't be read by JS, which neutralizes XSS token theft — but cookies are sent automatically, so they need **CSRF protection** (§6). This is generally the safer default for web apps with a backend you control.",
+      "class": "V"
+    },
+    {
+      "id": 8,
+      "file": ".claude/skills/app-onboard/SKILL.md",
+      "line": 121,
+      "text": "Build fails → read the annotations via the API check-runs. Known errors:",
+      "class": "G"
+    },
+    {
+      "id": 9,
+      "file": ".claude/skills/coding-convention/references/react-rules.md",
+      "line": 15,
+      "text": "**IF** a component tree mixes server + client work **→** push the `'use client'` boundary as **deep** as possible (leaf, not root). Fetch in a Server Component, pass primitives down to the Client Component.",
+      "class": "V"
+    },
+    {
+      "id": 10,
+      "file": ".claude/skills/docker-expert/SKILL.md",
+      "line": 71,
+      "text": "[ ] No secret baked into ENV/layers (secrets come from `.env` at runtime, injected by the NUC compose).",
+      "class": "V"
+    },
+    {
+      "id": 11,
+      "file": "platform/09-autonomy-contract.md",
+      "line": 48,
+      "text": "| **T1 read/analyze** | read, grep, web research, write a scratch/plan/proposal file | autonomous · log only | — |",
+      "class": "G"
+    },
+    {
+      "id": 12,
+      "file": ".claude/skills/react-ui-craft/references/ux.md",
+      "line": 45,
+      "text": "Don't block the *whole* page on the slowest piece. Stream/suspend sections independently so fast content paints first.",
+      "class": "B",
+      "note": "Suspense boundaries are visible in code, but 'which piece is slowest' is a design call"
+    },
+    {
+      "id": 13,
+      "file": "CLAUDE.md",
+      "line": 13,
+      "text": "**Never self-code auth** — no hand-rolled login / password hashing / JWT / session minting, on any target. On `nuc`",
+      "class": "V"
+    },
+    {
+      "id": 14,
+      "file": ".claude/skills/react-ui-craft/references/components.md",
+      "line": 8,
+      "text": "shadcn/ui — how to actually use it",
+      "class": "N"
+    },
+    {
+      "id": 15,
+      "file": ".claude/skills/coding-convention/references/react-rules.md",
+      "line": 21,
+      "text": "Keep presentational components separate from logic. **IF** logic is reused on the client **→** extract a custom `use*` hook into `hooks/`.",
+      "class": "V"
+    },
+    {
+      "id": 16,
+      "file": ".claude/skills/app-env/SKILL.md",
+      "line": 73,
+      "text": "Targets `/opt/apps/<app>/.env` only; `<app>` is validated `^[a-z0-9][a-z0-9-]*$` (no path traversal). The app must",
+      "class": "V"
+    },
+    {
+      "id": 17,
+      "file": ".claude/skills/app-onboard/SKILL.md",
+      "line": 169,
+      "text": "The Traefik router/service name must be unique across the whole NUC (a duplicate silently",
+      "class": "V"
+    },
+    {
+      "id": 18,
+      "file": ".claude/skills/coding-convention/references/naming.md",
+      "line": 28,
+      "text": "**IF** writing a function name **→** use a verb (`fetchLinks`, `formatDate`).",
+      "class": "V"
+    },
+    {
+      "id": 19,
+      "file": ".claude/skills/coding-convention/references/typescript-style.md",
+      "line": 36,
+      "text": "**IF** committing **→** `prettier --write` (or `npm run format`) FIRST. CI uses `format:check`.",
+      "class": "V"
+    },
+    {
+      "id": 20,
+      "file": "platform/13-token-and-research-discipline.md",
+      "line": 30,
+      "text": "**Announce every downgrade (notify, don't gate):** before spawning a subagent weaker than the main loop, state it up",
+      "class": "G"
+    },
+    {
+      "id": 21,
+      "file": ".claude/skills/code-reuse/references/extraction-playbook.md",
+      "line": 14,
+      "text": "**Make it copy-ready:** no project-specific imports, no hardcoded names/paths, configurable via params/env, documented",
+      "class": "V"
+    },
+    {
+      "id": 22,
+      "file": ".claude/skills/react-ui-craft/SKILL.md",
+      "line": 38,
+      "text": "**Scaffold the system, not the screen.** Set up Tailwind theme tokens and the shadcn primitives you'll reuse *first*, so every screen draws from one vocabulary. See `references/architecture.md`.",
+      "class": "G"
+    },
+    {
+      "id": 23,
+      "file": ".claude/skills/prisma-expert/SKILL.md",
+      "line": 150,
+      "text": "[ ] SQLite apps: no native enums / Postgres-only types assumed.",
+      "class": "V"
+    },
+    {
+      "id": 24,
+      "file": ".claude/skills/behavioural-eval/SKILL.md",
+      "line": 46,
+      "text": "**Record the defects too.** A harness defect log is worth more than the pass rate; it is what makes",
+      "class": "G"
+    },
+    {
+      "id": 25,
+      "file": ".claude/skills/memory/SKILL.md",
+      "line": 27,
+      "text": "**`MEMORY.md` is capped at 200 lines / 25KB.** Content past the cap is *silently dropped at load*. A write that",
+      "class": "V"
+    },
+    {
+      "id": 26,
+      "file": "platform/09-autonomy-contract.md",
+      "line": 65,
+      "text": "**Graceful degradation, never auto-escalation.** On anomaly (unexpected paths, repeated gate hits, low confidence)",
+      "class": "G"
+    },
+    {
+      "id": 27,
+      "file": ".claude/rules/frontend.md",
+      "line": 31,
+      "text": "TS. Different stack → keep the principles, don't rewrite.",
+      "class": "G"
+    },
+    {
+      "id": 28,
+      "file": ".claude/skills/react-ui-craft/references/ux.md",
+      "line": 119,
+      "text": "**Sentence case, plain verbs, no filler.** Specific beats clever.",
+      "class": "V"
+    },
+    {
+      "id": 29,
+      "file": ".claude/skills/coding-convention/references/typescript-style.md",
+      "line": 74,
+      "text": "**NEVER** leave `console.log` in committed code (deliberate backend logging is fine).",
+      "class": "V"
+    },
+    {
+      "id": 30,
+      "file": ".claude/skills/host-maintenance/SKILL.md",
+      "line": 46,
+      "text": "| **Secret hygiene drift** | monthly | check `.env` chmod 600 + no secret leaked to a tracked file | any file losing 600, any hardcoded token spotted |",
+      "class": "V"
+    },
+    {
+      "id": 31,
+      "file": ".claude/skills/ui-ux-review/references/judgment-rubric.md",
+      "line": 71,
+      "text": "Is anything required that could be defaulted or deferred?",
+      "class": "G"
+    },
+    {
+      "id": 32,
+      "file": "CLAUDE.md",
+      "line": 127,
+      "text": "**Hard, non-negotiable:** never push `main` / deploy / run a destructive command unattended; and the agent **NEVER",
+      "class": "G",
+      "note": "enforced on the ACTION by autonomy-gate.mjs, not on any artifact a reviewer could inspect"
+    },
+    {
+      "id": 33,
+      "file": ".claude/skills/react-ui-craft/SKILL.md",
+      "line": 52,
+      "text": "**Performant.** Animate only `transform`/`opacity`; lazy-load heavy/below-the-fold pieces; don't ship a 34KB animation bundle when `LazyMotion` makes it 6KB.",
+      "class": "V"
+    },
+    {
+      "id": 34,
+      "file": ".claude/skills/app-protect/SKILL.md",
+      "line": 24,
+      "text": "| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |",
+      "class": "G"
+    },
+    {
+      "id": 35,
+      "file": ".claude/skills/ui-ux-review/SKILL.md",
+      "line": 169,
+      "text": "Copy `scripts/ui-audit.mjs`; add `\"ui:audit\": \"node scripts/ui-audit.mjs\"` to `package.json`.",
+      "class": "V"
+    },
+    {
+      "id": 36,
+      "file": "CLAUDE.md",
+      "line": 17,
+      "text": "**The repo is the source of truth; a running host is a cache.** Nothing is changed only on a host — commit it here.",
+      "class": "G"
+    },
+    {
+      "id": 37,
+      "file": ".claude/skills/prisma-expert/SKILL.md",
+      "line": 86,
+      "text": "**Read the generated SQL first.** `npx prisma migrate dev --name <x>` against a THROWAWAY db (point",
+      "class": "G"
+    },
+    {
+      "id": 38,
+      "file": ".claude/skills/skill-authoring/SKILL.md",
+      "line": 51,
+      "text": "**Run the conflict grep-guard** (below) — it must be clean. 8. Verify frontmatter. 9. Update the ledger",
+      "class": "B",
+      "note": "'verify frontmatter'/'update the ledger' are checkable; 'run the grep-guard' is a process step"
+    },
+    {
+      "id": 39,
+      "file": ".claude/skills/project-plan/SKILL.md",
+      "line": 96,
+      "text": "**Critique the plan before executing** — before flipping to `active`, run `/honest-critique` over the plan: what's the",
+      "class": "G"
+    },
+    {
+      "id": 40,
+      "file": ".claude/skills/coding-convention/references/typescript-style.md",
+      "line": 75,
+      "text": "**NEVER** leave commented-out code — delete it.",
+      "class": "V"
+    },
+    {
+      "id": 41,
+      "file": ".claude/skills/code-reuse/references/extraction-playbook.md",
+      "line": 34,
+      "text": "**Consume:** add `@thiengthb/<pkg>` to the app's `package.json` pinned to an exact version; add a one-line `.npmrc`",
+      "class": "V"
+    },
+    {
+      "id": 42,
+      "file": ".claude/skills/react-ui-craft/references/security.md",
+      "line": 73,
+      "text": "**Server Actions are public endpoints.** Anyone can invoke an exported action with arbitrary input. **Authenticate and authorize inside every action**, and **validate input** (Zod) — never assume it came from your form.",
+      "class": "V"
+    },
+    {
+      "id": 43,
+      "file": ".claude/skills/react-ui-craft/references/security.md",
+      "line": 75,
+      "text": "**Don't leak server data accidentally.** Returning a full DB row from a Server Component to the client may expose fields (password hashes, internal flags) you didn't mean to. Return only what the UI needs (a DTO).",
+      "class": "B",
+      "note": "a checker can flag 'returns the whole row'; deciding WHICH fields are sensitive needs intent"
+    },
+    {
+      "id": 44,
+      "file": ".claude/skills/ui-ux-review/SKILL.md",
+      "line": 122,
+      "text": "no hover / focus / active states, no open menus or dialogs",
+      "class": "V"
+    },
+    {
+      "id": 45,
+      "file": ".claude/skills/react-ui-craft/SKILL.md",
+      "line": 40,
+      "text": "**Layer in motion last, deliberately.** Animation enhances a finished layout; it never rescues a weak one. See `references/motion.md`.",
+      "class": "G"
+    },
+    {
+      "id": 46,
+      "file": ".claude/skills/app-env/SKILL.md",
+      "line": 21,
+      "text": "| `cloud` | **Not defined yet.** Read `platform/targets/cloud/README.md`, propose the procedure, and get it approved — do not improvise one. No project uses this target today. |",
+      "class": "G"
+    },
+    {
+      "id": 47,
+      "file": ".claude/skills/ui-ux-review/SKILL.md",
+      "line": 106,
+      "text": "`switch_browser` → \"No other browsers available\" confirms it; this call broadcasts to *every* open",
+      "class": "G"
+    },
+    {
+      "id": 48,
+      "file": "platform/05-documentation-standard.md",
+      "line": 42,
+      "text": "Read `docs/` in depth **only when the task needs it** (fixing AI → read 02-technical §AI; writing a guide → 03-user-guide…).",
+      "class": "G"
+    },
+    {
+      "id": 49,
+      "file": ".claude/skills/code-reuse/references/extraction-playbook.md",
+      "line": 62,
+      "text": "Update `08-SHARED-ASSETS.md`: flip the row's status (DUPLICATED → SHARED), set the canonical location + mechanism, list",
+      "class": "V"
+    },
+    {
+      "id": 50,
+      "file": "platform/13-token-and-research-discipline.md",
+      "line": 112,
+      "text": "| **Parallel edit** — two or more changes that touch the same tree and must not collide | one agent per **git worktree** (`isolation: \"worktree\"`) | Same-tree parallel edits corrupt each other silently. A worktree is a real checkout: conflicts surface as merges, not as lost work. |",
+      "class": "G"
+    },
+    {
+      "id": 51,
+      "file": ".claude/skills/playwright-e2e-builder/SKILL.md",
+      "line": 80,
+      "text": "**Each test seeds + cleans its own data** — no shared mutable state; reset the DB (or the touched rows) per test/file.",
+      "class": "V"
+    },
+    {
+      "id": 52,
+      "file": ".claude/skills/host-audit/SKILL.md",
+      "line": 153,
+      "text": "`infra`/`meta`: only need `00-map` (+README) — missing deep docs is normal.",
+      "class": "V"
+    },
+    {
+      "id": 53,
+      "file": ".claude/skills/coding-convention/references/typescript-style.md",
+      "line": 68,
+      "text": "`npm run lint` (eslint-config-next: core-web-vitals + typescript) — clean",
+      "class": "V"
+    },
+    {
+      "id": 54,
+      "file": ".claude/skills/testing-standard/SKILL.md",
+      "line": 40,
+      "text": "Deciding *how* to test a change / \"should this be TDD?\" / writing acceptance criteria.",
+      "class": "N"
+    },
+    {
+      "id": 55,
+      "file": "platform/13-token-and-research-discipline.md",
+      "line": 87,
+      "text": "| **Quick lookup** | DEFAULT for any unqualified \"research X\" | main loop self-runs 1–2 WebSearch; fetches ≤2 pages only when a snippet is load-bearing **and** insufficient. **No subagent fan-out.** Most \"research\" is really this. |",
+      "class": "G"
+    },
+    {
+      "id": 56,
+      "file": ".claude/skills/memory/SKILL.md",
+      "line": 29,
+      "text": "**Every memory file gets an automatic `modified:` ISO timestamp** in its frontmatter on each write — the freshness",
+      "class": "V"
+    },
+    {
+      "id": 57,
+      "file": ".claude/skills/app-onboard/SKILL.md",
+      "line": 62,
+      "text": "| `infra` (third-party) | `n8n/` or `authentik/` | `docker-compose.yml` + `.env` | Version-pinned image, NO Watchtower label; update = bump the tag manually. No CI build. |",
+      "class": "V"
+    },
+    {
+      "id": 58,
+      "file": ".claude/skills/ui-pattern-lock/SKILL.md",
+      "line": 70,
+      "text": "**An exception goes in `allow` with a reason ≥20 chars.** Never widen or weaken the check to get green",
+      "class": "V"
+    },
+    {
+      "id": 59,
+      "file": ".claude/skills/coding-convention/references/naming.md",
+      "line": 45,
+      "text": "**IF** a function takes a boolean parameter that switches behaviour (`render(true)`) **→** split into two functions, or use an options object with a named field.",
+      "class": "V"
+    },
+    {
+      "id": 60,
+      "file": ".claude/skills/behavioural-eval/SKILL.md",
+      "line": 76,
+      "text": "**An absent measurement must never render as a passing one.** Return `null`, print \"SKIPPED\", and say",
+      "class": "V"
+    }
+  ],
+  "labelled_by": "agent, by hand, 2026-07-28 — re-read the 60 lines to dispute any single one",
+  "classes": {
+    "V": "verification-shaped",
+    "G": "generation-shaping",
+    "B": "both → counted with G",
+    "N": "extractor noise, not a rule → excluded from the denominator"
+  }
+}
