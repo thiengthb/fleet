@@ -1,6 +1,6 @@
 ---
 name: nuc-scheduled-maintenance
-description: Decide what recurring NUC-platform maintenance is worth automating and wire it via /schedule — periodic health-audit, Dependabot triage, dependency/secret-hygiene drift. Use when the user says "automate the health check", "run X weekly", "set up recurring maintenance", or "what should run on a cron" for the NUC. REPORT-ONLY by hard rule: a scheduled run never deletes/restarts/edits anything autonomously — it notifies, the user acts. Complements /schedule (the cron mechanism) and /nuc-health-audit (the audit itself); defers liveness/uptime to nuc-monitor; NOT for ad-hoc one-off runs.
+description: Decide what recurring NUC maintenance is worth automating and wire it via /schedule — periodic health-audit, Dependabot triage, dependency/secret-hygiene drift. Use when the user says "automate the health check", "run X weekly", "set up recurring maintenance", or "what should run on a cron" for the NUC. REPORT-ONLY by hard rule: a scheduled run notifies, it never deletes/restarts/edits. NOT for ad-hoc one-off runs.
 ---
 
 # Skill: Scheduled NUC maintenance (report-only)

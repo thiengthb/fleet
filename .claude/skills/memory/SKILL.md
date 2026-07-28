@@ -1,6 +1,6 @@
 ---
 name: memory
-description: Read, write, and PRUNE the agent's persistent memory about the user. Two tiers — a git-synced shared tier (`.claude/memory/`, wired as Claude Code's native auto-memory) plus `CLAUDE.local.md` for machine-specific facts. Use when recording a user preference / feedback / identity fact, recalling what's known about the user, answering "where does memory live / is it synced / why don't I see it", maintaining the index, deciding what to forget or merge, or onboarding memory to a new machine. Project/code knowledge does NOT go here — that belongs in `docs/decisions.md`.
+description: Read, write, and PRUNE the agent's persistent memory about the user — two tiers, git-synced `.claude/memory/` plus `CLAUDE.local.md` for machine-specific facts. Use when recording a user preference / feedback / identity fact, recalling what's known about the user, answering "where does memory live / is it synced / why don't I see it", maintaining the index, deciding what to forget or merge, or onboarding memory to a new machine. Project/code knowledge does NOT go here — that belongs in `docs/decisions.md`.
 ---
 
 # Skill: Agent memory (two tiers, native rails, with forgetting)

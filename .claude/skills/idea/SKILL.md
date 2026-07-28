@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Manage the platform's living idea backlog in nuc-platform/10-idea-queue.md — capture, gate+score+rank (feasibility first, then a capped interest bonus), re-sort after each big feature, deep-analyze the top idea into a proposal, push back on biased/infeasible/duplicate ideas, defer the rejected-but-maybe, and prune the dead. The autonomy Layer C "Proposer" front door. Use when the user says "add an idea / what should we build next / re-sort the queue / analyze the top idea", after a feature ships, or when capturing something for later. Propose-don't-execute: a human accepts before an idea becomes a plan.
+description: Manage the platform's living idea backlog in nuc-platform/10-idea-queue.md — capture, gate+score+rank, re-sort after each big feature, deep-analyze the top idea into a proposal, push back on biased/infeasible/duplicate ideas, and prune the dead. Use when the user says "add an idea / what should we build next / re-sort the queue / analyze the top idea", after a feature ships, or when capturing something for later. Propose-don't-execute: a human accepts before an idea becomes a plan.
 ---
 
 # Skill: Idea queue & lifecycle (idea)

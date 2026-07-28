@@ -1,6 +1,6 @@
 ---
 name: nuc-set-env
-description: Securely push environment variables / secrets into a NUC app's `/opt/apps/<app>/.env` from a LOCAL mirror file over SSH — idempotent upsert, atomic, chmod 600 preserved, optional force-recreate. Use whenever an app on the NUC needs env/secret values set or changed (new app, new feature, rotated key). The agent NEVER receives secret values: it directs the user to the mirror file + script. Front-ends: `.claude/scripts/nuc-set-env.ps1` (Windows) / `.sh` (Git Bash/Linux); merge runs on the NUC via `nuc-set-env-remote.sh`.
+description: Securely push environment variables / secrets into a NUC app's `/opt/apps/<app>/.env` from a LOCAL mirror file over SSH — idempotent upsert, atomic, chmod 600 preserved. Use whenever an app on the NUC needs env/secret values set or changed (new app, new feature, rotated key). The agent NEVER receives secret values: it directs the user to the mirror file + script.
 ---
 
 # Skill: set NUC app env/secrets without leaking them (nuc-set-env)
