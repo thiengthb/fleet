@@ -14,7 +14,7 @@ description: Author and optimize a single app's Dockerfile — multi-stage build
 
 - **Compose / orchestration / networking / secrets / deploy** → platform-defined. The NUC compose just pulls an `image:`
   from ghcr; ONE shared `edge` network (no per-app `frontend`/`backend` networks); secrets live in **`.env` (chmod 600)**,
-  never Docker `secrets:` nor baked into ENV/layers. See `/app-onboard` + `platform/targets/nuc/01-architecture-and-operations.md`.
+  never Docker `secrets:` nor baked into ENV/layers. See `/app-onboard` + `platform/targets/nuc/architecture-and-operations.md`.
 - **Building** happens in **GitHub Actions** (`deploy.yml`), pushing `:latest` + `:<sha>` to ghcr — **the NUC never
   builds**. Don't add compose-level image-build steps to a deploy flow (the NUC compose pulls, never builds).
   (`docker build` locally just to test a Dockerfile is fine.)

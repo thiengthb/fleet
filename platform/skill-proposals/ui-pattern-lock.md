@@ -15,7 +15,7 @@ self_verify:
   description_what_and_when: yes — fires on a user UI correction and before the first UI write of a session
   no_overlap: >
     /react-ui-craft owns HOW to build UI well (generic craft); /coding-convention owns naming+commits;
-    12-ui-layout-standard.md owns the page frame. NONE of them capture "this specific user had to repeat
+    standards/ui-layout.md owns the page frame. NONE of them capture "this specific user had to repeat
     himself, lock it". This skill owns only the capture + enforcement loop, and points at those for content.
 review:
   outcome: installed
@@ -139,7 +139,7 @@ deactivate an entry without deleting it.
   (the gate tests this: a reasonless or stale `allow` entry fails).
 - **Do not seed rules he never asked for.** Every entry needs a real `source`. An invented rule makes the
   registry noise and he stops trusting it.
-- **Content lives elsewhere.** Page frame → `platform/12-ui-layout-standard.md`; craft →
+- **Content lives elsewhere.** Page frame → `platform/standards/ui-layout.md`; craft →
   `/react-ui-craft`; naming/commits → `/coding-convention`. This registry holds only what HE had to repeat.
 
 ## `init` — a new project

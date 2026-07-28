@@ -58,4 +58,4 @@ When scaffolding a new project (`/app-onboard`), install BOTH the Prettier confi
 ## See also
 
 - `references/naming.md` — general English naming + style for the description body
-- `platform/05-documentation-standard.md` — the docs the pre-commit hook nudges you toward
+- `platform/standards/documentation.md` — the docs the pre-commit hook nudges you toward

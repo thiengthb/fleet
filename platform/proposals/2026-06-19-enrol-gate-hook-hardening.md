@@ -8,7 +8,7 @@
 > **Status:** ✅ INSTALLED 2026-06-19 (PR #8; interactive supervisor authorized **Option A**). The verified `.proposed`
 > drop-ins were applied to `.claude/hooks/autonomy-gate.mjs` (+ test) and then removed from this dir; the change lives in
 > git history. This file is kept as the **design-decision record** (Option A/B/C + why) for the Reflexion trail — distil
-> into `06-knowledge-ledger.md` / `decisions.md` at the next `/session-wrap`.
+> into `registries/knowledge-ledger.md` / `decisions.md` at the next `/session-wrap`.
 >
 > **What shipped (Option A):** a PreToolUse write that introduces `auto_pilot: true` into `platform/plans/*.md` is
 > allowed **iff** a valid, signed, unconsumed `ASK-enrol-*` answer (text `enrol`/`yes`) currently authorizes it (verified

@@ -9,7 +9,7 @@ description: A decision framework for SYSTEM-level / architecture choices — fr
 
 > **Adapted from** `development/architecture` (`davila7/claude-code-templates`). Its SKILL.md routed to external
 > reference files; rewritten **self-contained**. **Crucial fix:** it must NOT invent an ADR/decision log — on this
-> platform the rationale log is **`docs/decisions.md`** (`05-documentation-standard §5`, invariant). This skill is the
+> platform the rationale log is **`docs/decisions.md`** (`standards/documentation §5`, invariant). This skill is the
 > *decision process*; `decisions.md` is the *record*.
 
 ## Core principle — simplicity is the ultimate sophistication
@@ -38,7 +38,7 @@ description: A decision framework for SYSTEM-level / architecture choices — fr
 | Feature-level "what are my options" | `/brainstorming` (then this for the structural ones) |
 | Database/ORM/schema choice | `/database-design` (+ `/prisma-expert`) |
 | Recording the decided rationale | `docs/decisions.md` (via `/session-wrap`) |
-| The platform's existing topology | `platform/targets/nuc/01-architecture-and-operations.md` |
+| The platform's existing topology | `platform/targets/nuc/architecture-and-operations.md` |
 
 ## Validation checklist
 

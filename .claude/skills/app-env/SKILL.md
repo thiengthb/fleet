@@ -11,7 +11,7 @@ mirror file → ssh STDIN → the NUC `.env`**, never through a command line and
 
 ## Step 0 — Read the `target` FIRST (mandatory)
 
-**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+**Which kind of machine is this app on?** Read the project's row in `platform/inventory.md §0`. It is **DATA — read
 it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
 
 | `target` | What this skill does |
@@ -63,7 +63,7 @@ It SSHes to `thien25@thienminiserver`, merges the mirror into `/opt/apps/<app>/.
 ## After setting env — keep INVENTORY honest (anti-drift)
 
 If you added a **new** env KEY an app depends on, record the key **NAME** (never the value) in that app's row /
-secrets note in `INVENTORY.md` (and `02-known-traps`/`auth-apps.md` if relevant). The single source of truth must list
+secrets note in `inventory.md` (and `registries/known-traps`/`auth-apps.md` if relevant). The single source of truth must list
 what an app expects; the value lives only in the NUC `.env`.
 
 ## Boundaries

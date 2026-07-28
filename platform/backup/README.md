@@ -54,5 +54,5 @@ systemctl list-timers | grep restic
 
 ## After deploy — update the docs (plan step 8)
 
-`INVENTORY §2` (add the backup component), `02-known-traps.md` (live-DB file-copy hazard), `01-architecture-and-operations`
+`INVENTORY §2` (add the backup component), `registries/known-traps.md` (live-DB file-copy hazard), `architecture-and-operations`
 (backup section). Do this once the setup is live so the docs describe reality, not intent.

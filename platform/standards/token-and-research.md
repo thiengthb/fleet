@@ -126,7 +126,7 @@ shipped natively. Everything below is native. Before writing any orchestration c
    to how fast that state actually changes.
 5. **Announce every downgrade** before spawning a weaker-model subagent (§1) — parallelism must not become an invisible
    change in who is doing the work.
-6. **Unattended parallel work inherits the autonomy contract** (`09-autonomy-contract.md`), including its **open risk**:
+6. **Unattended parallel work inherits the autonomy contract** (`standards/autonomy-contract.md`), including its **open risk**:
    the gate's `CLAUDE_AUTONOMOUS` trigger has no setter since the orchestrator was retired, so a remote/scheduled run
    may be ungated. Verify before running one unsupervised.
 

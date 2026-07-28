@@ -28,7 +28,7 @@ technique and the skill that owns its how-to.
 | **Pure logic** | Deterministic functions, no I/O (rule engines: `lib/streak.ts`, `dates.ts`, `capacity.ts`, `priority.ts`) | **YES — TDD required** | Vitest unit tests · `/vitest-server-actions` §1 |
 | **Server actions / data layer** | Actions that validate + call Prisma + revalidate; Zod boundaries | No — test-alongside | Vitest + mocked Prisma/`next/cache` · `/vitest-server-actions` §2 |
 | **Components** | UI behaviour a user observes (only where logic lives) | No — test-alongside | React Testing Library · `/vitest-server-actions` §3 |
-| **Cross-repo HTTP seams** | One repo calling another's API (todo↔core, web↔core, MCP) | No — write the contract | **Consumer-driven contract tests** (§4) · `08-SHARED-ASSETS` template |
+| **Cross-repo HTTP seams** | One repo calling another's API (todo↔core, web↔core, MCP) | No — write the contract | **Consumer-driven contract tests** (§4) · `registries/shared-assets` template |
 | **End-to-end (user flows)** | Critical multi-step journeys, sparse | No | Playwright · `/playwright-e2e-builder` (idea-0006 = this top tier) |
 
 **Do NOT** chase a coverage %, test framework internals, or assert on a value you mocked yourself (carried from
@@ -72,7 +72,7 @@ two sides still agree — only a human notices a break. As repos/teams multiply 
 - **Start fixtures-first (no broker):** a plain contract fixture checked into the consumer repo + a CI check that the
   provider honours it. This is enough for one team owning both sides.
 - **Defer a Pact Broker** until **≥2 independent teams** own the two sides of a seam (revisit trigger — not now). Template
-  + how-to: `08-SHARED-ASSETS.md` (contract-test template).
+  + how-to: `registries/shared-assets.md` (contract-test template).
 
 ## 5 — The gates that make tests a guardrail (already in place — reused, not rebuilt)
 

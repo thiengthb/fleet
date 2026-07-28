@@ -5,12 +5,12 @@ status: done
 created: 2026-06-14
 updated: 2026-06-14 # Phases 2 (interest model) + 3 (day-log recall tier) SHIPPED; idea-0002 shrunk→deferred (schema folded into P3)
 related:
-  - platform/09-autonomy-contract.md
+  - platform/standards/autonomy-contract.md
   - platform/plans/2026-06-14-autonomous-agent.md
   - .claude/skills/auto-pilot/SKILL.md
   - .claude/skills/memory/SKILL.md
-  - platform/05-documentation-standard.md
-  - platform/07-SKILL-CANDIDATES.md
+  - platform/standards/documentation.md
+  - platform/registries/skill-candidates.md
 ---
 
 > **CLOSED 2026-07-28.** Phases 1–3 shipped long ago (idea queue, interest model, day-log recall tier). Phase 4
@@ -38,7 +38,7 @@ related:
   status: draft until the supervisor agrees the shape + sequence below.
 
   CRITICAL framing: most of the "infrastructure" half is ALREADY BUILT or PLANNED in the autonomy layer
-  (09-autonomy-contract + the autonomous-agent plan's Layer C). This is EXTEND, not rebuild.
+  (standards/autonomy-contract + the autonomous-agent plan's Layer C). This is EXTEND, not rebuild.
 -->
 
 ## Problem
@@ -47,14 +47,14 @@ The supervisor works across multiple machines and wants the agent to **compound*
 knowledge; manage a living queue of ideas it prioritizes, pushes back on, and learns from; size work to fit a session;
 hand off cleanly between sessions; and eventually retrieve knowledge cheaply via an external RAG instead of burning
 tokens re-reading docs. Today: memory is a flat set of files with no temporal/milestone axis and no semantic retrieval
-(`/memory` skill + `05-documentation-standard`); there is **no platform-native idea backlog** (`07-SKILL-CANDIDATES`
+(`/memory` skill + `standards/documentation`); there is **no platform-native idea backlog** (`registries/skill-candidates`
 is a one-time *external-skill* eval ledger, not a living queue); prioritization, interest-scoring, dedup, and dead-idea
 pruning do not exist. The autonomy layer (built 2026-06-14 from another machine) already solved the hardest
 infrastructure pieces — so the gap is narrower and more specific than the raw vision suggests.
 
 ## What ALREADY EXISTS (prior art IN-REPO — do not rebuild)
 
-From the autonomy layer pulled today (`09-autonomy-contract.md`, `auto-pilot/SKILL.md`, `2026-06-14-autonomous-agent.md`):
+From the autonomy layer pulled today (`standards/autonomy-contract.md`, `auto-pilot/SKILL.md`, `2026-06-14-autonomous-agent.md`):
 
 | Vision item | Status in autonomy layer | Implication |
 | --- | --- | --- |
@@ -67,7 +67,7 @@ From the autonomy layer pulled today (`09-autonomy-contract.md`, `auto-pilot/SKI
 
 ## What is GENUINELY MISSING (the real work)
 
-1. **Temporal / day-based memory** — no dated session-log artifact; no milestone anchoring; can't ask "what changed around milestone X" or "what did we decide this week" without manual file reading. (`06-knowledge-ledger` has a date column but is a flat scan.)
+1. **Temporal / day-based memory** — no dated session-log artifact; no milestone anchoring; can't ask "what changed around milestone X" or "what did we decide this week" without manual file reading. (`registries/knowledge-ledger` has a date column but is a flat scan.)
 2. **Idea-queue lifecycle** — intake → re-prioritize after each big feature → deep-analyze top-1 → agent pushback on biased/infeasible ideas → defer-list for rejected-but-maybe → duplicate-detection trigger → dead-idea pruning. None exists.
 3. **Interest model** — a per-idea *bonus* score from a deeper user model, applied ONLY after an idea already passes feasibility+fit (never overriding logic). No user-interest signal feeds prioritization today.
 4. **(Future) RAG / vector memory** — retrieve knowledge via an external LLM over a vector DB to save tokens. Premature now (volume is tiny: ~5 shared + ~7 local memory files, 19 ledger lines). A scaling milestone, not a now-build.
@@ -84,9 +84,9 @@ These shape what is and isn't buildable — surfaced honestly per `/honest-criti
 
 Build as phases of the EXISTING autonomy roadmap, not a parallel system. Each is its own `proposal.md` (with external prior-art) before build.
 
-- **Phase 1 — Idea-queue + lifecycle (= autonomy Layer C "Proposer"). ✅ SHIPPED 2026-06-14.** Built: `platform/10-idea-queue.md` (seeded w/ 8 real ideas) + skill `/idea` (capture/gate/sort/analyze/pushback/outcome/defer/kill) + CLAUDE.md pointers. Proposal `2026-06-14-phase1-idea-queue-proposal.md` (ACCEPTED), build `2026-06-14-phase1-idea-queue-build.md`. Intake → re-prioritize after each feature → deep-analyze top-1 → pushback → defer-list → dup trigger → prune; bounded ~5 active per C2; supervisor accept/reject = the oracle.
-- **Phase 2 — Interest model (rides on Phase 1). ✅ SHIPPED 2026-06-14.** Proposal `2026-06-14-phase2-interest-model-proposal.md` (ACCEPTED, full Option A). `interest` is now DERIVED from human signals only (the `outcome:` oracle + `user-profile.md` §"Interest signals"), confidence-weighted (Hu 2008), capped ≤15%, re-derived per sort. Key addition beyond the cap: an **exploration floor** (≥1 wildcard/sort exempt from interest) because the bias compounds per round (Mansoury CIKM'20) and the cap alone doesn't stop homogenization. Rules in `10-idea-queue.md` §Rules + procedure in `/idea` skill. First live re-derive already caught a homogeneous (no-wildcard) backlog.
-- **Phase 3 — Temporal/day-log memory. ✅ SHIPPED 2026-06-14.** Proposal+build `2026-06-14-phase3-daylog-memory-{proposal,build}.md`. Recall tier `platform/log/` (README schema + `_TEMPLATE`), `/session-wrap` Step 1.5 + `/auto-pilot` Step 6 wired to write digests, `05-documentation-standard §2` documents the MemGPT 3-tier model, seeded+dogfooded (`log/2026-06-14.md`). **Folded idea-0002's schema-now half in** (nullable `embedding`); idea-0002 shrunk → deferred pgvector migration. Logs are recall = NEVER auto-loaded.
+- **Phase 1 — Idea-queue + lifecycle (= autonomy Layer C "Proposer"). ✅ SHIPPED 2026-06-14.** Built: `platform/registries/idea-queue.md` (seeded w/ 8 real ideas) + skill `/idea` (capture/gate/sort/analyze/pushback/outcome/defer/kill) + CLAUDE.md pointers. Proposal `2026-06-14-phase1-idea-queue-proposal.md` (ACCEPTED), build `2026-06-14-phase1-idea-queue-build.md`. Intake → re-prioritize after each feature → deep-analyze top-1 → pushback → defer-list → dup trigger → prune; bounded ~5 active per C2; supervisor accept/reject = the oracle.
+- **Phase 2 — Interest model (rides on Phase 1). ✅ SHIPPED 2026-06-14.** Proposal `2026-06-14-phase2-interest-model-proposal.md` (ACCEPTED, full Option A). `interest` is now DERIVED from human signals only (the `outcome:` oracle + `user-profile.md` §"Interest signals"), confidence-weighted (Hu 2008), capped ≤15%, re-derived per sort. Key addition beyond the cap: an **exploration floor** (≥1 wildcard/sort exempt from interest) because the bias compounds per round (Mansoury CIKM'20) and the cap alone doesn't stop homogenization. Rules in `registries/idea-queue.md` §Rules + procedure in `/idea` skill. First live re-derive already caught a homogeneous (no-wildcard) backlog.
+- **Phase 3 — Temporal/day-log memory. ✅ SHIPPED 2026-06-14.** Proposal+build `2026-06-14-phase3-daylog-memory-{proposal,build}.md`. Recall tier `platform/log/` (README schema + `_TEMPLATE`), `/session-wrap` Step 1.5 + `/auto-pilot` Step 6 wired to write digests, `standards/documentation §2` documents the MemGPT 3-tier model, seeded+dogfooded (`log/2026-06-14.md`). **Folded idea-0002's schema-now half in** (nullable `embedding`); idea-0002 shrunk → deferred pgvector migration. Logs are recall = NEVER auto-loaded.
 - **Phase 4 — Token-aware batching.** `cost: S/M/L` on plan steps + post-hoc calibration log; the auto-pilot skill reads `cost` instead of a fixed step count. **+ dedicated research sub-task (supervisor decision 2026-06-14):** investigate the most-accurate-feasible token estimation — `count_tokens` for known inputs, Task-Budgets-style countdown patterns, calibration models — and document the honest accuracy ceiling before committing a mechanism. Coarse `cost:` ships first; the research refines it.
 - **RAG/vector memory — EARLY research + foundation (supervisor decision 2026-06-14: do NOT defer).** Research agent long-term-memory + RAG architectures and **design the vector schema now** (reuse journal's Postgres+pgvector) so later there is no migration. Stage the actual build sensibly, but lay the foundation early. ⚠️ Honest risk (flagged + accepted): designing retrieval before real volume can over-fit to today's tiny corpus — mitigate by grounding the schema in external memory-architecture prior art, not just current files.
 
@@ -117,4 +117,4 @@ Build as phases of the EXISTING autonomy roadmap, not a parallel system. Each is
 3. Token-batching: **accept coarse `cost:` + calibration now**, AND run a dedicated research sub-task to push token estimation as accurate as feasible (don't settle for the coarse version as final). ✓ (modified)
 4. RAG: **do NOT defer — research + design the vector schema/foundation early** (override of the "defer behind a volume trigger" recommendation). ✓ (modified)
 
-**Next action:** research-before-design (per `09-autonomy-contract`) — gather external prior art for Phase 1 (idea-queue lifecycle + prioritization + self-critique-needs-external-signal), the token-estimation accuracy question, and the RAG/agent-memory foundation; then write the Phase 1 `proposal.md`.
+**Next action:** research-before-design (per `standards/autonomy-contract`) — gather external prior art for Phase 1 (idea-queue lifecycle + prioritization + self-critique-needs-external-signal), the token-estimation accuracy question, and the RAG/agent-memory foundation; then write the Phase 1 `proposal.md`.

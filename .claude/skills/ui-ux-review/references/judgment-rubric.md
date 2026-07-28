@@ -28,7 +28,7 @@ thing I am supposed to do? Then check that the visual weight actually matches th
 - Is the vertical rhythm between sections consistent, or does one section float?
 - Alignment: do labels, values and controls share left edges down the column?
 
-Cross-check against `12-ui-layout-standard.md` (PageShell owns vertical rhythm) and the project's type
+Cross-check against `standards/ui-layout.md` (PageShell owns vertical rhythm) and the project's type
 scale before calling any of this a defect — the frame may already dictate it.
 
 **Stop when** you have either found a concrete inconsistency (with a selector) or confirmed the screen

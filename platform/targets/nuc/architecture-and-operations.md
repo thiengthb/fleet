@@ -25,7 +25,7 @@
 ## 0. INVARIANTS — `target: nuc` ONLY
 
 > Moved here from `CLAUDE.md` on 2026-07-28 when the platform split into a machine-agnostic agent OS and a per-target
-> deployment layer. These bind **only** to a project whose `target` is `nuc` in `INVENTORY.md §0`. A `target: local`
+> deployment layer. These bind **only** to a project whose `target` is `nuc` in `inventory.md §0`. A `target: local`
 > project (running under Docker on a PC or laptop) is NOT bound by any of them — it has no Traefik, no `edge` network,
 > no Watchtower and no Authentik. Checking the target first is the whole point; assuming `nuc` is the old bug.
 

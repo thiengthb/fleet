@@ -6,7 +6,7 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 # Skill Authoring & Adoption (platform meta-skill)
 
 > Principles distilled from `development/skill-creation-guide` + `writing-skills` (`davila7/claude-code-templates`) +
-> the adoption procedure this platform refined while vetting the community catalog (`platform/07-SKILL-CANDIDATES.md`).
+> the adoption procedure this platform refined while vetting the community catalog (`platform/registries/skill-candidates.md`).
 
 ## First decide: author / adopt / fold
 
@@ -49,7 +49,7 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 5. **Re-scope the description** narrowly (boundary line) + normalize the name to kebab-case.
 6. **Add an attribution line** ("Adapted from `<category>/<skill>` (`davila7/claude-code-templates`)").
 7. **Run the conflict grep-guard** (below) — it must be clean. 8. Verify frontmatter. 9. Update the ledger
-   `07-SKILL-CANDIDATES.md` entry. 10. Commit (Conventional Commits, English).
+   `registries/skill-candidates.md` entry. 10. Commit (Conventional Commits, English).
 
 ## The conflict grep-guard (standing no-invariant-violation check)
 

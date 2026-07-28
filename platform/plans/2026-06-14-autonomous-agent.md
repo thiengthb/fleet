@@ -14,7 +14,7 @@ related:
     CLAUDE.md,
     nuc-ops-bot (repo — Discord buttons + user-ID allowlist),
     nuc-monitor (repo — Discord webhook),
-    platform/INVENTORY.md,
+    platform/inventory.md,
   ]
 ---
 
@@ -23,7 +23,7 @@ related:
 > re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
 > `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
 > (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
-> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `standards/autonomy-contract.md` for the open trigger risk).
 > This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
 
 
@@ -136,7 +136,7 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 ## Steps — three layers, each gated by the user before the next
 
 ### Layer A — Governance foundation (build the locks before any autonomy)
-- [x] A1 — Decision-taxonomy + hard invariants → durable reference `platform/09-autonomy-contract.md` + thin `CLAUDE.md` rule + hooks `README.md` row. Done.
+- [x] A1 — Decision-taxonomy + hard invariants → durable reference `platform/standards/autonomy-contract.md` + thin `CLAUDE.md` rule + hooks `README.md` row. Done.
 - [x] A2 — `autonomy-gate.mjs` PreToolUse hook · `.claude/hooks/autonomy-gate.mjs` wired in `.claude/settings.json` (matcher `Bash|Edit|Write|MultiEdit`) · `CLAUDE_AUTONOMOUS=1`: T4/T3 deny (push/merge main, deploy, destructive, dep-install, PR-create, ssh, **writes to own-governance paths**), lenient when unset, fail-closed · **Verified 28/28** cases (block + pass + interactive-standdown). T3-notify→Discord deferred to B4 (currently blocked = fail-closed). NOT active until settings reload.
 - [x] A3 — Autonomous-mode signal = env `CLAUDE_AUTONOMOUS=1` (fail-closed), documented in 09 + the hook. Durable record = 09 (formal decisions.md distillation at `/session-wrap`).
 - [x] A4 — Research-before-design gate: RFC-lite `templates/proposal.md` + `kind:`-aware plan template + advisory `prior-art-check.mjs` hook (nudges when a `kind: feature` plan goes `active` with <2 external URLs) + rule baked into `/project-plan`. **Verified 6/6** (incl. this plan now passing). Hard enforcement lives in the proposer skill (Layer C); this is the in-loop backstop.
@@ -150,7 +150,7 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
     - [x] B4a.1 *(this machine)* — `gate-verify.mjs` pure verify-then-parse core (hard-coded RSA-SHA256 + pinned public key = no alg-confusion; fail-closed; gate_id+exp+jti checks) + self-pruning consumed-jti store · `.claude/scripts/gate-verify.mjs` + `.test.mjs` · **Verified 20/20** (accept approve/deny · reject expired/exp==now/wrong-gate/replay/tamper/wrong-key/bad-decision/missing-fields/non-JSON/malformed/garbage-key + nonce round-trip). Not committed (awaiting user; prettier on commit).
     - [x] B4a.2 *(this machine)* — worker CLI `gate-cli.mjs` (request/check/consume, reuses gate-verify) **built + full-stack tested** (real bot-signed token: approve→consume→replay-reject→deny). SKILL + both orchestrators now have **full drop-in sandbox copies** in `b4b-sandbox/` (SKILL Step 1.5 check→cross→consume + Step 5 request + carved Hard-never; orchestrators auto-sync gates repo + **removed `git push` from CLI-disallow** so the hook is sole push-arbiter). Verified: `bash -n`+dry-run (.sh), parse+dry-run (.ps1). **INSTALLED to live `.claude/` by human (cp) + re-verified 20/20·24/24 from live locations (2026-06-14).**
     - [~] B4a.3 *(nuc-ops-bot — NOW cloned)* — **CODE COMPLETE** `nuc-ops-bot/gate_approval.py`: `tasks.loop` polls the gates repo `requests/` (GitHub Contents API/aiohttp), posts Duyệt/Từ chối buttons, **reuses `guards.user_allowed`** (server-side allowlist), RS256-signs token (key b64 in `.env`), writes `gates/<id>.json` + deletes the request. Wired in `bot.py` (on_ready), `cryptography==44.0.0` pinned, `.env.example` documented. py_compile ✓; **Python↔Node sign/verify interop ✓**. Live discord/GitHub = test on deploy (B4b.3).
-    - [x] B4a.4 *(ops — DONE 2026-06-15)* — provisioned + deployed: RSA keypair (pub `.claude/keys/gate-approval.pub.pem` committed), private `nuc-agent-gates` repo + clone, fine-grained PAT, approval channel id, bot deployed → logs `gate-approval ON`. **Signing key was ROTATED** mid-provision (a diagnostic `grep -o` over a malformed `.env` leaked the original → [[never-print-secret-file-contents]]). Env delivered by the new `/app-env` skill (local mirror → ssh STDIN, idempotent upsert + auto-heal of malformed lines). Remaining doc-sync: `INVENTORY.md` + `auth-apps.md` (gateway only, no endpoint).
+    - [x] B4a.4 *(ops — DONE 2026-06-15)* — provisioned + deployed: RSA keypair (pub `.claude/keys/gate-approval.pub.pem` committed), private `nuc-agent-gates` repo + clone, fine-grained PAT, approval channel id, bot deployed → logs `gate-approval ON`. **Signing key was ROTATED** mid-provision (a diagnostic `grep -o` over a malformed `.env` leaked the original → [[never-print-secret-file-contents]]). Env delivered by the new `/app-env` skill (local mirror → ssh STDIN, idempotent upsert + auto-heal of malformed lines). Remaining doc-sync: `inventory.md` + `auth-apps.md` (gateway only, no endpoint).
   - **B4b — token-gated T3 release (HIGH risk; agent-proposes / HUMAN-COMMITS the hook):**
     - [x] B4b.1 *(this machine; HUMAN INSTALLED)* — **INSTALLED to live by human** (cp `b4b-sandbox/hooks/autonomy-gate.mjs` → `.claude/hooks/`, committed below) + re-verified **24/24** from the live location. Gate stays fully locked until provisioning (B4a.4) supplies the public key + a signed token. The live `autonomy-gate.mjs` reuses `gate-verify.mjs`; default-deny + fail-closed; HARD_DENY (force/merge/pr-merge/release/rm/docker/ssh/db/dep/power) checked first = never unlockable; only `git push <remote> auto/<branch>` (non-force, no metachars, ref==gate branch) + `gh pr create` (no metachars) are token-unlockable with a fresh APPROVE token. **T4 never reachable by any token.** ⚠️ Claude Code's auto-mode classifier (correctly) BLOCKED the agent editing the live gate → proposal lives in `plans/b4b-sandbox/hooks/autonomy-gate.mjs` (install-ready: import paths match), the human installs+commits. Live gate unchanged until then (safe: it only relaxes when a valid token exists, impossible pre-B4a).
     - [x] B4b.2 *(this machine)* — exhaustive e2e test `plans/b4b-sandbox/hooks/autonomy-gate.test.mjs` (spawns the hook, real keypair stands in for the bot) · **Verified 24/24**: allow push-auto/pr-create w/ approve token; block main/force/merge/docker/ssh/rm + metachar-smuggle + deny/expired/wrong-gate/replay/no-token/no-state/no-pubkey/bare-push even w/ token; governance-write still blocked; interactive stands down.
@@ -172,7 +172,7 @@ programmatic quota-reset detection (none exists — crude time-trigger only); to
 > **SUPERSEDED by the `/idea` skill (Phase 1, shipped 2026-06-14) — do NOT build a separate `/feature-proposal`.** The
 > dedup was resolved via idea-0009 (supervisor decision 2026-06-14, full scope): `/idea` already realizes C1+C2. The only
 > genuinely-distinct residue is C3's *unattended* path (the orchestrator invoking gap-analysis inside a no-human batch).
-- [x] C1 — *Realized by `/idea`*: `/idea sort` gap-analysis (grounded in INVENTORY drift / missing test coverage / a documented gap / prior-art, NOT opinion) + `/idea analyze` → research-then-design → RFC-lite `proposal.md` → halts. Skill `.claude/skills/idea/SKILL.md`; queue `platform/10-idea-queue.md`.
+- [x] C1 — *Realized by `/idea`*: `/idea sort` gap-analysis (grounded in INVENTORY drift / missing test coverage / a documented gap / prior-art, NOT opinion) + `/idea analyze` → research-then-design → RFC-lite `proposal.md` → halts. Skill `.claude/skills/idea/SKILL.md`; queue `platform/registries/idea-queue.md`.
 - [x] C2 — *Realized by `/idea`*: bounded backlog = WIP cap `active ≤ 5`; Reflexion accept/reject memory = the `outcome:` oracle (with *why*); **"nothing worth proposing" is now a first-class gap-analysis output** (anti-churn, added to the skill 2026-06-14).
 - [~] C3 — **Unattended proposer integration — DEFERRED 2026-06-20 (freeze decision; sandbox built, NOT installed — see R5).** Realized in the new
   scheduled wrapper `auto-pilot-scheduled.ps1` (NOT by editing the 24/24-verified orchestrator): when no actionable plan

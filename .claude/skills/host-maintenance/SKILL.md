@@ -14,7 +14,7 @@ don't duplicate it).
 
 ## Step 0 — Read the `target` FIRST (mandatory)
 
-**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+**Which kind of machine is this app on?** Read the project's row in `platform/inventory.md §0`. It is **DATA — read
 it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
 
 | `target` | What this skill does |
@@ -41,7 +41,7 @@ Pick from these; don't schedule what nuc-monitor already covers (liveness/uptime
 
 | Job | Cadence | Runs | Reports (never acts) |
 |---|---|---|---|
-| **Drift + orphan scan** | weekly | `/host-audit` read-only groups only | `INVENTORY.md` ↔ reality mismatches, orphan volumes/images, disk/RAM headroom |
+| **Drift + orphan scan** | weekly | `/host-audit` read-only groups only | `inventory.md` ↔ reality mismatches, orphan volumes/images, disk/RAM headroom |
 | **Dependency triage** | weekly | `/dependabot-review` | open Dependabot PRs classified by risk + a recommended action list (it already never auto-merges) |
 | **Secret hygiene drift** | monthly | check `.env` chmod 600 + no secret leaked to a tracked file | any file losing 600, any hardcoded token spotted |
 | **Supply-chain re-scan** | monthly / on-news | `/supply-chain-guard` live procedure | high/critical advisories against the fleet's deps |
@@ -57,7 +57,7 @@ monthly ones only if they earn it.
 2. For delivery, prefer a push notification or a written summary the user reads later — not a silent log.
 3. Cadence sanity: weekly for drift/deps (cheap, high-signal), monthly for the deeper scans. Hourly/daily liveness is
    nuc-monitor's job — don't add it here.
-4. **Log what you scheduled** so it's not invisible: note the job + cadence in `platform/INVENTORY.md` (or the ops
+4. **Log what you scheduled** so it's not invisible: note the job + cadence in `platform/inventory.md` (or the ops
    doc) the same way any other standing platform fact is recorded.
 
 ## Done when

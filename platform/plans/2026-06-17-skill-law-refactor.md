@@ -10,14 +10,14 @@ related:
   - .claude/skills/testing-standard/SKILL.md
   - .claude/skills/skill-authoring/SKILL.md
   - CLAUDE.md
-  - platform/05-documentation-standard.md
+  - platform/standards/documentation.md
 ---
 
 > **CLOSED 2026-07-28 — goal reached, and the metric turned out to be the wrong one.**
 >
 > What it wanted: split declarative LAW out of heavy `SKILL.md` files into `references/`, loaded on demand. That
 > happened for the skills that mattered — `coding-convention` (6 refs), `react-ui-craft` (5), `code-reuse` (1) — and the
-> pattern is now codified in `05-documentation-standard §7.1`. The 20 unchecked boxes are the ceremony around a result
+> pattern is now codified in `standards/documentation §7.1`. The 20 unchecked boxes are the ceremony around a result
 > already delivered.
 >
 > **The finding that closes it, not just finishes it:** this plan optimised `SKILL.md` **body** size, on the assumption
@@ -48,8 +48,8 @@ The user proposed adding a new `.claude/rules/*.md` tier with conditional loadin
 <!-- refactor → prior art recommended but not gating; we still cite the in-repo precedents. -->
 
 - `.claude/skills/react-ui-craft/references/` — the working precedent: 5 reference files, SKILL trims to procedure + pointers
-- `platform/05-documentation-standard.md §3` — three-tier context loading (INVENTORY → 00-map → docs); same shape applies inside a skill (SKILL.md → references/)
-- `platform/09-autonomy-contract.md §3` — propose-don't-execute for governance; this plan honours it (Phase 5 = diff for user to commit)
+- `platform/standards/documentation.md §3` — three-tier context loading (INVENTORY → 00-map → docs); same shape applies inside a skill (SKILL.md → references/)
+- `platform/standards/autonomy-contract.md §3` — propose-don't-execute for governance; this plan honours it (Phase 5 = diff for user to commit)
 
 ## Approach & tradeoffs
 
@@ -105,14 +105,14 @@ Pattern:
 ### Phase 5 — Governance updates (T3 — propose-by-diff, user commits)
 
 - [ ] Step 5.1 — Produce a diff for `CLAUDE.md`: drop the inline naming detail (line 54-55), drop the inline UI mandatory (line 79-80), point both at the corresponding skill+reference · Files: propose diff for `CLAUDE.md` · Test: AC-5 (agent does NOT commit CLAUDE.md; user reviews)
-- [ ] Step 5.2 — Produce a diff for `platform/05-documentation-standard.md`: add a section "Skill structure: SKILL.md = procedure; references/<domain>.md = LAW (if/then)" · Files: propose diff for `platform/05-documentation-standard.md` · Test: AC-5 (user reviews)
+- [ ] Step 5.2 — Produce a diff for `platform/standards/documentation.md`: add a section "Skill structure: SKILL.md = procedure; references/<domain>.md = LAW (if/then)" · Files: propose diff for `platform/standards/documentation.md` · Test: AC-5 (user reviews)
 - [ ] Step 5.3 — Print all proposed diffs in chat, ask the user to commit Phase 5 in one go · Test: AC-5 (autonomy gate honoured)
 
 ### Phase 6 — Verify
 
 - [ ] Step 6.1 — Re-measure: build a `## Audit results — after` table (SKILL.md bytes before/after, references/ total bytes, % drop on auto-fire) · Files: append to this plan · Test: AC-1 (≥ 40 % drop demonstrated)
 - [ ] Step 6.2 — Smoke test: run a real "rename `getUserName` → `getUsername`" against the slimmed skill, confirm the agent reads `references/naming.md` only when the step calls for it · Test: AC-2 (on-demand load works)
-- [ ] Step 6.3 — `/session-wrap`: write `decisions.md` entry "skills split LAW into references/ — why and the size win", add a one-liner to `platform/06-knowledge-ledger.md` · Test: knowledge persisted
+- [ ] Step 6.3 — `/session-wrap`: write `decisions.md` entry "skills split LAW into references/ — why and the size win", add a one-liner to `platform/registries/knowledge-ledger.md` · Test: knowledge persisted
 
 ## Out of scope
 
@@ -126,7 +126,7 @@ Pattern:
 
 1. **Net token win unproven until Phase 6.1.** If agents *always* end up reading every reference, total cost is unchanged. Mitigation: each reference is small + topic-narrow so a single task pulls 1, not all. Decision: ship the refactor; if Phase 6.1 shows < 20 % win, file an `/idea` to revisit.
 2. **Duplication risk between `coding-convention/references/ui-rules.md` and `react-ui-craft/references/components.md`.** Mitigation: Step 4.1 explicit dedupe; one canonical home per fact (UI engineering rules → react-ui-craft; basic UI mandates → coding-convention).
-3. **Governance gate friction (Phase 5).** User has to manually commit `CLAUDE.md` + `05-documentation-standard.md` diffs. Mitigation: keep the diffs small and clearly annotated; print them all at once.
+3. **Governance gate friction (Phase 5).** User has to manually commit `CLAUDE.md` + `standards/documentation.md` diffs. Mitigation: keep the diffs small and clearly annotated; print them all at once.
 
 ## Decisions to distill
 
@@ -182,7 +182,7 @@ Top 10 SKILL.md by bytes (full table on disk via `Get-ChildItem`):
 
 **`react-ui-craft/SKILL.md` (85 lines, 8.1 KB)** — already the target shape: SKILL = decision/workflow + pointers to 5 refs. **No restructure needed.** Phase 4.1 reduces to a dedupe pass against the new `coding-convention/references/ui-rules.md` and `react-rules.md` (one fact, one home).
 
-**`testing-standard/SKILL.md` (47 lines, 3.5 KB)** — already a router; the LAW (full standard) lives at `platform/11-testing-standard.md`. Adding `references/tier-routing.md` would just copy lines from §2 of the SKILL itself — **net negative**. Phase 4.2-4.4 **deferred unless growth forces it**; mark plan steps accordingly.
+**`testing-standard/SKILL.md` (47 lines, 3.5 KB)** — already a router; the LAW (full standard) lives at `platform/standards/testing.md`. Adding `references/tier-routing.md` would just copy lines from §2 of the SKILL itself — **net negative**. Phase 4.2-4.4 **deferred unless growth forces it**; mark plan steps accordingly.
 
 ### Scope adjustment after audit
 
@@ -234,4 +234,4 @@ Plan checklist updated in the Steps section accordingly in the next batch (a ste
 - Phase 4.1 — closed by dedupe analysis (no edit needed).
 - Phase 6.1 — measurement above.
 - Phase 4.2-4.4 — **deferred** per scope adjustment (audit showed `testing-standard` is already a 47-line router; splitting would be padding).
-- Phase 5 — pending (next batch / next session): the diffs for `CLAUDE.md` + `platform/05-documentation-standard.md` are T3 governance; agent proposes, user commits.
+- Phase 5 — pending (next batch / next session): the diffs for `CLAUDE.md` + `platform/standards/documentation.md` are T3 governance; agent proposes, user commits.

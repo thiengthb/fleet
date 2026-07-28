@@ -1,6 +1,6 @@
 # 10 — Idea Queue (platform-native backlog)
 
-> The platform's **living backlog of its own ideas** — distinct from `07-SKILL-CANDIDATES.md` (external community-skill
+> The platform's **living backlog of its own ideas** — distinct from `registries/skill-candidates.md` (external community-skill
 > verdicts). This is the front door of the autonomy **Layer C "Proposer"**. Managed by skill **`/idea`**; design +
 > rationale in `plans/2026-06-14-phase1-idea-queue-proposal.md`; parent vision in `plans/2026-06-14-agent-os-evolution.md`.
 >
@@ -81,7 +81,7 @@ of self-improvement here as unverified.
      2026-07-08 C3 gap-analysis pass: +idea-0018 (sacrificial-record testing gap). Ranking/interest of
      existing active ideas NOT re-derived this pass (scoped to gap-analysis only, per supervisor ask).
      2026-07-17 C3 gap-analysis pass: +idea-0019 (live-refresh/session-state parity check for todo/journal)
-     + idea-0020 (codify MCP model-in-the-loop eval into 11-testing-standard.md). Scoped to gap-analysis only
+     + idea-0020 (codify MCP model-in-the-loop eval into standards/testing.md). Scoped to gap-analysis only
      (no re-sort/re-rank of existing actives, no promotion past inbox), per supervisor ask.
      2026-07-21 C3 gap-analysis pass: +idea-0021 (verify NUC backup script's SQLITE_DBS/PG_DUMPS volume/container
      names against the 2026-07-20 compose-prefix trap, before the accepted idea-0014 backup plan's first run).
@@ -167,7 +167,7 @@ proposal: null · outcome: null
 ### idea-0021 — Verify the NUC backup script's volume/container names against the newly-documented compose-prefix trap before first run
 state: inbox · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21 · updated: 2026-07-21
 gate: null · moscow: null · proposal: null · outcome: null
-> **Documented gap:** `02-known-traps.md` §10 (added 2026-07-20, commit `2d1c756`) and knowledge-ledger line
+> **Documented gap:** `registries/known-traps.md` §10 (added 2026-07-20, commit `2d1c756`) and knowledge-ledger line
 > 2026-07-20 ("compose PREFIXES a named volume with the project name … every project on this platform") document
 > that a `docker-compose.yml` volume named e.g. `sakubun_data` actually exists on the host as
 > `sakubun_sakubun_data`, and that quoting the bare name in a runbook/script is wrong in the silent-failure
@@ -187,7 +187,7 @@ gate: null · moscow: null · proposal: null · outcome: null
 > webhook) or goes unnoticed — that depends on live NUC config not checked from this machine.
 > **Scope guess (for `/idea analyze` or a direct plan addendum — supervisor's call, small either way):** (a) run
 > `docker volume ls` on the NUC and correct `SQLITE_DBS`/`PG_DUMPS` to the real prefixed names before first backup,
-> (b) add a one-line cross-reference from `restic-backup.sh`/`backup.env.example` to `02-known-traps.md §10`, (c)
+> (b) add a one-line cross-reference from `restic-backup.sh`/`backup.env.example` to `registries/known-traps.md §10`, (c)
 > confirm `restic-restore-test.sh`'s manual row-count check would actually catch an empty/wrong-source dump.
 > *RICE (pre-gate, rough):* Reach 2 (one script, but it is the single mitigation for ALL 8 platform volumes) ·
 > Impact 3 (an unverified backup is the platform's highest documented risk resurfacing under a false sense of
@@ -201,13 +201,13 @@ gate: null · moscow: null · proposal: null · outcome: null
 ### idea-0022 — Backfill the guide-coverage drift gate (sakubun) to todo/yakudoku's `/guide` pages
 state: inbox · source: agent (C3 gap-analysis 2026-07-24) · created: 2026-07-24 · updated: 2026-07-24
 gate: null · moscow: null · proposal: null · outcome: null
-> **Documented gap, stated by its own source:** `06-knowledge-ledger.md` 2026-07-23 ("Keep the in-app guide in
+> **Documented gap, stated by its own source:** `registries/knowledge-ledger.md` 2026-07-23 ("Keep the in-app guide in
 > sync with features is a rule too") records that sakubun's `/guide` had drifted ~10 features behind the code
 > silently, and ships the fix as a `docs/guide-coverage.json` registry (route/MCP-prompt/capability → `ref`
 > string that must appear in the guide source) + a test that fails on an unclassified route/prompt or a stale
 > `ref`, plus a once-per-session PreToolUse nudge before a route/MCP-catalog edit. **The ledger line's own scope
 > field says "any app with an in-app `/guide` (sakubun now; **todo/yakudoku next**)"** — i.e. the follow-up was
-> already named, not inferred by this pass. `INVENTORY.md` confirms both are live production web-apps with an
+> already named, not inferred by this pass. `inventory.md` confirms both are live production web-apps with an
 > in-app guide mandated by `CLAUDE.md`'s `/user-guide` skill (`todo/app/guide/page.tsx` is literally the skill's
 > reference impl) and both run an MCP server (`todo` row 34/66; `yakudoku` row 36/70-71) — the exact
 > route-drift **and** MCP-prompt-drift surfaces the gate targets. Without it, todo/yakudoku have no mechanism
@@ -246,7 +246,7 @@ state: inbox · source: agent (C3 gap-analysis 2026-07-06, exploration-floor WIL
 gate: null · moscow: null · proposal: null · outcome: null
 > **Documented trigger + external signal:** (1) idea-0013 is deferred with
 > `revisit_when: "journal (or any 3rd app) adds an MCP server"` — this idea IS that trigger. (2)
-> `08-SHARED-ASSETS.md` flags the MCP OAuth shim as "DUPLICATED — extract candidate (built 2×; extract at 3rd
+> `registries/shared-assets.md` flags the MCP OAuth shim as "DUPLICATED — extract candidate (built 2×; extract at 3rd
 > app)"; journal = the 3rd consumer, activating the rule-of-three extraction of `@thiengthb/mcp-auth`. (3) Both
 > sibling web-apps (`todo`, `yakudoku`) already expose MCP servers using the near-identical shim — journal is the
 > only `web-app` without one. **Product gap:** Claude can create todos and practice sessions via MCP but cannot
@@ -265,7 +265,7 @@ gate: null · moscow: null · proposal: null · outcome: null
 > onto the user's REAL item 「中」, corrupting its FSRS schedule; recovery only worked because `ReviewLog` happened
 > to be append-only (delete the injected rows, replay the rest through `ts-fsrs`). This was distilled to a
 > knowledge-ledger line scoped **"every app with user state / any live verification"** (platform-wide, not
-> sakubun-only) — but `11-testing-standard.md` (the canonical routing doc, shipped by idea-0010, `done`) has **no
+> sakubun-only) — but `standards/testing.md` (the canonical routing doc, shipped by idea-0010, `done`) has **no
 > rule** covering "verify a write path without touching real user data"; grep for
 > sacrificial/fixture/seed/production-data turns up nothing. Every app with user-writable state and a live/MCP
 > verification step (`todo`, `journal`, `yakudoku`, `sakubun`) can hit the same incident, and not all of them have
@@ -275,7 +275,7 @@ gate: null · moscow: null · proposal: null · outcome: null
 > clean up or replay after. Sources: sreschool.com "What is Canary check?", AWS Cloud Operations Blog
 > ("Testing and debugging Amazon CloudWatch Synthetics canary locally").
 > **Scope guess (for `/idea analyze` to firm up):** add a short rule + a copy-in helper pattern (create a
-> marked/`__test__` record → verify → delete or replay) to `11-testing-standard.md`, referencing the sakubun
+> marked/`__test__` record → verify → delete or replay) to `standards/testing.md`, referencing the sakubun
 > incident as the worked example. Small effort — mostly a doc addition + a reusable snippet, not new
 > infrastructure.
 > *RICE (pre-gate, rough):* Reach 3 (todo/journal/yakudoku/sakubun all have user-writable state + live
@@ -293,7 +293,7 @@ gate: null · moscow: null · proposal: null · outcome: null
 > **named siblings by pattern, not by verified audit**: (1) "any RSC app with an external writer (sakubun MCP;
 > **todo/journal bots**)" needs a client `router.refresh()` on window-focus + light poll, because a Server-Component
 > page won't see writes made out-of-band; (2) "table-heavy web apps (sakubun; **todo/journal lists**)" need
-> sessionStorage-backed UI state because plain `<Link>` nav drops URL query params. `INVENTORY.md` confirms **todo**
+> sessionStorage-backed UI state because plain `<Link>` nav drops URL query params. `inventory.md` confirms **todo**
 > ships a live MCP write path (`todo` = "Smart todo + MCP", row 34/66) — a real external writer, same shape as the
 > sakubun MCP that motivated the fix. No idea/audit currently checks whether todo (the platform's **reference
 > web-app**, copied by other repos) already has this staleness handling or is silently missing it.
@@ -303,7 +303,7 @@ gate: null · moscow: null · proposal: null · outcome: null
 > `use-session-state.ts` (small, already-built, already reused-once components) rather than re-deriving from scratch.
 > *RICE (pre-gate, rough):* Reach 2 (todo confirmed MCP writer; journal unconfirmed) · Impact 2 (stale-UI correctness
 > bug, not security) · Confidence 0.6 (gap existence unverified — audit first) · Effort 1 (copy-in from sakubun,
-> `08-SHARED-ASSETS.md` code-reuse candidate) → base 2.4 · interest 0.5 (similar shape to accepted idea-0012 —
+> `registries/shared-assets.md` code-reuse candidate) → base 2.4 · interest 0.5 (similar shape to accepted idea-0012 —
 > extending an already-shipped, already-proven pattern to sibling apps on a documented coverage gap) · **rank ≈ 2.58**
 
 ---
@@ -314,14 +314,14 @@ gate: null · moscow: null · proposal: null · outcome: null
 > **Documented gap:** three separate dated knowledge-ledger incidents from one MCP server (sakubun) — 2026-07-06
 > (#56, display-contract paraphrasing), 2026-07-09 (#98 restated), 2026-07-11 (#98, a required-schema-field dead-end
 > for model recovery) — each explicitly states **"unit tests can't catch this"** / needs **"a model-in-the-loop
-> eval"**, and scopes the lesson to **"every MCP server (yakudoku, sakubun, future)"**. `11-testing-standard.md`
+> eval"**, and scopes the lesson to **"every MCP server (yakudoku, sakubun, future)"**. `standards/testing.md`
 > (the canonical routing doc, itself shipped by idea-0010) has a pyramid row for **"Cross-repo HTTP seams (…MCP)"**
 > routed to consumer-driven contract tests (§4) — but a contract test checks request/response SHAPE, not whether the
 > calling model paraphrases/reorders/mishandles a tool result or a required-arg rejection. Grep confirms
-> `11-testing-standard.md` has zero mention of "model-in-the-loop" or "eval". **todo** and **yakudoku** both run MCP
-> servers in production today (`INVENTORY.md` rows 34/66, 10) — the same failure class is live risk there too, not
+> `standards/testing.md` has zero mention of "model-in-the-loop" or "eval". **todo** and **yakudoku** both run MCP
+> servers in production today (`inventory.md` rows 34/66, 10) — the same failure class is live risk there too, not
 > just in local-only sakubun.
-> **Scope guess (for `/idea analyze` to firm up):** add a tier/row to `11-testing-standard.md` distinct from the
+> **Scope guess (for `/idea analyze` to firm up):** add a tier/row to `standards/testing.md` distinct from the
 > contract-test row — "MCP tool-schema / display-contract behavior" → model-in-the-loop eval (a subagent role-playing
 > the client, graded on pass criteria), referencing `sakubun/eval/display-contract-eval.md` as the worked template.
 > Doc-only addition, no new infra.
@@ -436,7 +436,7 @@ outcome: **accept** — supervisor took full scope (B4a+B4b) 2026-06-14; B4b's `
 ### idea-0013 — Extract MCP OAuth shim to `@thiengthb/mcp-auth`
 state: deferred · source: agent (C3 gap-analysis 2026-06-18) · created: 2026-06-18 · updated: 2026-06-19 · revisit_when: journal (or any 3rd app) adds an MCP server — the rule-of-three extraction trigger
 gate: defer · moscow: could · interest: n/a
-> **External signal:** `08-SHARED-ASSETS.md` row 1 explicitly flags "DUPLICATED — extract candidate (built 2×;
+> **External signal:** `registries/shared-assets.md` row 1 explicitly flags "DUPLICATED — extract candidate (built 2×;
 > extract at 3rd app **or now if churn has stopped**)". Churn check: both `todo` and `yakudoku/web` have had
 > stable MCP OAuth since 2026-06-13 with no changes. Code is near-identical across repos (auth 38≈39, oauth
 > 86≈89, token 63≈67, authorize 124≈129, register 32=32 lines). Security-sensitive glue — a shared package

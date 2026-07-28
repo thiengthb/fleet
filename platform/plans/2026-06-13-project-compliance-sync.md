@@ -5,8 +5,8 @@ created: 2026-06-13
 updated: 2026-06-14 # ALL 9 projects compliant + pushed, CI 5/5 xanh. Hoãn (đợt riêng): test infra + journal /guide.
 related:
   [
-    platform/INVENTORY.md,
-    platform/05-documentation-standard.md,
+    platform/inventory.md,
+    platform/standards/documentation.md,
     .claude/skills/coding-convention,
     .claude/skills/project-docs,
   ]
@@ -14,14 +14,14 @@ related:
 
 <!--
   Platform control-plane plan. Doc-home của repo này là platform/, nên plan nằm ở platform/plans/.
-  Đợt sync đưa 9 project (web/worker/mono/infra/meta) lên chuẩn 05-documentation-standard + coding-convention.
+  Đợt sync đưa 9 project (web/worker/mono/infra/meta) lên chuẩn standards/documentation + coding-convention.
 -->
 
 ## Goal
 
 Mọi project trong `D:\Projects\MiniServer\` đạt chuẩn platform: bộ docs theo `kind` (00-map 8 mục +
 decisions.md + 01/02/03 cho web), CLAUDE.md thin, `pre-commit` hook cài đủ, `package.json`
-type:module+engines (web) / `pyproject.toml`+ruff+mypy (py), bug đã vá, `INVENTORY.md` khớp reality.
+type:module+engines (web) / `pyproject.toml`+ruff+mypy (py), bug đã vá, `inventory.md` khớp reality.
 "Done" = mỗi project pass /lint-and-validate + /verification-before-completion, commit gọn, không drift.
 
 ## Context
@@ -35,7 +35,7 @@ thiếu ở cả 3 service Python. Reference (todo/nuc-monitor) cũng có nợ �
 - **Hybrid**: 1 sweep ngang cho món universal (pre-commit hook) + dọc project-by-project cho phần còn lại.
 - **Reference-first**: sửa todo (web ref), nuc-monitor (py ref), yakudoku (mono ref) trước.
 - **Delegation**: phần đọc rộng hiểu code giao subagent Sonnet; Opus viết docs + review. (Lý do: đòn bẩy
-  token, không đánh đổi chất lượng — đã ghi ở 06-knowledge-ledger model-routing.)
+  token, không đánh đổi chất lượng — đã ghi ở registries/knowledge-ledger model-routing.)
 - **HOÃN test** (loại khỏi scope đợt này, xem Out of scope) — biến token lớn nhất, tách đợt riêng.
 - Ruled out: thuần ngang (khó verify/đóng gói từng project) và thuần dọc (lặp việc cài hook 9 lần).
 

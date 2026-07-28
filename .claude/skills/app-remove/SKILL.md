@@ -10,7 +10,7 @@ affecting other services** and **leaving no junk** (orphan volume, hanging Authe
 wrong registry row, nuc-monitor noise). Work SEQUENTIALLY; each stage has a VERIFICATION.
 
 The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law. The source of truth about apps:
-[`platform/INVENTORY.md`](../../../platform/INVENTORY.md). SSH NUC: `ssh thien25@thienminiserver`.
+[`platform/inventory.md`](../../../platform/inventory.md). SSH NUC: `ssh thien25@thienminiserver`.
 
 > ⚠️ **Deleting a volume = permanent data loss.** Before tearing anything down, LOOK at it
 > (what the volume contains, whether it needs a backup) and **CONFIRM with the user** the exact project + that they accept the
@@ -19,7 +19,7 @@ The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law. The source of trut
 
 ## Step 0 — Read the `target` FIRST (mandatory)
 
-**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+**Which kind of machine is this app on?** Read the project's row in `platform/inventory.md §0`. It is **DATA — read
 it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
 
 | `target` | What this skill does |
@@ -35,7 +35,7 @@ it, never assume.** The full law per target is in `platform/targets/<target>/REA
 ## Stage 0 — Confirm & build a damage inventory
 
 1. Ask/confirm with the user: the **project name**, and confirm they **accept losing all its data**.
-2. Open `INVENTORY.md` to get exactly: its **§0 row** (the `domain` + `kind` classification — to be removed
+2. Open `inventory.md` to get exactly: its **§0 row** (the `domain` + `kind` classification — to be removed
    in Stage 7) and its **§1 row** (subdomain/URL, image, volume(s), auth level — does it have its own Authentik
    provider/group — GitHub repo). This is the list of what must be cleaned up. (NB: "subdomain" = the public URL;
    the §0 `domain` column = the purpose bucket `platform`/`product`/`automation`/`shared` — don't confuse them.)
@@ -83,7 +83,7 @@ ls /opt/apps/ | grep <name>                  # empty
 
 ## Stage 3 — Clean up Authentik (ONLY if the app has its own config)
 
-Check `INVENTORY.md` / `auth-apps.md`: does this app have its OWN provider/application/group?
+Check `inventory.md` / `auth-apps.md`: does this app have its OWN provider/application/group?
 - **No** (the app just "rides along" on the `NUC SSO` domain provider pk 1, or the app is open) → **skip this stage**.
 - **Yes** → delete in order: policy binding → application → provider → group (and remove the provider from the outpost).
 
@@ -143,7 +143,7 @@ Ask the user whether they want to delete the repo — some projects are only rem
 
 ## Stage 7 — Update the registry (MANDATORY — anti-drift)
 
-1. **`platform/INVENTORY.md`:** remove the app's row from **§0** (the project map — its `domain`/`kind`/path)
+1. **`platform/inventory.md`:** remove the app's row from **§0** (the project map — its `domain`/`kind`/path)
    AND from §1 (apps); remove the provider/group row from §3 (if any); add a line to §6 "Decommissioned apps" with
    the date + what was deleted.
 2. **`authentik/docs/auth-apps.md`** (if the app is listed there): remove the app's entry, note "Removed

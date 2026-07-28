@@ -11,7 +11,7 @@ check its own work — and **refuses Hermes' dangerous half**: it drafts into a 
 a human reviews + installs. The agent **never** writes to `.claude/skills/` (the `autonomy-gate.mjs` backstop hard-blocks it).
 Design + the why + sources (Hermes/Voyager/ADAS/Anthropic): `plans/2026-06-14-skill-proposer-induction-proposal.md`.
 
-> Sibling of `/idea`: `/idea` proposes FEATURES into `10-idea-queue.md`; this proposes SKILLS into `skill-proposals/`.
+> Sibling of `/idea`: `/idea` proposes FEATURES into `registries/idea-queue.md`; this proposes SKILLS into `skill-proposals/`.
 > Same spine (propose-don't-execute), same Reflexion oracle (the human's install/reject biases future drafts), same WIP cap.
 
 ## The one invariant

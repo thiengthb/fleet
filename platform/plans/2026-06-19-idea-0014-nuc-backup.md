@@ -5,11 +5,11 @@ checkin: 2026-09-26 # backstop: NUC back? (real trigger = INVENTORY NUC STATUS r
 created: 2026-06-19
 updated: 2026-06-19
 kind: system-change # research-before-design satisfied by the proposal (≥2 sources, ≥2 ruled-out options)
-related: [platform/plans/2026-06-19-idea-0014-nuc-backup-proposal.md, INVENTORY §1, INVENTORY §2, platform/02-known-traps.md, 10-idea-queue.md (idea-0014)]
+related: [platform/plans/2026-06-19-idea-0014-nuc-backup-proposal.md, INVENTORY §1, INVENTORY §2, platform/registries/known-traps.md, registries/idea-queue.md (idea-0014)]
 ---
 
 > **BLOCKED 2026-07-28 — on hardware.** Step 1 is "verify volumes + engines on the live NUC" over ssh, and the NUC has
-> been down since 2026-07-22 (NUC STATUS block in `INVENTORY.md`). Every remaining step is downstream of a host that is
+> been down since 2026-07-22 (NUC STATUS block in `inventory.md`). Every remaining step is downstream of a host that is
 > off. Marked `blocked` rather than `active` so it stops consuming a slot on the dangling-plan clock while nothing can
 > be done about it.
 >
@@ -51,7 +51,7 @@ Full grounding (≥2 sources/question) in the proposal `2026-06-19-idea-0014-nuc
 - [ ] 5 — **Restore drill** (human/ssh): `restic restore latest --target /tmp/restore-test`; load one PG dump + open one SQLite db; verify row counts; delete temp. · Test: a restored DB opens and looks intact (evidence, not exit code)
 - [ ] 6 — **Install schedule** (human/ssh): deploy the units; `systemctl enable --now restic-backup.timer restic-check.timer`. · Test: `systemctl list-timers` shows next run; `journalctl -u restic-backup` after a forced run is clean
 - [ ] 7 — **Wire failure alert** (human/ssh): `OnFailure=` (or a healthchecks heartbeat) → nuc-monitor Discord. · Test: simulate a failure (bad env) → a Discord message arrives
-- [ ] 8 — **Update docs** (agent-doable): `INVENTORY §2` gains a backup component; `02-known-traps.md` (live-DB file-copy hazard); `01-architecture-and-operations` backup section. · Test: docs match the built setup; `/host-audit` would find no backup-drift
+- [ ] 8 — **Update docs** (agent-doable): `INVENTORY §2` gains a backup component; `registries/known-traps.md` (live-DB file-copy hazard); `architecture-and-operations` backup section. · Test: docs match the built setup; `/host-audit` would find no backup-drift
 
 ## Out of scope
 Option C dual-repo (later upgrade if a backup drive is added) · Postgres PITR/WAL archiving (overkill at this scale) ·
@@ -64,13 +64,13 @@ backing up `/opt/apps` compose/.env config (separate follow-up — though worth 
 3. **NUC uptime** (at-logon/periodic, not 24/7) → `Persistent=true` fires a missed nightly run on next wake.
 
 ## Decisions to distill
-- Per-engine app-consistent dump (PG `pg_dump`, SQLite `.backup`) — the storage engine, not the volume, drives the method; a live file copy of a DB is a corrupt backup. → `02-known-traps.md`.
+- Per-engine app-consistent dump (PG `pg_dump`, SQLite `.backup`) — the storage engine, not the volume, drives the method; a live file copy of a DB is a corrupt backup. → `registries/known-traps.md`.
 - 3-2-1 + offsite repo password; an untested backup is not a backup (restore drill is a first-class step). → `decisions.md`.
 - INVENTORY §2 must carry a backup component once built (anti-drift); the gap was invisible until surfaced as a queue wildcard.
 
 ## Check-in runbook
 
-1. Read the **NUC STATUS** block at the top of `platform/INVENTORY.md`.
+1. Read the **NUC STATUS** block at the top of `platform/inventory.md`.
 2. Still 🔴 → push `checkin:` out and stop. Do not re-plan, do not re-research; the design is already accepted.
 3. Now 🟢 → this plan goes **first**, before feature work. The host failed on 2026-07-22 with no verified off-box
    backup of the app volumes; that gap is still open. Resume at step 1 (verify volumes + engines over ssh), then the

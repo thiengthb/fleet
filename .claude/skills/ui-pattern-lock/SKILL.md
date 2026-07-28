@@ -71,7 +71,7 @@ deactivate an entry without deleting it.
   (the gate tests this: a reasonless or stale `allow` entry fails).
 - **Do not seed rules he never asked for.** Every entry needs a real `source`. An invented rule makes the
   registry noise and he stops trusting it.
-- **Content lives elsewhere.** Page frame → `platform/12-ui-layout-standard.md`; craft →
+- **Content lives elsewhere.** Page frame → `platform/standards/ui-layout.md`; craft →
   `/react-ui-craft`; naming/commits → `/coding-convention`. This registry holds only what HE had to repeat.
 
 ## `init` — a new project

@@ -6,15 +6,15 @@ created: 2026-06-14
 updated: 2026-06-14
 related:
   [
-    platform/10-idea-queue.md (idea-0010 — the candidate this analyzes; the overdue exploration-floor wildcard),
-    platform/10-idea-queue.md (idea-0006 — Playwright E2E, deferred; this standard positions it as the pyramid's top tier),
+    platform/registries/idea-queue.md (idea-0010 — the candidate this analyzes; the overdue exploration-floor wildcard),
+    platform/registries/idea-queue.md (idea-0006 — Playwright E2E, deferred; this standard positions it as the pyramid's top tier),
     .claude/skills/idea/SKILL.md (/idea → proposal → /project-plan = the proto-SDD spine this extends),
     .claude/skills/project-plan/templates/proposal.md (the "specify" artifact that will carry acceptance criteria),
     .claude/skills/vitest-server-actions/SKILL.md (existing test-ROI ladder + CI gate this builds on),
     .claude/skills/playwright-e2e-builder/SKILL.md (E2E top tier),
     .claude/skills/verification-before-completion/SKILL.md (the existing end-gate guardrail),
-    platform/05-documentation-standard.md (where the spec/AC convention lands),
-    platform/08-SHARED-ASSETS.md (cross-repo test templates + contract-test glue),
+    platform/standards/documentation.md (where the spec/AC convention lands),
+    platform/registries/shared-assets.md (cross-repo test templates + contract-test glue),
   ]
 ---
 
@@ -84,7 +84,7 @@ Mark the recommended option with **`(khuyến nghị)`** right in the table.
 
 | Option | How it works | Benefit | Drawback / cost |
 | --- | --- | --- | --- |
-| **A — Tiered SDD-lite + evidence-based selective TDD + contract testing, by EXTENDING the existing spine** *(khuyến nghị)* | (1) **Spec layer:** add a structured **acceptance-criteria (Given/When/Then)** block to the existing proposal/plan template — the proposal IS the "specify" phase; 1 AC → 1 test. (2) **Test discipline, tiered:** *test-first (TDD) REQUIRED only for pure-logic units* (`lib/*.ts` rule engines — no I/O, deterministic), where Nagappan's defect-↓ is biggest and the time-cost smallest; *test-alongside* (current practice) for server actions/components; *consumer-driven contract tests* for cross-repo HTTP seams; *Playwright E2E* sparse at the top (folds idea-0006). (3) **One platform standard** in `05-documentation-standard` + a thin `/testing-standard` skill; CI templates already exist (vitest + e2e), add an AC→test convention + a contract-test template to `08-SHARED-ASSETS`. | Reuses the spine + skills the platform already runs (extend-don't-rebuild). Evidence-calibrated: TDD where it pays, not a blanket tax. ACs give agents (the actual code authors, now & multi-machine) an unambiguous target — agent-native. Contract tests guard the real multi-team failure mode. Scales: a new person/repo inherits one documented standard + templates. | A new convention to keep coherent (AC↔test traceability); the "what counts as pure logic" line needs a crisp definition; contract testing is a genuinely new technique to learn (mitigated: start fixtures-only). |
+| **A — Tiered SDD-lite + evidence-based selective TDD + contract testing, by EXTENDING the existing spine** *(khuyến nghị)* | (1) **Spec layer:** add a structured **acceptance-criteria (Given/When/Then)** block to the existing proposal/plan template — the proposal IS the "specify" phase; 1 AC → 1 test. (2) **Test discipline, tiered:** *test-first (TDD) REQUIRED only for pure-logic units* (`lib/*.ts` rule engines — no I/O, deterministic), where Nagappan's defect-↓ is biggest and the time-cost smallest; *test-alongside* (current practice) for server actions/components; *consumer-driven contract tests* for cross-repo HTTP seams; *Playwright E2E* sparse at the top (folds idea-0006). (3) **One platform standard** in `standards/documentation` + a thin `/testing-standard` skill; CI templates already exist (vitest + e2e), add an AC→test convention + a contract-test template to `registries/shared-assets`. | Reuses the spine + skills the platform already runs (extend-don't-rebuild). Evidence-calibrated: TDD where it pays, not a blanket tax. ACs give agents (the actual code authors, now & multi-machine) an unambiguous target — agent-native. Contract tests guard the real multi-team failure mode. Scales: a new person/repo inherits one documented standard + templates. | A new convention to keep coherent (AC↔test traceability); the "what counts as pure logic" line needs a crisp definition; contract testing is a genuinely new technique to learn (mitigated: start fixtures-only). |
 | **B — Full Spec-Driven Development adoption (GitHub Spec-Kit / Kiro-style), formal specify/plan/tasks/implement via a dedicated tool** | Adopt Spec Kit (or equivalent) as a parallel, tool-enforced SDD workflow alongside the current spine. | Maximal rigor + the strongest agent-native spec→code traceability; industry-standard tooling; strongest for large greenfield. | **Parallel system → drift** vs the existing `/idea → proposal → /project-plan` spine (directly violates extend-don't-rebuild — the user's standing preference). Fowler's caveat: overhead not worth it for small changes; heavy for a team that is 1 person *today*. New external dependency + a second source of truth. |
 | **C — Blanket TDD mandate (red-green for everything), no spec-layer change** | A single rule: every change writes a failing test first. Leave proposals/plans as-is; ignore cross-repo. | Simplest rule to state; uniform. | The 15–35% time cost applied to *everything* (incl. UI/glue where TDD's ROI is weakest); no spec→test traceability (doesn't address SDD at all); **does nothing for the actual multi-team risk** (cross-repo contract breaks). Weakest on the very axis — multi-user/multi-repo — the supervisor named. |
 

@@ -6,16 +6,16 @@ created: 2026-06-14
 updated: 2026-06-14
 related:
   [
-    platform/10-idea-queue.md (idea-0011 — the candidate this analyzes),
+    platform/registries/idea-queue.md (idea-0011 — the candidate this analyzes),
     .claude/skills/skill-authoring/SKILL.md (the HOW-to-write-a-skill standard this CALLS, does not duplicate),
     .claude/skills/code-reuse/SKILL.md (the "rule of three" detection heuristic this reuses),
     .claude/skills/idea/SKILL.md (the sibling Proposer for FEATURES; this is the Proposer for SKILLS),
     .claude/skills/session-wrap/SKILL.md (the cadence this hooks into),
     platform/log/README.md (the recall-tier day-log = the raw material the detector mines),
-    platform/09-autonomy-contract.md (governance: agent proposes, human installs — the load-bearing constraint),
+    platform/standards/autonomy-contract.md (governance: agent proposes, human installs — the load-bearing constraint),
     .claude/hooks/autonomy-gate.mjs (already blocks writes to .claude/skills/** — the backstop),
     .claude/memory/sandbox-propose-governance.md (never edit live governance; propose a tested copy),
-    platform/07-SKILL-CANDIDATES.md (external community-skill verdicts — the internal sibling queue),
+    platform/registries/skill-candidates.md (external community-skill verdicts — the internal sibling queue),
   ]
 ---
 
@@ -36,7 +36,7 @@ session. Today that loop is fully manual: `/skill-authoring` tells a *human-dire
 knowledge that repeats across sessions evaporates unless the operator notices and acts.
 
 **The hard constraint that shapes everything:** a skill IS a governance artifact (`.claude/skills/**` is governance-locked;
-`autonomy-gate.mjs` blocks writes to it; `09-autonomy-contract.md` + memory `sandbox-propose-governance` forbid the agent
+`autonomy-gate.mjs` blocks writes to it; `standards/autonomy-contract.md` + memory `sandbox-propose-governance` forbid the agent
 editing its own governance). So "an agent that writes its own skills" is, unguarded, the **CVE-2025-53773 risk class** —
 self-modifying governance. Hermes does exactly this *with no human gate for ordinary skills* (see Prior art); we must not.
 The design problem is therefore: **capture Hermes' value (auto-detect + auto-draft + a compounding, diverse skill set)

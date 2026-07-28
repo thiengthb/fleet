@@ -4,7 +4,7 @@
 > to the full place. Two sources: (a) lessons **spanning multiple projects** (recorded right here), (b) lessons **for a single
 > project** (living in `<project>/docs/decisions.md`, only pointed to here).
 >
-> Established 2026-06-12. Built up by the `/session-wrap` skill. Recording standard: see `05-documentation-standard.md §5`.
+> Established 2026-06-12. Built up by the `/session-wrap` skill. Recording standard: see `standards/documentation.md §5`.
 
 ---
 
@@ -15,7 +15,7 @@
 - Learned something **for a single project** → record it fully in `<project>/docs/decisions.md`, then (if worth others
   knowing) add a pointer line in section B.
 - **System/infrastructure**-level traps (Docker/Traefik/Watchtower/Authentik) do NOT go here — their place is
-  `02-known-traps.md`. This file handles **development/product/decision** knowledge.
+  `registries/known-traps.md`. This file handles **development/product/decision** knowledge.
 
 ---
 
@@ -64,7 +64,7 @@
 | 2026-07-09 | A killed subagent's work is recoverable from its transcript | [→](ledger/2026-07.md#2026-07-09-a-killed-subagent-s-work-is-recoverable-from-its-transcript) |
 | 2026-07-09 | MCP display contracts are MODEL behavior — enforce in-result, test with a model-in-the-loop eval. | [→](ledger/2026-07.md#2026-07-09-mcp-display-contracts-are-model-behavior-enforce-in-result) |
 | 2026-06-14 | Automated the "fetch before you trust local" rule (#34/#40) as a SessionStart hook. | [→](ledger/2026-06.md#2026-06-14-automated-the-fetch-before-you-trust-local-rule-34-40-as-a) |
-| 2026-06-14 | Planning spine is now 3 layers: /idea (candidate backlog 10-idea-queue.md) → /brainstorming+proposal → /project-plan… | [→](ledger/2026-06.md#2026-06-14-planning-spine-is-now-3-layers-idea-candidate-backlog-10-id) |
+| 2026-06-14 | Planning spine is now 3 layers: /idea (candidate backlog registries/idea-queue.md) → /brainstorming+proposal → /project-plan… | [→](ledger/2026-06.md#2026-06-14-planning-spine-is-now-3-layers-idea-candidate-backlog-10-id) |
 | 2026-06-14 | Agent memory is THREE tiers (MemGPT) — pick the right one or it drifts/bloats. | [→](ledger/2026-06.md#2026-06-14-agent-memory-is-three-tiers-memgpt-pick-the-right-one-or-it) |
 | 2026-06-14 | Before building a PLANNED skill, check whether a SHIPPED one already realizes it (dedup the roadmap). | [→](ledger/2026-06.md#2026-06-14-before-building-a-planned-skill-check-whether-a-shipped-one) |
 | 2026-06-14 | An idea-ranking interest signal needs TWO bias guards, not one — the 15% cap is necessary but NOT sufficient. | [→](ledger/2026-06.md#2026-06-14-an-idea-ranking-interest-signal-needs-two-bias-guards-not-o) |

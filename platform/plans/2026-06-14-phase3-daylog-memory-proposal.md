@@ -6,13 +6,13 @@ created: 2026-06-14
 updated: 2026-06-14 # ACCEPTED — Option A + fold idea-0002 schema-now into this build; building this session
 related:
   [
-    platform/10-idea-queue.md (idea-0003 — the candidate this analyzes; couples idea-0002),
+    platform/registries/idea-queue.md (idea-0003 — the candidate this analyzes; couples idea-0002),
     platform/plans/2026-06-14-agent-os-evolution.md (parent — Phase 3 + RAG foundation),
-    platform/06-knowledge-ledger.md (the cross-project index this complements),
-    platform/05-documentation-standard.md (decisions.md = archival tier),
+    platform/registries/knowledge-ledger.md (the cross-project index this complements),
+    platform/standards/documentation.md (decisions.md = archival tier),
     .claude/skills/session-wrap (the writer of the recall→archival distillation),
     .claude/skills/auto-pilot/SKILL.md (already emits a per-batch digest — the raw material),
-    platform/09-autonomy-contract.md (memory/** is governance-locked → log lives outside it),
+    platform/standards/autonomy-contract.md (memory/** is governance-locked → log lives outside it),
   ]
 ---
 
@@ -24,7 +24,7 @@ related:
 
 ## Problem
 
-Knowledge accumulates across sessions (`decisions.md` per project, `06-knowledge-ledger.md` cross-project) but has **no
+Knowledge accumulates across sessions (`decisions.md` per project, `registries/knowledge-ledger.md` cross-project) but has **no
 session-temporal or milestone axis**. The ledger has a date *column* but is a flat scan; `decisions.md` is append-only
 *why*-entries, not dated session digests; and the autonomy worker already produces a per-batch digest (auto-pilot Step 7)
 that is **ephemeral** — it scrolls past and is never persisted as a queryable record. So "what changed around milestone X",

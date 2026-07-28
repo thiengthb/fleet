@@ -1,12 +1,12 @@
 ---
 name: session-wrap
-description: Wrap up a work session on a MiniServer project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to platform/06-knowledge-ledger.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
+description: Wrap up a work session on a MiniServer project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to platform/registries/knowledge-ledger.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
 ---
 
 # Skill: Wrap up the session & accumulate knowledge (session-wrap)
 
 This is the **compounding** mechanism: turn what was just done in the session into committed knowledge the next session
-can read. The recording standard + where to record follow `platform/05-documentation-standard.md §5–§6`. Run at the END of a significant
+can read. The recording standard + where to record follow `platform/standards/documentation.md §5–§6`. Run at the END of a significant
 work pass (not after every little edit).
 
 Filtering principle: **only record the non-obvious** — the thing that, if the next session didn't know it, would lead to *repeating a mistake /
@@ -58,7 +58,7 @@ after the session. No structural change → leave it as is.
 If this session worked off a persisted plan (`docs/plans/*.md`, `status: active`):
 
 - Did the work **finish**? → flip its `status:` to `done` and **distill its _Decisions to distill_ bullets into
-  `docs/decisions.md`** (the durable "why" migrates plan → decisions, per `05-documentation-standard.md §5.5`). Don't leave the
+  `docs/decisions.md`** (the durable "why" migrates plan → decisions, per `standards/documentation.md §5.5`). Don't leave the
   knowledge living only in a closed plan.
 - Did the work **partially** advance? → tick off completed steps + bump `updated:` (leave `status: active`).
 - Was it **dropped**? → `status: abandoned` with a one-line reason.
@@ -84,7 +84,7 @@ Does this knowledge apply to **≥2 projects** or to **the platform itself**? Th
 
    **<headline>** — full reasoning, the failure it came from, what to do instead. As long as it needs to be.
    ```
-2. **Index** → add ONE row to section A of `platform/06-knowledge-ledger.md`:
+2. **Index** → add ONE row to section A of `platform/registries/knowledge-ledger.md`:
    ```markdown
    | 2026-07-28 | <headline, ≤120 chars, no detail> | [→](ledger/2026-07.md#2026-07-28-headline-slugified) |
    ```
@@ -97,14 +97,14 @@ Does this knowledge apply to **≥2 projects** or to **the platform itself**? Th
 If the project is creating its `decisions.md` for the first time → add/edit the pointer in section B.
 
 > An **infrastructure**-level pitfall (Docker/Traefik/Watchtower/Authentik) does NOT go in 06 — record it in
-> `02-known-traps.md`. App lifecycle (add/remove/change domain) → `INVENTORY.md`.
+> `registries/known-traps.md`. App lifecycle (add/remove/change domain) → `inventory.md`.
 
 ## Step 5 — Personal memory (only when it's the right kind)
 
 If during the session the user revealed a **preference / way they want to work** (not knowledge about code) → record it
 via skill **`/memory`** (which owns the two-tier mechanics: shared in-repo `.claude/memory/` that syncs across machines,
 vs the local home-dir tier — pick with its litmus). Knowledge *about the project* does NOT go into memory — it belongs in
-`decisions.md`. (Role split: see `05-documentation-standard.md §6`.)
+`decisions.md`. (Role split: see `standards/documentation.md §6`.)
 
 ## Step 5.5 — Skill-induction scan (cadence — like `/idea sort`)
 

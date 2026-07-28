@@ -7,14 +7,14 @@ updated: 2026-06-14
 related:
   [
     platform/plans/2026-06-14-testing-spec-discipline-proposal.md (accepted RFC — design + sources + the why),
-    platform/10-idea-queue.md (idea-0010 done; idea-0006 folded as the top tier),
-    platform/05-documentation-standard.md (the doc-set this plugs the testing standard into),
+    platform/registries/idea-queue.md (idea-0010 done; idea-0006 folded as the top tier),
+    platform/standards/documentation.md (the doc-set this plugs the testing standard into),
     .claude/skills/project-plan/templates/proposal.md (gets an acceptance-criteria block),
     .claude/skills/project-plan/templates/plan.md (gets an acceptance-criteria block + Test:→AC link),
     .claude/skills/vitest-server-actions/SKILL.md (the unit/action tier this standard routes to),
     .claude/skills/playwright-e2e-builder/SKILL.md (the E2E top tier — idea-0006),
     .claude/skills/verification-before-completion/SKILL.md (the end-gate this binds AC to),
-    platform/08-SHARED-ASSETS.md (gets a consumer-driven contract-test template entry),
+    platform/registries/shared-assets.md (gets a consumer-driven contract-test template entry),
     CLAUDE.md (gets a thin testing-standard pointer),
   ]
 ---
@@ -51,7 +51,7 @@ it adds only the coordination value (AC + contract tests) the multi-user future 
 ## Steps
 
 **Batch 1 — the spine of the standard** ✅ done 2026-06-14
-- [x] B1 — Write `platform/11-testing-standard.md`: the test pyramid + which tier for what; the crisp **"pure logic ⇒
+- [x] B1 — Write `platform/standards/testing.md`: the test pyramid + which tier for what; the crisp **"pure logic ⇒
   TDD required"** definition (no I/O, deterministic, output=f(inputs)); the **AC convention** (Given/When/Then, 1 AC→1
   named test); consumer-driven **contract testing** (fixtures-first, broker deferred to ≥2 teams); how it binds to the CI
   gate + `/verification-before-completion`; multi-user/multi-repo scaling notes. · Test: doc exists, lints, ≤ doc-set norms.
@@ -63,11 +63,11 @@ it adds only the coordination value (AC + contract tests) the multi-user future 
 - [x] B3 — Thin **`/testing-standard` skill** (`.claude/skills/testing-standard/SKILL.md`): a router (AC-first → tier table
   → gates), points to doc 11 + defers per-tier how-to to `/vitest-server-actions` / `/playwright-e2e-builder`. Done.
 - [x] B4 — **Consumer-driven contract-test template** `.claude/skills/testing-standard/templates/contract-test.example.ts`
-  (Zod-contract + consumer fixture + provider real-response verify, fixtures-first, no broker) + catalogued in `08-SHARED-ASSETS.md`. Done.
+  (Zod-contract + consumer fixture + provider real-response verify, fixtures-first, no broker) + catalogued in `registries/shared-assets.md`. Done.
 
 **Batch 3 — wire-in + close** ✅ done 2026-06-14
 - [x] B5 — **CLAUDE.md** reference-skills line now routes testing → `/testing-standard` (+ doc 11) → vitest/playwright. Done.
-- [x] B6 — idea-0006 (Playwright E2E) positioned as the documented top tier in doc 11 §1; suite build stays deferred to its trigger. Done.
+- [x] B6 — idea-0006 (Playwright E2E) positioned as the documented top tier in `standards/testing` §1; suite build stays deferred to its trigger. Done.
 - [x] B7 — Ledger **#57** added (tiered + spec-anchored testing); plan marked `done`. (Platform-level → ledger, not a per-project decisions.md.) Done.
 
 ## Out of scope

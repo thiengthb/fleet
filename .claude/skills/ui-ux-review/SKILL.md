@@ -5,7 +5,7 @@ description: Review a RUNNING UI in the browser against the platform's UI/UX sta
 
 # Skill: review a running UI (ui-ux-review)
 
-Criteria + thresholds live in **`platform/14-uiux-review-standard.md`** — read it once per review,
+Criteria + thresholds live in **`platform/standards/uiux-review.md`** — read it once per review,
 it is short. This file is the procedure. The point of both is that a UI review is **evidence, not
 opinion**: `/react-ui-craft` checks the code, this checks the *rendered screen*.
 
@@ -66,9 +66,9 @@ Reconcile the report against **this project's** law, in this order — the first
 
 1. `<project>/docs/ui-patterns.json` — what the user already had to repeat. Highest authority.
 2. `<project>/CLAUDE.md` invariants — e.g. `sakubun` #8 page frame, #11 type scale, #12 truncation, #6 no emoji.
-3. `platform/12-ui-layout-standard.md` — PageShell, breadcrumbs-replace-titles, sidebar footer.
+3. `platform/standards/ui-layout.md` — PageShell, breadcrumbs-replace-titles, sidebar footer.
 4. `.claude/rules/frontend.md` — shadcn only · CSS-var theming · sonner · lucide only · no emoji as icon.
-5. `platform/14-uiux-review-standard.md` — the generic floor. Lowest authority.
+5. `platform/standards/uiux-review.md` — the generic floor. Lowest authority.
 
 Two outcomes to write down explicitly:
 
@@ -176,4 +176,4 @@ Plus two that come from how this user works:
 Writing/refactoring UI code → `/react-ui-craft`. Naming, commits, Prettier → `/coding-convention`.
 React perf (waterfalls, bundle, re-renders) → `/react-best-practices`. Functional user-journey tests →
 `/playwright-e2e-builder`. Locking a repeated preference → `/ui-pattern-lock`. Page frame →
-`platform/12-ui-layout-standard.md`.
+`platform/standards/ui-layout.md`.

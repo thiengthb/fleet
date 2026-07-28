@@ -8,7 +8,7 @@ created: 2026-07-28
 <!--
   Research-grounded proposal (brainstorm → proposal → /project-plan). Propose-don't-execute:
   this is queued for the supervisor's accept; it never self-enters the build pipeline.
-  Contract: platform/09-autonomy-contract.md · CLAUDE.md §"Autonomous agent".
+  Contract: platform/standards/autonomy-contract.md · CLAUDE.md §"Autonomous agent".
 -->
 
 ## Problem
@@ -22,7 +22,7 @@ Three external facts, all dated today, converge on the same gap:
    `.claude/rules/frontend.md`, the UI standard. Today the only distribution mechanism is "copy the folder", which
    exposes everything to anyone who needs anything.
 3. **Nothing flows back.** Every project outside this repo generates real operational experience that dies where it
-   happened. `06-knowledge-ledger.md` only ever learns from sessions run *inside* this repo. The queue's own header
+   happened. `registries/knowledge-ledger.md` only ever learns from sessions run *inside* this repo. The queue's own header
    already names the failure: *"every improvement this platform has made was justified by argument, never by
    measurement"* — a backflow channel is the cheapest source of non-argument evidence available.
 
@@ -54,7 +54,7 @@ home-grown one.
   **What we learn:** its actual bet is shared long-lived memory + an approval surface, not orchestration. **What to
   avoid:** its room/chat-centric model — for software work, git is the shared substrate and a transcript is a cache.
 
-**In-repo prior art (binding):** `08-SHARED-ASSETS.md` row 1 flags the MCP self-issued OAuth shim as
+**In-repo prior art (binding):** `registries/shared-assets.md` row 1 flags the MCP self-issued OAuth shim as
 *"DUPLICATED — extract candidate (built 2×; extract at 3rd app)"*, and `idea-0013` is deferred with
 `revisit_when: any 3rd app adds an MCP server`. **This server is that third app** — the trigger has fired.
 
@@ -131,7 +131,7 @@ server while giving up most of the benefit. **D** is the current state and is me
   formality.*
 - **If the backflow inbox is ever read into a skill, rule, or CLAUDE.md**, a remote agent gains write access to the
   instructions of every future session on this platform — persistent prompt injection, and precisely the CVE-2025-53773
-  class that `09-autonomy-contract.md` already forbids. *Mitigated only by a hard gate, never by discipline: the
+  class that `standards/autonomy-contract.md` already forbids. *Mitigated only by a hard gate, never by discipline: the
   quarantine path must be in `autonomy-gate.mjs`'s governance list, and the promotion must be a human commit.*
 - **If the server is down or the network is unavailable**, every consuming project loses its rules at once — a single
   point of failure the current copy-based model does not have. *Needs an explicit degraded mode decided in the plan

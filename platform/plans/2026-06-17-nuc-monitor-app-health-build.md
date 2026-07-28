@@ -14,16 +14,16 @@ related:
   - journal/Dockerfile
   - yakudoku/web/Dockerfile
   - yakudoku/core/Dockerfile (already has a HEALTHCHECK)
-  - platform/INVENTORY.md (§1 Monitor column)
+  - platform/inventory.md (§1 Monitor column)
 ---
 
 > **BLOCKED 2026-07-28 — on hardware, not on work.** M1/M2 and the app-side readiness endpoints are done (7 of 9
 > boxes). What is left is **P2: deploy to the NUC**, and the NUC has been down since 2026-07-22 (see the NUC STATUS
-> block in `INVENTORY.md`). There is nothing to do here until the host is back, so the status is `blocked` rather than
+> block in `inventory.md`). There is nothing to do here until the host is back, so the status is `blocked` rather than
 > `active` — a plan that cannot move should not keep appearing on the dangling-plan clock as if someone were ignoring
 > it. The remaining M3 (an "🩺 Unhealthy" line in the daily heartbeat) is explicitly optional.
 >
-> **Unblock trigger:** the NUC STATUS row in `INVENTORY.md` flips to 🟢 (verified by `/host-audit`).
+> **Unblock trigger:** the NUC STATUS row in `inventory.md` flips to 🟢 (verified by `/host-audit`).
 
 
 ## Goal
@@ -101,7 +101,7 @@ catches "Postgres down" by putting the DB ping inside the app's own HEALTHCHECK.
 - [x] C2 — Repointed `yakudoku/core/Dockerfile` HEALTHCHECK `/health` → `/ready`.
 
 ### platform docs + deploy
-- [x] P1 — Updated `INVENTORY.md` §1 Monitor column for journal/yakudoku-web/yakudoku-core (AC7) + a Notes bullet
+- [x] P1 — Updated `inventory.md` §1 Monitor column for journal/yakudoku-web/yakudoku-core (AC7) + a Notes bullet
       describing the Option-D mechanism.
 - [ ] P2 (GATE — T4, human) — Deploy: push each changed repo to `main` (journal, yakudoku, nuc-monitor) → CI builds →
       Watchtower auto-pulls. **Push to main = T4 = human only.** After deploy, verify a real `unhealthy` → Discord alert
@@ -132,7 +132,7 @@ catches "Postgres down" by putting the DB ping inside the app's own HEALTHCHECK.
 
 ## Check-in runbook
 
-1. Read the **NUC STATUS** block at the top of `platform/INVENTORY.md`.
+1. Read the **NUC STATUS** block at the top of `platform/inventory.md`.
 2. Still 🔴 → push the `checkin:` date out and stop. Nothing else to do; do not re-plan.
 3. Now 🟢 → run `/host-audit` first (never trust the table blindly after an outage), then execute **P2**:
    push `journal`, `yakudoku`, `nuc-monitor` to `main`, let CI build, confirm Watchtower pulls, verify the readiness

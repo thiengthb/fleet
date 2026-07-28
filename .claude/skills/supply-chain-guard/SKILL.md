@@ -38,7 +38,7 @@ or a poisoned Action ships itself to the NUC within ≤60s. Two jobs: **detect**
 3. **Rotate every credential reachable from the build/runtime env** — npm/PyPI tokens, the app's `.env` secrets, any
    ghcr/GitHub token, DB passwords. (On this platform secrets live in `.env` chmod 600 on the NUC + GitHub Secrets.)
 4. If filesystem persistence is suspected (rogue systemd unit, `.pth` file, cron): treat the host as compromised — see
-   `platform/02-known-traps.md` and escalate; consider rebuilding via `platform/targets/nuc/04-agent-rebuild-runbook.md`.
+   `platform/registries/known-traps.md` and escalate; consider rebuilding via `platform/targets/nuc/agent-rebuild-runbook.md`.
 
 ## Harden (the durable, never-stale part)
 

@@ -74,12 +74,12 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 | `product` | **sakubun** | `web-app` (Next) | `local` | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | (no remote yet) | `MiniServer/sakubun` | — |
 | `automation` | **n8n** | `infra` (third party) | `nuc` | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `MiniServer/n8n` | `/opt/apps/n8n` |
 | `automation` | **jobhunter-bot** | `node-bot` (worker) | `nuc` | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `MiniServer/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
-| `shared` | **ui-kit** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/ui-kit` | `MiniServer/ui-kit` | — |
+| `shared` | **commons** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/commons` | `MiniServer/commons` | — |
 | `shared` | **platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `MiniServer/` (root) | — |
 
 **The 5 standard `kind`s** (shaping the archetype + the invariants that apply):
 
-- `web-app` — Next.js App Router, public behind Traefik+Authentik, has `components.json`+ui-kit. Follows §12/§16 if it's a complex app.
+- `web-app` — Next.js App Router, public behind Traefik+Authentik, has `components.json`+commons. Follows §12/§16 if it's a complex app.
 - `worker` — headless (`node-bot` or `python-worker`): NO Traefik/port, joins `edge` only for egress.
 - `monorepo` — 1 repo → multiple images (CI matrix); one image is the sole DB writer if using SQLite.
 - `infra` — version-pinned third-party image: NO Watchtower label, update = bump the tag manually.
@@ -150,7 +150,7 @@ Notes:
 | **traefik** | Reverse proxy / router | `traefik:v3.7` | (none) | Docker provider only; `exposedbydefault=false`. Creates the `edge` network. |
 | **cloudflared** | Cloudflare Tunnel out to the Internet | `cloudflare/cloudflared:latest` | (none) | TLS handled by Cloudflare (no Let's Encrypt). |
 | **watchtower** | Auto-pulls new images (≤60s) | `containrrr/watchtower:latest` | (none) | `DOCKER_API_VERSION=1.44` (mandatory — Docker 29). Only touches containers with the enable label. |
-| **netdata** | System monitoring (outside the process) | `netdata/netdata` | `netdatacache`, `netdataconfig`, `netdatalib` | "Outside the system" (doc 01 §4.5). |
+| **netdata** | System monitoring (outside the process) | `netdata/netdata` | `netdatacache`, `netdataconfig`, `netdatalib` | "Outside the system" (`targets/nuc/architecture-and-operations` §4.5). |
 
 ## 3. Authentik — providers / applications / groups
 

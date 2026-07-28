@@ -5,12 +5,12 @@
 > When the user (Teruhiro) says something like: *"My NUC got reset, rebuild the system
 > per the runbook"* — read this ENTIRE file before running the first command,
 > then carry it out sequentially. This file is the agent-oriented version of
-> `03-SETUP-FROM-SCRATCH.md`: same destination, but spelling out **what the agent can do
+> `setup-from-scratch.md`: same destination, but spelling out **what the agent can do
 > on its own, what it must ask the user for, what to ask the user, and how to verify**.
 >
 > Two foundational documents to read alongside (same directory):
-> - `01-architecture-and-operations.md` — the target architecture to reach.
-> - `02-known-traps.md` — the traps that have caused failures. Do NOT repeat them.
+> - `architecture-and-operations.md` — the target architecture to reach.
+> - `registries/known-traps.md` — the traps that have caused failures. Do NOT repeat them.
 
 ---
 
@@ -38,7 +38,7 @@ Ask the user / self-check to determine the **extent of the loss** — this decid
 
 | Question | If PRESENT | If LOST |
 |---|---|---|
-| Is the NUC still SSH-able? (`Test-NetConnection thienminiserver -Port 22`) | Move on to the next check | Ask the user to install OS + OpenSSH + Tailscale (they have `03-SETUP-FROM-SCRATCH.md` steps 1–3) |
+| Is the NUC still SSH-able? (`Test-NetConnection thienminiserver -Port 22`) | Move on to the next check | Ask the user to install OS + OpenSSH + Tailscale (they have `setup-from-scratch.md` steps 1–3) |
 | Does the dev machine's SSH key still work? (`ssh -o BatchMode=yes thien25@thienminiserver "echo OK"`) | Skip section 2.2 | Do section 2.2 (bootstrap SSH) |
 | Docker on the NUC? (`docker --version`) | Note the version — **if ≥ 29, all the API constraints in this file apply** | User installs: `curl -fsSL https://get.docker.com \| sudo sh` + `usermod -aG docker thien25` |
 | Does the old Cloudflare tunnel still exist? (ask the user, or check the dashboard) | Only need the token, do NOT touch DNS | Phase 4 must also do the tunnel-create + DNS-wildcard-fix part |
@@ -96,7 +96,7 @@ Old junk present → list exactly what you intend to delete, **🛑 ask for conf
 
 ## 4. STAND UP THE INFRASTRUCTURE (Phases 3–4)
 
-The file content **verbatim** comes from `03-SETUP-FROM-SCRATCH.md` Steps 6 and 8 —
+The file content **verbatim** comes from `setup-from-scratch.md` Steps 6 and 8 —
 do NOT reconstruct it from memory. The sequence and the points agents often get wrong:
 
 ### 4.1. `/opt/infra` (traefik + cloudflared)

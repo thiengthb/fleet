@@ -14,7 +14,7 @@ SSH NUC: `ssh thien25@thienminiserver`. App at `/opt/apps/<name>`.
 
 ## Step 0 — Read the `target` FIRST (mandatory)
 
-**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+**Which kind of machine is this app on?** Read the project's row in `platform/inventory.md §0`. It is **DATA — read
 it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
 
 | `target` | What this skill does |

@@ -2,7 +2,7 @@
 status: proposed # draft → proposed (awaiting supervisor accept) → accepted → /project-plan
 created: 2026-06-19
 kind: proposal # analyze stage of /idea → proposal → /project-plan; NOT a build plan
-idea: idea-0014 # platform/10-idea-queue.md
+idea: idea-0014 # platform/registries/idea-queue.md
 related: INVENTORY §1 (volumes), invariant #4 (secrets only in .env), nuc-monitor (Discord alerts), /app-env
 research_status: DONE 2026-06-19 (research-before-design — ≥2 external sources per question; see §Sources). Volume
   inventory cross-checked against INVENTORY §1 (the idea undercounted 6→8 volumes; storage engines corrected vs the
@@ -106,7 +106,7 @@ in the script/compose/a commit · no restore test · no failure alert · aggress
 ## Decisions to distill (on accept)
 
 - DB volumes need app-consistent dumps (pg_dump / SQLite `.backup`), not raw file copies — the engine, not the volume
-  count, drives the method. → candidate `02-known-traps.md` entry + a line in `01-architecture-and-operations`.
+  count, drives the method. → candidate `registries/known-traps.md` entry + a line in `architecture-and-operations`.
 - Backup is an ops/data-safety gap that sat invisible until surfaced as a queue wildcard; INVENTORY §2 should gain a
   backup component once built (anti-drift).
 

@@ -6,10 +6,10 @@ created: 2026-06-14
 updated: 2026-06-14 # ACCEPTED — full Option A (incl. exploration floor); building this session
 related:
   [
-    platform/10-idea-queue.md (idea-0001 — the candidate this analyzes),
+    platform/registries/idea-queue.md (idea-0001 — the candidate this analyzes),
     platform/plans/2026-06-14-phase1-idea-queue-proposal.md (Phase 1 — the queue this rides on),
     platform/plans/2026-06-14-autonomous-agent.md (Layer C "Proposer" — Reflexion oracle, C2 backlog),
-    platform/09-autonomy-contract.md (propose-don't-execute),
+    platform/standards/autonomy-contract.md (propose-don't-execute),
     .claude/memory/user-profile.md (the existing user model this extends),
   ]
 ---
@@ -17,7 +17,7 @@ related:
 <!--
   RESEARCH-GROUNDED proposal (research-before-design / anti-bias). Produced by `/idea analyze` on the top-1 active
   idea (idea-0001). Propose-don't-execute: queued for HUMAN approval; never self-enters the build pipeline.
-  Contract: platform/09-autonomy-contract.md · CLAUDE.md §"Autonomous agent".
+  Contract: platform/standards/autonomy-contract.md · CLAUDE.md §"Autonomous agent".
 -->
 
 ## Problem
@@ -111,5 +111,5 @@ skill's own scope-discipline note warns against exactly this kind of machinery r
 
 **accepted, full Option A** (derive + 15% cap + exploration floor + human-only oracle + re-derive/decay). The supervisor
 explicitly kept the exploration floor over the lighter wildcard-less variant, prioritizing the feedback-loop guard. Shipped
-this session by formalizing the rules in `platform/10-idea-queue.md` §Rules, the derivation procedure in
+this session by formalizing the rules in `platform/registries/idea-queue.md` §Rules, the derivation procedure in
 `.claude/skills/idea/SKILL.md`, and a human-tagged `## Interest signals` section in `.claude/memory/user-profile.md`.

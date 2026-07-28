@@ -7,14 +7,14 @@ description: Health-check a host and reconcile INVENTORY against what is actuall
 
 Goal: catch **drift** (table ↔ reality mismatch) and **junk** (orphans) BEFORE they become "little
 bugs". This skill **only reads & reports**; every destructive action (deleting a volume/image) must **ask the user**
-and only happen with consent. Source of truth: [`platform/INVENTORY.md`](../../../platform/INVENTORY.md).
+and only happen with consent. Source of truth: [`platform/inventory.md`](../../../platform/inventory.md).
 
 SSH NUC: `ssh thien25@thienminiserver`. Run the check groups A–K in order (A–J over SSH; K runs local), gather the results into
 one report with ✅/⚠️/❌ sections then propose fixes.
 
 ## Step 0 — Read the `target` FIRST (mandatory)
 
-**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+**Which kind of machine is this app on?** Read the project's row in `platform/inventory.md §0`. It is **DATA — read
 it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
 
 | `target` | What this skill does |
@@ -69,7 +69,7 @@ for h in $(grep -rhoP "Host\(\`\K[^\`]+" /opt/apps/*/docker-compose.yml | sort -
 done'
 ```
 Expected: open app → `200`; gated app (forward-auth) → `302` to auth. `404/502/530/000` → ❌
-(404=lost route, 502=app dead, 530=tunnel, 000=DNS) — check the debug table `platform/targets/nuc/01-architecture-and-operations.md` §7.
+(404=lost route, 502=app dead, 530=tunnel, 000=DNS) — check the debug table `platform/targets/nuc/architecture-and-operations.md` §7.
 
 ## E. Authentik: providers ↔ registry
 
@@ -90,7 +90,7 @@ Reconcile with INVENTORY §3 + `auth-apps.md`. A provider pointing to the domain
 ssh thien25@thienminiserver 'docker logs watchtower --since 5m 2>&1 | tail -5'
 ```
 Should show "Scanned=N Updated Failed=0". `Failed>0` → ⚠️ (usually expired ghcr credentials,
-see doc 02 §4.4 / 01 §6.11). Check that apps with the `watchtower.enable` label match INVENTORY (authentik/n8n
+see `registries/known-traps` §4.4 / `targets/nuc/architecture-and-operations` §6.11). Check that apps with the `watchtower.enable` label match INVENTORY (authentik/n8n
 must NOT have this label).
 
 ## G. Disk / RAM / load
@@ -136,7 +136,7 @@ added by hand, bypassing `/app-onboard`) → ⚠️ fix the classification. Conv
 incomplete `/app-remove`) → ⚠️.
 
 Then reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
-(`platform/05-documentation-standard.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
+(`platform/standards/documentation.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
 (NOT over SSH — the doc-set lives in the dev repo):
 
 ```bash
@@ -171,5 +171,5 @@ Present concisely by group A–K, each item ✅/⚠️/❌ + a 1-line evidence. 
    ASK the user before running** anything destructive.
 3. **Health warnings** (disk, failing container, exposed secret).
 
-If the user agrees to clean orphans/drift → do it, then update INVENTORY.md to match.
+If the user agrees to clean orphans/drift → do it, then update inventory.md to match.
 **Never** delete a volume/image/provider without consent.

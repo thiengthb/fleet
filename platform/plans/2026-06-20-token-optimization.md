@@ -51,7 +51,7 @@ lean-first (supervisor-approved 2026-06-20).
     drops its ~120-tok description, content preserved as a reference). The auto-mode **self-modification guard correctly
     BLOCKED the agent** from editing `.claude/skills/**` even under verbal approval — per the contract, skill changes are a
     human move. Commands handed off 2026-06-20.
-  - **`skill-proposer` KEPT** — load-bearing governance (CLAUDE.md §Autonomous "Proposer for SKILLS" + `09-autonomy-contract`
+  - **`skill-proposer` KEPT** — load-bearing governance (CLAUDE.md §Autonomous "Proposer for SKILLS" + `standards/autonomy-contract`
     §skill-induction = the sanctioned T2 propose-a-change for skills). Removing it to save ~120 tok would mean unpicking the
     contract — a bad trade. Not merged.
 - [ ] **(optional) Structural CLAUDE.md cut** — if more byte-cut is wanted, move heavy sections (lifecycle table,

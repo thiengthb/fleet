@@ -5,8 +5,8 @@
 > if the verification doesn't pass, do NOT move to the next step.
 >
 > Estimated time: 45–90 minutes (not counting OS install).
-> References: architecture & operations in `01-architecture-and-operations.md`,
-> known traps in `02-known-traps.md`.
+> References: architecture & operations in `architecture-and-operations.md`,
+> known traps in `registries/known-traps.md`.
 
 ---
 

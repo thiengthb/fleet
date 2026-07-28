@@ -3,9 +3,9 @@
 **Two layers. Know which one you are in.** The *agent OS* (conventions, memory, skills, docs, testing, thinking) is
 **machine-agnostic** — identical on the NUC, this PC, a laptop, a VPS. The *deployment* layer is **per-target**.
 
-**Every project declares a `target` in `platform/INVENTORY.md §0`** — `nuc` · `local` · `cloud` · `none`. It is DATA:
+**Every project declares a `target` in `platform/inventory.md §0`** — `nuc` · `local` · `cloud` · `none`. It is DATA:
 **read it, never assume.** INVENTORY is the **single source of truth** (app/target/volume/domain/auth) — read before
-any lifecycle change; every add/remove-app skill MUST update it. Cross-cutting infra traps → `platform/02-known-traps.md`.
+any lifecycle change; every add/remove-app skill MUST update it. Cross-cutting infra traps → `platform/registries/known-traps.md`.
 
 ## Invariants A — platform-wide (every project, every machine, every target)
 
@@ -20,7 +20,7 @@ any lifecycle change; every add/remove-app skill MUST update it. Cross-cutting i
 
 | `target` | Means | Its law |
 |---|---|---|
-| `nuc` | git → ghcr → Watchtower → Traefik → `/opt/apps/<name>`. 🔴 host DOWN since 2026-07-22 — a push is a backup, not a release | `targets/nuc/` — 7 invariants (in `01-architecture-and-operations §0`) + ops · setup · agent rebuild runbook |
+| `nuc` | git → ghcr → Watchtower → Traefik → `/opt/apps/<name>`. 🔴 host DOWN since 2026-07-22 — a push is a backup, not a release | `targets/nuc/` — 7 invariants (in `architecture-and-operations §0`) + ops · setup · agent rebuild runbook |
 | `local` | Docker on a dev machine; ports published to the host, no Traefik/Authentik. **"Deploy" = rebuild the container and verify healthy** | `targets/local/` |
 | `cloud` | A VPS / managed runtime — **public the moment it boots**, and billed while idle | `targets/cloud/` (written 2026-07-28, not yet exercised) |
 | `none` | Not deployed (meta / shared) | — |
@@ -62,7 +62,7 @@ at repo-init; ESM + Node ≥ 22; Prettier from the skill's `templates/`; never c
 
 Full law lives in **`.claude/rules/frontend.md`**, path-scoped to `**/*.tsx|jsx|css` + `**/components/**` — it loads
 automatically and in full the moment you touch a UI file, and costs nothing on sessions that don't. It carries: the
-`PageShell` page-frame std (`platform/12-ui-layout-standard.md`), the React 19 + Next App Router + Tailwind v4 +
+`PageShell` page-frame std (`platform/standards/ui-layout.md`), the React 19 + Next App Router + Tailwind v4 +
 shadcn/ui + Motion stack, the ship-by-default quality floor + frontend security, the mandatory-UI list (shadcn only ·
 CSS-var theming · sonner · **lucide icons only** · no emoji as icon), and `/ui-pattern-lock`. Perf → `/react-best-practices`.
 
@@ -75,15 +75,15 @@ the tab **in the same change**. Reference: `todo/app/guide/page.tsx`.
 ## Code reuse across projects — skill `/code-reuse`
 
 Independent repos → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature:** read the catalog
-**`platform/08-SHARED-ASSETS.md`** + grep sibling projects for prior art. **Rule of three:** 1× build local · 2× log
-as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual → `ui-kit`
+**`platform/registries/shared-assets.md`** + grep sibling projects for prior art. **Rule of three:** 1× build local · 2× log
+as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual → `commons`
 copy-in; heavy+stable+security glue (e.g. the MCP OAuth shim) → a `@thiengthb/*` package baked at CI build; lighter →
-copy-in. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST update `08-SHARED-ASSETS.md` in the
+copy-in. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST update `registries/shared-assets.md` in the
 same change.
 
 ## Documentation & Knowledge OS — skills `/project-docs` `/project-plan` `/session-wrap`
 
-Full standard: **`platform/05-documentation-standard.md`**. Goal: understand a project in one cheap read; knowledge accumulates
+Full standard: **`platform/standards/documentation.md`**. Goal: understand a project in one cheap read; knowledge accumulates
 across sessions instead of evaporating.
 - **Context-loading path (JIT — read on need, NOT reflexively):** a trivial/chat turn or a single-file edit needs NONE
   of these. When a task TOUCHES a project, read that `<project>/docs/00-map.md` (AI-primer); read `INVENTORY §0` only for
@@ -91,13 +91,13 @@ across sessions instead of evaporating.
   all three every session is the per-session token tax to avoid. **Keep each `CLAUDE.md` thin** (rules+invariants+pointers);
   heavy spec lives in `docs/` (it costs context every turn).
 - **Two pillars per project:** `docs/00-map.md` (essence·modules·flows·invariants·secrets) + `docs/decisions.md`
-  (append-only why-log). A web-app adds `01-product`/`02-technical`/`03-user-guide` (05 §3).
+  (append-only why-log). A web-app adds `01-product`/`02-technical`/`03-user-guide` (`standards/documentation` §3).
 - **Multi-session work** (feature/refactor/migration/hard bug) → persist a plan via `/project-plan` in
   `docs/plans/YYYY-MM-DD-<slug>.md` (complements `/plan` mode; small same-session changes get no file).
 - **Skills:** `/project-docs` scaffolds/audits the doc-set · `/project-plan` persists a multi-session plan · `/session-wrap`
   closes a session (write `decisions.md`, update `00-map`, distill finished plans, and for a cross-project lesson: full
-  entry in `platform/ledger/YYYY-MM.md` **+** one index row in `06-knowledge-ledger.md` — **never paste detail into
-  the index**, that is how it reached 421KB). Infra traps → `02-known-traps`.
+  entry in `platform/ledger/YYYY-MM.md` **+** one index row in `registries/knowledge-ledger.md` — **never paste detail into
+  the index**, that is how it reached 421KB). Infra traps → `registries/known-traps`.
 - **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
 
 ## Agent memory — two tiers, both on native rails (skill `/memory`)
@@ -120,10 +120,10 @@ itself; neither is hand-rolled. Mechanics + write procedure live in `/memory` �
 decides. A new machine needs `git pull` **plus** its own `settings.local.json`; `.claude/hooks/memory-wiring-check.mjs`
 says so at session start if it's missing.
 
-## Autonomous agent — governance (contract `platform/09-autonomy-contract.md`)
+## Autonomous agent — governance (contract `platform/standards/autonomy-contract.md`)
 
 An unattended/headless run (env `CLAUDE_AUTONOMOUS=1`) runs under a deterministic gate, NOT trust. Durable contract +
-tiers: `09-autonomy-contract.md`; roadmap: `plans/2026-06-14-autonomous-agent.md`.
+tiers: `standards/autonomy-contract.md`; roadmap: `plans/2026-06-14-autonomous-agent.md`.
 - **Hard, non-negotiable:** never push `main` / deploy / run a destructive command unattended; and the agent **NEVER
   edits its own governance** (`.claude/settings*.json`, `hooks/**`, `skills/**`, `memory/**`, any `CLAUDE.md`,
   `.github/workflows/**`, `.env*`) — it may *propose*, a human commits (the CVE-2025-53773 lesson). Enforced by
@@ -133,7 +133,7 @@ tiers: `09-autonomy-contract.md`; roadmap: `plans/2026-06-14-autonomous-agent.md
 - **Decide → research-before-design → propose, don't execute.** New work is proposed as a research-grounded artifact
   (≥2 external sources, ≥2 options w/ tradeoffs) queued for human approval — never self-entered into the build pipeline.
   Pure self-critique is unreliable ⇒ ground gap-analysis in external standards, not the agent's opinion.
-- **Two proposers, both propose-don't-install:** `/idea` + `10-idea-queue.md` for FEATURES (gate-then-score ranking; the
+- **Two proposers, both propose-don't-install:** `/idea` + `registries/idea-queue.md` for FEATURES (gate-then-score ranking; the
   supervisor's accept/reject is the oracle — self-scoring in a closed loop is forbidden), and `/skill-proposer` +
   `skill-proposals/` for SKILLS (induces a draft from a process repeated ≥3×; the agent NEVER writes to
   `.claude/skills/` — drafting = T2, installing = a human move = T4, gate-blocked).
@@ -164,10 +164,10 @@ process weight to the change, mirroring the autonomy T1–T4 by reversibility ×
 > `/react-best-practices` · Dockerfile → `/docker-expert` · MCP → `/mcp-builder` · external-API →
 > `/api-integration-specialist` · Python async → `/async-python-patterns` · system decision → `/architecture` ·
 > deps → `/dependabot-review`+`/supply-chain-guard` · testing → `/testing-standard` (router; standard
-> `platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
-> `/skill-authoring`. Catalog + verdicts: `platform/07-SKILL-CANDIDATES.md`.
+> `platform/standards/testing.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
+> `/skill-authoring`. Catalog + verdicts: `platform/registries/skill-candidates.md`.
 
-## Model routing, parallelism & web research — the token levers (detail: `platform/13-token-and-research-discipline.md` — incl. §3 parallel/async: subagents · worktrees · background · `/schedule`)
+## Model routing, parallelism & web research — the token levers (detail: `platform/standards/token-and-research.md` — incl. §3 parallel/async: subagents · worktrees · background · `/schedule`)
 
 **Target the *right* amount, never the *minimum*** — never trade away reasoning depth; only cut wasted context and
 over-powered staffing on mechanical work.
@@ -193,4 +193,4 @@ code → container+volume+image+dir → Authentik provider/group → subdomain 4
 **audit/cleanup** → `/host-audit` (**report only** — every destructive action asks) · **protect (login/SSO/authz)**
 → `/app-protect`, registry + traps in `authentik/docs/auth-apps.md` · **env/secrets** → `/app-env` (from the
 LOCAL mirror `~/.nuc-env/<app>.env` over ssh STDIN; the agent never receives secret values) · **web is broken** → debug
-by layer DNS → tunnel → Traefik → app, symptom table in `targets/nuc/01-architecture-and-operations.md §7`.
+by layer DNS → tunnel → Traefik → app, symptom table in `targets/nuc/architecture-and-operations.md §7`.

@@ -1,7 +1,7 @@
 /**
  * Consumer-driven contract test — template (fixtures-first, NO Pact broker).
  *
- * Standard: platform/11-testing-standard.md §4. Use this for a cross-repo HTTP seam
+ * Standard: platform/standards/testing.md §4. Use this for a cross-repo HTTP seam
  * (one repo calling another's API: todo↔core, web↔core, MCP). Goal: the two repos can't
  * silently drift apart on the shape of a response — a provider change that breaks the
  * consumer's expectation fails CI, not production.

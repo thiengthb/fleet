@@ -48,7 +48,7 @@ It SSHes to `thien25@thienminiserver`, merges the mirror into `/opt/apps/<app>/.
 ## After setting env — keep INVENTORY honest (anti-drift)
 
 If you added a **new** env KEY an app depends on, record the key **NAME** (never the value) in that app's row /
-secrets note in `INVENTORY.md` (and `02-known-traps`/`auth-apps.md` if relevant). The single source of truth must list
+secrets note in `inventory.md` (and `registries/known-traps`/`auth-apps.md` if relevant). The single source of truth must list
 what an app expects; the value lives only in the NUC `.env`.
 
 ## Boundaries

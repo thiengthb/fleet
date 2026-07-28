@@ -14,7 +14,7 @@ related:
 > re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
 > `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
 > (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
-> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `standards/autonomy-contract.md` for the open trigger risk).
 > This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
 
 

@@ -8,8 +8,8 @@ related:
   [
     platform/plans/2026-06-14-phase3-daylog-memory-proposal.md (accepted RFC — the design + sources),
     platform/plans/2026-06-14-agent-os-evolution.md (parent — Phase 3),
-    platform/10-idea-queue.md (idea-0003 done; idea-0002 shrunk→deferred),
-    platform/05-documentation-standard.md (the doc this extends with a recall tier),
+    platform/registries/idea-queue.md (idea-0003 done; idea-0002 shrunk→deferred),
+    platform/standards/documentation.md (the doc this extends with a recall tier),
     .claude/skills/session-wrap/SKILL.md (the writer of recall→archival),
     .claude/skills/auto-pilot/SKILL.md (emits the per-batch digest = raw material),
     .claude/hooks/autonomy-gate.mjs (must treat platform/log/ writes as T2),
@@ -55,7 +55,7 @@ Full research + the ≥2-options tradeoff lives in the accepted proposal `2026-0
 - [x] B3 — **Wired `/session-wrap`**: new **Step 1.5** writes the recall digest FIRST, then Steps 2–4 distill the *why* upward (one flow, link-don't-copy). Done.
 - [x] B4 — **Wired `/auto-pilot` Step 6**: per-batch digest now appended to `log/YYYY-MM-DD.md` (durable, T2 write outside `.claude/memory/`). Done.
 - [x] B5 — **Autonomy-gate check**: READ `autonomy-gate.mjs` — `platform/log/**` is NOT in the GOVERNANCE list (only `.claude/...`/CLAUDE.md/workflows/.env), so line 62 → exit 0 = safe-zone T2. **No carve-out needed.** Done.
-- [x] B6 — **Doc'd the recall tier** in `05-documentation-standard.md §2` (MemGPT 3-tier model, log = recall, never auto-loaded). Done.
+- [x] B6 — **Doc'd the recall tier** in `standards/documentation.md §2` (MemGPT 3-tier model, log = recall, never auto-loaded). Done.
 - [x] B7 — **Seed + dogfood**: `log/2026-06-14.md` — a `reflection` milestone anchor (`agent-os-evolution`) + an `episodic` digest of this session, FK-linked. Schema + recall proven end-to-end. Done.
 
 ## Pre-mortem (carried from the proposal)

@@ -3,7 +3,7 @@
 > Applies to a project whose `INVENTORY §0` row says `target: nuc`. Platform-wide Invariants A still bind
 > (secrets in `.env`, never self-code auth, named volume, repo is the source of truth). These are the additions.
 
-🔴 **Read `platform/INVENTORY.md` § NUC STATUS before any action on this target.** The host has been down since
+🔴 **Read `platform/inventory.md` § NUC STATUS before any action on this target.** The host has been down since
 2026-07-22. While it is down, `git push` builds an image on ghcr and **deploys nothing** — a push is a backup, not
 a release. Do not SSH in, do not diagnose Watchtower, do not report a `target: nuc` app as deployed.
 
@@ -11,15 +11,15 @@ a release. Do not SSH in, do not diagnose Watchtower, do not report a `target: n
 
 | Read when | Document |
 |---|---|
-| Any NUC change — architecture, the deploy chain, the debug-by-layer symptom table (§7) | [`01-architecture-and-operations.md`](01-architecture-and-operations.md) |
-| The OS is reinstalled, or you are standing up a second identical server (human-driven, sequential, each step has a VERIFY) | [`03-SETUP-FROM-SCRATCH.md`](03-SETUP-FROM-SCRATCH.md) |
-| **"My NUC got reset, rebuild it"** — the agent-facing runbook; read it entirely before the first command | [`04-agent-rebuild-runbook.md`](04-agent-rebuild-runbook.md) |
+| Any NUC change — architecture, the deploy chain, the debug-by-layer symptom table (§7) | [`architecture-and-operations.md`](architecture-and-operations.md) |
+| The OS is reinstalled, or you are standing up a second identical server (human-driven, sequential, each step has a VERIFY) | [`setup-from-scratch.md`](setup-from-scratch.md) |
+| **"My NUC got reset, rebuild it"** — the agent-facing runbook; read it entirely before the first command | [`agent-rebuild-runbook.md`](agent-rebuild-runbook.md) |
 
-Cross-cutting infrastructure traps stay in `platform/02-known-traps.md` — they are not NUC-only.
+Cross-cutting infrastructure traps stay in `platform/registries/known-traps.md` — they are not NUC-only.
 
 ## The seven invariants
 
-They live in **`01-architecture-and-operations.md §0`**, not duplicated here, because that is the document a NUC
+They live in **`architecture-and-operations.md §0`**, not duplicated here, because that is the document a NUC
 change already sends you to and a second copy would drift:
 
 pull-only images · shared `edge` network · public-iff-Traefik-label · dual `latest`+SHA tags · Cloudflare TLS ·

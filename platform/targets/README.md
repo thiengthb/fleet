@@ -3,7 +3,7 @@
 > **The agent OS is machine-agnostic; deployment is not.** Everything outside this folder applies everywhere.
 > Everything inside it applies only to projects whose `target` says so.
 
-Every project declares a **`target`** in `platform/INVENTORY.md §0`. It is **DATA — read it, never assume.**
+Every project declares a **`target`** in `platform/inventory.md §0`. It is **DATA — read it, never assume.**
 Read only the folder that matches; the others are noise for the change in front of you.
 
 | `target` | What it means | Law |

@@ -4,17 +4,17 @@ kind: feature # feature | system-change — both REQUIRE prior-art before accept
 status: accepted # draft → accepted → rejected | superseded
 created: 2026-06-17
 accepted: 2026-06-17 # Option D (supervisor re-decided after the invariant-conflict discovery)
-idea: idea-0012 (platform/10-idea-queue.md)
+idea: idea-0012 (platform/registries/idea-queue.md)
 ---
 
 <!--
   RESEARCH-GROUNDED proposal (idea-0012 → /idea analyze). Propose-don't-execute: queued for the human-accept gate,
-  never self-enters the build pipeline. Contract: platform/09-autonomy-contract.md · CLAUDE.md §"Autonomous agent".
+  never self-enters the build pipeline. Contract: platform/standards/autonomy-contract.md · CLAUDE.md §"Autonomous agent".
 -->
 
 ## Problem
 
-`INVENTORY.md` §1 (the SINGLE source of truth) marks **journal, yakudoku-web, yakudoku-core** as `Monitor = (not yet)`
+`inventory.md` §1 (the SINGLE source of truth) marks **journal, yakudoku-web, yakudoku-core** as `Monitor = (not yet)`
 — 3 of 6 running product containers. The reason matters and reshapes the idea: **nuc-monitor does NOT HTTP-probe any
 app today.** Its eight checks (`monitor.py:645`) are host-level (CPU/RAM/disk/temp/net/ssh) plus `check_docker`
 (`monitor.py:414`), which only reads container **running state** via `docker.sock`. So every app — including the 5 marked
@@ -83,7 +83,7 @@ The only cost is one additive `HEALTHCHECK` line in the journal + yakudoku-web D
 
 > **Acceptance bar (one line, Option D):** journal + yakudoku-web declare a `HEALTHCHECK`; nuc-monitor reads each tracked
 > container's `State.Health.Status` via `docker.sock` and fires an edge-triggered Discord alert when a container goes
-> `unhealthy` (and a recovery when it returns `healthy`), without flapping on the `starting` grace period; `INVENTORY.md`
+> `unhealthy` (and a recovery when it returns `healthy`), without flapping on the `starting` grace period; `inventory.md`
 > §1 reflects the new coverage. Full Given/When/Then ACs go in the resulting `/project-plan`.
 
 ## Pre-mortem — failure modes
@@ -116,4 +116,4 @@ _Agent stops at present + wait. No self-accept._
 **DECISION (2026-06-17, supervisor): accept — Option D.** First selected A; on the agent surfacing that A violates
 nuc-monitor's "no edge/no port" invariant and that D (read `State.Health.Status` over the existing `docker.sock`) is
 strictly better, switched to **D**. Graduated → build plan `plans/2026-06-17-nuc-monitor-app-health-build.md`. `idea-0012`
-→ `done` in `10-idea-queue.md`.
+→ `done` in `registries/idea-queue.md`.

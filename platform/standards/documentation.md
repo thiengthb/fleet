@@ -52,7 +52,7 @@ Tier 2 — docs/ in depth          (per task)    → 01-product / 02-technical /
 
 ## 3. The standard documentation set by `kind` (tiered)
 
-`kind` comes from `INVENTORY.md §0`. Column ✅ = mandatory, ➖ = not needed, "optional" = when it has value.
+`kind` comes from `inventory.md §0`. Column ✅ = mandatory, ➖ = not needed, "optional" = when it has value.
 
 | File | `web-app` / `monorepo` | `worker`<br/>(node-bot / python-worker) | `infra` | `meta` |
 |------|:---:|:---:|:---:|:---:|
@@ -140,8 +140,8 @@ Each entry follows this exact skeleton (short — 4 lines is enough):
 The "is it worth recording?" criterion — ask: *if a later session didn't know this, would it repeat the mistake /
 break an invariant / waste time re-investigating?* Yes → record it. This is the job of the `/session-wrap` skill.
 
-> Different from `platform/02-known-traps.md` (**system/platform**-level traps) and
-> `06-knowledge-ledger.md` (a cross-project index). `decisions.md` is the traps + decisions **of a single project**.
+> Different from `platform/registries/known-traps.md` (**system/platform**-level traps) and
+> `registries/knowledge-ledger.md` (a cross-project index). `decisions.md` is the traps + decisions **of a single project**.
 
 ---
 
@@ -179,7 +179,7 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
 - `docs/decisions.md` = knowledge **of the project**, committed, everyone reads it, travels with the repo.
 - Personal memory = the user's preferences/feedback, private, per-machine. NOT the same role.
 - Rule: knowledge about *project code/decisions* → `decisions.md`. Feedback about *how the user wants to work* →
-  memory. A lesson *spanning multiple projects* → `06-knowledge-ledger.md` (index).
+  memory. A lesson *spanning multiple projects* → `registries/knowledge-ledger.md` (index).
 
 ---
 
@@ -191,7 +191,7 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
   so the roadmap survives across sessions — the forward-looking counterpart to `decisions.md` (§5.5).
 - **Skill `/session-wrap`** at the end of a session: extracts decisions/traps → `decisions.md`; updates `00-map` if the
   module map changed; closes a finished plan (`done`) + distills its knowledge into `decisions.md`; if cross-project,
-  the full entry into `ledger/YYYY-MM.md` **and** one index row into `06-knowledge-ledger.md` (see §7.2).
+  the full entry into `ledger/YYYY-MM.md` **and** one index row into `registries/knowledge-ledger.md` (see §7.2).
 - **A light pre-commit hook** (`coding-convention/hooks/pre-commit`): a commit touching code but NOT touching `docs/`
   → a **non-blocking** warning (doesn't block). It nudges, doesn't obstruct.
 - **`/app-onboard`**: a newly created project has already run `/project-docs scaffold` → born-documented.
@@ -220,9 +220,9 @@ the part you scan must stay cheap to scan.
 
 | File | Role | Shape | Size discipline |
 |---|---|---|---|
-| `06-knowledge-ledger.md` §A | **Index** — "have we tripped on anything like this?" | one row = `\| date \| headline ≤120 chars \| [→](ledger/YYYY-MM.md#slug) \|` | stays scannable; **never** holds the reasoning |
+| `registries/knowledge-ledger.md` §A | **Index** — "have we tripped on anything like this?" | one row = `\| date \| headline ≤120 chars \| [→](ledger/YYYY-MM.md#slug) \|` | stays scannable; **never** holds the reasoning |
 | `platform/ledger/YYYY-MM.md` | **Detail** — the full lesson | `### YYYY-MM-DD — headline` + `<a id="slug"></a>` + body, any length | append-only; a superseded lesson gets a later entry that links back |
-| `06-knowledge-ledger.md` §B | Project pointer table | one row per project → its `decisions.md` | already thin, unchanged |
+| `registries/knowledge-ledger.md` §B | Project pointer table | one row per project → its `decisions.md` | already thin, unchanged |
 
 **Why this is an invariant and not a preference:** the "one line + a pointer" rule was written into the ledger's own
 header on 2026-06-12 and eroded anyway. By 2026-07-28 §A held 203 rows, individual rows exceeded 2500 characters, and
@@ -243,5 +243,5 @@ it, don't summarise it away.
 - [ ] Does this session have a non-obvious decision/trap? Yes → record it in `docs/decisions.md` (via `/session-wrap`).
 - [ ] Is the work multi-session/substantial? → persist a plan in `docs/plans/` (via `/project-plan`); keep its checklist in sync.
 - [ ] Is `CLAUDE.md` still thin (not bloated with spec)? Heavy spec → split it into `docs/`.
-- [ ] A cross-project lesson? → full entry in `platform/ledger/YYYY-MM.md` **+** one index row in `06-knowledge-ledger.md` (§7.2).
+- [ ] A cross-project lesson? → full entry in `platform/ledger/YYYY-MM.md` **+** one index row in `registries/knowledge-ledger.md` (§7.2).
 - [ ] Is the ledger index still scannable (a row = a headline + link, no pasted detail)? → `node .claude/scripts/memory-audit.mjs`.

@@ -1,6 +1,6 @@
 ---
 name: code-reuse
-description: Before building a feature in any MiniServer project, check whether it already exists elsewhere (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — a piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/08-SHARED-ASSETS.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (ui-kit owns those).
+description: Before building a feature in any MiniServer project, check whether it already exists elsewhere (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — a piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/registries/shared-assets.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (commons owns those).
 ---
 
 # Code reuse across projects (DRY across independent repos)
@@ -21,11 +21,11 @@ services through a premature shared library.
 2. **When you notice the same thing built a 2nd time** — record it in the catalog as a duplication (don't extract yet).
 3. **On an explicit "audit duplication" request** — sweep the projects, reconcile against the catalog.
 
-It does **not** fire for an in-repo refactor (ordinary coding) or for visual shadcn components (those belong to `ui-kit`).
+It does **not** fire for an in-repo refactor (ordinary coding) or for visual shadcn components (those belong to `commons`).
 
 ## Step 1 — Look before you build (this is the whole point)
 
-1. **Read the catalog first:** `platform/08-SHARED-ASSETS.md`. It is the cheap index of "what reusable thing
+1. **Read the catalog first:** `platform/registries/shared-assets.md`. It is the cheap index of "what reusable thing
    already exists and where its canonical copy lives." If the thing is listed → reuse per its share mechanism; skip the grep.
 2. If not listed, **grep the sibling projects** for prior art before writing anything new:
    ```bash
@@ -51,9 +51,9 @@ Never extract something still in flux, or where the three copies have genuinely 
 
 | Kind of asset | Mechanism | Where |
 |---|---|---|
-| Visual UI / shadcn component | **copy-in registry** (already chosen) | `ui-kit` (`thiengthb/ui-kit`) |
+| Visual UI / shadcn component | **copy-in registry** (already chosen) | `commons` (`thiengthb/commons`) |
 | Cross-cutting backend code, stable + heavy + security-sensitive (e.g. the MCP OAuth glue) | **published package** `@thiengthb/*` | GitHub Packages (npm) — consumed at CI build time, baked into the image |
-| Backend snippet / starter, lighter or still-evolving | **copy-in** (ui-kit-style registry or a documented template) | the canonical project + a catalog pointer |
+| Backend snippet / starter, lighter or still-evolving | **copy-in** (commons-style registry or a documented template) | the canonical project + a catalog pointer |
 | Config / scaffold (deploy.yml, Dockerfile, hooks, Prettier) | **template** | `coding-convention/templates`, or "copy from a living app" |
 
 Default to **copy-in + catalog**; reserve a **published package** for the one proven-stable heavy piece. The detailed
@@ -64,7 +64,7 @@ routes; each app keeps its own `server.ts` tool definitions.)
 
 ## Step 4 — Keep the catalog in sync (anti-drift, like INVENTORY)
 
-Any time you reuse, extract, or notice a new duplication → **update `08-SHARED-ASSETS.md` in the same change**. A stale
+Any time you reuse, extract, or notice a new duplication → **update `registries/shared-assets.md` in the same change**. A stale
 catalog is worse than none (the next session trusts it). This is the standing obligation of this skill.
 
 ## Guardrails
@@ -80,4 +80,4 @@ catalog is worse than none (the next session trusts it). This is the standing ob
 - [ ] Checked the catalog + grepped prior art **before** building.
 - [ ] Applied the rule of three (didn't extract at 1×/2×; only extracted at 3× stable same-shape).
 - [ ] Chose the mechanism from the hybrid table; extracted glue, kept feature local.
-- [ ] Updated `08-SHARED-ASSETS.md` in the same change.
+- [ ] Updated `registries/shared-assets.md` in the same change.

@@ -2,7 +2,7 @@
 
 > **This file is DATA: the criteria and thresholds.** The procedure that applies them is the skill
 > `/ui-ux-review`. Build-time craft (how to write the component) stays in `/react-ui-craft` +
-> `.claude/rules/frontend.md`; the page frame stays in `12-ui-layout-standard.md`; what the user had to
+> `.claude/rules/frontend.md`; the page frame stays in `standards/ui-layout.md`; what the user had to
 > repeat stays in `<project>/docs/ui-patterns.json`. **This file only answers: how do we check a rendered
 > screen, against what numbers, and what counts as a defect.**
 
@@ -116,7 +116,7 @@ These are the point of the standard. A review that breaks them is not a stricter
 3. **Budget: ≤12 findings per screen** in the judgment pass. More than that means describing, not
    reviewing — rank and cut. Blockers are never cut.
 4. **Project law outranks generic best practice.** A rule in `docs/ui-patterns.json`,
-   `12-ui-layout-standard.md`, or the project's `CLAUDE.md` **wins** over anything in this file or in a
+   `standards/ui-layout.md`, or the project's `CLAUDE.md` **wins** over anything in this file or in a
    blog post. If a generic rule and a locked project rule genuinely conflict, that is a finding *about
    the rule* — raise it, do not silently apply the generic one.
 
@@ -169,7 +169,7 @@ Both are governance, so a human applies and commits them.
 **① Append to the "Also relevant here" list in `.claude/rules/frontend.md`:**
 
 ```markdown
-- Reviewing a RUNNING screen (not writing it) → skill `/ui-ux-review` + `platform/14-uiux-review-standard.md`.
+- Reviewing a RUNNING screen (not writing it) → skill `/ui-ux-review` + `platform/standards/uiux-review.md`.
   Machine pass first (`npm run ui:audit` — axe/WCAG 2.2 AA, real-Tab focus walk, target size, overflow, CLS/LCP at
   360/768/1440 + dark), then a bounded judgment pass. Rules: evidence or it's deleted · never re-find what the
   machine report already found · ≤12 findings per screen · project law beats generic best practice.
@@ -179,8 +179,8 @@ Both are governance, so a human applies and commits them.
 
 ```markdown
 **Reviewing a rendered UI is a separate job from building one** → `/ui-ux-review` (std
-`platform/14-uiux-review-standard.md`): deterministic pass (axe/WCAG 2.2 AA + focus order + responsive matrix)
-before any judgment pass, and project law (`docs/ui-patterns.json` → project `CLAUDE.md` → `12-ui-layout-standard`)
+`platform/standards/uiux-review.md`): deterministic pass (axe/WCAG 2.2 AA + focus order + responsive matrix)
+before any judgment pass, and project law (`docs/ui-patterns.json` → project `CLAUDE.md` → `standards/ui-layout`)
 outranks generic taste.
 ```
 
@@ -193,7 +193,7 @@ instruction points at nothing. Either adopt
 
 **Also open (from the first real run, on `sakubun`):** `Switch` (20px) and `Checkbox` (16px) are shadcn
 primitives under the 24px target floor, and growing them changes every form in the app; and no page has an
-`<h1>`, which follows from `12-ui-layout-standard` replacing page titles with breadcrumbs — if the breadcrumb
+`<h1>`, which follows from `standards/ui-layout` replacing page titles with breadcrumbs — if the breadcrumb
 *is* the heading, something still has to say so to a screen reader. Both are design calls, not defects.
 
 ## 8. Sources

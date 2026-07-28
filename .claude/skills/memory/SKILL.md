@@ -10,8 +10,8 @@ The agent's long-term memory **of the user** — who they are, how they like to 
 the mechanics.
 
 > **Not for project knowledge.** Facts about the code / a decision / a pitfall go to `docs/decisions.md`,
-> `02-known-traps.md`, or the ledger (`/session-wrap`). Memory is only about the *user* and *how to work with them*.
-> Role split: `05-documentation-standard.md §6`.
+> `registries/known-traps.md`, or the ledger (`/session-wrap`). Memory is only about the *user* and *how to work with them*.
+> Role split: `standards/documentation.md §6`.
 
 ## The two tiers
 

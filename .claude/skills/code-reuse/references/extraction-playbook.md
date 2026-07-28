@@ -6,14 +6,14 @@ Open this only when Step 3 of the skill says "extract." Pick the row's mechanism
 
 ## A. Copy-in registry (default — frontend AND lighter backend snippets)
 
-The model `ui-kit` already uses: the canonical copy lives in one place, each consuming repo copies it in (owns its copy).
+The model `commons` already uses: the canonical copy lives in one place, each consuming repo copies it in (owns its copy).
 
-1. **Choose the canonical home.** Frontend component → `ui-kit` (`thiengthb/ui-kit`, the shadcn registry). Backend
-   snippet → either add it to `ui-kit` under a non-UI namespace, or keep the canonical copy in the most-mature project and
+1. **Choose the canonical home.** Frontend component → `commons` (`thiengthb/commons`, the shadcn registry). Backend
+   snippet → either add it to `commons` under a non-UI namespace, or keep the canonical copy in the most-mature project and
    point the catalog at it.
 2. **Make it copy-ready:** no project-specific imports, no hardcoded names/paths, configurable via params/env, documented
    header comment ("canonical source: <repo>/<path>; copied into <repo> on <date>").
-3. **Consume it** by copying the file(s) into the target repo (for `ui-kit`, via the shadcn registry mechanism it already
+3. **Consume it** by copying the file(s) into the target repo (for `commons`, via the shadcn registry mechanism it already
    exposes). The copy is now owned by the target repo.
 4. **Drift is the known cost:** a bugfix in the canonical copy does NOT propagate. When you fix the canonical, the catalog
    row's "Reused in" column tells you which repos to re-copy. Note the fix in the canonical file's header.
@@ -59,7 +59,7 @@ just a canonical starting point. The catalog records where the template lives so
 
 ## After any extraction
 
-- Update `08-SHARED-ASSETS.md`: flip the row's status (DUPLICATED → SHARED), set the canonical location + mechanism, list
+- Update `registries/shared-assets.md`: flip the row's status (DUPLICATED → SHARED), set the canonical location + mechanism, list
   the consuming repos.
-- If the lesson is cross-project-worthy, `/session-wrap` distills it into `06-knowledge-ledger.md`.
+- If the lesson is cross-project-worthy, `/session-wrap` distills it into `registries/knowledge-ledger.md`.
 - Run the `/skill-authoring` grep-guard if the shared code touched anything invariant-adjacent.

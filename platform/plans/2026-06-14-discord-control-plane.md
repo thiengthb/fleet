@@ -7,13 +7,13 @@ updated: 2026-06-14 # accepted by supervisor — full scope (B4a+B4b); nuc-ops-b
 related:
   [
     platform/plans/2026-06-14-autonomous-agent.md (this is the design for step B4),
-    platform/09-autonomy-contract.md,
+    platform/standards/autonomy-contract.md,
     .claude/hooks/autonomy-gate.mjs,
     .claude/scripts/auto-pilot-run.sh,
     nuc-ops-bot (repo — gateway bot, buttons + user-id allowlist; NOT on this machine),
     nuc-monitor (repo — outbound Discord webhook; NOT on this machine),
     authentik/docs/auth-apps.md,
-    platform/INVENTORY.md,
+    platform/inventory.md,
   ]
 ---
 
@@ -22,7 +22,7 @@ related:
 > re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
 > `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
 > (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
-> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `standards/autonomy-contract.md` for the open trigger risk).
 > This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
 
 
@@ -30,7 +30,7 @@ related:
   RESEARCH-GROUNDED proposal (research-before-design / anti-bias). Precedes the B4 plan. Propose-don't-execute:
   queued for HUMAN approval; never self-enters the build pipeline. Bot-side build happens on a machine that has
   nuc-ops-bot + nuc-monitor cloned (absent on this machine — only todo/yakudoku/platform are here).
-  Contract: platform/09-autonomy-contract.md · CLAUDE.md §"Autonomous agent".
+  Contract: platform/standards/autonomy-contract.md · CLAUDE.md §"Autonomous agent".
 -->
 
 ## Problem
@@ -42,7 +42,7 @@ digest **and Approve/Deny a parked gate from their phone via Discord**, so progr
 The hard constraint is platform invariant + plan risk **R2**: this must NOT widen `nuc-ops-bot`'s existing
 Docker-control attack surface, must never become a free-text→command channel, and must never let an unattended run cross
 a **T4** boundary (push main / deploy / destroy). Grounding (external, not opinion): the lethal-trifecta and
-self-modification incidents in `09-autonomy-contract.md` (CVE-2025-53773 — an agent that could influence its own
+self-modification incidents in `standards/autonomy-contract.md` (CVE-2025-53773 — an agent that could influence its own
 approval path escalated to unrestricted shell).
 
 ## Prior art & sources — REQUIRED: ≥2 external URLs (researched BEFORE designing; 3 parallel research threads)

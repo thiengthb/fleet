@@ -3,7 +3,7 @@
 # Install: copy this file to <repo>/.git/hooks/pre-commit (chmod +x on Unix).
 # Source of truth: D:\Projects\MiniServer\.claude\skills\coding-convention\hooks\pre-commit
 # Intent: code changed but docs/ untouched → print a reminder to update docs/00-map.md or docs/decisions.md.
-# Docs standard: platform/05-documentation-standard.md. Does NOT block commits (always exit 0).
+# Docs standard: platform/standards/documentation.md. Does NOT block commits (always exit 0).
 
 staged="$(git diff --cached --name-only --diff-filter=ACMR)"
 [ -z "$staged" ] && exit 0
@@ -16,7 +16,7 @@ docs_changed="$(printf '%s\n' "$staged" | grep -E '^docs/|(^|/)[^/]*\.md$')"
 
 if [ -n "$code_changed" ] && [ -z "$docs_changed" ]; then
   echo "⚠ This commit changes CODE but touches no documentation." >&2
-  echo "  Consider updating (per platform/05-documentation-standard.md):" >&2
+  echo "  Consider updating (per platform/standards/documentation.md):" >&2
   echo "    • docs/00-map.md     — if module map / flow / invariant / secret changed" >&2
   echo "    • docs/decisions.md  — if there is a non-obvious decision/pitfall (run /session-wrap)" >&2
   echo "  (Reminder only — does NOT block. Go ahead and commit if no update is needed.)" >&2

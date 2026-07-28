@@ -1,5 +1,5 @@
 <!--
-  TEMPLATE docs/00-map.md — AI-primer. Standard: platform/05-documentation-standard.md §4.
+  TEMPLATE docs/00-map.md — AI-primer. Standard: platform/standards/documentation.md §4.
   Fill in the project's REAL content; delete every <!-- guidance --> line and <...> placeholder before saving.
   Goal: ≤ ~1 page, after reading it you grasp the project without opening code. Prefer tables + trees + bullets.
 -->
@@ -53,4 +53,4 @@
 - Technical details: `docs/02-technical.md` <or "(none — see code)">
 - Why + pitfalls: `docs/decisions.md`
 - Work in flight: `docs/plans/` (status: active) <omit this line if there are no active plans>
-- Infra/deploy: `INVENTORY.md §<n>` · related skill: `/<...>`
+- Infra/deploy: `inventory.md §<n>` · related skill: `/<...>`

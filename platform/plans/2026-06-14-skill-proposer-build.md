@@ -7,14 +7,14 @@ updated: 2026-06-14
 related:
   [
     platform/plans/2026-06-14-skill-proposer-induction-proposal.md (accepted RFC — design + sources + the why),
-    platform/10-idea-queue.md (idea-0011 done),
+    platform/registries/idea-queue.md (idea-0011 done),
     .claude/skills/skill-authoring/SKILL.md (the authoring standard this CALLS, never duplicates),
     .claude/skills/code-reuse/SKILL.md (the rule-of-three detection heuristic),
     .claude/skills/idea/SKILL.md (sibling Proposer for FEATURES — same propose-don't-execute spine),
     .claude/skills/session-wrap/SKILL.md (the cadence this hooks into),
     platform/log/README.md (recall-tier day-log = the raw material the detector mines),
     .claude/hooks/autonomy-gate.mjs (blocks .claude/skills/** → install is human-only; skill-proposals/ is T2),
-    platform/09-autonomy-contract.md (propose-don't-install — the load-bearing constraint),
+    platform/standards/autonomy-contract.md (propose-don't-install — the load-bearing constraint),
   ]
 ---
 
@@ -58,7 +58,7 @@ gate-lock ⇒ provably T2-writable), install = a human moving the SKILL.md into 
 
 - [x] C1 — Sandbox `platform/skill-proposals/README.md` (convention + proposal frontmatter + lifecycle: draft→human-review→install-by-move) + `_TEMPLATE.md`. Done (AC-1, AC-4 described).
 - [x] C2 — Skill `.claude/skills/skill-proposer/SKILL.md`: detect (rule-of-three) → dedup → draft via `/skill-authoring` → self-verify (Voyager) → file into sandbox; propose-only invariant, WIP cap ≤1–2, "nothing worth proposing" first-class, Curator note. Done (AC-1, AC-3).
-- [x] C3 — `09-autonomy-contract §2`: documented `skill-proposals/` = T2 (draft) vs `.claude/skills/` install = human-only T4 (matches the gate's `\.claude\/skills\/` rule). Done (AC-2).
+- [x] C3 — `standards/autonomy-contract §2`: documented `skill-proposals/` = T2 (draft) vs `.claude/skills/` install = human-only T4 (matches the gate's `\.claude\/skills\/` rule). Done (AC-2).
 - [x] C4 — Wired `/session-wrap` Step 5.5: skill-induction scan cadence (like `/idea sort`), "nothing worth proposing" normal. Done.
 - [x] C5 — `CLAUDE.md`: Proposer-for-SKILLS pointer (sibling of `/idea`, propose-don't-install). Done.
 - [x] C6 — Ledger **#58** (draft-don't-install, made physical by path); plan marked `done`. Done.

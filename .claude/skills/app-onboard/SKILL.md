@@ -14,7 +14,7 @@ SSH NUC: `ssh thien25@thienminiserver` (key installed). App lives at `/opt/apps/
 
 ## Step 0 — Read the `target` FIRST (mandatory)
 
-**Which kind of machine is this app on?** Read the project's row in `platform/INVENTORY.md §0`. It is **DATA — read
+**Which kind of machine is this app on?** Read the project's row in `platform/inventory.md §0`. It is **DATA — read
 it, never assume.** The full law per target is in `platform/targets/<target>/README.md`.
 
 | `target` | What this skill does |
@@ -55,7 +55,7 @@ has a **living reference implementation** — COPY from it instead of rewriting;
 
 | archetype | Reference (copy from) | Take what | Specifics |
 |-----------|----------------------|--------|---------|
-| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (ui-kit), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/app-protect`). |
+| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (commons), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/app-protect`). |
 | `python-worker` | `nuc-monitor/` | `Dockerfile` (python slim), `deploy.yml`, sample `requirements.txt` | Headless: NO Traefik/port. Join `edge` only if egress is needed. |
 | `node-bot` | `jobhunter-bot/` | `Dockerfile` (node), `deploy.yml`, `package.json` (ESM, Node ≥22) | Headless Discord worker: NO Traefik. Secrets in NUC `.env`. |
 | `monorepo` (→N images) | `yakudoku/` | CI **matrix** building N images from 1 repo, layout `web/ core/ bot/`, compose with multiple services | One image is the **sole DB writer** if using SQLite; internal images do NOT get Traefik labels. |
@@ -68,10 +68,10 @@ the four fits **and** no sibling shares the new purpose, use the nearest — do 
 
 **Mandatory for every archetype with CODE** (`web-app`/`worker`/`monorepo`): install the repo conventions right away
 (Stage 3 item 0 — Prettier + commit-msg + pre-commit hook). After creating the project, **update
-`INVENTORY.md` §0** (add the row with its `domain` + `kind` + path, placed under its domain group) — anti-drift,
+`inventory.md` §0** (add the row with its `domain` + `kind` + path, placed under its domain group) — anti-drift,
 and **run `/project-docs scaffold`** so the project is
 born with the standard doc set (`docs/00-map.md` + `docs/decisions.md`, web-app adds 01/02/03 — see
-`platform/05-documentation-standard.md`). Born-documented.
+`platform/standards/documentation.md`). Born-documented.
 
 ## Stage 1 — Dockerfile in the repo
 
@@ -189,7 +189,7 @@ docker logs watchtower --since 2m | tail -2    # Scanned goes up, Failed=0
 #    confirm the watchtower log "Found new image ... Stopping ... Started"
 ```
 
-A failure at any step → the debug table in `platform/targets/nuc/01-architecture-and-operations.md` section 7.
+A failure at any step → the debug table in `platform/targets/nuc/architecture-and-operations.md` section 7.
 If acceptance doesn't pass, do NOT report completion to the user.
 
 ## Stage 6 — Report

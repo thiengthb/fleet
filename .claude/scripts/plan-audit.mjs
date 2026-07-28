@@ -3,7 +3,7 @@
  * plan-audit.mjs — does a plan/proposal file actually follow the standard? Report-only.
  *
  * WHY THIS EXISTS. The platform had three ways to be told how to write a plan (`/project-plan`,
- * `templates/plan.md`, `05-documentation-standard.md §5.5`) and exactly one mechanical check on the result:
+ * `templates/plan.md`, `standards/documentation.md §5.5`) and exactly one mechanical check on the result:
  * `plan-checkin.mjs`, which only looks at `checkin:` and staleness. Everything else — prior art on a feature
  * plan, acceptance criteria, steps naming their files and their test, template placeholders left unfilled —
  * was enforced by the agent remembering. That is the same shape as every rule this platform has already
@@ -232,7 +232,7 @@ function auditFile(path) {
     if (FEATUREY.has(kind) && ['active', 'done'].includes(status) && !preStandard) {
       const acs = (uncomment(acBody || '').match(/\*\*AC-\d+\*\*/g) || []).length;
       if (acs === 0) {
-        add('ERROR', 'feature/system-change past `draft` with no `AC-n` acceptance criteria (standard 11 §3: 1 AC → 1 test)');
+        add('ERROR', 'feature/system-change past `draft` with no `AC-n` acceptance criteria (standards/testing §3: 1 AC → 1 test)');
       } else if (items.length && !/AC-\d+/.test(steps)) {
         add('WARN', `${acs} AC(s) defined but no step references an \`AC-n\` — the spec→test bridge is not wired`);
       }
@@ -303,7 +303,7 @@ if (fileArgIdx !== -1 || HOOK) {
     `plan-audit — \`${r.rel}\` (kind: ${r.kind ?? '—'}, status: ${r.status ?? '—'}) is missing something the ` +
       `standard requires. Fix it in the plan now, not later:\n` +
       hard.map((f) => `  ✗ ${f.msg}`).join('\n') +
-      `\n\nStandard: platform/05-documentation-standard.md §5.5 · template: .claude/skills/project-plan/templates/` +
+      `\n\nStandard: platform/standards/documentation.md §5.5 · template: .claude/skills/project-plan/templates/` +
       `\nFull sweep: node .claude/scripts/plan-audit.mjs`,
   );
   process.exit(2);

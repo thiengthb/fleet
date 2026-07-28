@@ -14,7 +14,7 @@ related: [] # file.ts · INVENTORY §n · docs/plans/<prior>.md
 
 <!--
   A PERSISTED, multi-session plan. Forward-looking counterpart to docs/decisions.md.
-  Standard: platform/05-documentation-standard.md §5.5. Maintained by the /project-plan skill.
+  Standard: platform/standards/documentation.md §5.5. Maintained by the /project-plan skill.
   Keep it token-cheap (tables + bullets + checklist, not prose). Keep the checklist in sync as you execute.
 -->
 
@@ -40,9 +40,9 @@ The chosen approach + **≥2 options ruled out and why** (brief — the durable 
 
 ## Acceptance criteria (Given / When / Then)
 
-<!-- The spec→test bridge (SDD-lite, standard 11). REQUIRED for kind: feature | system-change; omit for fix/chore/small
+<!-- The spec→test bridge (SDD-lite, `standards/testing`). REQUIRED for kind: feature | system-change; omit for fix/chore/small
      same-session changes. Rule: 1 AC → 1 named test; each Step's `Test:` references the AC id it satisfies. Format is
-     implementation-agnostic + observable. See platform/11-testing-standard.md §3. -->
+     implementation-agnostic + observable. See platform/standards/testing.md §3. -->
 
 - **AC-1** — Given `<context>`, When `<action>`, Then `<observable outcome>`.
 - **AC-2** — ...

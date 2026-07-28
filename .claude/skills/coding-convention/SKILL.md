@@ -68,7 +68,7 @@ Behaviour spec for both hooks: `references/git-commit.md`.
 
 ### 4. Document-as-you-code
 
-- A **non-obvious** decision (architecture choice, dodging a pitfall, a trade-off) → write one entry into `<project>/docs/decisions.md` (template in `platform/05-documentation-standard.md §5`), alongside the code commit.
+- A **non-obvious** decision (architecture choice, dodging a pitfall, a trade-off) → write one entry into `<project>/docs/decisions.md` (template in `platform/standards/documentation.md §5`), alongside the code commit.
 - End of a substantial editing pass → `/session-wrap` to lock in the knowledge + sync `docs/00-map.md`.
 
 ### 5. Before committing — run the checks

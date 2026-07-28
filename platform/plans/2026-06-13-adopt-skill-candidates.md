@@ -5,16 +5,16 @@ created: 2026-06-13
 updated: 2026-06-13 # W1–W7 done — all §1 ADOPT installed (adapted), §2 BORROW folded, §1b deferred
 related:
   [
-    platform/07-SKILL-CANDIDATES.md,
+    platform/registries/skill-candidates.md,
     CLAUDE.md,
     .claude/skills/,
-    platform/05-documentation-standard.md,
+    platform/standards/documentation.md,
   ]
 ---
 
 <!--
   Platform control-plane plan. This repo's doc-home is platform/, so plans live in platform/plans/
-  (the platform-repo equivalent of <project>/docs/plans/). This plan executes the ledger 07-SKILL-CANDIDATES.md.
+  (the platform-repo equivalent of <project>/docs/plans/). This plan executes the ledger registries/skill-candidates.md.
 -->
 
 ## Goal
@@ -26,7 +26,7 @@ conflict grep-guard is clean, and CLAUDE.md + ledger reflect reality.
 
 ## Context
 
-The ledger (`07-SKILL-CANDIDATES.md`) evaluated the community catalog (`davila7/claude-code-templates`) and produced
+The ledger (`registries/skill-candidates.md`) evaluated the community catalog (`davila7/claude-code-templates`) and produced
 adopt/borrow/skip verdicts. Already built this session: `/project-plan`, `/honest-critique`, `/brainstorming`,
 `/vitest-server-actions`, `/playwright-e2e-builder`. This plan executes the *remaining* recommendations. The platform
 values a **thin CLAUDE.md + cheap context + no clutter**, so adoption must be selective and each skill must be adapted,
@@ -137,7 +137,7 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 - [x] **W4** Adopted `/api-integration-specialist` (Express→Route Handler) + `/async-python-patterns` (self-contained) + `/mcp-builder` (self-contained, anchored to todo/yakudoku + forward-auth-exempt invariant; no scripts/refs vendored). Grep-guard CLEAN. ✓
 - [x] **W5** Adopted `/architecture` (self-contained, ADR→decisions.md) + `/docker-expert` (**narrowed** to Dockerfile authoring; compose/secrets/build-on-host stripped into a NOT-this-skill box) + `/saas-multi-tenant` (Authentik+Prisma-extension+SQLite-no-RLS adapt; flagged speculative). Grep-guard CLEAN. ✓
 - [x] **W6** Folded §2 ideas into `/project-plan` (3) + `/coding-convention` (smells) + `/react-ui-craft` (shadcn CLI + Zod) + `/host-audit` (group L deps). Created `/skill-authoring` (adoption procedure + grep-guard). `react-useeffect` already covered (skipped, no dup). Grep-guard CLEAN (react-ui-craft hits = pre-existing correct *prohibitions*). ✓
-- [x] **W7** Caught + adopted the missed `/react-best-practices`; added thin CLAUDE.md disciplines + reference-skill index; distilled cross-project lessons into `06-knowledge-ledger.md §A` (adoption procedure, no-pre-install, frozen-IOC); ledger all ADOPTED. Plan → `done`. ✓
+- [x] **W7** Caught + adopted the missed `/react-best-practices`; added thin CLAUDE.md disciplines + reference-skill index; distilled cross-project lessons into `registries/knowledge-ledger.md §A` (adoption procedure, no-pre-install, frozen-IOC); ledger all ADOPTED. Plan → `done`. ✓
 
 ## Out of scope
 
@@ -161,8 +161,8 @@ Update the ledger to ADOPTED across the board. Run `/session-wrap` → distill i
 ## Decisions to distill — DISTILLED ✓ (W7)
 
 - The skill-adoption procedure + the conflict grep-guard → **`/skill-authoring`** (the durable home) + one line in
-  `06-knowledge-ledger.md §A`.
-- Why §1b skills are deferred (pre-need install = clutter) → `06-knowledge-ledger.md §A` + `07-SKILL-CANDIDATES.md §1b`.
-- Frozen-IOC-list = false confidence → `06-knowledge-ledger.md §A` + `/supply-chain-guard`.
+  `registries/knowledge-ledger.md §A`.
+- Why §1b skills are deferred (pre-need install = clutter) → `registries/knowledge-ledger.md §A` + `registries/skill-candidates.md §1b`.
+- Frozen-IOC-list = false confidence → `registries/knowledge-ledger.md §A` + `/supply-chain-guard`.
 - Skill ownership boundaries (architecture↔decisions.md, database-design↔prisma-expert, react-best-practices↔react-ui-craft,
   docker-expert↔app-onboard) → encoded in each skill's description "complements/defers" line + `/skill-authoring`.

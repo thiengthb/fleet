@@ -7,7 +7,7 @@ updated: 2026-06-19 # Phases 1+2 COMPLETE. Phase 1 graduation+enrol RUNTIME-veri
 related:
   - platform/plans/2026-06-14-autonomous-agent.md # Layers A/B/C — governance + executor (done); this is the missing Layer-C outer driver
   - platform/plans/2026-06-14-agent-os-evolution.md # memory/interest/RAG infra that UNDERPINS this (not the loop itself)
-  - platform/09-autonomy-contract.md # the tier gate this honours
+  - platform/standards/autonomy-contract.md # the tier gate this honours
   - .claude/scripts/auto-pilot-scheduled.ps1 # the wrapper that this extends from "advance plans" → "run the full cycle"
   - .claude/skills/auto-pilot/SKILL.md
   - .claude/skills/idea/SKILL.md
@@ -19,7 +19,7 @@ related:
 > re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
 > `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
 > (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
-> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `standards/autonomy-contract.md` for the open trigger risk).
 > This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
 
 
@@ -49,13 +49,13 @@ The platform has spent ~10 sessions building this; the pieces are individually v
 
 | Piece | Status | Where |
 |---|---|---|
-| Governance gate T1–T4 (hard-blocks self-harm + self-governance edits) | ✅ live, 24/24 tested | `.claude/hooks/autonomy-gate.mjs`, `09-autonomy-contract.md` |
+| Governance gate T1–T4 (hard-blocks self-harm + self-governance edits) | ✅ live, 24/24 tested | `.claude/hooks/autonomy-gate.mjs`, `standards/autonomy-contract.md` |
 | Plan executor — fresh `claude -p` per batch, parks at gates | ✅ live (B5 passed) | `.claude/scripts/auto-pilot-run.ps1`/`.sh`, `/auto-pilot` |
 | Discord approval — RS256-signed tokens, button gates | ✅ live e2e (2026-06-15) | `nuc-ops-bot/gate_approval.py`, `gate-cli.mjs`, `gate-verify.mjs` |
 | Discord async Q&A — ask anything mid-plan, answer = DATA | ✅ live e2e ×2 | `ask-cli.mjs`, `gate-answer.mjs`, `nuc-ops-bot/ask_answer.py` |
 | Scheduled wrapper — multi-plan advance + idle gap-analysis | ✅ live (armed 2026-06-17) | `.claude/scripts/auto-pilot-scheduled.ps1`, Task Scheduler `MiniServer-AutoPilot` |
 | Temporal memory (episodic day-log) | ✅ live | `platform/log/YYYY-MM-DD.md` |
-| Interest model (RICE + ≤15% interest, wildcard floor) | ✅ live | `/idea`, `10-idea-queue.md` |
+| Interest model (RICE + ≤15% interest, wildcard floor) | ✅ live | `/idea`, `registries/idea-queue.md` |
 | Subagent delegation + model routing | ✅ live (B5 exercised) | CLAUDE.md §Model routing, `/auto-pilot` Step 4 |
 
 **Where the chain STOPS today:** the scheduled wrapper advances opted-in plans (`status: active` AND `auto_pilot: true`)
@@ -115,13 +115,13 @@ scope here, noted as a follow-up idea).
 
 ### Phase 1 — Idea→plan bridge (the first missing link)
 
-- [x] S1.1 — `outcome: accept` → auto-create `draft` plan. APPLIED 2026-06-18 (interactive, supervisor-approved): `auto-pilot-scheduled.ps1` gained `Test-HasUngraduatedAccept` (line-anchored `outcome: accept` ABOVE `## Done`, prose-safe) + `Invoke-AutonomousClaude` helper + a graduation phase (one bounded batch → `draft` plan, `auto_pilot: false`, idempotent, parks for the enrol gate, NEVER auto-enrols) ahead of C3; `/idea` SKILL + `10-idea-queue.md` schema document graduation + the `graduated_plan:` field. Verified: parse OK, dry-run on the real queue skips correctly (false-positive on the header prose found + fixed), detection unit-tested True/False/False. · Test: AC-2 (draft appears, no enrol)
+- [x] S1.1 — `outcome: accept` → auto-create `draft` plan. APPLIED 2026-06-18 (interactive, supervisor-approved): `auto-pilot-scheduled.ps1` gained `Test-HasUngraduatedAccept` (line-anchored `outcome: accept` ABOVE `## Done`, prose-safe) + `Invoke-AutonomousClaude` helper + a graduation phase (one bounded batch → `draft` plan, `auto_pilot: false`, idempotent, parks for the enrol gate, NEVER auto-enrols) ahead of C3; `/idea` SKILL + `registries/idea-queue.md` schema document graduation + the `graduated_plan:` field. Verified: parse OK, dry-run on the real queue skips correctly (false-positive on the header prose found + fixed), detection unit-tested True/False/False. · Test: AC-2 (draft appears, no enrol)
 - [x] S1.2 — Planning-time Q&A wired. APPLIED 2026-06-19 (interactive, supervisor-approved): added gate-repo sync helpers (`Test-GateRepo`/`Invoke-GatePull`/`Invoke-GatePush`, mirroring the verified orchestrator) and wrapped the graduation batch in pull-before/push-after, so an `ask-cli` question reaches Discord and the answer is pulled back on a later cycle. Graduation prompt rewritten to a step-0 RESUME (consume a prior answer as DATA) → step-1 IDEMPOTENCY + **pending-ask guard** (no duplicate asks, no duplicate plans) → ask at most ONE question per draft via `ask-cli --options`, recorded in the plan's Open-questions. `/idea` SKILL updated. Verified: parse OK, dry-run clean (gate clone absent → pull/push no-op, graduation still skips correctly). · Test: AC-2. **Known constraint:** `ask-cli` `current-ask.json` is singular + shared with the `/auto-pilot` worker's asks — a graduation ask and a plan-advance ask cannot be pending at the same time (fine for the bounded sequential cycle; revisit if cycles parallelise).
 - [x] S1.3 — Enrol gate shipped. APPLIED 2026-06-19 (interactive, supervisor-approved): graduation step 5 marks the finalised draft `enrol: pending`; a new wrapper phase (`Test-DraftAwaitingEnrol` + enrol batch, gate-sync wrapped) asks the supervisor via Discord (`ask-cli --options 'enrol||not yet||reject'`) and applies the SIGNED answer — enrol⇒`status: active`+`auto_pilot: true`, not-yet⇒`enrol: deferred`, reject⇒`abandoned`. **Decision:** used `ask-cli` (answer = DATA) NOT `gate-cli` — gate-cli's `approve` is wired to release a push+PR in the hook, so reusing it would conflate "approve push" with "approve enrol"; ask-cli has no hook side-effect and needs **no bot change** (the bot already renders options + signs answers). Verified: parse OK, dry-run skips correctly, `Test-DraftAwaitingEnrol` unit-tested True/False/False/False. · Test: AC-3 (no enrol answer → no `auto_pilot: true`). **Defense-in-depth deferred:** the "only arm with a signed answer" rule is prompt-enforced today; the hook-level enforcement (block `auto_pilot: true` writes without a valid enrol answer) is PROPOSED for human commit in `proposals/2026-06-19-enrol-gate-hook-hardening.md` (governance — agent must not self-edit `autonomy-gate.mjs`). Phase 3 is not "done" until that lands.
 
 ### Phase 2 — Auto-wrap + retro→todo (the genuine gap)
 
-- [x] S2.1 — Auto-wrap shipped (APPLIED 2026-06-19, interactive). One end-of-cycle `reflect` batch runs the `/session-wrap` procedure to distil any NON-OBVIOUS decision into `decisions.md`/`06-knowledge-ledger.md` (per-batch day-log digests already written by `/auto-pilot` Step 6, so no `/auto-pilot` edit needed — not duplicated). · Test: AC-4 ✓ (runs with no human invoke; gated on `$didWork` so idle cycles skip)
+- [x] S2.1 — Auto-wrap shipped (APPLIED 2026-06-19, interactive). One end-of-cycle `reflect` batch runs the `/session-wrap` procedure to distil any NON-OBVIOUS decision into `decisions.md`/`registries/knowledge-ledger.md` (per-batch day-log digests already written by `/auto-pilot` Step 6, so no `/auto-pilot` edit needed — not duplicated). · Test: AC-4 ✓ (runs with no human invoke; gated on `$didWork` so idle cycles skip)
 - [x] S2.2 — Retro shipped (same `reflect` batch). Reviews the cycle's git diff + test/lint/gate FAILURES and files real preventive follow-ups as propose-only `inbox` ideas via `/idea add`; **prompt hard-binds the retro to EXTERNAL signal only, never self-opinion** (AC-5 / the coherence trap), and "file nothing" is the correct outcome when no grounded follow-up exists. Never auto-accepts. · Test: AC-5
 - [x] S2.3 — Surface-next shipped (same batch): runs `/idea sort` (re-rank + wildcard) then pushes ONE Discord digest via `ask-cli report` with what the cycle did + top candidate + a single next-action (Option C discipline folded in). Batch is gate-sync wrapped so the digest reaches Discord. · Test: AC-6. Verified: parse OK, dry-run both branches (idle→skip; opted-in plan→reflection WOULD run).
 
@@ -152,7 +152,7 @@ scope here, noted as a follow-up idea).
 
 ## Decisions to distill
 
-To land in `platform/06-knowledge-ledger.md` + the relevant `decisions.md` at `/session-wrap`:
+To land in `platform/registries/knowledge-ledger.md` + the relevant `decisions.md` at `/session-wrap`:
 
 - The closed loop = chaining verified pieces + automating the human-decision handoffs BETWEEN them, NOT a rebuild; the missing links were idea→plan graduation, enrol gate, auto-wrap, and retro→todo.
 - Fresh-`claude -p`-per-cycle is the answer to "context >60% degrades intelligence" — Anthropic recommends fresh context over compaction; we never grow a long session, so there is nothing to auto-compact.

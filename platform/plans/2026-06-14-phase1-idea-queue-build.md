@@ -5,7 +5,7 @@ created: 2026-06-14
 updated: 2026-06-14
 related:
   - platform/plans/2026-06-14-phase1-idea-queue-proposal.md
-  - platform/10-idea-queue.md
+  - platform/registries/idea-queue.md
   - .claude/skills/idea/SKILL.md
 ---
 
@@ -16,11 +16,11 @@ related:
 
 
 ## Goal
-The accepted Phase 1 idea-queue is live: a maintained `10-idea-queue.md`, a working `/idea` skill, and CLAUDE.md pointers
+The accepted Phase 1 idea-queue is live: a maintained `registries/idea-queue.md`, a working `/idea` skill, and CLAUDE.md pointers
 — the autonomy Layer C front door, propose-don't-execute. Design/why lives in the proposal; this file is execution state only.
 
 ## Steps
-- [x] Create `platform/10-idea-queue.md` — header (rules: gate-first, RICE, 15% interest cap, WIP≤5, oracle, dedup, prune) + seeded with 8 real in-flight ideas.
+- [x] Create `platform/registries/idea-queue.md` — header (rules: gate-first, RICE, 15% interest cap, WIP≤5, oracle, dedup, prune) + seeded with 8 real in-flight ideas.
 - [x] Create `.claude/skills/idea/SKILL.md` — lean; subcommands add/gate/sort/analyze/pushback/outcome/defer/kill/revive; propose-don't-execute invariant; anti-overlap with 07/plans; scope-discipline counter-case.
 - [x] CLAUDE.md pointers — `/idea` in Thinking & process flow; Layer-C front-door note in the Autonomy section.
 - [x] Mark proposal `Decision: ACCEPTED`; update parent `2026-06-14-agent-os-evolution.md` (Phase 1 → shipped).
@@ -32,6 +32,6 @@ Phase 2 interest model (idea-0001), Phase 3 day-log (idea-0003), Phase 4 token-b
 
 ## Decisions to distill (→ decisions.md / ledger at session-wrap)
 - The platform now has a 3-layer planning spine: `/idea` (candidate backlog) → `/brainstorming`+proposal (analyze top-1) → `/project-plan` (accepted roadmap). Don't conflate the three.
-- `10-idea-queue.md` is platform-native ideas; `07-SKILL-CANDIDATES.md` stays external-skill verdicts. Separate axes.
+- `registries/idea-queue.md` is platform-native ideas; `registries/skill-candidates.md` stays external-skill verdicts. Separate axes.
 - Self-critique on ideas MUST anchor to the supervisor's accept/reject oracle (Reflexion) — never a closed self-scoring loop (intrinsic self-correction degrades: Huang 2310.01798 / CRITIC / Reflexion).
 - Interest is a capped (≤15%) Delighter-tier bonus applied AFTER the feasibility gate — never a primary sort key.

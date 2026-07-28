@@ -1,13 +1,13 @@
 ---
 name: testing-standard
-description: Route a change to the right testing tier and spec discipline per the platform standard (platform/11-testing-standard.md). Use when deciding how to test a change, writing acceptance criteria, adding tests to a feature, or verifying cross-repo API calls. Decides test-first vs test-alongside, and which skill owns the how-to. Complements /coding-convention (naming/commits) + /vitest-server-actions + /playwright-e2e-builder (the how-to per tier).
+description: Route a change to the right testing tier and spec discipline per the platform standard (platform/standards/testing.md). Use when deciding how to test a change, writing acceptance criteria, adding tests to a feature, or verifying cross-repo API calls. Decides test-first vs test-alongside, and which skill owns the how-to. Complements /coding-convention (naming/commits) + /vitest-server-actions + /playwright-e2e-builder (the how-to per tier).
 ---
 
 # Skill: Testing & spec standard — the router
 
 This skill is the **decision layer**: given a change, it routes you to the right *tier*, says whether to write the test
 **first**, and points to the skill that owns the how-to. The *why* + the full standard live in
-`platform/11-testing-standard.md` (read it once); the per-tier mechanics live in `/vitest-server-actions` and
+`platform/standards/testing.md` (read it once); the per-tier mechanics live in `/vitest-server-actions` and
 `/playwright-e2e-builder`. This skill does **not** re-teach those — it routes.
 
 ## Step 1 — Write acceptance criteria first (for a feature / system-change)
@@ -23,7 +23,7 @@ references the AC id. Small fix/chore/same-session change ⇒ skip ACs (standard
 | A **pure-logic** function (no I/O, deterministic, output=f(inputs)) | Pure logic | **YES — TDD: red→green→refactor** | `/vitest-server-actions` §1 |
 | A **server action** / data-layer call (validate → Prisma → revalidate) | Server actions | No — test-alongside | `/vitest-server-actions` §2 |
 | A **component** with user-observable behaviour | Components | No — test-alongside | `/vitest-server-actions` §3 |
-| One repo **calling another repo's HTTP API** (todo↔core, web↔core, MCP) | Cross-repo seam | No — write the **contract** | Contract-test template → `templates/contract-test.example.ts` + `08-SHARED-ASSETS.md` |
+| One repo **calling another repo's HTTP API** (todo↔core, web↔core, MCP) | Cross-repo seam | No — write the **contract** | Contract-test template → `templates/contract-test.example.ts` + `registries/shared-assets.md` |
 | A **critical end-to-end user flow** | E2E (sparse) | No | `/playwright-e2e-builder` |
 
 > The only **test-first mandate is pure logic** — that's where the evidence (Nagappan: defect ↓40–90%) and the lowest cost

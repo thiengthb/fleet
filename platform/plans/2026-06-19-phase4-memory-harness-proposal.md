@@ -3,7 +3,7 @@ status: superseded
 created: 2026-06-19
 kind: proposal # analyze stage of /idea → proposal → /project-plan; NOT a build plan yet
 milestone_id: closed-loop-driver-phase4
-related: 2026-06-18-closed-loop-driver.md (Phase 4), 2026-06-14-agent-os-evolution.md, 10-idea-queue.md (idea-0002, idea-0005)
+related: 2026-06-18-closed-loop-driver.md (Phase 4), 2026-06-14-agent-os-evolution.md, registries/idea-queue.md (idea-0002, idea-0005)
 research_status: PARTIAL — foundation grounded in the 2026-06-14 cited prior art; the 3 NEW mechanisms below await external research (interrupted 2026-06-19 by a session limit; re-run after reset). Per research-before-design, the new mechanisms are NOT yet designed, only framed with in-repo-precedent candidate options.
 ---
 
@@ -47,7 +47,7 @@ unattended, with Discord as the human touchpoint. Its remaining weakness is the 
 From `2026-06-14-agent-os-evolution.md §85–96` (research-before-design, cited there):
 
 - **3-tier memory (MemGPT/Letta):** core rules (CLAUDE.md) · recall day-log (`log/`) · archival ledger/decisions. Tiers
-  documented in `05-documentation-standard §2`.
+  documented in `standards/documentation §2`.
 - **Retrieval scoring prior art:** Generative Agents (Park 2023) `score = recency(exp-decay) + relevance(cosine) +
   importance(LLM-rated at write)`; pgvector + HNSW + hybrid BM25/RRF.
 - **RAG-vs-context threshold:** don't build RAG under **~50K tokens / ~150 files** — measured below to confirm we are

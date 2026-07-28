@@ -6,8 +6,8 @@ created: 2026-06-14
 related:
   - platform/plans/2026-06-14-agent-os-evolution.md
   - platform/plans/2026-06-14-autonomous-agent.md
-  - platform/09-autonomy-contract.md
-  - platform/07-SKILL-CANDIDATES.md
+  - platform/standards/autonomy-contract.md
+  - platform/registries/skill-candidates.md
   - .claude/skills/project-plan/SKILL.md
   - .claude/skills/brainstorming/SKILL.md
   - .claude/skills/honest-critique/SKILL.md
@@ -22,7 +22,7 @@ related:
 ## Problem
 
 The platform has a rich forward pipeline for **chosen** work (`/brainstorming` → `proposal.md` → `/project-plan` →
-execute → `/session-wrap`) but **no living backlog for the platform's own ideas**. `07-SKILL-CANDIDATES.md` is a
+execute → `/session-wrap`) but **no living backlog for the platform's own ideas**. `registries/skill-candidates.md` is a
 one-time evaluation ledger for *external community skills* — not a queue, no ranking, no re-prioritization cadence, no
 defer-list, no duplicate detection, no dead-idea pruning, no user-interest signal. The supervisor (solo
 architect/operator, multi-machine) wants: capture ideas → after each big feature re-sort the queue → deep-analyze the
@@ -46,14 +46,14 @@ day-log memory (Phase 3), and token-aware batching (Phase 4) all hang from. The 
 
 | Option | Benefit | Drawback / cost |
 | --- | --- | --- |
-| **A — New `platform/10-idea-queue.md` (markdown, human-editable) + a `/idea` skill that owns its lifecycle; plugs into autonomy Layer C** | Single source of truth, git-synced (travels multi-machine), the supervisor edits it directly, slots into the numbered platform-doc series (07/08/09→10), is the natural C1/C2 home. Markdown = zero infra, diff-able history. | One more file + skill to maintain; scoring is hand-maintained (mitigated by keeping scores coarse/ordinal). |
-| **B — Extend `07-SKILL-CANDIDATES.md` into a general queue** | Reuses an existing file. | Conflates two different axes (external-skill verdicts vs platform-native ideas); 07's schema (`Tier/Gap/Ships`) doesn't fit idea lifecycle. Rejected. |
+| **A — New `platform/registries/idea-queue.md` (markdown, human-editable) + a `/idea` skill that owns its lifecycle; plugs into autonomy Layer C** | Single source of truth, git-synced (travels multi-machine), the supervisor edits it directly, slots into the numbered platform-doc series (07/08/09→10), is the natural C1/C2 home. Markdown = zero infra, diff-able history. | One more file + skill to maintain; scoring is hand-maintained (mitigated by keeping scores coarse/ordinal). |
+| **B — Extend `registries/skill-candidates.md` into a general queue** | Reuses an existing file. | Conflates two different axes (external-skill verdicts vs platform-native ideas); 07's schema (`Tier/Gap/Ships`) doesn't fit idea lifecycle. Rejected. |
 | **C — Extend `/project-plan` to also hold a backlog** | One skill for plans + ideas. | Plans are forward roadmaps of **accepted** work; a backlog of **un-accepted** ideas is a different lifecycle. Conflating bloats the skill and blurs accepted vs candidate. Rejected. |
 | **D — Structured DB / SQLite queue now** | Queryable, scalable. | Premature (same verdict as RAG — tiny volume); loses human-editability + git-sync + multi-machine travel. Defer until volume warrants (parent plan's trigger). Rejected for now. |
 
 ## Recommendation
 
-**Option A.** A markdown `10-idea-queue.md` + a thin `/idea` skill, built as autonomy **Layer C**. Markdown keeps it
+**Option A.** A markdown `registries/idea-queue.md` + a thin `/idea` skill, built as autonomy **Layer C**. Markdown keeps it
 human-editable, git-synced across machines, and diff-able — and it's the lowest-infra thing that delivers the full
 lifecycle. Not B/C (axis-conflation), not D (premature infra). The `/idea` skill owns intake, the gate→score→interest
 ranking, the re-sort cadence, pushback, dedup, the defer-list, and pruning; the autonomy C1 "Proposer" behavior
@@ -62,7 +62,7 @@ gate** — propose-don't-execute, never self-accepts an idea into a plan.
 
 ## Design detail (the "thật chi tiết" part)
 
-### Artifact: `platform/10-idea-queue.md`
+### Artifact: `platform/registries/idea-queue.md`
 
 A header (rules + WIP cap + interest-cap) followed by one block per idea. Human + agent both edit it. Stable `id`s.
 
@@ -124,7 +124,7 @@ formalizes the user model.
 
 ### Skill: `/idea`
 
-Thin skill owning `10-idea-queue.md`. Subcommands (mirrors how `/project-plan` is structured):
+Thin skill owning `registries/idea-queue.md`. Subcommands (mirrors how `/project-plan` is structured):
 - `/idea add "<title>"` — capture to `inbox` (+ dedup check → flag if match).
 - `/idea sort` — re-score + re-rank `active`; the post-feature cadence ritual; optionally run C1 gap-analysis to add `inbox` ideas (grounded, not vibes).
 - `/idea analyze` — deep-dive the top-1 `active` idea → write its `proposal.md` → `proposed`.
@@ -135,7 +135,7 @@ Thin skill owning `10-idea-queue.md`. Subcommands (mirrors how `/project-plan` i
 
 - This **is** Layer C: `/idea sort`'s gap-analysis = C1 Proposer; the WIP-capped queue + Reflexion `outcome` memory = C2; C3 = the cadence wiring.
 - **Propose-don't-execute is preserved:** the agent may add/score/rank/pushback autonomously (T1/T2), but turning a `proposed` idea into a plan **requires the supervisor's `accept`** — the `autonomy-gate.mjs` already blocks autonomous self-acceptance, and writing a plan from an idea is the human-gated step.
-- **Governance:** `10-idea-queue.md` is a normal doc (NOT under the governance-locked `settings/hooks/skills/memory/CLAUDE.md` set), so the agent may maintain it; the `/idea` skill file itself is governance-locked (human commits it), consistent with the contract.
+- **Governance:** `registries/idea-queue.md` is a normal doc (NOT under the governance-locked `settings/hooks/skills/memory/CLAUDE.md` set), so the agent may maintain it; the `/idea` skill file itself is governance-locked (human commits it), consistent with the contract.
 - Feeds the existing pipeline: accepted idea → `/project-plan` → `docs/plans/…` → `auto-pilot` can advance it. The queue is the **front door**, not a replacement for plans.
 
 ## Pre-mortem — REQUIRED: ≥2 failure modes
@@ -153,5 +153,5 @@ enough that it never costs more attention than the ideas are worth, and be willi
 
 ## Decision (human) — 2026-06-14
 
-**ACCEPTED** by the supervisor. → Build per the Design detail above: create `platform/10-idea-queue.md` + the
+**ACCEPTED** by the supervisor. → Build per the Design detail above: create `platform/registries/idea-queue.md` + the
 `/idea` skill, wire the CLAUDE.md pointer. Execution tracked in `2026-06-14-phase1-idea-queue-build.md`.
