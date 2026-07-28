@@ -52,7 +52,7 @@ const ROW_BUDGET = 200;
 const STEP4_CONTROL = `## Step 4 — Cross-project lesson → \`06-knowledge-ledger.md\`
 
 Does this knowledge apply to **≥2 projects** or to **the platform itself**? → add one line to section A of
-\`nuc-platform/06-knowledge-ledger.md\` (date · one-line lesson · applies to · pointer to detail). If the project is creating its
+\`platform/06-knowledge-ledger.md\` (date · one-line lesson · applies to · pointer to detail). If the project is creating its
 \`decisions.md\` for the first time → add/edit the pointer in section B.
 `;
 
@@ -60,7 +60,7 @@ const STEP4_TREATMENT = `## Step 4 — Cross-project lesson → the ledger (inde
 
 Does this knowledge apply to **≥2 projects** or to **the platform itself**? Then it is **two writes, not one**:
 
-1. **Detail** → append the full entry to \`nuc-platform/ledger/YYYY-MM.md\` (current month):
+1. **Detail** → append the full entry to \`platform/ledger/YYYY-MM.md\` (current month):
    \`\`\`markdown
    ### 2026-07-28 — <headline, the same text you'll put in the index>
 
@@ -68,7 +68,7 @@ Does this knowledge apply to **≥2 projects** or to **the platform itself**? Th
 
    **<headline>** — full reasoning, the failure it came from, what to do instead. As long as it needs to be.
    \`\`\`
-2. **Index** → add ONE row to section A of \`nuc-platform/06-knowledge-ledger.md\`:
+2. **Index** → add ONE row to section A of \`platform/06-knowledge-ledger.md\`:
    \`\`\`markdown
    | 2026-07-28 | <headline, ≤120 chars, no detail> | [→](ledger/2026-07.md#2026-07-28-headline-slugified) |
    \`\`\`
@@ -158,14 +158,14 @@ function buildSandbox(arm) {
   // That leaked the structure under test into the control fixture — the control model saw an empty
   // ledger/ directory that did not exist in the pre-2026-07-28 world, and one run duly split its entry
   // into it. Control now gets exactly the world it had: no ledger/ directory at all.
-  mkdirSync(join(dir, "nuc-platform"), { recursive: true });
+  mkdirSync(join(dir, "platform"), { recursive: true });
   writeFileSync(join(dir, "SESSION-WRAP-STEP-4.md"), arm === "control" ? STEP4_CONTROL : STEP4_TREATMENT);
   if (arm === "control") {
-    writeFileSync(join(dir, "nuc-platform", "06-knowledge-ledger.md"), LEDGER_CONTROL);
+    writeFileSync(join(dir, "platform", "06-knowledge-ledger.md"), LEDGER_CONTROL);
   } else {
-    mkdirSync(join(dir, "nuc-platform", "ledger"), { recursive: true });
-    writeFileSync(join(dir, "nuc-platform", "06-knowledge-ledger.md"), LEDGER_TREATMENT_INDEX);
-    writeFileSync(join(dir, "nuc-platform", "ledger", "2026-07.md"), LEDGER_TREATMENT_DETAIL);
+    mkdirSync(join(dir, "platform", "ledger"), { recursive: true });
+    writeFileSync(join(dir, "platform", "06-knowledge-ledger.md"), LEDGER_TREATMENT_INDEX);
+    writeFileSync(join(dir, "platform", "ledger", "2026-07.md"), LEDGER_TREATMENT_DETAIL);
   }
   return dir;
 }
@@ -195,7 +195,7 @@ function runArm(dir, lesson) {
 
 /** Deterministic: measure the files, never ask the model what it did. */
 function measure(dir, arm) {
-  const idxPath = join(dir, "nuc-platform", "06-knowledge-ledger.md");
+  const idxPath = join(dir, "platform", "06-knowledge-ledger.md");
   const rows = readFileSync(idxPath, "utf8")
     .split("\n")
     .filter((l) => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));
@@ -205,7 +205,7 @@ function measure(dir, arm) {
   // HARNESS DEFECT #2 (found + fixed 2026-07-28, first run): this used to look only at `2026-07.md`, so a
   // control run that wrote `2026-07-28-green-ci-not-deployed.md` was scored detailWritten=false — a false
   // negative that flattered the treatment arm. Measure the whole directory, whatever the model named it.
-  const ledgerDir = join(dir, "nuc-platform", "ledger");
+  const ledgerDir = join(dir, "platform", "ledger");
   const detailBefore = arm === "control" ? 0 : LEDGER_TREATMENT_DETAIL.length;
   const detailAfter = existsSync(ledgerDir)
     ? readdirSync(ledgerDir).reduce((n, f) => n + readFileSync(join(ledgerDir, f), "utf8").length, 0)

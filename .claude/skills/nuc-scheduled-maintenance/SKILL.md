@@ -42,7 +42,7 @@ monthly ones only if they earn it.
 2. For delivery, prefer a push notification or a written summary the user reads later — not a silent log.
 3. Cadence sanity: weekly for drift/deps (cheap, high-signal), monthly for the deeper scans. Hourly/daily liveness is
    nuc-monitor's job — don't add it here.
-4. **Log what you scheduled** so it's not invisible: note the job + cadence in `nuc-platform/INVENTORY.md` (or the ops
+4. **Log what you scheduled** so it's not invisible: note the job + cadence in `platform/INVENTORY.md` (or the ops
    doc) the same way any other standing platform fact is recorded.
 
 ## Done when

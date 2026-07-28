@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Manage the platform's living idea backlog in nuc-platform/10-idea-queue.md — capture, gate+score+rank, re-sort after each big feature, deep-analyze the top idea into a proposal, push back on biased/infeasible/duplicate ideas, and prune the dead. Use when the user says "add an idea / what should we build next / re-sort the queue / analyze the top idea", after a feature ships, or when capturing something for later. Propose-don't-execute: a human accepts before an idea becomes a plan.
+description: Manage the platform's living idea backlog in platform/10-idea-queue.md — capture, gate+score+rank, re-sort after each big feature, deep-analyze the top idea into a proposal, push back on biased/infeasible/duplicate ideas, and prune the dead. Use when the user says "add an idea / what should we build next / re-sort the queue / analyze the top idea", after a feature ships, or when capturing something for later. Propose-don't-execute: a human accepts before an idea becomes a plan.
 ---
 
 # Skill: Idea queue & lifecycle (idea)
@@ -8,7 +8,7 @@ description: Manage the platform's living idea backlog in nuc-platform/10-idea-q
 The **intake half** of the Knowledge OS: `/brainstorming` explores one idea's solution space, `/project-plan` persists
 an *accepted* plan — this skill owns everything *before* acceptance: the living backlog of platform-native ideas, their
 ranking, and their lifecycle. It IS the autonomy roadmap's **Layer C "Proposer."** Source of truth:
-`nuc-platform/10-idea-queue.md` (the file's header carries the rules — read it first). Design + the *why*:
+`platform/10-idea-queue.md` (the file's header carries the rules — read it first). Design + the *why*:
 `plans/2026-06-14-phase1-idea-queue-proposal.md`. Contract: `09-autonomy-contract.md` (propose-don't-execute).
 
 > **Anti-overlap:** `07-SKILL-CANDIDATES.md` = external community-skill verdicts (NOT here). `docs/plans/` = *accepted*
@@ -27,7 +27,7 @@ gate is theirs. (This is the rule the supervisor flagged: I had been self-accept
 
 ## Subcommands (how to act)
 
-Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; keep scores coarse (ordinal hints).
+Each edits `platform/10-idea-queue.md`. Keep blocks in the file's schema; keep scores coarse (ordinal hints).
 
 - **`/idea add "<title>"`** — capture to `state: inbox`. Immediately run the **dedup check** (title + semantic match vs
   every `active`/`deferred` block). Match → set `dedup_of: <id>`, leave `inbox`, and **flag the supervisor** to decide
@@ -62,7 +62,7 @@ Each edits `nuc-platform/10-idea-queue.md`. Keep blocks in the file's schema; ke
   fit: write `pushback:` with the reasoning **and propose a better-fit alternative idea**; surface both, let the
   supervisor choose. This is the core of "don't let the agent tự biên tự diễn" — challenge, don't comply blindly.
 - **`/idea outcome <id> accept|reject "<why>"`** — record the supervisor's **oracle** signal in `outcome:`. On `accept`
-  → hand to `/project-plan` (the idea graduates to a `docs/plans/` or `nuc-platform/plans/` roadmap), set `done` when shipped.
+  → hand to `/project-plan` (the idea graduates to a `docs/plans/` or `platform/plans/` roadmap), set `done` when shipped.
   On `reject` → `deferred` (with `revisit_when`) or `dead`. The `why` accumulates as Reflexion memory that biases future
   gap-analysis away from rejected patterns.
 
@@ -72,7 +72,7 @@ When the loop runs unattended, the scheduled wrapper detects an **accepted-but-u
 block still sitting ABOVE the `## Done` divider) and fires ONE bounded graduation batch. That batch graduates the idea
 into a **`draft`** plan — it does **not** auto-execute it:
 
-- Writes `nuc-platform/plans/<date>-<slug>.md` from `project-plan/templates/plan.md`, carrying Goal / Context / Approach /
+- Writes `platform/plans/<date>-<slug>.md` from `project-plan/templates/plan.md`, carrying Goal / Context / Approach /
   Prior-art forward from the proposal + the supervisor's chosen option (named in the `outcome:` line). Frontmatter is
   **`status: draft`** — a draft is a proposal, not a work order. Execution waits for the human to accept it and flip
   the plan to `active`. *(The old `auto_pilot:` flag and its signed enrol gate were removed 2026-07-28 with auto-pilot.)*

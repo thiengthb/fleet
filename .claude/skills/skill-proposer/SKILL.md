@@ -7,7 +7,7 @@ description: Induce a DRAFT skill from a process the agent has repeated ≥3× a
 
 The self-improvement loop, made **governance-safe**. Hermes auto-creates *and auto-installs* skills (a closed loop, no
 human); a skill here IS governance, so this skill captures Hermes' value — detect a repeated process, draft a skill for it,
-check its own work — and **refuses Hermes' dangerous half**: it drafts into a sandbox (`nuc-platform/skill-proposals/`) and
+check its own work — and **refuses Hermes' dangerous half**: it drafts into a sandbox (`platform/skill-proposals/`) and
 a human reviews + installs. The agent **never** writes to `.claude/skills/` (the `autonomy-gate.mjs` backstop hard-blocks it).
 Design + the why + sources (Hermes/Voyager/ADAS/Anthropic): `plans/2026-06-14-skill-proposer-induction-proposal.md`.
 
@@ -22,7 +22,7 @@ sandbox is outside the governance lock). Turning a proposal into an installed sk
 
 ## Procedure
 
-1. **Detect (rule of three).** Scan the recall-tier day-log (`nuc-platform/log/`) + git history for a *multi-step process
+1. **Detect (rule of three).** Scan the recall-tier day-log (`platform/log/`) + git history for a *multi-step process
    that recurred ≥3×* (the `/code-reuse` rule-of-three, applied to procedure not code). A human-meaningful process, not
    coincidentally-similar tool calls — this is an LLM judgement grounded in the day-log "What happened", not a regex.
 2. **Dedup.** Compare against the existing `.claude/skills/` (name + purpose). Overlaps an existing skill? → don't draft a
@@ -32,7 +32,7 @@ sandbox is outside the governance lock). Turning a proposal into an installed sk
    in the ≥3 concrete instances** (cite them) — generalized from real recurrence, never invented.
 4. **Self-verify (Voyager).** Before filing, check: does it generalize across the instances without overfitting? is the
    core lean? does the description carry what+when? what did it dedup against? Record these in the proposal frontmatter.
-5. **File the proposal** into `nuc-platform/skill-proposals/<name>.md` (copy `_TEMPLATE.md`; `status: proposed`). **Stop
+5. **File the proposal** into `platform/skill-proposals/<name>.md` (copy `_TEMPLATE.md`; `status: proposed`). **Stop
    there.** Tell the human it awaits their security review + install. Do not write to `.claude/skills/`.
 
 ## Guards (anti-sprawl — the platform already has 47 skills)

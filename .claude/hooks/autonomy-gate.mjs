@@ -35,7 +35,7 @@
 // entrypoint (an IDE, the desktop app) would then break hands-on work, and a gate that gets in the way
 // gets disabled. Explicitly set CLAUDE_AUTONOMOUS=1 in any scheduled/remote run's config.
 //
-// Tiers + full contract: nuc-platform/09-autonomy-contract.md. This is enforcement, not policy.
+// Tiers + full contract: platform/09-autonomy-contract.md. This is enforcement, not policy.
 
 import { existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -81,7 +81,7 @@ function block(reason) {
     `[autonomy-gate] BLOCKED (autonomous mode): ${reason}\n` +
       `This is a T3/T4 action — irreversible, outward, or governance-altering — and must NOT run unattended.\n` +
       `PARK it: record the intent in the plan as a step needing human approval, post a digest, continue safe-zone work.\n` +
-      `Contract: nuc-platform/09-autonomy-contract.md`,
+      `Contract: platform/09-autonomy-contract.md`,
   );
   process.exit(2);
 }

@@ -7,7 +7,7 @@ description: Health-check & sync the NUC platform — reconcile INVENTORY.md aga
 
 Goal: catch **drift** (table ↔ reality mismatch) and **junk** (orphans) BEFORE they become "little
 bugs". This skill **only reads & reports**; every destructive action (deleting a volume/image) must **ask the user**
-and only happen with consent. Source of truth: [`nuc-platform/INVENTORY.md`](../../../nuc-platform/INVENTORY.md).
+and only happen with consent. Source of truth: [`platform/INVENTORY.md`](../../../platform/INVENTORY.md).
 
 SSH NUC: `ssh thien25@thienminiserver`. Run the check groups A–K in order (A–J over SSH; K runs local), gather the results into
 one report with ✅/⚠️/❌ sections then propose fixes.
@@ -121,7 +121,7 @@ added by hand, bypassing `/nuc-new-project`) → ⚠️ fix the classification. 
 incomplete `/nuc-remove-project`) → ⚠️.
 
 Then reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
-(`nuc-platform/05-documentation-standard.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
+(`platform/05-documentation-standard.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
 (NOT over SSH — the doc-set lives in the dev repo):
 
 ```bash

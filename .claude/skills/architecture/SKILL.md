@@ -38,7 +38,7 @@ description: A decision framework for SYSTEM-level / architecture choices — fr
 | Feature-level "what are my options" | `/brainstorming` (then this for the structural ones) |
 | Database/ORM/schema choice | `/database-design` (+ `/prisma-expert`) |
 | Recording the decided rationale | `docs/decisions.md` (via `/session-wrap`) |
-| The platform's existing topology | `nuc-platform/01-architecture-and-operations.md` |
+| The platform's existing topology | `platform/01-architecture-and-operations.md` |
 
 ## Validation checklist
 

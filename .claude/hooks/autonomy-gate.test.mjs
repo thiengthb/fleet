@@ -88,8 +88,8 @@ check('autonomous: Edit to a hook → BLOCK (Edit is gated too, not just Write)'
 
 // ---- Safe-zone writes ------------------------------------------------------
 check('autonomous: Write app code → ALLOW', () => assert.equal(write('sakubun/lib/foo.ts'), ALLOW));
-check('autonomous: Write a doc → ALLOW', () => assert.equal(write('nuc-platform/05-documentation-standard.md'), ALLOW));
-check('autonomous: Write a plan → ALLOW', () => assert.equal(write('nuc-platform/plans/2026-07-28-x.md'), ALLOW));
+check('autonomous: Write a doc → ALLOW', () => assert.equal(write('platform/05-documentation-standard.md'), ALLOW));
+check('autonomous: Write a plan → ALLOW', () => assert.equal(write('platform/plans/2026-07-28-x.md'), ALLOW));
 check('autonomous: Write a test → ALLOW', () => assert.equal(write('sakubun/lib/foo.test.ts'), ALLOW));
 
 // ---- Outward actions (T3) — no release path exists any more -----------------

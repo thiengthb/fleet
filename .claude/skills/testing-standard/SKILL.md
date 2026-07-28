@@ -1,13 +1,13 @@
 ---
 name: testing-standard
-description: Route a change to the right testing tier and spec discipline per the platform standard (nuc-platform/11-testing-standard.md). Use when deciding how to test a change, writing acceptance criteria, adding tests to a feature, or verifying cross-repo API calls. Decides test-first vs test-alongside, and which skill owns the how-to. Complements /coding-convention (naming/commits) + /vitest-server-actions + /playwright-e2e-builder (the how-to per tier).
+description: Route a change to the right testing tier and spec discipline per the platform standard (platform/11-testing-standard.md). Use when deciding how to test a change, writing acceptance criteria, adding tests to a feature, or verifying cross-repo API calls. Decides test-first vs test-alongside, and which skill owns the how-to. Complements /coding-convention (naming/commits) + /vitest-server-actions + /playwright-e2e-builder (the how-to per tier).
 ---
 
 # Skill: Testing & spec standard — the router
 
 This skill is the **decision layer**: given a change, it routes you to the right *tier*, says whether to write the test
 **first**, and points to the skill that owns the how-to. The *why* + the full standard live in
-`nuc-platform/11-testing-standard.md` (read it once); the per-tier mechanics live in `/vitest-server-actions` and
+`platform/11-testing-standard.md` (read it once); the per-tier mechanics live in `/vitest-server-actions` and
 `/playwright-e2e-builder`. This skill does **not** re-teach those — it routes.
 
 ## Step 1 — Write acceptance criteria first (for a feature / system-change)

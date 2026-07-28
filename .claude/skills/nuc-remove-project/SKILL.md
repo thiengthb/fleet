@@ -10,7 +10,7 @@ affecting other services** and **leaving no junk** (orphan volume, hanging Authe
 wrong registry row, nuc-monitor noise). Work SEQUENTIALLY; each stage has a VERIFICATION.
 
 The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law. The source of truth about apps:
-[`nuc-platform/INVENTORY.md`](../../../nuc-platform/INVENTORY.md). SSH NUC: `ssh thien25@thienminiserver`.
+[`platform/INVENTORY.md`](../../../platform/INVENTORY.md). SSH NUC: `ssh thien25@thienminiserver`.
 
 > ⚠️ **Deleting a volume = permanent data loss.** Before tearing anything down, LOOK at it
 > (what the volume contains, whether it needs a backup) and **CONFIRM with the user** the exact project + that they accept the
@@ -40,7 +40,7 @@ Authentik provider/app/group (if any), domain, repo} for this project.
 ```powershell
 Remove-Item -Recurse -Force "D:\Projects\MiniServer\<name>"
 ```
-(Delete only the project directory; do NOT touch `.claude/`, `nuc-platform/`, or another project.)
+(Delete only the project directory; do NOT touch `.claude/`, `platform/`, or another project.)
 
 ## Stage 2 — Tear down on the NUC (container → volume → image → dir)
 
@@ -128,7 +128,7 @@ Ask the user whether they want to delete the repo — some projects are only rem
 
 ## Stage 7 — Update the registry (MANDATORY — anti-drift)
 
-1. **`nuc-platform/INVENTORY.md`:** remove the app's row from **§0** (the project map — its `domain`/`kind`/path)
+1. **`platform/INVENTORY.md`:** remove the app's row from **§0** (the project map — its `domain`/`kind`/path)
    AND from §1 (apps); remove the provider/group row from §3 (if any); add a line to §6 "Decommissioned apps" with
    the date + what was deleted.
 2. **`authentik/docs/auth-apps.md`** (if the app is listed there): remove the app's entry, note "Removed

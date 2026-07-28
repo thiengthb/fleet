@@ -12,7 +12,7 @@
 # transcript) AND auto-heal kept the orphan instead of dropping it. Fix: a real env key is a short identifier, so we
 # bound the key name to <=64 chars (KEYMAX). A long-base64 orphan has no short `key=` prefix -> it never matches ->
 # it's neither listed (no leak) nor kept (auto-heal drops it, self-cleaning a corrupted .env). See
-# nuc-platform/plans/2026-06-14-autonomous-agent.md B4b.3 finding #1 + [[never-print-secret-file-contents]].
+# platform/plans/2026-06-14-autonomous-agent.md B4b.3 finding #1 + [[never-print-secret-file-contents]].
 set -eu
 
 app="${1:-}"

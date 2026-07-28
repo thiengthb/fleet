@@ -1,12 +1,12 @@
 ---
 name: session-wrap
-description: Wrap up a work session on a MiniServer project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to nuc-platform/06-knowledge-ledger.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
+description: Wrap up a work session on a MiniServer project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to platform/06-knowledge-ledger.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
 ---
 
 # Skill: Wrap up the session & accumulate knowledge (session-wrap)
 
 This is the **compounding** mechanism: turn what was just done in the session into committed knowledge the next session
-can read. The recording standard + where to record follow `nuc-platform/05-documentation-standard.md §5–§6`. Run at the END of a significant
+can read. The recording standard + where to record follow `platform/05-documentation-standard.md §5–§6`. Run at the END of a significant
 work pass (not after every little edit).
 
 Filtering principle: **only record the non-obvious** — the thing that, if the next session didn't know it, would lead to *repeating a mistake /
@@ -19,10 +19,10 @@ obvious field) → do NOT record.
 - What did this session do? Based on: the pending changes (`git status`/`git diff --stat`), the session's new
   commits, and the conversation thread. Silently summarize 3–6 bullets of "what changed".
 
-## Step 1.5 — Write the recall digest → `nuc-platform/log/YYYY-MM-DD.md` (the temporal tier)
+## Step 1.5 — Write the recall digest → `platform/log/YYYY-MM-DD.md` (the temporal tier)
 
 Before distilling the *why* (Steps 2–4), persist the *what* as a dated **recall** entry — so "what happened around when /
-at milestone X" is answerable later. Append today's digest to `nuc-platform/log/YYYY-MM-DD.md` (create from
+at milestone X" is answerable later. Append today's digest to `platform/log/YYYY-MM-DD.md` (create from
 `log/_TEMPLATE.md` if today's file doesn't exist; schema + tier rules in `log/README.md`):
 
 - One `type: episodic` block with frontmatter (`id`, `created`, `importance` 1–10, `milestone_id`, `related_ids`,
@@ -75,7 +75,7 @@ inherits the roadmap.
 
 Does this knowledge apply to **≥2 projects** or to **the platform itself**? Then it is **two writes, not one**:
 
-1. **Detail** → append the full entry to `nuc-platform/ledger/YYYY-MM.md` (current month; create the file from the
+1. **Detail** → append the full entry to `platform/ledger/YYYY-MM.md` (current month; create the file from the
    header of the previous month's if it's a new month):
    ```markdown
    ### 2026-07-28 — <headline, the same text you'll put in the index>
@@ -84,7 +84,7 @@ Does this knowledge apply to **≥2 projects** or to **the platform itself**? Th
 
    **<headline>** — full reasoning, the failure it came from, what to do instead. As long as it needs to be.
    ```
-2. **Index** → add ONE row to section A of `nuc-platform/06-knowledge-ledger.md`:
+2. **Index** → add ONE row to section A of `platform/06-knowledge-ledger.md`:
    ```markdown
    | 2026-07-28 | <headline, ≤120 chars, no detail> | [→](ledger/2026-07.md#2026-07-28-headline-slugified) |
    ```
@@ -109,7 +109,7 @@ vs the local home-dir tier — pick with its litmus). Knowledge *about the proje
 ## Step 5.5 — Skill-induction scan (cadence — like `/idea sort`)
 
 Did a **multi-step process recur** this session (and in the day-log/git ≥3× total)? → run **`/skill-proposer`**: it drafts
-a candidate skill into `nuc-platform/skill-proposals/` for a human to review + install — it never installs. **"Nothing
+a candidate skill into `platform/skill-proposals/` for a human to review + install — it never installs. **"Nothing
 worth proposing" is the normal outcome** (anti-sprawl — the platform already has many skills); only propose on a real
 rule-of-three. This is the SKILLS sibling of the `/idea sort` cadence (which re-ranks FEATURE ideas). Skip if nothing recurred.
 

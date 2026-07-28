@@ -1,7 +1,7 @@
 # Knowledge log — <project name>
 
 > Architecture decisions + pitfalls encountered + the reasoning, recorded so the **next session does not repeat mistakes**.
-> Append-only, **newest on top**. Recording standard: `nuc-platform/05-documentation-standard.md §5`.
+> Append-only, **newest on top**. Recording standard: `platform/05-documentation-standard.md §5`.
 > Record only the **non-obvious** (what code/git does not say on its own). Maintained by the `/session-wrap` skill.
 
 <!--

@@ -1,6 +1,6 @@
 ---
 name: code-reuse
-description: Before building a feature in any MiniServer project, check whether it already exists elsewhere (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — a piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog nuc-platform/08-SHARED-ASSETS.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (ui-kit owns those).
+description: Before building a feature in any MiniServer project, check whether it already exists elsewhere (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — a piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/08-SHARED-ASSETS.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (ui-kit owns those).
 ---
 
 # Code reuse across projects (DRY across independent repos)
@@ -25,7 +25,7 @@ It does **not** fire for an in-repo refactor (ordinary coding) or for visual sha
 
 ## Step 1 — Look before you build (this is the whole point)
 
-1. **Read the catalog first:** `nuc-platform/08-SHARED-ASSETS.md`. It is the cheap index of "what reusable thing
+1. **Read the catalog first:** `platform/08-SHARED-ASSETS.md`. It is the cheap index of "what reusable thing
    already exists and where its canonical copy lives." If the thing is listed → reuse per its share mechanism; skip the grep.
 2. If not listed, **grep the sibling projects** for prior art before writing anything new:
    ```bash

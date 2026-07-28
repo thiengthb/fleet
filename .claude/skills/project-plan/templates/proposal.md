@@ -10,7 +10,7 @@ created: YYYY-MM-DD
   (brainstorm → proposal → /project-plan). Enforces the platform's research-before-design rule (anti-bias):
   no Recommendation until Prior art (≥2 external sources) AND Options (≥2) are filled. Propose-don't-execute —
   this is queued for HUMAN approval and never self-enters the build pipeline.
-  Contract: nuc-platform/09-autonomy-contract.md · CLAUDE.md §"Autonomous agent".
+  Contract: platform/09-autonomy-contract.md · CLAUDE.md §"Autonomous agent".
 -->
 
 ## Problem
@@ -39,7 +39,7 @@ until Prior art + Options above are populated.)
 
 > Acceptance bar: state in one line what "done & correct" looks like for the chosen option. The full testable
 > **acceptance criteria (Given/When/Then, 1 AC→1 test)** are written in the resulting `/project-plan` (standard
-> `nuc-platform/11-testing-standard.md` §3) — don't duplicate them here; the proposal decides *whether*, the plan specs *what*.
+> `platform/11-testing-standard.md` §3) — don't duplicate them here; the proposal decides *whether*, the plan specs *what*.
 
 ## Pre-mortem — REQUIRED: ≥2 failure modes
 

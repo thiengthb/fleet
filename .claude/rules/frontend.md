@@ -17,7 +17,7 @@ in **full** (not compressed to fit a line budget) at the moment it actually appl
 `/coding-convention` owns naming/commits/Prettier. Read its `SKILL.md` first; open a ref
 (`architecture`/`components`/`motion`/`ux`/`security`) when needed — the 7-step + full detail live there.
 
-## Page-frame consistency — platform std `nuc-platform/12-ui-layout-standard.md`
+## Page-frame consistency — platform std `platform/12-ui-layout-standard.md`
 
 Every page body = a shared `PageShell` (vertical rhythm + a width tier + the breadcrumb slot); the app shell `<main>`
 owns horizontal width only; breadcrumbs replace page titles on EVERY page; sidebar footer stacks + collapses to icons

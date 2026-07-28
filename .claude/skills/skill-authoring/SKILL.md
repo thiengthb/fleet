@@ -6,7 +6,7 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 # Skill Authoring & Adoption (platform meta-skill)
 
 > Principles distilled from `development/skill-creation-guide` + `writing-skills` (`davila7/claude-code-templates`) +
-> the adoption procedure this platform refined while vetting the community catalog (`nuc-platform/07-SKILL-CANDIDATES.md`).
+> the adoption procedure this platform refined while vetting the community catalog (`platform/07-SKILL-CANDIDATES.md`).
 
 ## First decide: author / adopt / fold
 

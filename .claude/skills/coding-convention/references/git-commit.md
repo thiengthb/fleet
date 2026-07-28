@@ -58,4 +58,4 @@ When scaffolding a new project (`/nuc-new-project`), install BOTH the Prettier c
 ## See also
 
 - `references/naming.md` — general English naming + style for the description body
-- `nuc-platform/05-documentation-standard.md` — the docs the pre-commit hook nudges you toward
+- `platform/05-documentation-standard.md` — the docs the pre-commit hook nudges you toward

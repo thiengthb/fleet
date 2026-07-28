@@ -7,11 +7,11 @@
 !/.gitignore
 !/.gitattributes
 !/CLAUDE.md
-!/nuc-platform/
+!/platform/
 !/.claude/
 
 # .claude: chỉ giữ skill dùng chung — bỏ state cục bộ theo máy
 /.claude/settings.local.json
 
-# nuc-platform: bỏ state cục bộ theo máy
-/nuc-platform/.claude/
+# platform: bỏ state cục bộ theo máy
+/platform/.claude/

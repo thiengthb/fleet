@@ -9,7 +9,7 @@
  * point of having an index at all.
  *
  * This script restores the invariant mechanically:
- *   - Section A rows move, in full and unedited, into nuc-platform/ledger/YYYY-MM.md
+ *   - Section A rows move, in full and unedited, into platform/ledger/YYYY-MM.md
  *   - Section A becomes a short index: date + headline + a link to the detail
  *   - Section B (project pointers) is already thin and is carried over verbatim
  *
@@ -27,8 +27,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const REPO = resolve(".");
-const LEDGER = join(REPO, "nuc-platform", "06-knowledge-ledger.md");
-const OUT_DIR = join(REPO, "nuc-platform", "ledger");
+const LEDGER = join(REPO, "platform", "06-knowledge-ledger.md");
+const OUT_DIR = join(REPO, "platform", "ledger");
 const APPLY = process.argv.includes("--apply");
 
 const HEADING_A = "## A. Cross-project lessons (content here)";

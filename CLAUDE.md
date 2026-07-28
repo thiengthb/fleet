@@ -3,7 +3,7 @@
 **Two layers. Know which one you are in.** The *agent OS* (conventions, memory, skills, docs, testing, thinking) is
 **machine-agnostic** — identical on the NUC, this PC, a laptop, a cloud runner. The *deployment* layer is **per-target**.
 
-**Every project declares a `target` in `nuc-platform/INVENTORY.md §0`** — `nuc` · `local` · `none`. It is DATA: **read
+**Every project declares a `target` in `platform/INVENTORY.md §0`** — `nuc` · `local` · `none`. It is DATA: **read
 it, never assume.** `local` (Docker on a dev machine) is a first-class target, not a degraded `nuc`; promotion is a
 deliberate `/nuc-new-project` change. INVENTORY is the **single source of truth** (app/target/volume/domain/auth) —
 read before any lifecycle change; every add/remove-app skill MUST update it. Ops → `01-architecture-and-operations.md` ·
@@ -65,7 +65,7 @@ at repo-init; ESM + Node ≥ 22; Prettier from the skill's `templates/`; never c
 
 Full law lives in **`.claude/rules/frontend.md`**, path-scoped to `**/*.tsx|jsx|css` + `**/components/**` — it loads
 automatically and in full the moment you touch a UI file, and costs nothing on sessions that don't. It carries: the
-`PageShell` page-frame std (`nuc-platform/12-ui-layout-standard.md`), the React 19 + Next App Router + Tailwind v4 +
+`PageShell` page-frame std (`platform/12-ui-layout-standard.md`), the React 19 + Next App Router + Tailwind v4 +
 shadcn/ui + Motion stack, the ship-by-default quality floor + frontend security, the mandatory-UI list (shadcn only ·
 CSS-var theming · sonner · **lucide icons only** · no emoji as icon), and `/ui-pattern-lock`. Perf → `/react-best-practices`.
 
@@ -78,7 +78,7 @@ the tab **in the same change**. Reference: `todo/app/guide/page.tsx`.
 ## Code reuse across projects — skill `/code-reuse`
 
 Independent repos → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature:** read the catalog
-**`nuc-platform/08-SHARED-ASSETS.md`** + grep sibling projects for prior art. **Rule of three:** 1× build local · 2× log
+**`platform/08-SHARED-ASSETS.md`** + grep sibling projects for prior art. **Rule of three:** 1× build local · 2× log
 as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual → `ui-kit`
 copy-in; heavy+stable+security glue (e.g. the MCP OAuth shim) → a `@thiengthb/*` package baked at CI build; lighter →
 copy-in. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST update `08-SHARED-ASSETS.md` in the
@@ -86,7 +86,7 @@ same change.
 
 ## Documentation & Knowledge OS — skills `/project-docs` `/project-plan` `/session-wrap`
 
-Full standard: **`nuc-platform/05-documentation-standard.md`**. Goal: understand a project in one cheap read; knowledge accumulates
+Full standard: **`platform/05-documentation-standard.md`**. Goal: understand a project in one cheap read; knowledge accumulates
 across sessions instead of evaporating.
 - **Context-loading path (JIT — read on need, NOT reflexively):** a trivial/chat turn or a single-file edit needs NONE
   of these. When a task TOUCHES a project, read that `<project>/docs/00-map.md` (AI-primer); read `INVENTORY §0` only for
@@ -99,7 +99,7 @@ across sessions instead of evaporating.
   `docs/plans/YYYY-MM-DD-<slug>.md` (complements `/plan` mode; small same-session changes get no file).
 - **Skills:** `/project-docs` scaffolds/audits the doc-set · `/project-plan` persists a multi-session plan · `/session-wrap`
   closes a session (write `decisions.md`, update `00-map`, distill finished plans, and for a cross-project lesson: full
-  entry in `nuc-platform/ledger/YYYY-MM.md` **+** one index row in `06-knowledge-ledger.md` — **never paste detail into
+  entry in `platform/ledger/YYYY-MM.md` **+** one index row in `06-knowledge-ledger.md` — **never paste detail into
   the index**, that is how it reached 421KB). Infra traps → `02-known-traps`.
 - **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
 
@@ -123,7 +123,7 @@ itself; neither is hand-rolled. Mechanics + write procedure live in `/memory` �
 decides. A new machine needs `git pull` **plus** its own `settings.local.json`; `.claude/hooks/memory-wiring-check.mjs`
 says so at session start if it's missing.
 
-## Autonomous agent — governance (contract `nuc-platform/09-autonomy-contract.md`)
+## Autonomous agent — governance (contract `platform/09-autonomy-contract.md`)
 
 An unattended/headless run (env `CLAUDE_AUTONOMOUS=1`) runs under a deterministic gate, NOT trust. Durable contract +
 tiers: `09-autonomy-contract.md`; roadmap: `plans/2026-06-14-autonomous-agent.md`.
@@ -167,10 +167,10 @@ process weight to the change, mirroring the autonomy T1–T4 by reversibility ×
 > `/react-best-practices` · Dockerfile → `/docker-expert` · MCP → `/mcp-builder` · external-API →
 > `/api-integration-specialist` · Python async → `/async-python-patterns` · system decision → `/architecture` ·
 > deps → `/dependabot-review`+`/supply-chain-guard` · testing → `/testing-standard` (router; standard
-> `nuc-platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
-> `/skill-authoring`. Catalog + verdicts: `nuc-platform/07-SKILL-CANDIDATES.md`.
+> `platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
+> `/skill-authoring`. Catalog + verdicts: `platform/07-SKILL-CANDIDATES.md`.
 
-## Model routing, parallelism & web research — the token levers (detail: `nuc-platform/13-token-and-research-discipline.md` — incl. §3 parallel/async: subagents · worktrees · background · `/schedule`)
+## Model routing, parallelism & web research — the token levers (detail: `platform/13-token-and-research-discipline.md` — incl. §3 parallel/async: subagents · worktrees · background · `/schedule`)
 
 **Target the *right* amount, never the *minimum*** — never trade away reasoning depth; only cut wasted context and
 over-powered staffing on mechanical work.

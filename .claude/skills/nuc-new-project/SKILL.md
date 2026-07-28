@@ -56,7 +56,7 @@ the four fits **and** no sibling shares the new purpose, use the nearest — do 
 `INVENTORY.md` §0** (add the row with its `domain` + `kind` + path, placed under its domain group) — anti-drift,
 and **run `/project-docs scaffold`** so the project is
 born with the standard doc set (`docs/00-map.md` + `docs/decisions.md`, web-app adds 01/02/03 — see
-`nuc-platform/05-documentation-standard.md`). Born-documented.
+`platform/05-documentation-standard.md`). Born-documented.
 
 ## Stage 1 — Dockerfile in the repo
 
@@ -174,7 +174,7 @@ docker logs watchtower --since 2m | tail -2    # Scanned goes up, Failed=0
 #    confirm the watchtower log "Found new image ... Stopping ... Started"
 ```
 
-A failure at any step → the debug table in `nuc-platform/01-architecture-and-operations.md` section 7.
+A failure at any step → the debug table in `platform/01-architecture-and-operations.md` section 7.
 If acceptance doesn't pass, do NOT report completion to the user.
 
 ## Stage 6 — Report

@@ -17,4 +17,4 @@ the block or try to work around it (e.g. via `cp`/Bash) — that defeats its int
 **How to apply:** build the proposed change as a full, install-ready copy in a sandbox dir (e.g.
 `<project>/plans/<x>-sandbox/` mirroring the real import-path layout), TEST it there, then hand the user exact `cp` +
 commit steps. App code in a *separate* repo (e.g. `nuc-ops-bot`) is NOT this repo's governance → edit it directly.
-Contract: `nuc-platform/09-autonomy-contract.md`. Siblings: [[research-before-design]], [[extend-dont-rebuild]].
+Contract: `platform/09-autonomy-contract.md`. Siblings: [[research-before-design]], [[extend-dont-rebuild]].

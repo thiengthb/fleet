@@ -1,11 +1,11 @@
 ---
 name: project-docs
-description: Generate & sync a project's standard doc set (00-map AI-primer, decisions log, + the 01/02/03 set for web-apps) per nuc-platform/05-documentation-standard.md. Two modes — scaffold (create missing docs from the kind's reference app) and audit (detect code↔docs drift, read-only). Use when creating a project, when docs are missing/stale, for the docs step in /nuc-new-project, or when the user says "write docs" / "do the docs still match the code".
+description: Generate & sync a project's standard doc set (00-map AI-primer, decisions log, + the 01/02/03 set for web-apps) per platform/05-documentation-standard.md. Two modes — scaffold (create missing docs from the kind's reference app) and audit (detect code↔docs drift, read-only). Use when creating a project, when docs are missing/stale, for the docs step in /nuc-new-project, or when the user says "write docs" / "do the docs still match the code".
 ---
 
 # Skill: Standard docs for a project (project-docs)
 
-Generate and keep in sync the doc set per **`nuc-platform/05-documentation-standard.md`** (read it first — that's the
+Generate and keep in sync the doc set per **`platform/05-documentation-standard.md`** (read it first — that's the
 contract; this skill is just the execution process). End goal: every project has `docs/00-map.md` (an agent
 understands it in one cheap read) + `docs/decisions.md` (accumulated knowledge), and web-app also has the full 01/02/03 set.
 
@@ -15,7 +15,7 @@ change the standard file first, then follow it.
 ## Step 0 — Determine the project & kind
 
 1. Which project (directory under `D:\Projects\MiniServer\<name>`)?
-2. Look up the `kind` in `nuc-platform/INVENTORY.md §0`. No row yet → this is a new project: ask the user for the kind
+2. Look up the `kind` in `platform/INVENTORY.md §0`. No row yet → this is a new project: ask the user for the kind
    (`web-app`/`monorepo`/`worker`/`infra`/`meta`) and **add the §0 row first** (anti-drift).
 3. The `kind` determines the mandatory file set (table §3 of 05-documentation-standard) + **the reference app to copy from**:
 
@@ -47,7 +47,7 @@ Run when the project lacks the doc-set (a new project, or an old one that's empt
 5. **Thin `CLAUDE.md`**: if there isn't one → create a short version (rules + project-specific invariants + a pointer "read
    `docs/00-map.md`"). If one exists but is bloated with spec → propose splitting the spec out into `docs/` (as `todo` did), ASK
    before cutting.
-6. **Update the index**: add/edit the project line in `nuc-platform/06-knowledge-ledger.md §B`.
+6. **Update the index**: add/edit the project line in `platform/06-knowledge-ledger.md §B`.
 7. **Do NOT commit/push automatically.** Report the files created, for the user to review. Pushing the app repo = triggers CI → ask the user.
 
 ## Mode B — audit (detect code↔docs drift)
