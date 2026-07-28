@@ -1,7 +1,7 @@
 ---
 title: Rename the platform to `fleet` and split machine-agnostic docs from per-target deployment law
 kind: refactor
-status: active
+status: done
 created: 2026-07-28
 updated: 2026-07-28
 related: [CLAUDE.md, platform/INVENTORY.md, .claude/skills/nuc-*, platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md]
@@ -26,7 +26,7 @@ The NUC has been down since 2026-07-22 and the platform is now expected to run o
 cloud. Today the machine-agnostic agent OS and the NUC-specific deployment law live in the same folder called
 `nuc-platform/`, so the naming actively misinforms. Supervisor decisions (2026-07-28): name = **`fleet`**;
 skills are renamed **and** made target-aware in the same pass, because a `/app-onboard` whose body only knows
-the NUC is a worse lie than `/app-onboard`.
+the NUC is a worse lie than the old `/nuc-new-project`.
 
 ## Approach & tradeoffs
 
@@ -87,9 +87,19 @@ Ruled out:
 
 **Batch D — close out**
 
-- [ ] D1 — Update memory files naming old paths; run `memory-audit` · Files: Modify `.claude/memory/*` · Test: `AC-5`
-- [ ] D2 — Full green run of all audits + hook tests against baseline · Files: — · Test: `AC-5`
-- [ ] D3 — Hand the working-directory rename to the user with the exact command · Files: — · Test: manual
+- [x] D1 — Memory + `CLAUDE.local.md` carry 0 stale paths/skill names (swept by A2/C3); `memory-audit` reports no orphans, no unindexed files, no cap breach · Files: `.claude/memory/*` · Test: `AC-5` ✅
+- [x] D2 — Full green run: 4/4 SessionStart hooks exit 0 · autonomy-gate 75/75 · plan-checkin pass · skill-audit 37 skills, 0 NO-SUBSTRATE, no map drift · plan-audit 5/58 clean / 106 ERROR (unchanged from pre-migration baseline) · Files: — · Test: `AC-5` ✅
+- [x] D3 — Handed to the user (see below); the rename itself stays *Out of scope* for the agent · Files: — · Test: manual
+
+### D3 — the user's step, at a session boundary (NOT during a live session)
+
+```bash
+cd ~/projects && mv miniserver-platform fleet
+```
+Then, in the new directory, recreate the gitignored wiring that holds an absolute path:
+`.claude/settings.local.json` → `"autoMemoryDirectory": "/home/thien/projects/fleet/.claude/memory"`.
+`.claude/hooks/memory-wiring-check.mjs` reports it at the next session start if this is missed.
+Optionally rename the GitHub repo and run `git remote set-url origin <new-url>`.
 
 ## Out of scope
 
