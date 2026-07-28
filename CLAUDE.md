@@ -41,70 +41,45 @@ project-lifecycle change; every add/remove-app skill MUST update it (anti-drift)
 - **Agent ↔ user chat = Vietnamese, always** — every reply/explanation/summary/question/status written TO the user. Does
   NOT override the English dev-artifact rule above; technical tokens (paths, commands, identifiers) stay as-is.
 - **Legible decision surface (the user is the supervisor/oracle — they must be able to actually supervise):**
-  ① **Explain in plain, everyday language first** — lead with "what this means / what happens next"; keep jargon (RICE,
-  MemGPT, tier names) as a labelled aside, never the main thread. ② **Flag the recommended option** — on every option
-  list (chat AND docs) mark my pick `(khuyến nghị)` + one plain sentence why; don't make the user infer it. ③ **Name the
-  gate at every approve/accept** — state which skill + which workflow step the gate belongs to and what the user's yes/no
-  does next (e.g. "đây là bước *human-accept* của `/idea` → `/project-plan`"). Detail: memory `legible-proposals-plain-language`.
+  ① **plain everyday language first** — lead with "what this means / what happens next"; jargon (RICE, MemGPT, tier
+  names) is a labelled aside, never the main thread. ② **flag the recommended option** on every option list (chat AND
+  docs) with `(khuyến nghị)` + one plain sentence why. ③ **name the gate** at every approve/accept — which skill, which
+  workflow step, what the yes/no does next. Detail: memory `legible-proposals-plain-language`.
 
 ## Coding — skill `/coding-convention` (MANDATORY before writing/editing code or committing)
 
 Procedure + checklist live in `/coding-convention/SKILL.md`. The actual rules load on demand from
 `coding-convention/references/<domain>.md` — pull only the file the task touches:
 
-- naming / general style (`const`/`===`/early return) → `references/naming.md`
-- commit message + branch + hook setup → `references/git-commit.md`
-- TS / JS, Prettier, lint/build gate → `references/typescript-style.md`
-- mandatory frontend stack + 5 UI rules → `references/ui-rules.md`
-- React component / hook / state / server-vs-client → `references/react-rules.md`
-- server action / route handler / Prisma / health endpoint → `references/backend-rules.md`
+naming/style → `naming.md` · commits + branch + hooks → `git-commit.md` · TS/JS + Prettier + lint gate →
+`typescript-style.md` · frontend stack + 5 UI rules → `ui-rules.md` · React component/hook/state/server-vs-client →
+`react-rules.md` · server action / route handler / Prisma / health → `backend-rules.md`.
 
 Hard invariants (SKILL only loads procedure): English Conventional Commits + `commit-msg` / `pre-commit` hooks installed
 at repo-init; ESM + Node ≥ 22; Prettier from the skill's `templates/`; never commit/push unless asked.
 
 ## Frontend — skill `/react-ui-craft` (MANDATORY for any React/Next UI)
 
-Owns architecture/composition/state/motion/UX-states/security (`/coding-convention` owns naming/commits/Prettier). Read
-`SKILL.md` first; open a ref (`architecture`/`components`/`motion`/`ux`/`security`) when needed — the 7-step + full detail
-live there.
-- **Page-frame consistency = platform std `nuc-platform/12-ui-layout-standard.md`:** every page body = a shared
-  `PageShell` (vertical rhythm + a width tier + the breadcrumb slot); the app shell `<main>` owns horizontal width only;
-  breadcrumbs replace page titles on EVERY page; sidebar footer stacks + collapses to icons (logout = destructive);
-  animation = **Motion** wrapped once in `<MotionConfig reducedMotion="user">` + a small reusable variant vocab. Reference
-  impl: `sakubun/components/{page-shell,app-breadcrumbs,motion-primitives}.tsx`.
-- **Stack (running in `todo`):** React 19 (Server Components/Actions, `use`, `useActionState`, `useOptimistic`,
-  ref-as-prop — **NO `forwardRef`**) + Next.js App Router *or* React+Vite + Tailwind v4 (`@theme`+OKLCH, **no
-  `tailwind.config.js`**) + shadcn/ui + Motion v12 + TS. Different stack → keep the principles, don't rewrite.
-- **Quality floor (ship by default):** accessible · responsive ≥360px · motion-safe · type-safe (Zod at the boundary) ·
-  performant (animate only `transform`/`opacity`) · handle EVERY state (loading/empty/error/optimistic). **Security:** no
-  secret in the client bundle (only `NEXT_PUBLIC_*`/`VITE_*` reach it); Server Actions/Route Handlers auth + Zod-validate
-  server-side and return a minimal DTO; no unsanitized `dangerouslySetInnerHTML`; no prod stack traces.
-- **Mandatory UI:** shadcn/ui only · dark/light via CSS vars (**no hardcoded colors**) · sonner toast · **lucide icons
-  ONLY** (never another icon set / no hand-rolled `<svg>` icon / **no emoji as a UI icon-marker**; exempt: SVG that
-  renders *data* — score-ring/gauge/sparkline — and emoji inside a text protocol the model emits verbatim) · build the
-  reusable thing ONCE.
-- **Locked UI patterns — skill `/ui-pattern-lock` (the user must never state a UI preference twice).** A project's
-  repeated-correction registry is `<project>/docs/ui-patterns.json`, gate-enforced by `lib/ui-pattern-lock.test.ts` and
-  printed by a PreToolUse hook before the session's first `.tsx` write. **The moment the user corrects or re-states a UI
-  pattern, STOP the edit and lock it FIRST** (append an entry — `forbid` / `require-with` / `manual`), then resume.
-  Locking is DATA, not a new test file. An exception goes in that entry's `allow` map with a reason; never weaken a
-  check to go green. Rules that were merely written down have already been broken three times — that is why this exists.
+Full law lives in **`.claude/rules/frontend.md`**, path-scoped to `**/*.tsx|jsx|css` + `**/components/**` — it loads
+automatically and in full the moment you touch a UI file, and costs nothing on sessions that don't. It carries: the
+`PageShell` page-frame std (`nuc-platform/12-ui-layout-standard.md`), the React 19 + Next App Router + Tailwind v4 +
+shadcn/ui + Motion stack, the ship-by-default quality floor + frontend security, the mandatory-UI list (shadcn only ·
+CSS-var theming · sonner · **lucide icons only** · no emoji as icon), and `/ui-pattern-lock`. Perf → `/react-best-practices`.
 
 ## In-app user guide — skill `/user-guide` (MANDATORY for any app with a UI)
 
-Ship an in-app `/guide` page, task-oriented. **One tab per machine-facing integration:** Discord bot/webhook → a Discord
-tab (setup, command table, notification types, troubleshooting); MCP server → an MCP tab (endpoint+auth, how to connect,
-tool table, safety). Keep tabs in sync with code (new command/tool ⇒ update the tab in the same change). Reference:
-`todo/app/guide/page.tsx`.
+Ship a task-oriented in-app `/guide` page. **One tab per machine-facing integration:** Discord → setup + command table +
+notification types + troubleshooting; MCP → endpoint+auth, how to connect, tool table, safety. New command/tool ⇒ update
+the tab **in the same change**. Reference: `todo/app/guide/page.tsx`.
 
 ## Code reuse across projects — skill `/code-reuse`
 
-Independent repos (no monorepo) → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature:** read
-the catalog **`nuc-platform/08-SHARED-ASSETS.md`** + grep sibling projects for prior art first. **Rule of three:** 1× build
-local · 2× log as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual →
-`ui-kit` copy-in; heavy+stable+security glue (e.g. the MCP OAuth shim, dup'd todo↔yakudoku) → a `@thiengthb/*` package
-(baked at CI build); lighter → copy-in/template. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST
-update `08-SHARED-ASSETS.md` in the same change.
+Independent repos → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature:** read the catalog
+**`nuc-platform/08-SHARED-ASSETS.md`** + grep sibling projects for prior art. **Rule of three:** 1× build local · 2× log
+as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual → `ui-kit`
+copy-in; heavy+stable+security glue (e.g. the MCP OAuth shim) → a `@thiengthb/*` package baked at CI build; lighter →
+copy-in. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST update `08-SHARED-ASSETS.md` in the
+same change.
 
 ## Documentation & Knowledge OS — skills `/project-docs` `/project-plan` `/session-wrap`
 
@@ -120,50 +95,49 @@ across sessions instead of evaporating.
 - **Multi-session work** (feature/refactor/migration/hard bug) → persist a plan via `/project-plan` in
   `docs/plans/YYYY-MM-DD-<slug>.md` (complements `/plan` mode; small same-session changes get no file).
 - **Skills:** `/project-docs` scaffolds/audits the doc-set · `/project-plan` persists a multi-session plan · `/session-wrap`
-  closes a session (write `decisions.md`, update `00-map`, distill finished plans, add a cross-project line to
-  `06-knowledge-ledger.md`). Infra traps → `02-known-traps`.
+  closes a session (write `decisions.md`, update `00-map`, distill finished plans, and for a cross-project lesson: full
+  entry in `nuc-platform/ledger/YYYY-MM.md` **+** one index row in `06-knowledge-ledger.md` — **never paste detail into
+  the index**, that is how it reached 421KB). Infra traps → `02-known-traps`.
 - **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
-  The pre-commit hook reminds (non-blocking) when code changes but docs don't.
 
-## Agent memory — multi-machine (skill `/memory`)
+## Agent memory — two tiers, both on native rails (skill `/memory`)
 
-The agent's memory of the **user** is **two-tier**, so it travels across machines via git instead of being trapped on
-one box. Mechanics (frontmatter, index upkeep, the write procedure) live in skill `/memory` — keep this thin.
+Memory of the **user** (not of the code — that's `decisions.md`). Both tiers use a mechanism Claude Code enforces
+itself; neither is hand-rolled. Mechanics + write procedure live in `/memory` — keep this thin.
 
-- **Shared (default) → `.claude/memory/` in the repo** — carried by `git push/pull`, so it's present on *every* machine
-  (auto-loaded each session via the `@.claude/memory/MEMORY.md` import below). Holds facts true regardless of machine:
-  who the user is, preferences, feedback, project intent, references. **Write almost everything here.** This OVERRIDES
-  the default home-directory memory path the harness describes.
-- **Local → `~/.claude/projects/<hash>/memory/`** — native home dir, NOT synced (its folder name is the repo's absolute
-  path hashed, so it differs per machine anyway). ONLY for facts bound to *this physical machine* (a local path, hostname,
-  locally-installed tool version/quirk).
+- **Shared → `.claude/memory/`** (git-synced, present on every machine). Wired as the native **auto-memory** directory
+  via `autoMemoryDirectory` in each machine's gitignored `.claude/settings.local.json`. That buys enforcement, not just
+  convention: `MEMORY.md` is capped at **200 lines / 25KB** (a write past it *errors* and demands a rewrite — anything
+  past the cap is silently dropped at load), every file gets an automatic `modified` timestamp, and the index is nudged
+  to merge/drop stale entries as it fills. Topic files are **not** loaded at startup — read on demand. Write almost
+  everything here.
+- **Local → `CLAUDE.local.md`** (gitignored, this box only): a local path, hostname, a locally-installed tool quirk.
+  Loaded every session. *Not* a second memory directory — Claude Code supports exactly one, and a second one has no
+  index and never loads (that bug cost 4 days of an unread Docker note; found 2026-07-28).
 
-**Litmus (auto-pick the tier):** "If I sat at a different computer tomorrow, would this fact still be true and useful?"
-Yes → shared (repo). No → local (home). **One fact = one file = one tier; never duplicate across tiers** (drift).
-Knowledge *about the project/code* still goes to `decisions.md`, NOT memory. New machine = just `git pull`, nothing to set up.
-
-@.claude/memory/MEMORY.md
+**Litmus:** "at a different computer tomorrow, still true and useful?" Yes → shared. No → `CLAUDE.local.md`.
+**One fact = one place; never duplicate across tiers.** Hygiene is measured, not remembered:
+`node .claude/scripts/memory-audit.mjs` reports size, index drift, orphans, overlap and staleness — report-only, a human
+decides. A new machine needs `git pull` **plus** its own `settings.local.json`; `.claude/hooks/memory-wiring-check.mjs`
+says so at session start if it's missing.
 
 ## Autonomous agent — governance (contract `nuc-platform/09-autonomy-contract.md`)
 
-An unattended/headless run (env `CLAUDE_AUTONOMOUS=1`) operates under a deterministic gate, NOT trust. Keep this thin —
-durable contract + decision tiers in `09-autonomy-contract.md`; build roadmap in `plans/2026-06-14-autonomous-agent.md`.
+An unattended/headless run (env `CLAUDE_AUTONOMOUS=1`) runs under a deterministic gate, NOT trust. Durable contract +
+tiers: `09-autonomy-contract.md`; roadmap: `plans/2026-06-14-autonomous-agent.md`.
 - **Hard, non-negotiable:** never push `main` / deploy / run a destructive command unattended; and the agent **NEVER
   edits its own governance** (`.claude/settings*.json`, `hooks/**`, `skills/**`, `memory/**`, any `CLAUDE.md`,
   `.github/workflows/**`, `.env*`) — it may *propose*, a human commits (the CVE-2025-53773 lesson). Enforced by
-  `autonomy-gate.mjs` (PreToolUse), not by good intentions.
-- **Tiers:** T1 read / T2 reversible-local-branch → autonomous; T3 outward (PR/Discord/dep/CI) → notify+gate; T4
-  irreversible/high-blast → hard-blocked. Test: "undo in <5 min, no external side-effect?" No ⇒ T4.
+  `autonomy-gate.mjs` (PreToolUse), not by good intentions. **Tiers:** T1 read / T2 reversible-local-branch →
+  autonomous; T3 outward (PR/Discord/dep/CI) → notify+gate; T4 irreversible/high-blast → hard-blocked. Test: "undo in
+  <5 min, no external side-effect?" No ⇒ T4.
 - **Decide → research-before-design → propose, don't execute.** New work is proposed as a research-grounded artifact
-  (≥2 external sources, ≥2 options w/ tradeoffs) and queued for human approval — never self-entered into the build
-  pipeline. Pure self-critique is unreliable ⇒ ground gap-analysis in external standards, not the agent's opinion.
-- **Layer C (Proposer) front door = skill `/idea` + `nuc-platform/10-idea-queue.md`** — the idea backlog where
-  gap-analysis lands, gets ranked (feasibility gate first, then a capped interest bonus), and the supervisor's
-  accept/reject is the oracle that biases future proposals (Reflexion). Self-scoring in a closed loop is forbidden.
-- **Proposer for SKILLS = skill `/skill-proposer` + `nuc-platform/skill-proposals/`** (sibling of `/idea`, which proposes
-  FEATURES) — induces a DRAFT skill from a process repeated ≥3× and files it into the sandbox for a **human to review +
-  install**. **Propose-don't-install:** the agent NEVER writes to `.claude/skills/` (drafting the sandbox = T2; installing
-  = a human move = T4, gate-blocked). Adapts Hermes' detect+draft, refuses its auto-install (ADAS/Anthropic safety).
+  (≥2 external sources, ≥2 options w/ tradeoffs) queued for human approval — never self-entered into the build pipeline.
+  Pure self-critique is unreliable ⇒ ground gap-analysis in external standards, not the agent's opinion.
+- **Two proposers, both propose-don't-install:** `/idea` + `10-idea-queue.md` for FEATURES (gate-then-score ranking; the
+  supervisor's accept/reject is the oracle — self-scoring in a closed loop is forbidden), and `/skill-proposer` +
+  `skill-proposals/` for SKILLS (induces a draft from a process repeated ≥3×; the agent NEVER writes to
+  `.claude/skills/` — drafting = T2, installing = a human move = T4, gate-blocked).
 
 ## Thinking & process — match weight to the change (P-tiers), practice-first
 
@@ -194,52 +168,23 @@ process weight to the change, mirroring the autonomy T1–T4 by reversibility ×
 > `nuc-platform/11-testing-standard.md`) → `/vitest-server-actions`+`/playwright-e2e-builder` · authoring a skill →
 > `/skill-authoring`. Catalog + verdicts: `nuc-platform/07-SKILL-CANDIDATES.md`.
 
-## Model routing — staff work by weight (token discipline)
+## Model routing & web research — the two token levers (detail: `nuc-platform/13-token-and-research-discipline.md`)
 
-**Targets the *right* amount, never the *minimum*** — never trade away the reasoning depth the task needs; only cut
-wasted context + over-powered staffing on mechanical work.
-
-Model choice is **session-level**, not per-task (switching mid-session re-reads full history + drops the prompt cache =
-*costs* tokens; the agent can't switch itself anyway — only the user can).
-- **`/model` gotcha:** **Enter = persists to global `~/.claude/settings.json`** (new default for ALL sessions); press
-  **`s`** to switch THIS session only.
-- **Session rubric (set once):** architectural / security / multi-file / ambiguous / UI-craft / a strong-model-shaped
-  codebase → **Opus** (lean Opus when unsure — weak-model contamination is asymmetric). A whole session of well-specified
-  bulk-mechanical work → Sonnet.
-- **The real token lever (no quality tradeoff):** Opus = main loop (orchestrator + reviewer); delegate heavy-but-mechanical
-  work (wide reads, fan-out search, bulk transforms, migrations) to **cheaper-model subagents** (Agent tool per-agent
-  `model: 'sonnet'|'haiku'`). Their context is isolated (the real saving) and Opus reviews before accepting. Don't flip
-  `CLAUDE_CODE_SUBAGENT_MODEL` globally (cross-session side-effect).
-- **Announce every downgrade (notify, don't gate):** before spawning a subagent weaker than the main loop, state it up
-  front — one line each `label: 2–3-word task → model` (e.g. `Explore: grep auth usages → haiku`). Same-model subagents
-  get no line. This is the user's control surface over staffing.
-- **Suggest a session switch** only when the WHOLE session is mismatched — once, and tell them to use **`s`** (session-only).
-
-### Web research — the biggest token sink (read before any research / `/deep-research`)
-
-A WebFetch dumps a whole page (~5–50k tokens) into context; fan-out × pages × Opus-rate × refetch is how "30 min of
-research = a whole session". **Default to the cheapest tier; escalate only when a tier proves insufficient, and say so
-before escalating.** Four rules:
-1. **Search wide, fetch narrow.** WebSearch snippets are cheap and usually answer the question. NEVER WebFetch a page
-   unless a snippet is *both* load-bearing for the conclusion *and* insufficient on its own. Most facts come from snippets.
-2. **Distill at the edge, synthesize at the center.** A fetch subagent's raw page MUST die in its isolated context — it
-   returns ONLY `claim + 1–2-sentence extract + URL`, never the page or long quotes. That way page-tokens are paid once,
-   at cheap-model rate, and never re-billed into the main Opus thread every subsequent turn.
-3. **Model by job (research flavour of the token lever).** Mechanical web work → cheap model; judgment → Opus main loop:
-
-   | Research task | Model |
-   |---|---|
-   | Plan questions, assign disjoint sources, set the page budget, synthesize the cited report, resolve contradictions | **Opus (main loop)** |
-   | Scout: WebSearch only → titles+snippets+URLs, **no fetch** | **Haiku** |
-   | Fetch one greenlit URL → 3–8-line extract + cite (raw page dies here) | **Sonnet** (Haiku if trivial) |
-   | Adversarially verify ONE load-bearing claim, 1 pass | **Sonnet** |
-4. **Hard caps + dedup.** Main loop owns the fetched-URL set, assigns disjoint sources, never refetches. Three tiers:
-   - **Quick lookup (DEFAULT for any unqualified "research X"):** main loop self-runs 1–2 WebSearch, fetches ≤2 pages
-     only when a snippet is load-bearing+insufficient. **No subagent fan-out.** Most "research" is really this.
-   - **Standard** (escalate when Quick falls short): 1 Haiku scout → Opus picks ≤5 URLs → Sonnet fetch+distill (disjoint)
-     → Opus synthesize. **≤5 pages, ≤1 verify pass.**
-   - **Deep** (ONLY on an explicit "deep/kỹ/thorough" ask): ≤2 scouts, ≤12 pages, dedup URLs, verify only load-bearing
-     claims. The only tier allowed near the old cost — never the silent default.
+**Target the *right* amount, never the *minimum*** — never trade away reasoning depth; only cut wasted context and
+over-powered staffing on mechanical work.
+- **Session-level model choice** (the agent cannot switch itself). Architectural / security / multi-file / ambiguous /
+  UI-craft → **Opus**; a whole session of well-specified bulk-mechanical work → Sonnet. **`/model` gotcha: Enter
+  persists globally — press `s` for this session only.**
+- **The lever with no quality tradeoff:** Opus stays the main loop (orchestrator + reviewer); delegate heavy-but-mechanical
+  work (wide reads, fan-out search, bulk transforms) to **cheaper-model subagents** — their context is isolated, and Opus
+  reviews before accepting. **Announce every downgrade up front**, one line each: `label: 2–3-word task → model`. But for
+  internal investigation the main loop already holds context for, work **directly** — a cold subagent costs more.
+- **Web research is the biggest single sink.** ① **Search wide, fetch narrow** — never WebFetch unless a snippet is
+  *both* load-bearing *and* insufficient. ② **Distill at the edge** — a fetch subagent returns `claim + 1–2-sentence
+  extract + URL`, never the page. ③ **Tier it, and say so before escalating: Quick** (DEFAULT for any unqualified
+  "research X": 1–2 WebSearch, ≤2 fetches, **no fan-out**) → **Standard** (1 Haiku scout → Opus picks ≤5 URLs → Sonnet
+  fetch+distill → Opus synthesize) → **Deep** (ONLY on an explicit "deep/kỹ/thorough" ask; ≤12 pages). ④ The main loop
+  owns the fetched-URL set — never refetch.
 
 ## Project lifecycle & ops — use the right skill, don't improvise
 
