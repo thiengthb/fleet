@@ -6,7 +6,7 @@ metadata:
 ---
 
 **Read the target; do not remember it.** Every project declares `target: nuc | local | none` in
-`platform/INVENTORY.md §0`, and the NUC's own up/down state is a **NUC STATUS** block at the top of the same file.
+`platform/inventory.md §0`, and the NUC's own up/down state is a **NUC STATUS** block at the top of the same file.
 Before deploying, SSH-ing anywhere, or reporting something as live: read those two, in that file. As of 2026-07-22 the
 NUC is 🔴 down with no VPS substitute — but check, because that is exactly the kind of fact that changes without the
 memory being updated.

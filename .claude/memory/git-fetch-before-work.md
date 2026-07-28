@@ -29,8 +29,8 @@ git pull --ff-only        # if behind and clean, sync
 
 Especially before:
 - Reading `platform/plans/*-sandbox/` (sandbox dirs are deleted once installed — local stale = phantom work).
-- Reading the day-log / `06-knowledge-ledger.md` (other machines log here too).
-- Re-deriving "what's left to do" from `INVENTORY.md` / plan checkboxes.
+- Reading the day-log / `registries/knowledge-ledger.md` (other machines log here too).
+- Re-deriving "what's left to do" from `inventory.md` / plan checkboxes.
 
 ## Litmus
 

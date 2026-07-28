@@ -4,13 +4,13 @@
  *
  * ─ THE QUESTION (falsifiable) ────────────────────────────────────────────────────────────────────
  * Given the governance as it stands after 2026-07-28, does a fresh session asked to record a
- * cross-project lesson write a SHORT index row in `06-knowledge-ledger.md` **and** a separate full
+ * cross-project lesson write a SHORT index row in `registries/knowledge-ledger.md` **and** a separate full
  * entry in `ledger/YYYY-MM.md` — instead of pasting the reasoning into the index?
  *
  * Why it is worth asking: the rule "one line per lesson + a pointer" was written into the ledger's own
  * header on 2026-06-12 and violated for 203 consecutive entries, some over 2500 characters, until the
  * file reached 421KB. On 2026-07-28 the rule was RESTATED (an explicit two-write procedure in
- * `/session-wrap` Step 4, plus an invariant in `05-documentation-standard §7.2`) and the file was split.
+ * `/session-wrap` Step 4, plus an invariant in `standards/documentation §7.2`) and the file was split.
  * Restating a rule that already failed once is exactly the intervention that deserves measuring rather
  * than assuming — otherwise this is the platform's fourth documented case of writing a rule down and
  * calling it fixed.
@@ -30,7 +30,7 @@
  * case has not been tested.
  *
  * Metrics are counted from the files the model actually edited — no judge, no self-report:
- *   indexRowChars  — length of the row added to 06-knowledge-ledger.md   (lower is compliant)
+ *   indexRowChars  — length of the row added to registries/knowledge-ledger.md   (lower is compliant)
  *   detailWritten  — did a detail entry appear in ledger/YYYY-MM.md?     (treatment arm only)
  *
  * Usage:  node .claude/scripts/eval-ledger-rule.mjs           # run it
@@ -49,10 +49,10 @@ const ROW_BUDGET = 200;
 
 // ── fixtures: the exact governance text of each arm ─────────────────────────────────────────────
 
-const STEP4_CONTROL = `## Step 4 — Cross-project lesson → \`06-knowledge-ledger.md\`
+const STEP4_CONTROL = `## Step 4 — Cross-project lesson → \`registries/knowledge-ledger.md\`
 
 Does this knowledge apply to **≥2 projects** or to **the platform itself**? → add one line to section A of
-\`platform/06-knowledge-ledger.md\` (date · one-line lesson · applies to · pointer to detail). If the project is creating its
+\`platform/registries/knowledge-ledger.md\` (date · one-line lesson · applies to · pointer to detail). If the project is creating its
 \`decisions.md\` for the first time → add/edit the pointer in section B.
 `;
 
@@ -68,7 +68,7 @@ Does this knowledge apply to **≥2 projects** or to **the platform itself**? Th
 
    **<headline>** — full reasoning, the failure it came from, what to do instead. As long as it needs to be.
    \`\`\`
-2. **Index** → add ONE row to section A of \`platform/06-knowledge-ledger.md\`:
+2. **Index** → add ONE row to section A of \`platform/registries/knowledge-ledger.md\`:
    \`\`\`markdown
    | 2026-07-28 | <headline, ≤120 chars, no detail> | [→](ledger/2026-07.md#2026-07-28-headline-slugified) |
    \`\`\`
@@ -103,7 +103,7 @@ const LEDGER_TREATMENT_INDEX = `# 06 — Cross-project knowledge log (index)
 const LEDGER_TREATMENT_DETAIL = `# Knowledge ledger — 2026-07
 
 > Full text of the cross-project lessons recorded this month. The scannable index lives in
-> \`../06-knowledge-ledger.md\`; this file holds the detail it points at. **Append-only.**
+> \`../registries/knowledge-ledger.md\`; this file holds the detail it points at. **Append-only.**
 
 ---
 
@@ -161,10 +161,10 @@ function buildSandbox(arm) {
   mkdirSync(join(dir, "platform"), { recursive: true });
   writeFileSync(join(dir, "SESSION-WRAP-STEP-4.md"), arm === "control" ? STEP4_CONTROL : STEP4_TREATMENT);
   if (arm === "control") {
-    writeFileSync(join(dir, "platform", "06-knowledge-ledger.md"), LEDGER_CONTROL);
+    writeFileSync(join(dir, "platform", "registries/knowledge-ledger.md"), LEDGER_CONTROL);
   } else {
     mkdirSync(join(dir, "platform", "ledger"), { recursive: true });
-    writeFileSync(join(dir, "platform", "06-knowledge-ledger.md"), LEDGER_TREATMENT_INDEX);
+    writeFileSync(join(dir, "platform", "registries/knowledge-ledger.md"), LEDGER_TREATMENT_INDEX);
     writeFileSync(join(dir, "platform", "ledger", "2026-07.md"), LEDGER_TREATMENT_DETAIL);
   }
   return dir;
@@ -195,7 +195,7 @@ function runArm(dir, lesson) {
 
 /** Deterministic: measure the files, never ask the model what it did. */
 function measure(dir, arm) {
-  const idxPath = join(dir, "platform", "06-knowledge-ledger.md");
+  const idxPath = join(dir, "platform", "registries/knowledge-ledger.md");
   const rows = readFileSync(idxPath, "utf8")
     .split("\n")
     .filter((l) => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));

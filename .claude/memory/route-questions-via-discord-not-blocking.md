@@ -8,7 +8,7 @@ metadata:
 When the agent needs the user's input it should ask via **Discord** (the `nuc-ops-bot` channel), NOT block waiting in an
 interactive chat — the user frequently cannot sit at the machine. The user is the **supervisor of a self-running agent**,
 not an operator who babysits each turn. Every session must leave a **readable record / biên bản** (`platform/log/`,
-`decisions.md`, `06-knowledge-ledger.md`) the user can read later and use as evidence to know where to fix.
+`decisions.md`, `registries/knowledge-ledger.md`) the user can read later and use as evidence to know where to fix.
 
 **Why:** the user is burning out on being present / timing session windows; the entire point of the autonomy work is to
 **decouple progress from presence**. Treating Layer B (the supervised loop that runs only when manually launched) as "the

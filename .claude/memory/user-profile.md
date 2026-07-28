@@ -20,7 +20,7 @@ best shape" and explicitly invites pushback rather than agreement.
 ## Interest signals
 
 Explicit, human-tagged input to the idea-queue interest model (the `## /idea sort` derivation reads this section
-together with the `outcome: accept/reject` history; see `platform/10-idea-queue.md` §Rules). Keep terse, one
+together with the `outcome: accept/reject` history; see `platform/registries/idea-queue.md` §Rules). Keep terse, one
 bullet per durable preference; the supervisor edits this, not the agent. Pairs with the accept/reject oracle, never
 replaces it.
 

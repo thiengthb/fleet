@@ -33,7 +33,7 @@
     },
     {
       "id": 5,
-      "file": "platform/13-token-and-research-discipline.md",
+      "file": "platform/standards/token-and-research.md",
       "line": 109,
       "text": "| Shape | Use | Why not the others |",
       "class": "N"
@@ -75,7 +75,7 @@
     },
     {
       "id": 11,
-      "file": "platform/09-autonomy-contract.md",
+      "file": "platform/standards/autonomy-contract.md",
       "line": 48,
       "text": "| **T1 read/analyze** | read, grep, web research, write a scratch/plan/proposal file | autonomous · log only | — |",
       "class": "G"
@@ -139,7 +139,7 @@
     },
     {
       "id": 20,
-      "file": "platform/13-token-and-research-discipline.md",
+      "file": "platform/standards/token-and-research.md",
       "line": 30,
       "text": "**Announce every downgrade (notify, don't gate):** before spawning a subagent weaker than the main loop, state it up",
       "class": "G"
@@ -181,7 +181,7 @@
     },
     {
       "id": 26,
-      "file": "platform/09-autonomy-contract.md",
+      "file": "platform/standards/autonomy-contract.md",
       "line": 65,
       "text": "**Graceful degradation, never auto-escalation.** On anomaly (unexpected paths, repeated gate hits, low confidence)",
       "class": "G"
@@ -338,7 +338,7 @@
     },
     {
       "id": 48,
-      "file": "platform/05-documentation-standard.md",
+      "file": "platform/standards/documentation.md",
       "line": 42,
       "text": "Read `docs/` in depth **only when the task needs it** (fixing AI → read 02-technical §AI; writing a guide → 03-user-guide…).",
       "class": "G"
@@ -347,12 +347,12 @@
       "id": 49,
       "file": ".claude/skills/code-reuse/references/extraction-playbook.md",
       "line": 62,
-      "text": "Update `08-SHARED-ASSETS.md`: flip the row's status (DUPLICATED → SHARED), set the canonical location + mechanism, list",
+      "text": "Update `registries/shared-assets.md`: flip the row's status (DUPLICATED → SHARED), set the canonical location + mechanism, list",
       "class": "V"
     },
     {
       "id": 50,
-      "file": "platform/13-token-and-research-discipline.md",
+      "file": "platform/standards/token-and-research.md",
       "line": 112,
       "text": "| **Parallel edit** — two or more changes that touch the same tree and must not collide | one agent per **git worktree** (`isolation: \"worktree\"`) | Same-tree parallel edits corrupt each other silently. A worktree is a real checkout: conflicts surface as merges, not as lost work. |",
       "class": "G"
@@ -387,7 +387,7 @@
     },
     {
       "id": 55,
-      "file": "platform/13-token-and-research-discipline.md",
+      "file": "platform/standards/token-and-research.md",
       "line": 87,
       "text": "| **Quick lookup** | DEFAULT for any unqualified \"research X\" | main loop self-runs 1–2 WebSearch; fetches ≤2 pages only when a snippet is load-bearing **and** insufficient. **No subagent fan-out.** Most \"research\" is really this. |",
       "class": "G"

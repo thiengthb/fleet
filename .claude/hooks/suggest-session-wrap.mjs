@@ -8,7 +8,7 @@
 //   Gate 1 — substantial work : >= WORK_FILE_THRESHOLD distinct non-knowledge files edited,
 //                               OR >= TOTAL_EDIT_THRESHOLD total Edit/Write/MultiEdit calls.
 //   Gate 2 — not already wrapped : the session has NOT edited a knowledge file (decisions.md / 00-map.md /
-//                               06-knowledge-ledger.md / MEMORY.md / a personal-memory file / 02-known-traps.md).
+//                               registries/knowledge-ledger.md / MEMORY.md / a personal-memory file / registries/known-traps.md).
 //                               If it has, the user already recorded — stay silent.
 //   Marker — a per-session_id file in the OS temp dir so the nudge speaks only once.
 //
@@ -31,8 +31,8 @@ function isKnowledgeFile(p) {
     base === 'decisions.md' ||
     base === '00-map.md' ||
     base === 'memory.md' ||
-    n.includes('06-knowledge-ledger.md') ||
-    n.includes('02-known-traps.md') ||
+    n.includes('registries/knowledge-ledger.md') ||
+    n.includes('registries/known-traps.md') ||
     n.includes('/memory/') // personal-memory files live under .../memory/
   );
 }

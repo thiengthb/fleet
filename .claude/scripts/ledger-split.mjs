@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ledger-split.mjs — turn 06-knowledge-ledger.md back into an INDEX.
+ * ledger-split.mjs — turn registries/knowledge-ledger.md back into an INDEX.
  *
  * The ledger's own stated rule is: "does NOT copy content, only one line per
  * lesson + a pointer". Over ~200 entries that rule eroded — individual rows
@@ -27,7 +27,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const REPO = resolve(".");
-const LEDGER = join(REPO, "platform", "06-knowledge-ledger.md");
+const LEDGER = join(REPO, "platform", "registries/knowledge-ledger.md");
 const OUT_DIR = join(REPO, "platform", "ledger");
 const APPLY = process.argv.includes("--apply");
 
@@ -147,7 +147,7 @@ function renderMonth(month, list) {
     `# Knowledge ledger — ${month}`,
     "",
     "> Full text of the cross-project lessons recorded this month. The scannable index",
-    "> lives in `../06-knowledge-ledger.md`; this file holds the detail it points at.",
+    "> lives in `../registries/knowledge-ledger.md`; this file holds the detail it points at.",
     "> **Append-only** — a superseded lesson gets a later entry that links back, it is not edited away.",
     "",
     `${list.length} entries.`,

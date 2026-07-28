@@ -9,7 +9,7 @@ metadata:
 
 When the user proposes a new system (e.g. "should I add a memory system?"), check what the platform ALREADY
 has before designing anything new. The MiniServer platform has a deliberate Knowledge OS — `<project>/docs/
-decisions.md` (append-only why-log), `platform/06-knowledge-ledger.md` (dated cross-project timeline),
+decisions.md` (append-only why-log), `platform/registries/knowledge-ledger.md` (dated cross-project timeline),
 `docs/00-map.md`, the `/session-wrap` skill — plus the agent's two-tier file-memory (see [[memory-is-multi-machine]]).
 Recommend extending these; don't build a parallel store.
 

@@ -51,7 +51,7 @@ because nothing could see them). Related: [[legible-proposals-plain-language]], 
 pattern recurring many times be turned into a strict rule to tighten it, **especially layout-related UI**,
 without waiting for him to complain; and that **while editing code I also fix spots currently violating the
 existing strict UI rules** (don't walk past a violation). So: during a refactor/extraction, when a pattern
-hits rule-of-three (esp. layout — the `12-ui-layout-standard` concern), extract the shared component AND lock
+hits rule-of-three (esp. layout — the `standards/ui-layout` concern), extract the shared component AND lock
 it (`docs/ui-patterns.json` + a gate where mechanically checkable); and repair any strict-rule violation found
 in a file I'm already touching. This is captured as a standing principle in
 `sakubun/docs/plans/2026-07-24-optimization-maintainability-v2.md` (P1.8 + AC-8).

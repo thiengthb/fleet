@@ -49,7 +49,7 @@ function corpusFiles() {
   const rules = join(REPO, '.claude', 'rules');
   if (existsSync(rules)) for (const r of readdirSync(rules)) if (r.endsWith('.md')) out.push(join(rules, r));
   out.push(join(REPO, 'CLAUDE.md'));
-  for (const n of ['05-documentation-standard.md', '09-autonomy-contract.md', '11-testing-standard.md', '12-ui-layout-standard.md', '13-token-and-research-discipline.md']) {
+  for (const n of ['standards/documentation.md', 'standards/autonomy-contract.md', 'standards/testing.md', 'standards/ui-layout.md', 'standards/token-and-research.md']) {
     const f = join(REPO, 'platform', n);
     if (existsSync(f)) out.push(f);
   }
