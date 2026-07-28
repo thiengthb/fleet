@@ -158,7 +158,45 @@ of correct. A reviewer who cites Stripe at a project that locked the opposite pa
 | **P3** — a new screen, a redesign, a new flow | **full review**: machine + law + judgment |
 | Before a UI commit | machine pass + `/ui-pattern-lock check` |
 
-## 7. Sources
+## 7. Rollout status — the skill is installed, the routing is NOT
+
+`/ui-ux-review` lives at `.claude/skills/ui-ux-review/` (installed 2026-07-28). Two pointers are still
+missing, and until they land the skill fires **only when asked for by name** — which is most of the value
+gone, since the whole point is that touching a UI file routes you here.
+
+Both are governance, so a human applies and commits them.
+
+**① Append to the "Also relevant here" list in `.claude/rules/frontend.md`:**
+
+```markdown
+- Reviewing a RUNNING screen (not writing it) → skill `/ui-ux-review` + `platform/14-uiux-review-standard.md`.
+  Machine pass first (`npm run ui:audit` — axe/WCAG 2.2 AA, real-Tab focus walk, target size, overflow, CLS/LCP at
+  360/768/1440 + dark), then a bounded judgment pass. Rules: evidence or it's deleted · never re-find what the
+  machine report already found · ≤12 findings per screen · project law beats generic best practice.
+```
+
+**② Add after the `/react-ui-craft` paragraph in `CLAUDE.md`:**
+
+```markdown
+**Reviewing a rendered UI is a separate job from building one** → `/ui-ux-review` (std
+`platform/14-uiux-review-standard.md`): deterministic pass (axe/WCAG 2.2 AA + focus order + responsive matrix)
+before any judgment pass, and project law (`docs/ui-patterns.json` → project `CLAUDE.md` → `12-ui-layout-standard`)
+outranks generic taste.
+```
+
+**③ Open decision — a dangling skill reference.** `.claude/skills/react-ui-craft/SKILL.md` tells the agent to
+"read `frontend-design` first" for open-ended visual work, but that skill **is not installed here**, so the
+instruction points at nothing. Either adopt
+[anthropics/skills `frontend-design`](https://github.com/anthropics/skills/tree/main/skills/frontend-design)
+— its value here is the commit-to-four-tokens-before-coding step (palette / type / layout / signature element)
+— or delete the two references. Not decided.
+
+**Also open (from the first real run, on `sakubun`):** `Switch` (20px) and `Checkbox` (16px) are shadcn
+primitives under the 24px target floor, and growing them changes every form in the app; and no page has an
+`<h1>`, which follows from `12-ui-layout-standard` replacing page titles with breadcrumbs — if the breadcrumb
+*is* the heading, something still has to say so to a screen reader. Both are design calls, not defects.
+
+## 8. Sources
 
 - [Deque — automated testing identifies 57% of accessibility issues](https://www.deque.com/blog/automated-testing-study-identifies-57-percent-of-digital-accessibility-issues/)
 - [W3C — What's new in WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/) · [TetraLogical summary](https://tetralogical.com/blog/2023/10/05/whats-new-wcag-2.2/)
