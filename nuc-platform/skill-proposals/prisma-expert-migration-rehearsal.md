@@ -4,7 +4,7 @@
 proposed_name: prisma-expert-migration-rehearsal
 kind: extension # NOT a new skill — a section to paste into .claude/skills/prisma-expert/SKILL.md
 extends: prisma-expert
-status: proposed # proposed → installed | rejected
+status: installed
 created: 2026-07-27
 grounding: # rule of three, all three on REAL user data in the live sakubun container
   - "log/2026-07-26.md + sakubun `Item.challenge/challengeObservations` — Prisma turned ADD COLUMN into a full table REDEFINE (drop+recreate+copy) because FKs were present; rehearsed on a copy of the live DB (12 table counts identical, 6 indexes rebuilt, sampled content intact), backed up, applied, 0 drift"
@@ -21,8 +21,13 @@ self_verify:
     the output", no DB specifics). NO new skill is proposed: the platform has 54 already and this is one section
     of an existing one.
 review:
-  outcome: null # installed | rejected
-  why: null
+  outcome: installed
+  why: >
+    Applied 2026-07-28 at the supervisor's instruction into .claude/skills/prisma-expert/SKILL.md,
+    replacing "test before deploy". Step 2 gained a clause the draft lacked: the copy exists to be
+    MIGRATED and deleted, and is not a route for reading production data — reading rows stays in-place
+    and read-only. By then the procedure had five instances, not three (Sentence.extraPatterns and
+    CalibrationProposal, both 2026-07-28).
 ---
 
 # Proposed extension: rehearse a live migration on a copy before applying it

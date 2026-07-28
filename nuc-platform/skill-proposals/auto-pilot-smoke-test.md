@@ -3,7 +3,7 @@
 
 ---
 proposed_name: auto-pilot-smoke-test
-status: proposed # proposed → installed | rejected
+status: installed
 created: 2026-06-19
 grounding: # >=3 concrete instances (rule of three) — grounded, not invented
   - log/2026-06-17.md (-06) — S0.4 pilot baseline: a throwaway opted-in plan was run live by the scheduler, advanced one batch, then retired.

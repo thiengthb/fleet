@@ -1,46 +1,3 @@
-<!-- A DRAFT skill proposal — inert until a human installs it (moves it to .claude/skills/<name>/). Schema: README.md. -->
-
----
-proposed_name: behavioural-eval
-status: installed
-created: 2026-07-28
-grounding: # every one of these is a WRONG finding this platform actually produced and acted on
-  - 'log/2026-07-27.md — `{TOOL_LIST}` was a listing that printed description LENGTHS; Scenario J "failed" 2/2 against descriptions no trial had read, and the indicated fix was one step from being applied to correct code'
-  - 'log/2026-07-27.md — a flattened arg schema hid an enum casing, so every trial produced rejectable args and it read as a model failure'
-  - 'log/2026-07-27.md — a `sed` capture began at the block content and cut the display-order envelope; trials were graded against an instruction they had never been given (0/2 → 3/3 once included)'
-  - 'log/2026-07-28.md — Scenario G: a batch with no room for the variable to move made control and treatment identical by construction; recorded INCONCLUSIVE rather than firing the pre-written conclusion'
-  - 'log/2026-07-28.md — Scenario A scored 5/5 twice and FAILED in the real client; the prompt made a tool call the only well-formed output, and a neutral rewrite still gave 5/5, so the harness itself was void'
-  - 'log/2026-07-28.md — a 60-day replay never consumed its queue, so 420 "samples" were 7 draws counted 60 times; the clean 0% would have cancelled a planned feature'
-  - 'log/2026-07-28.md — a loose-match floor left 3-character patterns untrimmed, so all 4 reported "unused pattern" misses were the scorer, not the tutor'
-self_verify:
-  generalizes: yes — every instance is "the instrument was wrong and the finding looked confident"; none of the rules mention sakubun specifics
-  lean: yes — core is a 7-item checklist plus a short procedure
-  description_what_and_when: yes
-  no_overlap: >
-    /testing-standard routes deterministic tiers and explicitly does not cover model-in-the-loop;
-    /vitest-server-actions and /playwright-e2e-builder are unit and e2e; /verification-before-completion
-    is "run it before claiming done" for a single change, not the design of a behavioural experiment;
-    /honest-critique is the stance, this is the method. No existing skill covers evaluating MODEL
-    BEHAVIOUR, which is now the enforcement surface for whole features on this platform.
-review:
-  outcome: installed
-  why: >
-    Installed 2026-07-28 at the supervisor's instruction, at .claude/skills/behavioural-eval/SKILL.md.
-    One section was ADDED during install that is not in the draft above — "The live half needs a clean
-    room, and a human" — grounded in an eighth instance found the same day: the live Scenario J run
-    produced no tool call at all, yet ENDED by offering to add the material to sakubun, and the client
-    carried that habit from earlier Japanese-practice conversations. Two rules came out of it: a blank
-    chat in a memory-carrying client is not a clean room, and an offer phrased in the right words is a
-    FAIL, not a pass.
----
-
-# Proposed skill: behavioural-eval
-
-> Draft — not installed. On approval, the human moves the section below into `.claude/skills/behavioural-eval/SKILL.md`.
-
-## The proposed SKILL.md
-
-````markdown
 ---
 name: behavioural-eval
 description: Design, run and record a model-in-the-loop eval — when the thing being tested is what a MODEL does (does it reach for a tool, does the pushed context change its output, does an optional field ever get filled) and no unit test can reach it. Use when a feature's value depends on model behaviour, before trusting any eval result, and when a result looks clean. NOT for deterministic logic (/testing-standard routes that).
@@ -98,6 +55,19 @@ in the harness; one of them nearly deleted a working feature, another scored a b
   measured, twice. That class of question has ONE instrument: a live chat in the real client, run by a
   human. Budget for it, and mark the harness version VOID rather than "evidence".
 
+## The live half needs a clean room, and a human
+
+When the harness cannot answer, the live run is the instrument — so protect it the way you would protect
+a fixture:
+
+- **A blank chat is not a clean room.** A client that carries memory across conversations (Claude
+  Desktop does) can produce the right-looking behaviour from a previous chat's habit rather than from
+  the thing under test. Record which client, which surface (bare chat vs a Project with instructions),
+  and whether prior conversations on the topic exist.
+- **Grade the ACTION, never the intent.** "It offered to add this to sakubun" is not a tool call. A pass
+  is a tool call in the transcript; an offer phrased in the right words is a FAIL with a good bedside
+  manner, and it is the easiest false pass to hand yourself.
+
 ## Two failure shapes that keep recurring
 
 - **A deterministic scorer removes MEASUREMENT noise and does nothing about GENERATION noise.** A pure
@@ -109,21 +79,3 @@ in the harness; one of them nearly deleted a working feature, another scored a b
 Complements `/testing-standard` (which routes the deterministic tiers and stops where this begins),
 `/verification-before-completion` (evidence before claiming, per change) and `/honest-critique` (the
 stance; this is the method).
-````
-
-## Why this is worth a skill (the rule-of-three case)
-
-Seven grounded instances in two days, all the same shape: **the finding was confident and the instrument
-was wrong.** Four of them would have changed working code — one nearly cancelled a feature on a
-measurement of nothing, one scored a flagship behaviour 5/5 that fails in the real client, one was a step
-from rewriting a correct tool description.
-
-The rules currently live as prose inside two project-specific eval files (`sakubun/eval/*.md`) and as
-rows in the knowledge ledger. That is where they were learned, but it is the wrong home: the next project
-to need a behavioural eval will not read sakubun's eval file, and the platform now has agent-behaviour
-surfaces in `todo`, `yakudoku` and `nuc-ops-bot` whose value rests on exactly this kind of claim.
-
-**Deliberately NOT proposed:** a second skill for migration rehearsal. That process also recurred (now 5×
-— Item redefine, `ReviewLog.errorDetail`, `LearnerNote`, `Sentence.extraPatterns`, `CalibrationProposal`),
-but it is already filed as `prisma-expert-migration-rehearsal.md` awaiting review; the extra occurrences
-strengthen that pending proposal rather than justify a new one.

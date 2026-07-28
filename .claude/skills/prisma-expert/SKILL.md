@@ -73,8 +73,34 @@ npx prisma migrate status
 npx prisma migrate resolve --applied "name"         # repair a partially-applied prod migration
 ```
 
-Keep changes backward-compatible (no silent data loss); test before deploy. A reset (`migrate reset`) is dev-only — it
-**drops data**, never on a deployed app.
+Keep changes backward-compatible (no silent data loss). A reset (`migrate reset`) is dev-only — it **drops data**,
+never on a deployed app.
+
+### Rehearse on a COPY before touching live data (any migration on a deployed app)
+
+"Test before deploy" is not a procedure, and the interesting failures are silent. Prisma on SQLite may implement
+`ADD COLUMN` as a full table REDEFINE (drop + recreate + copy) when FKs are present — or as a plain `ALTER TABLE`.
+Which one you got is READ off the generated SQL, never predicted: the same shape did both on the same schema a day
+apart. So run the same six steps regardless of how safe the change looks; the cheapest class costs about two minutes.
+
+1. **Read the generated SQL first.** `npx prisma migrate dev --name <x>` against a THROWAWAY db (point
+   `DATABASE_URL` at a scratch file), then open `prisma/migrations/<ts>_<x>/migration.sql`. A `CREATE TABLE` is the
+   safest class; a `PRAGMA foreign_keys=OFF` + `CREATE TABLE new_X` + `INSERT INTO new_X SELECT` block is a REDEFINE
+   and rewrites every row.
+2. **Copy the live database out** (`docker cp <container>:<path> ./copy.db`) and **fingerprint it**: table count,
+   index count, and a per-table row count. Keep the fingerprint — it is the only thing that can prove "0 drift".
+   The copy exists to be MIGRATED and then deleted; it is not a way to read production data. Reading rows stays
+   in-place and read-only (`docker exec … {readOnly:true}`, only the columns you need).
+3. **Apply to the COPY** — `DATABASE_URL="file:./copy.db" npx prisma migrate deploy`.
+4. **Diff the fingerprints.** Every pre-existing row count must be IDENTICAL; only the intended tables/indexes may
+   appear. A changed row count on an untouched table means stop.
+5. **Back up live**, dated and gitignored (`backup-prod-<what>-<YYYYMMDD>.db`), THEN apply. If the container runs
+   `migrate deploy` at start-up, applying = rebuilding the image so the new migration is inside it.
+6. **Re-fingerprint the LIVE db against the step-2 fingerprint** and state the result. "The migration succeeded" is
+   the tool's claim; "0 drift, counts identical" is the evidence.
+
+Delete the backups only once the migration is trusted in daily use — and say in the report that they exist, or they
+become litter nobody dares remove.
 
 ## Query optimization (N+1 is the usual culprit)
 

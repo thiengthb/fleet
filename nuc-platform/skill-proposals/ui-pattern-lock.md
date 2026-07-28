@@ -1,6 +1,6 @@
 ---
 proposed_name: ui-pattern-lock
-status: proposed # proposed → installed | rejected
+status: installed
 created: 2026-07-23
 grounding: # rule of three — every instance is a rule that was STATED, WRITTEN DOWN, and violated anyway
   - sakubun/lib/no-emoji.test.ts header — "this rule had already been stated and was broken anyway"
@@ -18,8 +18,12 @@ self_verify:
     12-ui-layout-standard.md owns the page frame. NONE of them capture "this specific user had to repeat
     himself, lock it". This skill owns only the capture + enforcement loop, and points at those for content.
 review:
-  outcome: null # installed | rejected
-  why: null
+  outcome: installed
+  why: >
+    Installed at .claude/skills/ui-pattern-lock/ (with install-ui-pattern-lock.mjs); it is referenced as
+    mandatory from the root CLAUDE.md and enforced by lib/ui-pattern-lock.test.ts plus a PreToolUse hook.
+    The `status:` field was left at `proposed` at install time and only corrected on 2026-07-28 — a stale
+    sandbox row that made an installed skill keep resurfacing as pending in every proposal scan.
 ---
 
 # Proposed skill: ui-pattern-lock
