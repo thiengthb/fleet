@@ -49,6 +49,40 @@ necessarily first). This is the platform's existing practice, kept.
 > Retrofit rule: don't churn already-green code to add a test-first test. Apply TDD on the **next change** to a pure-logic
 > unit, not as a backfill sweep.
 
+## 2.5 — Prove the check can FAIL: mutation-test any gate you are going to trust
+
+**A gate that has never failed is not evidence.** Added 2026-07-29 after the discipline had earned itself three times
+in two days; folded in here rather than made a skill, because it is one rule and not a procedure.
+
+> **When a green result is about to be believed — a new suite, an audit script, a security/confidentiality gate — break
+> the specific mechanism the check exists to protect, and watch it go red. If it stays green, the check is measuring
+> something else.**
+
+This is the **deterministic** counterpart to `/behavioural-eval`'s "red-team a clean result" (that skill is scoped to
+model-in-the-loop evals and excludes deterministic logic). The difference matters: there you *reason* about whether the
+harness could have produced the number; here you can simply **delete the behaviour and re-run**, which is stronger and
+takes minutes.
+
+**Apply it to (in ascending order of how badly a false green hurts):**
+
+| Target | The mutation to run |
+| --- | --- |
+| a new unit suite | make the function under test return a constant / do nothing |
+| a rule-set with per-rule config (`applies`, severity, allowlists) | neutralise the config (`() => true`) — **this is the one that survives** |
+| an audit/lint script | feed it an artifact that genuinely violates what it checks |
+| a security or confidentiality gate | **plant a real instance of the thing it forbids**, confirm exit ≠ 0, remove it, confirm exit 0 |
+
+**Measured, so the cost is known.** In one session: `always-return-empty` → killed (14 failures); `stop stripping
+comments` → killed (1); **`replace the per-rule file-kind gate with () => true` → SURVIVED at 33/33** — every rule's
+`applies` list was decoration and nothing asserted it. Separately, a leak gate reporting 0 hits was handed a planted
+rulebook sentence and returned 11 hits, exit 1. Total cost: a few `sed` commands and four re-runs.
+
+**Record the surviving mutant, not just the fix** — a mutant that survived is the one piece of evidence that the suite
+had a hole, and it is what tells the next reader which part of the check was never real.
+
+> Do **not** turn this into a coverage ritual or install a mutation-testing framework. It is a targeted question asked
+> at the moment of trusting a green, on the mechanism that green is standing in for. Anti-ceremony (§7) still applies.
+
 ## 3 — Acceptance criteria: the spec→test bridge (SDD-lite)
 
 The platform's `/idea → proposal → /project-plan` spine is already a proto-spec. This standard adds the missing structured

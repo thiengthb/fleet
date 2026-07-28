@@ -72,6 +72,13 @@ doesn't. Bias toward CUTTING over adding. Complements [[research-before-design]]
 Recommendation record extended to **11/11**: 4 more flagged picks accepted in one session, plus *"hãy theo khuyến nghị
 của bạn"* and a bare *"Có"* in place of an answer. Asking a question he has already delegated is itself ceremony.
 
+**2026-07-29 → 15/15.** 4 more flagged picks (approve a build plan · commit-don't-push · a transport choice · how far to
+run), then *"tiếp tục theo khuyến nghị"* with no option named at all. Two refinements worth having:
+① when he delegates to the recommendation, he is delegating the *judgement*, not asking for a menu — pick, say why in
+one line, and go. ② The one pick that carried a genuine engineering fork (plain SDK vs the platform's own Next.js
+prior art) went to the **lighter** option once the tradeoff was stated plainly — consistent with "over-engineering is
+the enemy", and evidence that *precedent* does not outrank *fit* for him. State the cost of deviating, then deviate.
+
 **The stronger trait this session revealed: he deletes his own work when shown evidence, without friction.**
 Told that ~6 sessions of `auto-pilot` — which he had personally pushed hard for and struggled through — were superseded
 by a native feature, his reply was *"đi tong nhiều phiên làm việc… nhưng không sao bạn hãy remove nó đi"*. He did not
