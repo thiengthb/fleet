@@ -218,7 +218,12 @@ function auditFile(path) {
   /* plan-specific */
   if (!isProposal) {
     const steps = section(text, 'Steps') || '';
-    const items = steps.match(/^\s*-\s*\[[ xX]\]\s.*$/gm) || [];
+    // A step is a BLOCK (its `- [ ]` line plus any continuation lines), not a line. Reading line-by-line
+    // reported `Files:`/`Test:` as missing whenever a step wrapped — measured 2026-07-29: 13 such steps
+    // across 2 plans, every one of them carrying the data on line 2. The rule was right; the ruler was short.
+    const items = steps
+      .split(/\n(?=[ \t]*-[ \t]*\[[ xX]\][ \t])/)
+      .filter((b) => /^[ \t]*-[ \t]*\[[ xX]\][ \t]/.test(b));
     if (items.length === 0) {
       add('ERROR', 'the `## Steps` section has no `- [ ]` checklist items');
     } else {
