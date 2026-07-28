@@ -101,6 +101,36 @@ Then, in the new directory, recreate the gitignored wiring that holds an absolut
 `.claude/hooks/memory-wiring-check.mjs` reports it at the next session start if this is missed.
 Optionally rename the GitHub repo and run `git remote set-url origin <new-url>`.
 
+#### D3 outcome — 2026-07-29: half done, and the hook is the reason we know
+
+The user ran the `mv`. The second half — the absolute path inside the gitignored
+`.claude/settings.local.json` — was **not** done, and the failure mode was worse than the plan assumed.
+The plan expected "memory does NOT load, and the hook says so loudly". What actually happened:
+Claude Code **created** `/home/thien/projects/miniserver-platform/.claude/memory/` (empty) at the
+dangling path and wired auto-memory to it. So the tier did not fail visibly — it silently pointed at a
+hollow directory next to the renamed repo, ready to absorb any memory written after the rename while the
+real 30 files sat orphaned. Nothing was lost only because no memory was written in the 1-day gap.
+
+`memory-wiring-check.mjs` reported the mismatch at session start, verbatim and correctly — the one
+control that worked as designed. **The lesson is not "remember the second step": a handoff whose missed
+half is self-healing-shaped (a directory gets created rather than an error raised) needs a machine check,
+and it had one.**
+
+- [x] D3a — `autoMemoryDirectory` re-pointed at `/home/thien/projects/fleet/.claude/memory`; ghost tree
+  `~/projects/miniserver-platform/` removed (empty, non-git). `memory-audit` now reports
+  `ok — autoMemoryDirectory -> …/fleet/.claude/memory`, 30 memories, index 46/200 lines, no orphans.
+  **Takes effect at the NEXT session start** — settings are read at startup, so the session that fixes it
+  still runs without memory · Files: `.claude/settings.local.json` (gitignored) · Test: `AC-5` ✅
+- [x] D3b — Residual stale paths the A2/C3 sweep could not reach, because they name the *working
+  directory* rather than the old doc tree: `CLAUDE.local.md` sakubun rebuild path, and INVENTORY §0's
+  `Dev path` column (10 rows) + its `D:\Projects\MiniServer\<name>` header note — a Windows path that had
+  outlived the move to Linux. Rewritten machine-agnostically (`<repo-root>/<name>`), matching the layer
+  split: the folder name is machine-local, the layout is not · Files: `CLAUDE.local.md`,
+  `platform/inventory.md` · Test: 0 non-artifact `miniserver-platform` hits outside `log/`+`ledger/` ✅
+- [ ] D3c — **The GitHub repo is still `thiengthb/miniserver-platform`** (`git remote -v`), so INVENTORY's
+  `GitHub repo` column is correct as written, not drift. Renaming it is the user's call and costs one
+  `git remote set-url` on every machine · Files: — · Test: manual
+
 ## Out of scope
 
 - **Renaming the git working directory** `~/projects/miniserver-platform` → `~/projects/fleet`, and the GitHub

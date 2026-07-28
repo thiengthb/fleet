@@ -33,7 +33,7 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 ## 0. Project map (domain + kind + path) — classification registry
 
 > **Two orthogonal axes, both metadata on this flat table — NOT nested directories.** Every project sits flat at
-> `D:\Projects\MiniServer\<name>`; this table is the index (better than `ls` — it carries description + repo + path + auth).
+> `<repo-root>/<name>` (this repo, `fleet/` on the current box — the folder name is machine-local, the layout is not); this table is the index (better than `ls` — it carries description + repo + path + auth).
 > - **`domain`** = *what it's for* (browse-by-purpose): `platform` · `product` · `automation` · `shared`. Rows are grouped by it.
 > - **`kind`** = *how it's built/deployed* (the operational axis): drives the archetype in `/app-onboard` ("Choose
 >   archetype") + which invariants apply.
@@ -65,17 +65,17 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 
 | Domain | Project | kind | `target` | Short description | GitHub repo | Dev path | NUC path |
 |--------|---------|------|--------|-----------|-------------|----------|-----|
-| `platform` | **authentik** | `infra` (third party) | `nuc` | Central IdP (pinned image, manual update) | `thiengthb/authentik` (compose) | `MiniServer/authentik` | `/opt/apps/authentik` |
-| `platform` | **nuc-monitor** | `python-worker` | `nuc` | Monitors the NUC → Discord — python-worker reference | `thiengthb/nuc-monitor` | `MiniServer/nuc-monitor` | `/opt/apps/nuc-monitor` |
-| `platform` | **nuc-ops-bot** | `python-worker` (bot) | `nuc` | Discord ChatOps bot controlling the NUC | `thiengthb/nuc-ops-bot` | `MiniServer/nuc-ops-bot` | `/opt/apps/nuc-ops-bot` |
-| `product` | **todo** | `web-app` (Next) | `nuc` | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `MiniServer/todo` | `/opt/apps/todo` |
-| `product` | **journal** | `web-app` (Next) | `nuc` | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `MiniServer/journal` | `/opt/apps/journal` |
-| `product` | **yakudoku** | `monorepo` (→3 images) | `nuc` | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `MiniServer/yakudoku` | `/opt/apps/yakudoku` |
-| `product` | **sakubun** | `web-app` (Next) | `local` | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | (no remote yet) | `MiniServer/sakubun` | — |
-| `automation` | **n8n** | `infra` (third party) | `nuc` | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `MiniServer/n8n` | `/opt/apps/n8n` |
-| `automation` | **jobhunter-bot** | `node-bot` (worker) | `nuc` | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `MiniServer/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
-| `shared` | **commons** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/commons` | `MiniServer/commons` | — |
-| `shared` | **platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `MiniServer/` (root) | — |
+| `platform` | **authentik** | `infra` (third party) | `nuc` | Central IdP (pinned image, manual update) | `thiengthb/authentik` (compose) | `fleet/authentik` | `/opt/apps/authentik` |
+| `platform` | **nuc-monitor** | `python-worker` | `nuc` | Monitors the NUC → Discord — python-worker reference | `thiengthb/nuc-monitor` | `fleet/nuc-monitor` | `/opt/apps/nuc-monitor` |
+| `platform` | **nuc-ops-bot** | `python-worker` (bot) | `nuc` | Discord ChatOps bot controlling the NUC | `thiengthb/nuc-ops-bot` | `fleet/nuc-ops-bot` | `/opt/apps/nuc-ops-bot` |
+| `product` | **todo** | `web-app` (Next) | `nuc` | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `fleet/todo` | `/opt/apps/todo` |
+| `product` | **journal** | `web-app` (Next) | `nuc` | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `fleet/journal` | `/opt/apps/journal` |
+| `product` | **yakudoku** | `monorepo` (→3 images) | `nuc` | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `fleet/yakudoku` | `/opt/apps/yakudoku` |
+| `product` | **sakubun** | `web-app` (Next) | `local` | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | (no remote yet) | `fleet/sakubun` | — |
+| `automation` | **n8n** | `infra` (third party) | `nuc` | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `fleet/n8n` | `/opt/apps/n8n` |
+| `automation` | **jobhunter-bot** | `node-bot` (worker) | `nuc` | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `fleet/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
+| `shared` | **commons** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/commons` | `fleet/commons` | — |
+| `shared` | **platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `fleet/` (root) | — |
 
 **The 5 standard `kind`s** (shaping the archetype + the invariants that apply):
 
