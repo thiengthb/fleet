@@ -164,6 +164,21 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
   `08-SHARED-ASSETS.md`. Catalog had no fit (community DRY skills assume a monorepo). Seeded from the proven duplication
   (MCP OAuth shim built twice in todo↔yakudoku). `.claude/skills/code-reuse/`.
 
+- **`/ui-ux-review`** (2026-07-28, user-requested) — review a **RUNNING** UI, which nothing on the platform did: every
+  UI gate we had checked the *code*. Two disjoint layers — a deterministic `scripts/ui-audit.mjs` (axe-core over WCAG
+  2.2 AA tags, real-`Tab` focus walk, target size, overflow, console, CLS/LCP, 4 viewport×scheme passes) then a bounded
+  judgment pass in Claude-in-Chrome. Standard: `nuc-platform/14-uiux-review-standard.md`.
+  **Catalog verdict:** community design-review skills exist (mcpmarket `design-review` / `ui-design-reviewer`,
+  [OneRedOak](https://github.com/OneRedOak/claude-code-workflows/tree/main/design-review)) but all are *model-only* —
+  they hand a screenshot to an LLM with no deterministic floor, which is the exact failure the user named ("lan man,
+  không đúng trọng tâm"). **BORROWED** from OneRedOak: the 7-phase spine + the Blocker/High/Medium/Nitpick taxonomy.
+  **REJECTED:** its Playwright-MCP dependency (we drive Playwright from a script — cheaper and repeatable) and its
+  "world-class design standards" framing (replaced by *project law outranks generic taste*: `docs/ui-patterns.json` →
+  project `CLAUDE.md` → `12-ui-layout-standard` → the generic floor).
+  Anthropic's [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing) contributed the
+  reconnaissance-then-action + `networkidle`-before-inspect pattern; its `with_server.py` is not vendored (our e2e
+  harness already owns server lifecycle). `.claude/skills/ui-ux-review/`.
+
 > Together with the existing set this closes the thinking loop: **brainstorm → plan (`/project-plan`) → critique
 > (`/honest-critique`) → execute → verify (`/verify` + `verification-before-completion`) → wrap (`/session-wrap`)**.
 
