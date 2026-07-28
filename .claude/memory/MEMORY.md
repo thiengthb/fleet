@@ -1,16 +1,23 @@
 # Agent memory — shared index (multi-machine)
 
-One line per memory, loaded every session via the `@.claude/memory/MEMORY.md` import in `CLAUDE.md` — pointers
-only, never content. This is the **shared** tier: it lives in the repo and travels across machines with
-`git push/pull`, so the agent keeps its memory of the user on every machine. Machine-specific facts live in the
-**local** tier (`~/.claude/projects/<hash>/memory/`), not here. Add a line whenever something non-obvious about
-working with this user is learned that `CLAUDE.md`/docs don't already record. Tier rule + write mechanics: skill `/memory`.
+One line per memory — **pointers only, never content**. This file is loaded at the start of every session as Claude
+Code's native auto-memory index (`autoMemoryDirectory` → this directory, set per machine in the gitignored
+`.claude/settings.local.json`); the memory files it points at are read on demand, not preloaded.
+
+**Hard cap: 200 lines / 25KB.** Anything past it is silently dropped at load, and a write past it errors. When the index
+approaches the cap the fix is to shorten entries and merge or drop stale ones — never to let it spill.
+
+This is the **shared** tier: it lives in the repo and travels with `git push/pull`, so the agent keeps its memory of the
+user on every machine. Machine-specific facts go in **`CLAUDE.local.md`** (gitignored, repo root) — *not* a second
+memory directory, which would have no index and never load. Add a line whenever something non-obvious about working with
+this user is learned that `CLAUDE.md`/docs don't already record. Tier rule, write procedure, and the forgetting
+discipline: skill `/memory`. Health check: `node .claude/scripts/memory-audit.mjs`.
 
 - [User profile](user-profile.md) — who I work with: solo architect/operator of the MiniServer platform
 - [Extend, don't rebuild](extend-dont-rebuild.md) — prefers extending existing infra over parallel systems (anti-drift)
 - [Concise commit messages](concise-commit-messages.md) — short Conventional Commits subject, minimal/no body
 - [Commit message Windows encoding](commit-message-windows-encoding.md) — never pipe a PowerShell here-string to git (BOM + dash mangling); use a UTF-8 file or Bash heredoc
-- [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier in-repo, syncs via git
+- [Memory is multi-machine](memory-is-multi-machine.md) — how my own memory works: shared tier = repo `.claude/memory/` on native auto-memory rails (enforced caps); machine-local facts → `CLAUDE.local.md`
 - [Research before design](research-before-design.md) — strict anti-bias rule: ground designs in external research first
 - [Originate and challenge my premises](originate-and-challenge-my-premises.md) — propose beyond the spec; test HIS intuitions against research and name what they get wrong (obedient execution reads as failure)
 - [Sandbox-propose governance](sandbox-propose-governance.md) — never edit live governance; propose a tested sandbox copy, human installs

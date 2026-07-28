@@ -12,6 +12,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/plan-checkin.mjs\"",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-wiring-check.mjs\"",
+            "timeout": 10
           }
         ]
       }
