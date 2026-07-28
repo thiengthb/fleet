@@ -106,6 +106,34 @@ session used to adopt skills wave-by-wave. Each batch ends by checking off its s
 A plan file is **live**, not write-once. As you work (this session or a later one): check off steps, bump `updated:`,
 append newly-discovered steps/risks. A stale checklist is worse than none — the next session trusts it.
 
+## Step 3.5 — Time-gated plans: give the clock to the machine, not to the user
+
+Some plans contain a step that **no amount of coding can finish** — it needs time to pass and then
+someone to look: a week of shadow proposals reviewed with the learner, re-measuring a metric once the
+data has moved, watching whether a fix holds under real use. Left as prose in the middle of a plan,
+such a gate quietly dies: the user has to remember the date AND re-ask for the steps, so the waiting
+produces nothing and the gate stops being a gate.
+
+**Whenever a plan has a step like that, it MUST carry both halves:**
+
+| Half | Where | What it does |
+|---|---|---|
+| the clock | `checkin: YYYY-MM-DD` in frontmatter (+ optional `checkin_every`, `checkin_owner`) | `.claude/hooks/plan-checkin.mjs` surfaces it at **every** session start, in **any** project |
+| the procedure | a `## Check-in runbook` section | the complete steps, so nothing is re-derived in chat |
+
+- **The runbook is not optional.** A `checkin:` without one is reported as a config DEFECT — a reminder
+  that arrives with no instructions just moves the "what were the steps again?" problem to a later day.
+- **Write it for a reader with no memory of the conversation.** Exact commands, what number to read,
+  what counts as pass vs fail, and what a FAILING result forbids. Pre-commit the consequence: a gate
+  whose failure branch is written only after the data arrives will be explained away.
+- **Always close the loop** at the end of a check-in: record the outcome in the plan, then either clear
+  `checkin:` (gate answered) or roll it forward by `checkin_every` stating what is still missing.
+- **Undated plans are watched too.** `status: active` and untouched for 10+ days is surfaced as a
+  dangling plan, so a plan cannot rot silently — but a real deadline belongs in `checkin:`, not in the
+  drift detector.
+
+Run `node .claude/hooks/plan-checkin.mjs --list` any time to see what is due.
+
 ## Step 4 — Closing a plan
 
 When the work finishes (or is dropped):

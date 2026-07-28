@@ -62,6 +62,11 @@ If this session worked off a persisted plan (`docs/plans/*.md`, `status: active`
   knowledge living only in a closed plan.
 - Did the work **partially** advance? → tick off completed steps + bump `updated:` (leave `status: active`).
 - Was it **dropped**? → `status: abandoned` with a one-line reason.
+- Does it hold a **time-gated** step (something only answerable by letting time pass)? → make sure the
+  plan carries `checkin: YYYY-MM-DD` **and** a `## Check-in runbook`, so the session-start hook reminds
+  the user on the day with the steps already written (`/project-plan` Step 3.5). If a check-in happened
+  this session, roll `checkin:` forward or clear it — a stale date is a reminder that has stopped meaning
+  anything.
 
 No plan file for this work, but it was big/multi-session → consider creating one via `/project-plan` so the next session
 inherits the roadmap.
