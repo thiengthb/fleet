@@ -1,7 +1,7 @@
 ---
 title: Build — MCP platform server: tier-2 rule delivery (verdict, not rulebook) + quarantined lesson backflow
 kind: system-change # feature | system-change | fix | refactor | chore
-status: draft # draft → active → done | abandoned
+status: active # draft → active → done | abandoned — supervisor approved 2026-07-29, Phase 1 authorized
 created: 2026-07-29
 updated: 2026-07-29
 related:
@@ -67,13 +67,32 @@ the 3rd app`. **This server is the third app**, so `idea-0013` fires — but for
 **Three design calls this plan makes that the proposal left open.** Each is the kind of thing that is cheap now and
 expensive after the code exists.
 
-### A. The server lives **inside this repo** (`fleet/fleet-mcp/`), not in a separate one
+### A. The server is **co-located** with the rulebook (`fleet/rulebook/`) — its own repo, same folder
 
-It reads `platform/**` and `.claude/rules/**` straight off disk. A separate repo would need the rulebook *shipped to
-it* — a distribution problem nested inside the distribution solution, and a guaranteed drift source. When Phase 4 moves
-it to `cloud`, CI bakes the rulebook into the image at build time (the pattern `/code-reuse` already prescribes for
-`@thiengthb/*`). **Ruled out:** a sibling repo (drift + a sync job nobody would maintain); folding it into `commons`
-(commons works by being *installed*; rules are *read*, and `shared-assets.md` already says rules do not move there).
+It reads `platform/**` and `.claude/rules/**` straight off disk via `../`. A project that had to *fetch* the rulebook
+would nest a distribution problem inside the distribution solution, and drift is then guaranteed. When Phase 4 moves it
+to `cloud`, CI bakes the rulebook into the image at build time (the pattern `/code-reuse` already prescribes for
+`@thiengthb/*`). **Ruled out:** folding it into `commons` (commons works by being *installed*; rules are *read*, and
+`shared-assets.md` already says rules do not move there); a project living somewhere else entirely (needs a sync job
+nobody would maintain).
+
+> **CORRECTED 2026-07-29, at Step 1.3, by trying to commit it.** This section first said "*inside this repo*" — the
+> same git repo as `platform/`. That is wrong, and `.gitignore` said so immediately: `fleet/` is an **allowlist** repo
+> tracking only the meta layer (`/*` then `!/platform/`, `!/.claude/`, `!/CLAUDE.md`), because **every app here is a
+> deliberately independent git repo** — verified: `sakubun`, `todo`, `commons`, `journal` each have their own remote.
+> `rulebook/` was silently untracked.
+>
+> The error was conflating two things that sounded like one: **co-location** (same parent folder ⇒ reads the rulebook
+> off disk with no sync — the actual requirement) and **co-versioning** (same git repo — what I wrote, and what the
+> layout forbids). Co-location delivers the entire benefit. `rulebook` is now its own repo at `fleet/rulebook/`, like
+> every sibling, with the convention `commit-msg` + `pre-commit` hooks installed at init.
+>
+> Worth keeping because of *how* it was caught: not by review, and not by re-reading `.gitignore`, but by the build
+> failing to commit. A design doc cannot notice that it disagrees with a repo layout; ten minutes of thin slice can.
+
+**Name settled here rather than at Step 1.3:** `rulebook`, not `fleet-mcp`. It names what the thing serves rather than
+the transport it happens to use (Phase 4 adds a plugin marketplace beside MCP, and the name should survive that), and
+it survives the folder/remote disagreement the placeholder name would have inherited. Precedent: `commons`.
 
 ### B. `review_component` is **deterministic**, not an LLM call — for the thin slice
 
@@ -101,37 +120,44 @@ invert thin-slice-first and delay the only step that can still falsify the desig
 
 ## Acceptance criteria (Given / When / Then)
 
-- **AC-1 (the verdict travels, the rule does not)** — Given a scratch project on this machine holding only a
+- **AC-1** — *(the verdict travels, the rule does not)* — Given a scratch project on this machine holding only a
   `.mcp.json` pointing at the server, When it calls `review_component` on a component that uses an emoji as an icon and
   a hardcoded hex color, Then it receives a violation naming the line and the required fix, **and** a grep of that
   project's disk + its session transcript (`~/.claude/projects/*/*.jsonl`) finds **zero** verbatim sentences from
   `.claude/rules/frontend.md`.
-- **AC-2 (clean code passes, and the checker is not a rubber stamp)** — Given a component that satisfies the same
+- **AC-2** — *(clean code passes, and the checker is not a rubber stamp)* — Given a component that satisfies the same
   rules, When reviewed, Then zero violations — and the suite contains at least one **mutation case** per rule (flip the
   compliant fixture, assert the violation appears), so a checker that always returns "clean" fails the tests.
-- **AC-3 (the server can update the client's instructions without touching the client repo)** — Given the consuming
+- **AC-3** — *(the server can update the client's instructions without touching the client repo)* — Given the consuming
   project's files are unchanged, When the server's `instructions` block is edited and the client reconnects, Then the
   new text is in effect.
-- **AC-4 (untrusted-folder reality)** — Given a *fresh* untrusted folder with a committed `.mcp.json`, When a session
+- **AC-4** — *(untrusted-folder reality)* — Given a *fresh* untrusted folder with a committed `.mcp.json`, When a session
   starts, Then the server shows `⏸ Pending approval` and delivers nothing until approved — documented as the real
   onboarding step, not discovered later.
-- **AC-5 (quarantine is a wall, not a convention)** — Given a lesson submitted via `report_lesson`, When any subsequent
+- **AC-5** — *(quarantine is a wall, not a convention)* — Given a lesson submitted via `report_lesson`, When any subsequent
   session runs, Then the lesson is not in any auto-loaded path, and a write that would move it into `.claude/**`,
   `platform/standards/**` or a `CLAUDE.md` is **blocked by `autonomy-gate.mjs`** — verified by a test that attempts it.
-- **AC-6 (degraded is loud)** — Given the server is unreachable, When `review_component` is called, Then the client
+- **AC-6** — *(degraded is loud)* — Given the server is unreachable, When `review_component` is called, Then the client
   receives an explicit degraded/unavailable result, never an empty-violations "clean".
 
 ## Steps
 
 **Phase 1 — the thin slice (localhost, no auth, no hosting). Build → run → observe before any governance or docs work.**
 
-- [ ] 1.1 — Extract the tier-2 rule set from Step 0's labels into a machine-readable checklist: for each
-      verification-shaped frontend rule, its id, the pattern that detects it, the message, and the fix ·
-      Files: Create `fleet-mcp/rules/frontend.rules.ts`; read `.claude/scripts/rule-classify-sample.json`,
-      `.claude/rules/frontend.md`, `platform/standards/ui-layout.md` · Test: `AC-2` (one mutation case per rule)
-- [ ] 1.2 — The deterministic checker as a **pure function** (`checkComponent(source) → Violation[]`), no server, no
-      MCP, no I/O — so it is unit-testable and cannot drift with a model's mood (the `sakubun` generation-scorer lesson,
-      2026-07-28) · Files: Create `fleet-mcp/lib/check-component.ts` + `.test.ts` · Test: `AC-2`
+- [x] 1.1 — **DONE 2026-07-29.** 9 tier-2 frontend rules extracted as data (`icon-set`, `emoji-as-icon`,
+      `hardcoded-color`, `forward-ref`, `dangerous-html`, `toast-library`, `client-secret`, `animated-property`,
+      `debug-logging`), each with the file kinds it applies to and a severity. Step 0's `class: "V"` was used as the
+      **criterion**, not as the list — the 60-line sample is a measurement draw, not a rulebook. The file carries the
+      one constraint that makes this tier 2: `message`/`fix` are DERIVED verdicts, never a rulebook sentence ·
+      Files: Created `rulebook/rules/frontend.rules.ts` · Test: `AC-2` ✅
+- [x] 1.2 — **DONE 2026-07-29.** `checkComponent(source, {filename}) → Violation[]` — pure, no I/O, no model, no deps.
+      Comments are blanked (preserving line/column) before matching. **33 tests, tsc clean, prettier clean.** Structure
+      per rule: compliant fixture · mutation · near-miss. A meta-test fails if any declared rule has no firing case, so
+      the rule list and the suite cannot drift apart; another asserts no verdict contains a load-bearing rulebook
+      phrase — AC-1's leak test pulled down to unit level so it cannot regress between runs ·
+      Files: Created `rulebook/lib/check-component.{ts,test.ts}`, `package.json`, `tsconfig.json`, `.prettierrc`
+      (copied from the coding-convention template — without it Prettier had silently used its own defaults) ·
+      Test: `AC-2` ✅ — **and the suite was itself mutation-tested**, see below
 - [ ] 1.3 — Wrap it as **one** MCP tool `review_component` over HTTP, plus a server-supplied `instructions` block.
       Reuse the `mcp-handler` shape already running in `todo` + `sakubun` (extend-don't-rebuild) · Files: Create
       `fleet-mcp/` (Next route handler at `/api/mcp`), `fleet-mcp/Dockerfile`, `.env` (chmod 600) · Test: `AC-3`, `AC-6`
@@ -214,6 +240,23 @@ sends this plan to `abandoned` (or back to Option B), regardless of how much of 
 - **Step 0 measured the rulebook, not the checker.** 58.9% verification-shaped is a claim about what *could* be checked
   from the artifact; it is not evidence that a deterministic checker catches those rules well. Step 1.2's mutation
   cases are the first real test of that, and they can still fail.
+
+### Step 1.2's test suite was itself mutation-tested — and one mutant survived
+
+33/33 green on the first run is the result this platform has learned to distrust, so three mutants were run against
+the checker to ask whether the suite constrains anything:
+
+| Mutant | Result |
+| --- | --- |
+| `checkComponent` always returns `[]` | **killed** — 14 failed |
+| comments no longer stripped before matching | **killed** — 1 failed |
+| the per-rule file-kind gate replaced by `() => true` | **SURVIVED — 33/33 still green** |
+
+The third is the finding. Every rule's `applies: ['tsx','jsx',…]` list was decoration: nothing asserted that a
+markup rule stays off a `.ts` module or a stylesheet. Four tests were added (a hex constant in a plain `.ts` palette
+must NOT be flagged; the same literal in `.tsx` must be; a `console.log` in that `.ts` still must be, because that
+rule does declare `ts`) and the mutant now dies. **A suite that survives its own mutant is measuring nothing** — and
+the only reason this was found is that killing the checker was tried on purpose, rather than reading the green.
 
 ## Decisions to distill
 
