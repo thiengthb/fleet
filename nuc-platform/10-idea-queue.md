@@ -13,9 +13,8 @@
   (has a `proposal.md`, awaiting human) → `done` (became a plan / shipped) · `deferred` (someday/maybe, has
   `revisit_when`) · `dead` (pruned — keep the tombstone + reason, don't delete the block).
 - **Graduation (`outcome: accept` → plan):** on accept the idea graduates to a `docs/plans/`/`nuc-platform/plans/`
-  roadmap and moves under `## Done` with a **`graduated_plan: <path>`** link. Unattended, the auto-pilot wrapper does
-  this automatically (Phase 1 / S1.1) but only to a **`draft`** plan (`auto_pilot: false`) — it parks for the **enrol
-  gate** (a separate supervisor approval) before the plan can execute. Propose-don't-execute survives the automation:
+  roadmap and moves under `## Done` with a **`graduated_plan: <path>`** link. Graduation creates a **`draft`** plan
+  only; a human accepts before it executes. Propose-don't-execute survives the automation:
   accept ⇒ a *draft* plan, never a running one.
 - **Gate FIRST, score SECOND:** an idea enters `active` only after a feasibility+fit gate (`moscow: must|should|could|wont`
   + "does it fit the system?"). `wont` / no-fit → `deferred` or `dead`.
@@ -89,7 +88,7 @@ proposal: null · outcome: null
 state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
 gate: pass · moscow: could · reach: 2 impact: 1 confidence: 0.8 effort: 2 · base: 0.8 · interest: 0.4 · **rank: 0.85**
 proposal: null · outcome: null
-> `cost: S/M/L` on plan steps + post-hoc calibration; auto-pilot reads `cost` not a fixed step count. Research confirmed
+> `cost: S/M/L` on plan steps + post-hoc calibration; a batch runner reads `cost` not a fixed step count. Research confirmed
 > a-priori token forecasting is unreliable (r≈0.39) → enforcement (p99 + hard cap), not prediction. Modest payoff; lower rank.
 
 ---
@@ -352,9 +351,12 @@ state: done · source: agent · created: 2026-06-14 · updated: 2026-06-14
 gate: pass · moscow: could · reach: 1 impact: 2 confidence: 0.7 effort: 3 · base: 0.47 · interest: 0.5 · rank: 0.50
 proposal: plans/2026-06-14-discord-control-plane.md
 outcome: **accept** — supervisor took full scope (B4a+B4b) 2026-06-14; B4b's `autonomy-gate.mjs` edit stays agent-proposes / human-commits.
-> Graduated to an accepted RFC now driving step **B4** of `plans/2026-06-14-autonomous-agent.md` (B4a+B4b code-complete +
-> verified: gate-verify 20/20, hook 24/24, Python↔Node interop ✓; pending human provision B4a.4 + live e2e B4b.3). Moved out
-> of `active` by /idea sort — the queue had drifted (this block still read `active · proposal:null · outcome:null`).
+> Graduated to an accepted RFC driving step **B4** of `plans/2026-06-14-autonomous-agent.md`; shipped and verified live
+> (gate-verify 20/20, hook 24/24, Python↔Node interop, e2e approval from phone).
+> **⛔ RETIRED 2026-07-28** — the whole control plane was removed along with the auto-pilot orchestrator it served, once
+> Claude Code shipped scheduled/remote agents natively. Kept as a tombstone: this idea was *correctly executed* and still
+> became waste, because the capability arrived from the platform. That is a cost of building **beside** the harness
+> rather than **on** it — the check that would have caught it is now trigger T1 in the self-update loop.
 
 ---
 

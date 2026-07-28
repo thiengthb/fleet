@@ -1,7 +1,7 @@
 ---
 title: Two-way Discord control plane for the autonomous agent (park → approve-from-phone → release), security-bounded
 kind: system-change # feature | system-change — both REQUIRE prior-art before acceptance
-status: accepted # draft → accepted → rejected | superseded
+status: superseded # draft → accepted → rejected | superseded
 created: 2026-06-14
 updated: 2026-06-14 # accepted by supervisor — full scope (B4a+B4b); nuc-ops-bot confirmed = gateway bot (no public endpoint)
 related:
@@ -16,6 +16,15 @@ related:
     nuc-platform/INVENTORY.md,
   ]
 ---
+
+> **SUPERSEDED 2026-07-28.** The home-grown auto-pilot this plan built (or served) was retired: Claude Code now
+> ships scheduled cloud agents (`/schedule`) and remote agent execution natively, which is what this was
+> re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
+> `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
+> (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
+
 
 <!--
   RESEARCH-GROUNDED proposal (research-before-design / anti-bias). Precedes the B4 plan. Propose-don't-execute:

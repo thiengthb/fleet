@@ -17,8 +17,10 @@ mark the recommended option, explain each plainly. The free-input fallback keeps
 **How to apply:**
 - In chat → use `AskUserQuestion` with explicit options (recommended one first, marked `(khuyến nghị)`); "Other" is
   auto-provided.
-- Via Discord async Q&A → use `ask-cli ask <id> "<q>" [branch] --options "a||b||c"` so the bot renders a button per
-  option + a "Khác (tự nhập)" Modal. (Built + verified live 2026-06-17.)
+- The same shape applies anywhere else the question is asked (a Discord message, a note left for him): enumerate the
+  options, mark the recommended one, keep a free-text escape hatch. *(A signed Discord button round-trip, `ask-cli
+  --options`, existed 2026-06-17 → 2026-07-28; retired with auto-pilot. The preference is about the SHAPE of the
+  question, not that transport.)*
 - Reserve open-ended asks for genuinely open questions where enumerating options would be misleading.
 
 Relates to [[route-questions-via-discord-not-blocking]] (async, don't block on presence) and

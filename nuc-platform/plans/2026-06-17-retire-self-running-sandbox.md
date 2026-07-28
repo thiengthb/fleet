@@ -1,6 +1,6 @@
 ---
 title: Retire the superseded self-running-agent sandbox (auto-pilot test subject)
-status: done # draft → active → done | abandoned — S1–S4 done (worker + human gate), S5 wrap done 2026-06-17
+status: superseded # draft → active → done | abandoned — S1–S4 done (worker + human gate), S5 wrap done 2026-06-17
 auto_pilot: true # opted in 2026-06-17 (supervisor consent) — unattended loop may advance this plan
 created: 2026-06-17
 updated: 2026-06-17 # S4 CROSSED (human gate): register-task.ps1 → .claude/scripts/, rest of sandbox git-rm'd. (batch-2's "gate-cli/ask-cli permission-blocked" was a worker confabulation — disproved by headless probe.) S5 = wrap.
@@ -8,6 +8,15 @@ related:
   - nuc-platform/plans/2026-06-16-self-running-agent.md
   - nuc-platform/plans/self-running-agent-sandbox/INSTALL.md
 ---
+
+> **SUPERSEDED 2026-07-28.** The home-grown auto-pilot this plan built (or served) was retired: Claude Code now
+> ships scheduled cloud agents (`/schedule`) and remote agent execution natively, which is what this was
+> re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
+> `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
+> (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
+
 
 ## Goal
 

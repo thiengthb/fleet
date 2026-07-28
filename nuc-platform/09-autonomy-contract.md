@@ -7,9 +7,18 @@ CVE-2025-53773 where a Copilot agent rewrote its own approval settings; Anthropi
 
 ## The marker: when is a run "autonomous"?
 
-A run is autonomous **iff the env var `CLAUDE_AUTONOMOUS=1`** is set (the orchestrator / `/auto-pilot` skill sets it).
-Unset = interactive/supervised: a human + Claude Code's own permission prompts are the gate, and `autonomy-gate.mjs`
-stands down. **Fail-closed:** in autonomous mode any gate error blocks — a halted run is safe, an ungated one is not.
+A run is autonomous **iff the env var `CLAUDE_AUTONOMOUS=1`** is set. Unset = interactive/supervised: a human + Claude
+Code's own permission prompts are the gate, and `autonomy-gate.mjs` stands down. **Fail-closed:** in autonomous mode any
+gate error blocks — a halted run is safe, an ungated one is not. (Reading an unparseable hook payload counts as an
+error: the gate uses a strict parser, not the lenient shared one.)
+
+> ⚠ **OPEN RISK — the marker currently has no setter.** `CLAUDE_AUTONOMOUS=1` was set by the home-grown auto-pilot
+> orchestrator, retired 2026-07-28 as superseded by Claude Code's native scheduled/remote agents. **Nothing sets it
+> today.** A scheduled or remote (cloud) agent is just as unattended, but is not known to set this variable — so the
+> gate may stand down for precisely the runs that need it. This has **not** been verified either way. Before running an
+> unattended remote agent against this repo: verify empirically what the environment exposes, then either re-scope the
+> marker or set it explicitly in the run's configuration. Until then, treat remote runs as **ungated** and supervise
+> them. Everything below still describes the intended policy; only its trigger is in question.
 
 ## Decision tiers (reversibility × blast-radius)
 
@@ -36,8 +45,10 @@ Operational test for a tier: **"can this be undone in < 5 min with no external s
 3. **No lethal trifecta in one unattended run**: private data + untrusted input + outward comms are never combined.
 4. **Graceful degradation, never auto-escalation.** On anomaly (unexpected paths, repeated gate hits, low confidence)
    the run downgrades to **park-and-ask**; autonomy is only ever *raised* by a human.
-5. **Headless = the hook is the SOLE gate** (no human per call) ⇒ it must be airtight + exhaustively tested, and the
-   orchestrator adds defence-in-depth (restricted `--allowedTools`, no push credentials in the run environment).
+5. **Headless = the hook is the SOLE gate** (no human per call) ⇒ it must be airtight + exhaustively tested
+   (`autonomy-gate.test.mjs`, 67 cases). Defence-in-depth is now the *runner's* job: whatever launches an unattended run
+   (a scheduled cloud agent, a remote agent) should also restrict its tool allowlist and keep push credentials out of
+   the run environment — the retired local orchestrator used to do this, and nothing replaces it automatically.
 
 ## What the agent MAY do unattended (the safe zone)
 
@@ -46,12 +57,17 @@ Read/grep/research · edit code on a dedicated non-`main` branch · add tests/do
 tests / build / lint / prettier · post a status digest (once the Discord path lands). At a gate it **parks** the work,
 records the intent as a step needing approval, and continues with other safe-zone work or stops.
 
+> **How approval reaches the agent, since 2026-07-28:** it doesn't, mid-run. The signed-token Discord control plane
+> (`gate-cli`/`ask-cli`, RS256 approvals synced through a private git repo) was retired with the orchestrator it served.
+> A parked run now simply stops and reports; the human resolves it in a normal interactive session. If mid-run approval
+> is wanted again, build it on the harness's own notification surface — not on a re-implementation of the old one.
+
 ## Enforcement & operation
 
 - **Gate:** `.claude/hooks/autonomy-gate.mjs` (PreToolUse, matcher `Bash|Edit|Write|MultiEdit`), wired in
   `.claude/settings.json`. Test it standalone by piping a payload with `CLAUDE_AUTONOMOUS=1`.
-- **Kill switch:** stop the orchestrator loop (it is a dumb external script, not a Claude session) — no agent state to
-  unwind; durable state lives in the plan file + git branch.
+- **Kill switch:** cancel/pause the scheduled run at its source (`/schedule` for a cloud routine; stop the remote
+  agent) — there is no agent state to unwind, durable state lives in the plan file + git branch.
 - **Audit trail:** every batch ends with a `/session-wrap` log + commits on the branch; the run is fully reviewable.
 - **Research-before-design (anti-bias):** any new-feature / system-change design must be grounded in external prior
   art FIRST (≥2 sources + ≥2 ruled-out options) — `kind: feature` plans + the RFC-lite `templates/proposal.md`, nudged

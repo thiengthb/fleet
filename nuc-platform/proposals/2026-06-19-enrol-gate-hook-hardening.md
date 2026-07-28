@@ -1,5 +1,10 @@
 # Proposal — harden the enrol gate in `autonomy-gate.mjs` (defense-in-depth)
 
+> ⛔ **OBSOLETE 2026-07-28.** The enrol gate, and the whole signed-answer control plane it depended on, were removed
+> when the home-grown auto-pilot was retired (superseded by Claude Code's native scheduled/remote agents). There is no
+> longer an `auto_pilot: true` plan flag, no `ask-cli`, and no RS256 answer token. `autonomy-gate.mjs` still exists and
+> still blocks governance writes + T4 commands — that part survived. Kept only as a design-decision record.
+
 > **Status:** ✅ INSTALLED 2026-06-19 (PR #8; interactive supervisor authorized **Option A**). The verified `.proposed`
 > drop-ins were applied to `.claude/hooks/autonomy-gate.mjs` (+ test) and then removed from this dir; the change lives in
 > git history. This file is kept as the **design-decision record** (Option A/B/C + why) for the Reflexion trail — distil

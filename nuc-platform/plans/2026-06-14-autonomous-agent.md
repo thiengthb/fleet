@@ -1,7 +1,7 @@
 ---
 title: Autonomous agent — governed self-execution + research-grounded self-proposal, human stays supervisor
 kind: feature # feature | system-change | fix | refactor | chore
-status: active # draft → active → done | abandoned
+status: superseded # draft → active → done | abandoned
 created: 2026-06-14
 updated: 2026-06-20 # B5 PASSED — full unattended loop (throwaway plan, supervised from phone): 3 fresh-context batches, subagent-delegated wide read, phone-approved gate crossing (PR #2), zero T4 crossed (main untouched, verified independently). Finding #4 REPRODUCED on the cross step (1st Sonnet worker misdiagnosed approve→none; 2nd crossed) → SKILL-fix proposed. Operator re-hit the documented 2>&1-on-native-exe trap (ledger #60) on the first launch — run the orchestrator plainly/foreground. Layer B essentially complete; Layer C3 (unattended proposer) is the remaining optional residue. **FROZEN 2026-06-20 (supervisor decision): Layer A+B declared DONE; C3 DEFERRED indefinitely (R5) — do NOT install the proposer until a real-use trial on a genuine app-feature plan proves the executor earns its keep. Build-more is sunk-cost; the open question is adopt-vs-shelve, decided by real usage, not more features.**
 related:
@@ -17,6 +17,15 @@ related:
     nuc-platform/INVENTORY.md,
   ]
 ---
+
+> **SUPERSEDED 2026-07-28.** The home-grown auto-pilot this plan built (or served) was retired: Claude Code now
+> ships scheduled cloud agents (`/schedule`) and remote agent execution natively, which is what this was
+> re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
+> `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
+> (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
+
 
 ## Goal
 

@@ -150,7 +150,7 @@ process weight to the change, mirroring the autonomy T1–T4 by reversibility ×
 | **P2 — medium** | a small feature, one module, a non-obvious bug | + tests + `/verification-before-completion`. Research ONLY on a real unknown (a Quick-tier lookup), **never by default** |
 | **P3 — large / irreversible / novel** | architecture, a new dependency, security, schema/data, topology | Full spine: `/brainstorming` → research-before-design (≥2 sources, tiered) → proposal → `/project-plan` → docs |
 
-- **Thin-slice first (the auto-pilot lesson):** build the smallest END-TO-END thing that actually RUNS (build → execute →
+- **Thin-slice first:** build the smallest END-TO-END thing that actually RUNS (build → execute →
   observe) BEFORE governance / docs / exhaustive tests. Machinery-before-value is how a feature dies across sessions —
   "verified" but never used.
 - **`/honest-critique`** — at every decision point (always; it's cheap): truth over comfort, lead with the counter-case,

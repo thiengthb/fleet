@@ -74,14 +74,14 @@ into a **`draft`** plan — it does **not** auto-execute it:
 
 - Writes `nuc-platform/plans/<date>-<slug>.md` from `project-plan/templates/plan.md`, carrying Goal / Context / Approach /
   Prior-art forward from the proposal + the supervisor's chosen option (named in the `outcome:` line). Frontmatter is
-  **`status: draft` + `auto_pilot: false`** — so the plan-advance pass (which needs `active` + `auto_pilot: true`) will
-  NOT pick it up. Execution waits for the **enrol gate** (S1.3, a separate Discord approval).
+  **`status: draft`** — a draft is a proposal, not a work order. Execution waits for the human to accept it and flip
+  the plan to `active`. *(The old `auto_pilot:` flag and its signed enrol gate were removed 2026-07-28 with auto-pilot.)*
 - Idempotent: if a draft/active plan already references the idea, it does not create a duplicate.
 - Sets the idea **`graduated_plan: <plan path>`** and moves its block under `## Done` (so it isn't re-graduated).
-- A genuine framing ambiguity (one the chosen option does not settle) is asked to the supervisor via Discord (`ask-cli`
-  with `--options`) and the same question recorded in the plan's *Open questions*; the batch then PARKS and resumes with
-  the answer on a later cycle (S1.2). It never guesses, and asks at most ONE pending question per draft (a pending-ask
-  guard prevents duplicates). Most accepted ideas name the chosen option and need no question.
+- A genuine framing ambiguity (one the chosen option does not settle) is recorded in the plan's *Open questions* and
+  asked directly (interactive: `AskUserQuestion` with explicit options). It never guesses, and asks at most ONE pending
+  question per draft. Most accepted ideas name the chosen option and need no question. *(Before 2026-07-28 an unattended
+  batch could ask via a signed Discord round-trip and park; that control plane was retired with auto-pilot.)*
 
 This keeps **propose-don't-execute** intact through automation: an accept becomes a *draft* (proposal-grade) plan, never a
 running one, until the supervisor approves enrol.

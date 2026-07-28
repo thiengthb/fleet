@@ -1,7 +1,7 @@
 ---
 title: Self-running agent — scheduled auto-start + self-sourced work (C3) + async Discord Q&A
 kind: feature # feature | system-change | fix | refactor | chore
-status: done # draft → active → done | abandoned — Phase 1/2/3 all verified live + opted-in-plan path proven (retire-sandbox) 2026-06-17
+status: superseded # draft → active → done | abandoned — Phase 1/2/3 all verified live + opted-in-plan path proven (retire-sandbox) 2026-06-17
 created: 2026-06-16
 updated: 2026-06-17 # TRIGGER ARMED + C3 + Phase 3 Discord Q&A all VERIFIED LIVE. Trigger fires → C3 self-sourced idea-0012 (gated in). Phase 3 bot DEPLOYED (ask_answer.py button+Modal, options) + e2e x2 (Giữ 4h; option one-click). Cadence R-A = 4h (decided via the Q&A itself). PENDING (human): SKILL D5 + ask-cli allowlist (worker self-asks); opted-in PLAN path live test
 # NOTE: deliberately NOT auto_pilot:true — this plan builds the self-running machinery and touches governance
@@ -17,6 +17,15 @@ related:
     .claude/memory/route-questions-via-discord-not-blocking.md,
   ]
 ---
+
+> **SUPERSEDED 2026-07-28.** The home-grown auto-pilot this plan built (or served) was retired: Claude Code now
+> ships scheduled cloud agents (`/schedule`) and remote agent execution natively, which is what this was
+> re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
+> `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
+> (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
+
 
 ## Goal
 

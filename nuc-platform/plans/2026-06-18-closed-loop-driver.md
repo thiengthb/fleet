@@ -1,7 +1,7 @@
 ---
 title: Closed-loop driver — chain the verified autonomy pieces into one self-perpetuating, Discord-supervised cycle
 kind: system-change # REQUIRES prior art before `active`
-status: active # 2026-06-19 — Phases 1+2+3 ALL COMPLETE & PROVEN LIVE (S3.1 retry-cap, S3.2 watchdog, S3.3 full live demo: enrol + planning-Q&A + single-transcript execute->wrap->retro, S3.4(a)(b)(c) gate-push reliability incl. the Start-Transcript trap fix). Only Phase 4 (memory/harness redesign, DEFERRED research-after) remains. NOTE: the S3.4c fix lives on branch fix/gate-push-transcript-trap (3270250) — awaits merge to main
+status: superseded # 2026-06-19 — Phases 1+2+3 ALL COMPLETE & PROVEN LIVE (S3.1 retry-cap, S3.2 watchdog, S3.3 full live demo: enrol + planning-Q&A + single-transcript execute->wrap->retro, S3.4(a)(b)(c) gate-push reliability incl. the Start-Transcript trap fix). Only Phase 4 (memory/harness redesign, DEFERRED research-after) remains. NOTE: the S3.4c fix lives on branch fix/gate-push-transcript-trap (3270250) — awaits merge to main
 created: 2026-06-18
 updated: 2026-06-19 # Phases 1+2 COMPLETE. Phase 1 graduation+enrol RUNTIME-verified by a LIVE local smoke test (sonnet worker graduated synthetic idea-9999 → correct draft plan [draft/auto_pilot:false/enrol:pending], no spurious Q&A; enrol batch minted an ask + PARKED, plan NOT armed without a signed answer). The smoke test caught + fixed a real bug: Test-HasUngraduatedAccept matched the Rules-prose `## Done` substring → graduation never fired (commit 1dd928c; vindicates ledger #71 wiring≠runtime). Still open: Phase 2 reflect batch not yet runtime-run; live DISCORD round-trip (gate-clone) + branch-state coherence unproven (S3.x); enrol-arming hook-hardening proposed (proposals/2026-06-19-…)
 related:
@@ -13,6 +13,15 @@ related:
   - .claude/skills/idea/SKILL.md
   - .claude/skills/session-wrap/SKILL.md
 ---
+
+> **SUPERSEDED 2026-07-28.** The home-grown auto-pilot this plan built (or served) was retired: Claude Code now
+> ships scheduled cloud agents (`/schedule`) and remote agent execution natively, which is what this was
+> re-implementing. Removed: the `/auto-pilot` + `/auto-pilot-smoke-test` skills, `auto-pilot-run.{sh,ps1}`,
+> `auto-pilot-scheduled.ps1`, `register-task.ps1`, and the signed Discord control plane
+> (`gate-cli`/`gate-answer`/`gate-verify`/`ask-cli` + the pinned public key). KEPT and simplified:
+> `autonomy-gate.mjs`, the T1–T4 safety gate (see `09-autonomy-contract.md` for the open trigger risk).
+> This file stays as the record of the reasoning and the ~6 sessions it cost — that is the lesson, not the code.
+
 
 <!--
   Plan output of the user's request (2026-06-18): "build a 24/7 auto workflow — turn the machine on and you self-run the
