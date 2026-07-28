@@ -71,11 +71,30 @@ If this session worked off a persisted plan (`docs/plans/*.md`, `status: active`
 No plan file for this work, but it was big/multi-session → consider creating one via `/project-plan` so the next session
 inherits the roadmap.
 
-## Step 4 — Cross-project lesson → `06-knowledge-ledger.md`
+## Step 4 — Cross-project lesson → the ledger (index + detail are SEPARATE files)
 
-Does this knowledge apply to **≥2 projects** or to **the platform itself**? → add one line to section A of
-`nuc-platform/06-knowledge-ledger.md` (date · one-line lesson · applies to · pointer to detail). If the project is creating its
-`decisions.md` for the first time → add/edit the pointer in section B.
+Does this knowledge apply to **≥2 projects** or to **the platform itself**? Then it is **two writes, not one**:
+
+1. **Detail** → append the full entry to `nuc-platform/ledger/YYYY-MM.md` (current month; create the file from the
+   header of the previous month's if it's a new month):
+   ```markdown
+   ### 2026-07-28 — <headline, the same text you'll put in the index>
+
+   <a id="2026-07-28-headline-slugified-lowercase-hyphens"></a>
+
+   **<headline>** — full reasoning, the failure it came from, what to do instead. As long as it needs to be.
+   ```
+2. **Index** → add ONE row to section A of `nuc-platform/06-knowledge-ledger.md`:
+   ```markdown
+   | 2026-07-28 | <headline, ≤120 chars, no detail> | [→](ledger/2026-07.md#2026-07-28-headline-slugified) |
+   ```
+
+> **Do NOT paste the detail into the index table.** That rule existed from day one and eroded anyway: by 2026-07-28 the
+> index had reached 421KB (~105K tokens) with single rows over 2500 characters, and had to be split mechanically
+> (`.claude/scripts/ledger-split.mjs`). The index is for scanning "have we tripped on anything like this?" — it is only
+> useful while it stays scannable. Run `node .claude/scripts/memory-audit.mjs` if unsure whether it is drifting again.
+
+If the project is creating its `decisions.md` for the first time → add/edit the pointer in section B.
 
 > An **infrastructure**-level pitfall (Docker/Traefik/Watchtower/Authentik) does NOT go in 06 — record it in
 > `02-known-traps.md`. App lifecycle (add/remove/change domain) → `INVENTORY.md`.

@@ -190,8 +190,8 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
 - **Skill `/project-plan`** persists a substantial multi-session plan into `docs/plans/` (and keeps its checklist in sync)
   so the roadmap survives across sessions — the forward-looking counterpart to `decisions.md` (§5.5).
 - **Skill `/session-wrap`** at the end of a session: extracts decisions/traps → `decisions.md`; updates `00-map` if the
-  module map changed; closes a finished plan (`done`) + distills its knowledge into `decisions.md`; one line into
-  `06-knowledge-ledger.md` if cross-project.
+  module map changed; closes a finished plan (`done`) + distills its knowledge into `decisions.md`; if cross-project,
+  the full entry into `ledger/YYYY-MM.md` **and** one index row into `06-knowledge-ledger.md` (see §7.2).
 - **A light pre-commit hook** (`coding-convention/hooks/pre-commit`): a commit touching code but NOT touching `docs/`
   → a **non-blocking** warning (doesn't block). It nudges, doesn't obstruct.
 - **`/nuc-new-project`**: a newly created project has already run `/project-docs scaffold` → born-documented.
@@ -213,6 +213,27 @@ cost bounded:
   `react-ui-craft/references/{architecture,components,motion,ux,security}.md`.
 - Measure: report SKILL.md bytes before/after on every refactor; target ≥ 40 % drop on the auto-fire path.
 
+### 7.2 Ledger structure — `06` is an INDEX, `ledger/YYYY-MM.md` is the detail (INVARIANT)
+
+The cross-project ledger is **two files, not one**, for the same reason a skill splits SKILL.md from `references/`:
+the part you scan must stay cheap to scan.
+
+| File | Role | Shape | Size discipline |
+|---|---|---|---|
+| `06-knowledge-ledger.md` §A | **Index** — "have we tripped on anything like this?" | one row = `\| date \| headline ≤120 chars \| [→](ledger/YYYY-MM.md#slug) \|` | stays scannable; **never** holds the reasoning |
+| `nuc-platform/ledger/YYYY-MM.md` | **Detail** — the full lesson | `### YYYY-MM-DD — headline` + `<a id="slug"></a>` + body, any length | append-only; a superseded lesson gets a later entry that links back |
+| `06-knowledge-ledger.md` §B | Project pointer table | one row per project → its `decisions.md` | already thin, unchanged |
+
+**Why this is an invariant and not a preference:** the "one line + a pointer" rule was written into the ledger's own
+header on 2026-06-12 and eroded anyway. By 2026-07-28 §A held 203 rows, individual rows exceeded 2500 characters, and
+the file reached **421KB (~105K tokens)** — an archival tier nobody could read in one pass. It was split mechanically by
+`.claude/scripts/ledger-split.mjs` (203 entries relocated verbatim; index 411KB → 58KB). A rule that only lives in prose
+gets broken; this one is now measured by `.claude/scripts/memory-audit.mjs` and restated in `/session-wrap` Step 4.
+
+**Rule of thumb for any always-scannable artifact on this platform** (index, `MEMORY.md`, `CLAUDE.md`, `00-map.md`):
+if it grows past the point where reading it whole is cheap, that is a structural defect, not a content success — split
+it, don't summarise it away.
+
 ---
 
 ## 8. Quick checklist when touching a project
@@ -222,4 +243,5 @@ cost bounded:
 - [ ] Does this session have a non-obvious decision/trap? Yes → record it in `docs/decisions.md` (via `/session-wrap`).
 - [ ] Is the work multi-session/substantial? → persist a plan in `docs/plans/` (via `/project-plan`); keep its checklist in sync.
 - [ ] Is `CLAUDE.md` still thin (not bloated with spec)? Heavy spec → split it into `docs/`.
-- [ ] A cross-project lesson? → add one line to `06-knowledge-ledger.md`.
+- [ ] A cross-project lesson? → full entry in `nuc-platform/ledger/YYYY-MM.md` **+** one index row in `06-knowledge-ledger.md` (§7.2).
+- [ ] Is the ledger index still scannable (a row = a headline + link, no pasted detail)? → `node .claude/scripts/memory-audit.mjs`.
