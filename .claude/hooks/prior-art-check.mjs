@@ -36,9 +36,15 @@ const kind = (front.match(/^kind:\s*([a-z-]+)/m) || [])[1];
 if (status !== 'active') process.exit(0);
 if (kind !== 'feature' && kind !== 'system-change') process.exit(0);
 
-// Grab the "## Prior art ..." section up to the next ## header (or EOF) and count external URLs.
+// Grab the research section up to the next ## header (or EOF) and count external URLs.
+//
+// The heading is matched on INTENT, not on one exact string. `2026-07-26-adaptive-calibration.md`
+// carries four cited sources under "## Research — including where it contradicts the request" and
+// this hook still failed it on every single edit (2026-07-28). A gate that cries wolf on a compliant
+// file is worse than no gate: it trains everyone, human and agent, to scroll past its output — and
+// then the one true firing is scrolled past too.
 let urls = 0;
-const hdr = text.match(/^##\s+Prior art[^\n]*$/im);
+const hdr = text.match(/^##\s+(?:Prior art|Research|Sources|Background)[^\n]*$/im);
 if (hdr) {
   const rest = text.slice(hdr.index + hdr[0].length);
   const next = rest.search(/\n##\s/);
