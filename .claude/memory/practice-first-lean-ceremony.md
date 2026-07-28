@@ -66,3 +66,20 @@ only, skip the spine · P2 medium → + tests · P3 large/irreversible/novel →
 governance/docs/exhaustive tests. When proposing process/infra, lead with "does this earn its ceremony?" and cut what
 doesn't. Bias toward CUTTING over adding. Complements [[research-before-design]] (now P3-only), [[extend-dont-rebuild]]
 (reuse not rebuild), [[direct-over-subagent-for-known-context]] (don't over-delegate). See [[user-profile]].
+
+## Reinforced 2026-07-28 — and the sharper version of it
+
+Recommendation record extended to **11/11**: 4 more flagged picks accepted in one session, plus *"hãy theo khuyến nghị
+của bạn"* and a bare *"Có"* in place of an answer. Asking a question he has already delegated is itself ceremony.
+
+**The stronger trait this session revealed: he deletes his own work when shown evidence, without friction.**
+Told that ~6 sessions of `auto-pilot` — which he had personally pushed hard for and struggled through — were superseded
+by a native feature, his reply was *"đi tong nhiều phiên làm việc… nhưng không sao bạn hãy remove nó đi"*. He did not
+defend it, did not ask for a migration path, did not want it kept "just in case".
+
+**How to apply.** Lead with the evidence and a clear recommendation, then act — do not soften a finding to protect
+his prior investment, and do not offer to preserve dead work out of politeness. Sunk cost is not a constraint he
+imposes, so treating it as one only costs him accuracy. He also explicitly asks to be **argued with** ("hãy debate với
+tôi", "phản biện cho tôi") — including about his own premises: on 2026-07-28 the framing "make this framework work on
+every machine" was answered with a measurement showing it was already 83% machine-agnostic, and the smaller reframe was
+accepted immediately. See [[originate-and-challenge-my-premises]] and [[check-prior-decisions-early]].

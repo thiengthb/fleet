@@ -40,6 +40,18 @@ loop already has the context, work directly (Read/Grep/Bash) — fanning out cos
 work is **wide** (many files/URLs), **mechanical** (a known transform), or **context-polluting** (raw pages, huge logs
 that must die in an isolated context).
 
+### 1.2 Verified safe to staff cheaply (add to this list as it is proven, not as it is guessed)
+
+| Task | Model used | Outcome |
+|---|---|---|
+| WebSearch scout — titles + snippets + URLs, **no fetch** (2026-07-28, ~9 queries → 40 results) | haiku | good coverage; the main loop still chose the URLs |
+| Fetch one greenlit URL → 3–8-line distilled extract + cite (2026-07-28, 5 URLs) | sonnet | worked; **caveat** — arXiv `/pdf/` often fails to extract and the agent must say the extraction was partial rather than pass abstract-level claims off as full-text |
+| Read N similar files and emit one structured line each (2026-07-28: 37 `SKILL.md` → name/purpose/trigger/substrate-glob) | sonnet | good structure, but **the judgement inside it needs review**: one glob was wrong (`api-integration-specialist` scored dead on an inbound-webhook path when the skill is about outbound clients). Delegate the reading; verify the conclusions. |
+
+**The counter-example from the same session:** the 203-row ledger transform was *not* delegated — it went to a
+deterministic script instead. When a bulk transform can be expressed exactly, a script beats any model: it is free,
+repeatable, reviewable as a diff, and cannot paraphrase the content it is moving.
+
 ---
 
 ## 2. Web research — the biggest token sink

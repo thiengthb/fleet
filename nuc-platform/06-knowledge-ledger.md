@@ -28,6 +28,8 @@
 
 | Date | Lesson | Detail |
 | ---------- | --- | --- |
+| 2026-07-28 | A fact that governs behaviour belongs where it is READ, not where it is remembered | [→](ledger/2026-07.md#2026-07-28-a-governing-fact-belongs-where-it-is-read) |
+| 2026-07-28 | A capped reminder that hides its own total teaches you the backlog is small | [→](ledger/2026-07.md#2026-07-28-a-capped-reminder-that-hides-its-total) |
 | 2026-07-28 | Restating a rule does not make it stick; restructuring so compliance is the easy path does | [→](ledger/2026-07.md#2026-07-28-restating-a-rule-does-not-stick-restructuring-does) |
 | 2026-07-28 | Building BESIDE the harness instead of ON it is how good work becomes waste | [→](ledger/2026-07.md#2026-07-28-building-beside-the-harness-instead-of-on-it) |
 | 2026-06-12 | Compute DYNAMICALLY instead of storing derived columns | [→](ledger/2026-06.md#2026-06-12-compute-dynamically-instead-of-storing-derived-columns) |
