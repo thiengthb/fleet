@@ -1,41 +1,44 @@
 # MiniServer — Shared rules for every project in this folder
 
-Every project in `D:\Projects\MiniServer\` deploys to the NUC `thienminiserver` via a fixed chain (built 2026-06-07):
+**Two layers. Know which one you are in.** The *agent OS* (conventions, memory, skills, docs, testing, thinking) is
+**machine-agnostic** — identical on the NUC, this PC, a laptop, a cloud runner. The *deployment* layer is **per-target**.
 
-```
-git push main → GitHub Actions build → ghcr.io/thiengthb/<repo> (:latest + :<sha>)
-→ Watchtower on the NUC auto-pulls (≤60s) → Traefik → Cloudflare Tunnel → *.thientnse.site
-```
+**Every project declares a `target` in `nuc-platform/INVENTORY.md §0`** — `nuc` · `local` · `none`. It is DATA: **read
+it, never assume.** `local` (Docker on a dev machine) is a first-class target, not a degraded `nuc`; promotion is a
+deliberate `/nuc-new-project` change. INVENTORY is the **single source of truth** (app/target/volume/domain/auth) —
+read before any lifecycle change; every add/remove-app skill MUST update it. Ops → `01-architecture-and-operations.md` ·
+traps → `02-known-traps.md` · rebuild → `03-SETUP-FROM-SCRATCH.md` · **NUC reset → `04-agent-rebuild-runbook.md`**.
 
-**`nuc-platform/INVENTORY.md` = the SINGLE source of truth** (every app/volume/domain/auth/monitor) — read it before any
-project-lifecycle change; every add/remove-app skill MUST update it (anti-drift). Other docs: `01-architecture-and-operations.md`
-(ops), `02-known-traps.md` (traps), `03-SETUP-FROM-SCRATCH.md` (rebuild). **NUC reset / needs rebuilding → follow
-`04-agent-rebuild-runbook.md`.**
+## Invariants A — platform-wide (every project, every machine, every target)
 
-## Invariants — MUST NOT be violated in any project
+1. **Secrets only in `.env`** (chmod 600, in `.gitignore`) — never hardcode a token/key in compose, Dockerfile, or code.
+2. **Never self-code auth** — no hand-rolled login / password hashing / JWT / session minting, on any target. On `nuc`
+   that means Authentik (B8); on `local` it means an established library or no auth at all, never a bespoke one.
+3. **App data lives in a named volume** (`<name>_data`), never a bind-mount, on any target — it must survive a rebuild
+   and be movable between targets.
+4. **The repo is the source of truth; a running host is a cache.** Nothing is changed only on a host — commit it here.
 
-1. **NUC only PULLs images** — no self-hosted runner, no SSH-deploy from CI, no build-on-NUC (except deliberate firefighting).
-2. **One shared Docker network `edge`** — infra (`/opt/infra`) creates it; apps reference `external: true`, never publish
-   ports to the host (only Traefik reaches apps over the network).
-3. **Public = label** — Traefik `exposedbydefault=false`; an app is public **iff** it has the 4 `traefik.*` labels. A new
-   subdomain needs no Cloudflare change (the wildcard `*.thientnse.site` already catches it).
-4. **Secrets only in `.env`** (chmod 600, in `.gitignore`) — never hardcode a token/key in compose, Dockerfile, or code.
-5. **Dual image tag `latest` + short git-SHA** — rollback = pin the SHA tag in the NUC compose, do NOT revert git.
-6. **TLS by Cloudflare** — do not configure Let's Encrypt/certbot anywhere.
-7. **Traefik ≥ v3.7; Watchtower needs `DOCKER_API_VERSION=1.44`** (Docker 29 dropped API < 1.40 — a violation fails
-   silently, see doc 02).
-8. **Auth = Authentik** (IdP `auth.thientnse.site`, `/opt/apps/authentik`) — never self-code login / password hashing /
-   JWT / session minting. Protect an app = forward-auth (middleware `authentik@docker`); authorize = app reads the
-   `X-authentik-*` headers; link users by **email**. **NEVER** forward-auth an endpoint a machine client calls
-   automatically. Authentik = prebuilt image → NO Watchtower label (update manually, bump `AUTHENTIK_TAG`).
+## Invariants B — `target: nuc` only → `01-architecture-and-operations.md §0` (read before any NUC change)
+
+Seven, binding only on `target: nuc`: pull-only images · shared `edge` network · public-iff-Traefik-label · dual
+`latest`+SHA tags · Cloudflare TLS · Traefik ≥v3.7 + `DOCKER_API_VERSION=1.44` · Authentik forward-auth. They sit in the
+ops doc because that is where a NUC change already sends you, and the three most damaging (certbot, self-hosted runner,
+host port-publish) are enforced in code by `invariant-warn.mjs` rather than by being remembered.
+
+## Invariants C — `target: local`
+
+5. **"Deploy" means rebuild the local container** and verify it healthy + serving — not `git push`. A push is only a
+   backup until the NUC target is live again. Ports are published to the host (there is no Traefik); pick a port and
+   record it in `INVENTORY §0`, and check it is not already taken by another local app.
+6. **A local app is still a real app** — same Dockerfile, same named volume, same docs set, same tests. It differs in
+   *routing and auth*, not in engineering standard, so promotion later is a config change and not a rewrite.
 
 ## Conventions
 
 - Repo `thiengthb/<repo>`, deploy branch `main`. Each repo needs a `Dockerfile` (`EXPOSE` + `HEALTHCHECK` where possible)
   + `.github/workflows/deploy.yml` (copy from a living ghcr app — `nuc-monitor`/`todo`).
-- On the NUC: `/opt/apps/<name>/` = `docker-compose.yml` + `.env` + `.gitignore` (any repo compose is local-dev ONLY).
-  App data = a named volume (`<name>_data`), no bind-mount.
-- SSH: `ssh thien25@thienminiserver` (key installed; user in the docker group).
+- `target: nuc` only — on the NUC `/opt/apps/<name>/` = `docker-compose.yml` + `.env` + `.gitignore` (a repo compose is
+  local-dev ONLY); SSH `ssh thien25@thienminiserver` (key installed; user in the docker group).
 - **Dev artifacts = English** (code, comments, `docs/*.md`, skills, specs, commit messages). End-user UI copy = the
   product's language (vi for `todo`); the in-app `/guide` page is the one exempt.
 - **Agent ↔ user chat = Vietnamese, always** — every reply/explanation/summary/question/status written TO the user. Does
@@ -102,18 +105,17 @@ across sessions instead of evaporating.
 
 ## Agent memory — two tiers, both on native rails (skill `/memory`)
 
-Memory of the **user** (not of the code — that's `decisions.md`). Both tiers use a mechanism Claude Code enforces
+Memory of the **user** (not of the code — that's `decisions.md`). Both tiers ride a mechanism Claude Code enforces
 itself; neither is hand-rolled. Mechanics + write procedure live in `/memory` — keep this thin.
 
-- **Shared → `.claude/memory/`** (git-synced, present on every machine). Wired as the native **auto-memory** directory
-  via `autoMemoryDirectory` in each machine's gitignored `.claude/settings.local.json`. That buys enforcement, not just
-  convention: `MEMORY.md` is capped at **200 lines / 25KB** (a write past it *errors* and demands a rewrite — anything
-  past the cap is silently dropped at load), every file gets an automatic `modified` timestamp, and the index is nudged
-  to merge/drop stale entries as it fills. Topic files are **not** loaded at startup — read on demand. Write almost
-  everything here.
-- **Local → `CLAUDE.local.md`** (gitignored, this box only): a local path, hostname, a locally-installed tool quirk.
-  Loaded every session. *Not* a second memory directory — Claude Code supports exactly one, and a second one has no
-  index and never loads (that bug cost 4 days of an unread Docker note; found 2026-07-28).
+- **Shared → `.claude/memory/`** (git-synced, on every machine), wired as the native **auto-memory** directory via
+  `autoMemoryDirectory` in each machine's gitignored `.claude/settings.local.json`. That buys enforcement, not just
+  convention: `MEMORY.md` capped at **200 lines / 25KB** (a write past it *errors*; content past it is silently dropped
+  at load), an automatic `modified` timestamp per file, and a merge/drop-stale nudge as the index fills. Topic files are
+  **not** preloaded — read on demand. Write almost everything here.
+- **Local → `CLAUDE.local.md`** (gitignored, this box only): a local path, hostname, a tool quirk. *Not* a second memory
+  directory — Claude Code supports exactly one, and a second has no index and never loads (that bug hid a Docker note
+  for 4 days; found 2026-07-28).
 
 **Litmus:** "at a different computer tomorrow, still true and useful?" Yes → shared. No → `CLAUDE.local.md`.
 **One fact = one place; never duplicate across tiers.** Hygiene is measured, not remembered:
@@ -188,11 +190,10 @@ over-powered staffing on mechanical work.
 
 ## Project lifecycle & ops — use the right skill, don't improvise
 
-| When | Skill | Key points |
-|------|-------|-----------|
-| New project / onboard to NUC | **`/nuc-new-project`** | gather info → Dockerfile → workflow → push & verify image → create `/opt/apps/<name>` → acceptance |
-| Remove / decommission | **`/nuc-remove-project`** | delete local code → tear down container+volume+image+dir → clean Authentik provider/group → verify the subdomain 404s → update `INVENTORY.md`+`auth-apps.md`; confirm data loss + no impact first |
-| Health audit / cleanup | **`/nuc-health-audit`** | reconcile `INVENTORY.md` vs reality (drift, orphan volume/image, hanging provider), subdomains alive, Watchtower, disk/RAM, secret hygiene; **report only** — every destructive action asks the user |
-| Protect an app (login/SSO/authz) | **`/nuc-protect-app`** | forward-auth gate / group policy / in-app authz via `X-authentik-*` (`headers()` in Next). Registry + traps: `authentik/docs/auth-apps.md` |
-| Set an app's env/secrets on the NUC | **`/nuc-set-env`** | push `KEY=VALUE` from a LOCAL mirror `~/.nuc-env/<app>.env` → `/opt/apps/<app>/.env` over ssh STDIN; idempotent upsert, atomic, chmod 600, auto-heals malformed lines; **agent never receives secret values** (directs the user to the mirror + script). Front-ends `.ps1`/`.sh`; merge runs on the NUC |
-| Web is broken | debug by layer | DNS → tunnel → Traefik → app, symptom table in `01-architecture-and-operations §7`; pinpoint the failing layer before fixing |
+**Check the project's `target` first** (INVENTORY §0) — the `/nuc-*` skills apply to `target: nuc` only.
+**onboard/new** → `/nuc-new-project` · **remove** → `/nuc-remove-project` (confirm data loss + no impact FIRST; then
+code → container+volume+image+dir → Authentik provider/group → subdomain 404s → update INVENTORY + `auth-apps.md`) ·
+**audit/cleanup** → `/nuc-health-audit` (**report only** — every destructive action asks) · **protect (login/SSO/authz)**
+→ `/nuc-protect-app`, registry + traps in `authentik/docs/auth-apps.md` · **env/secrets** → `/nuc-set-env` (from the
+LOCAL mirror `~/.nuc-env/<app>.env` over ssh STDIN; the agent never receives secret values) · **web is broken** → debug
+by layer DNS → tunnel → Traefik → app, symptom table in `01-architecture-and-operations §7`.

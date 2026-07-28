@@ -1,32 +1,32 @@
 ---
 name: nuc-down-deploy-local-only
-description: NUC is currently broken and there's no VPS — deploy is LOCAL-only for now; don't treat the NUC/push pipeline as a live target or operate on it
+description: Never assume a deploy target — read `target` + the NUC STATUS block in INVENTORY §0 before deploying, SSH-ing, or calling anything "live"
 metadata:
-  type: project
+  type: feedback
 ---
 
-As of **2026-07-22** the NUC (`thienminiserver`) is **broken/down** and the user has **NO VPS** to
-deploy to either. So the normal platform flow (git push → GitHub Actions → ghcr → Watchtower on the
-NUC → `*.thientnse.site`) does **NOT** currently reach a working NUC — the auto-pull side is dead, so a
-push does not go live anywhere. Deployment is temporarily **LOCAL-only**: the user runs the app on
-their own machine (e.g. `docker compose up -d --build` → `localhost:3789`).
+**Read the target; do not remember it.** Every project declares `target: nuc | local | none` in
+`nuc-platform/INVENTORY.md §0`, and the NUC's own up/down state is a **NUC STATUS** block at the top of the same file.
+Before deploying, SSH-ing anywhere, or reporting something as live: read those two, in that file. As of 2026-07-22 the
+NUC is 🔴 down with no VPS substitute — but check, because that is exactly the kind of fact that changes without the
+memory being updated.
 
-**Why:** I wasted the user's time treating the NUC as a working deploy target — after a push I saw the
-live site unchanged, then went and tried to SSH into the NUC and "fix Watchtower". The user never asked
-for NUC deployment; the NUC is known-broken and this was overstepping ("bị lố").
+**Why this is a memory at all, when the fact now lives in data.** The durable lesson is not "the NUC is down" — that
+expires. It is the behaviour: **I treated a `git push` as a release, saw the live site unchanged, and then went and
+tried to SSH into a dead host to "fix Watchtower".** The user never asked for NUC deployment and called it overstepping
+("bị lố"). A push preserves code on GitHub; it is not a deploy, and it is certainly not a deploy to a host that is off.
 
-**How to apply:** When asked to "deploy", assume **LOCAL** (this machine's Docker / dev server), NOT the
-NUC — confirm the target if unsure. Do **NOT** SSH into / run commands on the NUC, and do NOT diagnose
-the NUC pipeline (Watchtower/ghcr/Traefik), unless the user explicitly says the NUC is back and asks.
-`git push` is still fine (it preserves code on GitHub) but pushing ≠ it goes live. **Re-verify this
-state before assuming the NUC/VPS is usable again** — it's a temporary situation, not permanent. Links:
-[[verify-end-state-not-upload]], [[execute-over-handoff]], [[practice-first-lean-ceremony]].
+**How to apply.**
+- "Deploy" with no target named → the project's `target`, and if that is `nuc` while NUC STATUS is 🔴, say so and
+  deploy **local** instead of proceeding.
+- `target: local` → deploy means rebuild the local container and verify it healthy + serving. See
+  [[rebuild-container-to-review]] and [[verify-end-state-not-upload]].
+- Local does **not** mean private: a locally-run `cloudflared` container puts a local app on `*.thientnse.site` with
+  TLS at Cloudflare, no NUC involved (that is how `sakubun` is public today; gitignored
+  `docker-compose.tunnel.yml` + `.env.tunnel`, chmod 600).
+- Do **not** SSH into or diagnose the NUC (Watchtower/ghcr/Traefik) unless the user says it is back and asks.
 
-**Update 2026-07-24 — a LOCAL deploy CAN be public, via a local `cloudflared` tunnel (no NUC needed).**
-`sakubun` now runs on this machine (`docker compose up -d --build`) AND is publicly reachable at
-`sakubun.thientnse.site` through a `cloudflared` container the user runs locally with a Cloudflare Tunnel
-token (dashboard-managed ingress → `http://host.docker.internal:3789`; on Linux the container needs
-`--add-host host.docker.internal:host-gateway`). So "local-only deploy" no longer means "unreachable from
-the internet" — the tunnel bypasses the NUC/Traefik entirely and terminates TLS at Cloudflare. It lives in
-a gitignored `docker-compose.tunnel.yml` + `.env.tunnel` (chmod 600) in the sakubun repo. Still no NUC:
-`git push` does not auto-deploy, and the running container must be rebuilt by hand to pick up new code.
+**The general form of this lesson** — and the reason 2026-07-28 moved the fact into INVENTORY: *a fact that governs
+behaviour belongs where it is read, not where it is remembered.* When something in memory starts steering decisions,
+that is the signal to promote it into data with a gate. See [[enforce-rules-with-gates]] and
+[[check-prior-decisions-early]].

@@ -5,6 +5,21 @@
 > are required to edit the table below; `/nuc-health-audit` reconciles this file against reality to catch drift.
 > If the table and reality differ → treat it as an incident, investigate (don't trust the table blindly).
 
+## NUC STATUS — read this before any `target: nuc` action
+
+| | |
+|---|---|
+| **Host `thienminiserver`** | 🔴 **DOWN since 2026-07-22** — hardware/host failure; no VPS substitute |
+| **Effect** | The pull side of the chain is dead: `git push` still builds an image on ghcr, but **nothing deploys anywhere**. A push is a backup, not a release. |
+| **Do NOT** | SSH into the NUC, diagnose Watchtower/Traefik/ghcr delivery, or report a `target: nuc` app as "deployed". |
+| **Meanwhile** | Ship on `target: local` (local Docker). A local app can still be **public** without the NUC via a locally-run `cloudflared` container (Cloudflare Tunnel → `*.thientnse.site`, TLS at Cloudflare) — that is how `sakubun` is reachable today. |
+| **When it returns** | Flip this row to 🟢, re-verify with `/nuc-health-audit` **before** trusting any `target: nuc` row below, and promote any `local` project that was waiting via `/nuc-new-project`. |
+
+> This is a **state field, deliberately in the source of truth** rather than in the agent's memory. It used to be a
+> memory the agent had to recall, and the failure mode was exactly what you'd predict: a push was treated as a release,
+> then time was spent SSH-ing into a dead host to "fix Watchtower". A fact that governs behaviour belongs where it is
+> read, not where it is remembered.
+
 Last updated: **2026-06-11** (verified directly from `docker ps`/`docker volume ls` on the NUC).
 Latest (2026-06-12): added the **journal** app (`journal.thientnse.site`, Next.js + Postgres/pgvector) — Authentik forward-auth attached (group `journal-access`), the app reads `X-authentik-email`.
 Latest (2026-06-12): added the **yakudoku** app (`yakudoku.thientnse.site`, a JP↔VI translation trainer) — monorepo, 1 repo → **3 images** (web public behind Authentik group `yakudoku-access`; the internal core FastAPI is the SOLE writer of the SQLite `yakudoku_data`; a headless Discord bot). Authentik provider pk 4. **MCP server (2026-06-12)** in `yakudoku-web` (`/api/mcp`, a self-issued OAuth shim like todo's) — Claude composes the sentence, core grades it; exempt from forward-auth via the `yakudoku-mcp` router.
@@ -19,6 +34,17 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 > - **`domain`** = *what it's for* (browse-by-purpose): `platform` · `product` · `automation` · `shared`. Rows are grouped by it.
 > - **`kind`** = *how it's built/deployed* (the operational axis): drives the archetype in `/nuc-new-project` ("Choose
 >   archetype") + which invariants apply.
+> - **`target`** = *where it runs* (added 2026-07-28): `nuc` · `local` · `none`. **This is the field that decides which
+>   invariants apply**, and it is DATA — read it, do not assume. `nuc` = deployed via the git→ghcr→Watchtower→Traefik
+>   chain to `/opt/apps/<name>`, all NUC invariants bind. `local` = runs on a dev machine (a PC, a laptop) under local
+>   Docker; the NUC chain, Traefik labels, the `edge` network and Authentik forward-auth **do not apply**, and "deploy"
+>   means rebuild the local container. `none` = not deployed at all (meta / shared).
+>
+>   *Why this exists:* the NUC has been down since 2026-07 and the platform still had to keep shipping, but "we deploy
+>   locally right now" lived only in the agent's memory — a fact it had to *remember* rather than *read*, which is
+>   exactly the failure mode this platform keeps re-learning. A `local` project is not a degraded `nuc` project waiting
+>   to be promoted; it is a first-class target. Promotion (`local` → `nuc`) is a deliberate lifecycle change that runs
+>   `/nuc-new-project` and updates this row.
 >
 > They don't align (e.g. `nuc-monitor` is domain `platform` but kind `python-worker`), which is exactly why a one-dimensional
 > directory tree can't express both — a flat table with two columns can. The dev-machine layout ≠ the NUC layout (`/opt/apps`
@@ -26,19 +52,19 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 > nearest + let `kind` disambiguate). **When to reconsider physical nesting:** not until this table passes ~25–30 rows AND the
 > flat dev folder genuinely impedes navigation — even then prefer a VS Code multi-root workspace over moving independent git repos.
 
-| Domain | Project | kind | Short description | GitHub repo | Dev path | NUC |
-|--------|---------|------|-----------|-------------|----------|-----|
-| `platform` | **authentik** | `infra` (third party) | Central IdP (pinned image, manual update) | `thiengthb/authentik` (compose) | `MiniServer/authentik` | `/opt/apps/authentik` |
-| `platform` | **nuc-monitor** | `python-worker` | Monitors the NUC → Discord — python-worker reference | `thiengthb/nuc-monitor` | `MiniServer/nuc-monitor` | `/opt/apps/nuc-monitor` |
-| `platform` | **nuc-ops-bot** | `python-worker` (bot) | Discord ChatOps bot controlling the NUC | `thiengthb/nuc-ops-bot` | `MiniServer/nuc-ops-bot` | `/opt/apps/nuc-ops-bot` |
-| `product` | **todo** | `web-app` (Next) | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `MiniServer/todo` | `/opt/apps/todo` |
-| `product` | **journal** | `web-app` (Next) | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `MiniServer/journal` | `/opt/apps/journal` |
-| `product` | **yakudoku** | `monorepo` (→3 images) | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `MiniServer/yakudoku` | `/opt/apps/yakudoku` |
-| `product` | **sakubun** | `web-app` (Next) | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | (no remote yet) | `MiniServer/sakubun` | — |
-| `automation` | **n8n** | `infra` (third party) | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `MiniServer/n8n` | `/opt/apps/n8n` |
-| `automation` | **jobhunter-bot** | `node-bot` (worker) | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `MiniServer/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
-| `shared` | **ui-kit** | `meta` (not deployed) | Shared frontend shadcn registry (copy-in) | `thiengthb/ui-kit` | `MiniServer/ui-kit` | — |
-| `shared` | **nuc-platform** | `meta` (control plane) | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `MiniServer/` (root) | — |
+| Domain | Project | kind | `target` | Short description | GitHub repo | Dev path | NUC path |
+|--------|---------|------|--------|-----------|-------------|----------|-----|
+| `platform` | **authentik** | `infra` (third party) | `nuc` | Central IdP (pinned image, manual update) | `thiengthb/authentik` (compose) | `MiniServer/authentik` | `/opt/apps/authentik` |
+| `platform` | **nuc-monitor** | `python-worker` | `nuc` | Monitors the NUC → Discord — python-worker reference | `thiengthb/nuc-monitor` | `MiniServer/nuc-monitor` | `/opt/apps/nuc-monitor` |
+| `platform` | **nuc-ops-bot** | `python-worker` (bot) | `nuc` | Discord ChatOps bot controlling the NUC | `thiengthb/nuc-ops-bot` | `MiniServer/nuc-ops-bot` | `/opt/apps/nuc-ops-bot` |
+| `product` | **todo** | `web-app` (Next) | `nuc` | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `MiniServer/todo` | `/opt/apps/todo` |
+| `product` | **journal** | `web-app` (Next) | `nuc` | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `MiniServer/journal` | `/opt/apps/journal` |
+| `product` | **yakudoku** | `monorepo` (→3 images) | `nuc` | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `MiniServer/yakudoku` | `/opt/apps/yakudoku` |
+| `product` | **sakubun** | `web-app` (Next) | `local` | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | (no remote yet) | `MiniServer/sakubun` | — |
+| `automation` | **n8n** | `infra` (third party) | `nuc` | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `MiniServer/n8n` | `/opt/apps/n8n` |
+| `automation` | **jobhunter-bot** | `node-bot` (worker) | `nuc` | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `MiniServer/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
+| `shared` | **ui-kit** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/ui-kit` | `MiniServer/ui-kit` | — |
+| `shared` | **nuc-platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `MiniServer/` (root) | — |
 
 **The 5 standard `kind`s** (shaping the archetype + the invariants that apply):
 

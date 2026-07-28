@@ -22,6 +22,32 @@
 
 ---
 
+## 0. INVARIANTS — `target: nuc` ONLY
+
+> Moved here from `CLAUDE.md` on 2026-07-28 when the platform split into a machine-agnostic agent OS and a per-target
+> deployment layer. These bind **only** to a project whose `target` is `nuc` in `INVENTORY.md §0`. A `target: local`
+> project (running under Docker on a PC or laptop) is NOT bound by any of them — it has no Traefik, no `edge` network,
+> no Watchtower and no Authentik. Checking the target first is the whole point; assuming `nuc` is the old bug.
+
+Deploy chain (built 2026-06-07):
+`git push main → GitHub Actions → ghcr.io/thiengthb/<repo> (:latest + :<sha>) → Watchtower pulls (≤60s) → Traefik → Cloudflare Tunnel → *.thientnse.site`
+
+5. **NUC only PULLs images** — no self-hosted runner, no SSH-deploy from CI, no build-on-NUC (except deliberate firefighting).
+6. **One shared Docker network `edge`** — infra (`/opt/infra`) creates it; apps reference `external: true`, never publish
+   ports to the host (only Traefik reaches apps over the network).
+7. **Public = label** — Traefik `exposedbydefault=false`; an app is public **iff** it has the 4 `traefik.*` labels. A new
+   subdomain needs no Cloudflare change (the wildcard `*.thientnse.site` already catches it).
+8. **Dual image tag `latest` + short git-SHA** — rollback = pin the SHA tag in the NUC compose, do NOT revert git.
+9. **TLS by Cloudflare** — do not configure Let's Encrypt/certbot anywhere.
+10. **Traefik ≥ v3.7; Watchtower needs `DOCKER_API_VERSION=1.44`** (Docker 29 dropped API < 1.40 — a violation fails
+    silently, see doc 02).
+11. **Auth = Authentik** (IdP `auth.thientnse.site`, `/opt/apps/authentik`). Protect an app = forward-auth (middleware
+    `authentik@docker`); authorize = app reads the `X-authentik-*` headers; link users by **email**. **NEVER**
+    forward-auth an endpoint a machine client calls automatically. Authentik = prebuilt image → NO Watchtower label
+    (update manually, bump `AUTHENTIK_TAG`).
+
+---
+
 ## 1. THE BIG PICTURE
 
 ```
