@@ -1,0 +1,29 @@
+{
+  "$comment": [
+    "The last Claude Code version whose changelog was reviewed against this platform's home-grown machinery.",
+    "Read by .claude/hooks/harness-drift-check.mjs on SessionStart; when the installed version differs, the hook",
+    "asks for the T1 review and points here. Committed on purpose: 'last reviewed' is a platform fact, not a",
+    "machine fact, so whichever machine upgrades first does the review once for all of them.",
+    "",
+    "Why this exists: between 2026-06-14 and 06-20 roughly six sessions went into 'auto-pilot' — an external",
+    "orchestrator, a scheduled wrapper and a signed Discord approval control plane. Claude Code then shipped",
+    "scheduled cloud agents and remote execution natively, and on 2026-07-28 the whole thing was deleted. Nothing",
+    "in the process was wrong; the premise had silently expired and no step ever re-checked it. This file is that",
+    "step. Full lesson: nuc-platform/ledger/2026-07.md#2026-07-28-building-beside-the-harness-instead-of-on-it"
+  ],
+  "reviewedVersion": "2.1.220",
+  "reviewedAt": "2026-07-28",
+  "findings": [
+    {
+      "version": "2.1.220",
+      "date": "2026-07-28",
+      "replaced": [
+        "auto-pilot orchestrator + scheduled wrapper -> native scheduled cloud agents (/schedule) and remote agent execution",
+        "hand-rolled shared-memory loading via @import -> native auto memory (autoMemoryDirectory), which additionally ENFORCES the 200-line/25KB index cap and stamps `modified`"
+      ],
+      "kept": [
+        "autonomy-gate.mjs — the safety tier is not superseded by native remote execution; a remote run is more autonomous, not less"
+      ]
+    }
+  ]
+}

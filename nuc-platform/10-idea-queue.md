@@ -38,6 +38,37 @@
 - **Dedup:** new idea similar to an existing one → set `dedup_of:` + **flag the supervisor** to re-analyze jointly; don't silently merge.
 - **Prune:** `deferred` that fails re-scoring twice, or is fundamentally unfit → `dead` (tombstone + reason).
 
+## Where ideas come from — three triggers, not a standing research job
+
+Added 2026-07-28. The queue's failure mode is not running dry; it is filling with things nobody asked for while the
+one thing that mattered goes unnoticed. "Continuously research how to improve the agent" sounds right and is a trap:
+the answer changes roughly once per harness release, so polling burns sessions to find nothing, and self-improvement
+research has no stopping rule — there is always another framework, another paper, another "10x your agent" post. A
+loop with no stopping rule optimises for reading, not for capability.
+
+| Trigger | Fires when | Budget | Wired as |
+|---|---|---|---|
+| **T1 — release** *(highest yield)* | the harness version changes | **one question**, once: "did it just ship something we hand-rolled?" | `harness-drift-check.mjs` (SessionStart) + `.claude/harness-baseline.json` |
+| **T2 — pain** | a measured threshold trips: an audit reports a cap breach or drift, a file blows its size budget, the same correction happens twice | scoped to the question the pain already asked | `memory-audit.mjs`, `skill-audit.mjs`, `plan-checkin.mjs`, `memory-wiring-check.mjs` |
+| **T3 — curiosity** | nothing in particular | **≤1× per month**, and may produce **only** a proposal | manual; deliberately not automated |
+
+**All three produce entries here. None of them execute.** That is unchanged — the supervisor's accept is still the
+oracle (`Rules` above).
+
+**Cheap and boring first.** On 2026-07-28 a research pass scouted ~40 external sources on agent memory; the single
+highest-value finding came from none of them. It came from `code.claude.com/docs/en/memory` — the official docs of the
+tool the agent was already running inside, which had shipped a native memory system with *enforced* index caps while
+the platform maintained a hand-rolled equivalent. **"Standing on the shoulders of giants" usually means the giant you
+are already standing on.** Read the changelog and docs of your own tooling before scouting the field.
+
+**What is NOT measured, and should be.** Every improvement this platform has made was justified by argument, never by
+measurement. "Did the agent follow the rule more often after the rule was written?" has never been answered once. The
+success metric for this loop is not *"something new was read"* — it is *"a rule that used to be violated stopped being
+violated"*, which is answerable from the day-log and git. Until a `/behavioural-eval` actually runs, treat every claim
+of self-improvement here as unverified.
+
+---
+
 ## Queue
 
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
