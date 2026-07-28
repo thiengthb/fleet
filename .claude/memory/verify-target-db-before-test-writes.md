@@ -17,6 +17,16 @@ while the prod pollution stayed. The user's real users then showed one bogus "un
 to delete it from the prod volume DB after the fact. A test-write to prod is the exact class of mistake
 [[verify-end-state-not-upload]] warns about.
 
+**Reading prod is DIFFERENT from writing it, and he grants it (2026-07-28).** A measurement that needs
+the real library (508 grammar patterns, real FSRS state) cannot be answered on an 11-item lab seed — a
+collision rate measured there says nothing. When I stopped and explained WHY the real data was needed and
+what exactly I would read, he replied "tôi cho phép đọc read-only từ DB prod". So: do not quietly settle
+for an unrepresentative proxy, and do not route around a block — say what you need it for and ask.
+**The safe read pattern:** `docker exec sakubun node -e "... new DatabaseSync(path, {readOnly:true}) ..."`
+— query IN PLACE, select only the columns needed, never `docker cp` the database out. (The harness
+classifier blocks a whole-DB copy and a bulk row dump to a file, and it is right to; the narrow in-place
+read is both safer and permitted.)
+
 **How to apply:** Before ANY test that WRITES (sign-up, submit, seed): (1) confirm which process is
 answering — `docker ps` / check the image + port — don't assume a listener is dev. (2) To test my own new
 code safely, start a SEPARATE dev server on a spare port (e.g. `next dev -p 3790`) so I never touch the prod
