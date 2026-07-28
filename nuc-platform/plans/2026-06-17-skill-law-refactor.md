@@ -1,7 +1,7 @@
 ---
 title: Refactor heavy skills — split LAW into references/, keep SKILL.md as procedure only
 kind: refactor
-status: active
+status: done
 created: 2026-06-17
 updated: 2026-06-17 # human-accepted Option B; Phase 1 audit running
 related:
@@ -12,6 +12,20 @@ related:
   - CLAUDE.md
   - nuc-platform/05-documentation-standard.md
 ---
+
+> **CLOSED 2026-07-28 — goal reached, and the metric turned out to be the wrong one.**
+>
+> What it wanted: split declarative LAW out of heavy `SKILL.md` files into `references/`, loaded on demand. That
+> happened for the skills that mattered — `coding-convention` (6 refs), `react-ui-craft` (5), `code-reuse` (1) — and the
+> pattern is now codified in `05-documentation-standard §7.1`. The 20 unchecked boxes are the ceremony around a result
+> already delivered.
+>
+> **The finding that closes it, not just finishes it:** this plan optimised `SKILL.md` **body** size, on the assumption
+> that bodies are the always-loaded cost. Measurement on 2026-07-28 (`skill-audit.mjs`) says otherwise — skill **bodies
+> load on demand**; what is injected into *every* session is the **catalog**: each skill's name + description, 37 of
+> them, **16.3KB ≈ 4.2K tokens, about the size of `CLAUDE.md` itself**. Splitting a body into `references/` does not
+> move that number at all. The successor work is to shorten the heaviest *descriptions* — filed as an idea.
+
 
 <!--
   Plan output of the user's request: improve "Tier 2 — .claude/rules/*.md (conditional load)".

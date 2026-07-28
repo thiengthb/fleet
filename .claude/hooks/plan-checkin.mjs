@@ -157,12 +157,15 @@ export function classify(plans, now) {
 
   due.sort((a, b) => a.delta - b.delta); // most overdue first
   dangling.sort((a, b) => b.idle - a.idle);
-  return { due, soon, dangling: dangling.slice(0, MAX_DANGLING), defects };
+  // Report the TOTAL alongside the truncated list. Showing 3 of 6 as if it were 3 of 3 makes a growing
+  // backlog look static — on 2026-07-28 three plans were closed and three more appeared, which is exactly
+  // the shape a silent cap produces. Truncate the list, never the count.
+  return { due, soon, dangling: dangling.slice(0, MAX_DANGLING), danglingTotal: dangling.length, defects };
 }
 
 const label = (p) => `${p.project}/${p.file.replace(/\.md$/, '')}`;
 
-function render({ due, soon, dangling, defects }) {
+function render({ due, soon, dangling, danglingTotal = dangling.length, defects }) {
   const user = [];
   const model = [];
 
@@ -194,11 +197,18 @@ function render({ due, soon, dangling, defects }) {
   }
 
   if (dangling.length) {
-    user.push(`💤 Plan còn dang dở (status: active, lâu chưa đụng):`);
+    const more = danglingTotal - dangling.length;
+    user.push(
+      `💤 Plan còn dang dở (status: active, lâu chưa đụng)${more > 0 ? ` — ${danglingTotal} cái, hiện ${dangling.length}:` : ':'}`,
+    );
     for (const p of dangling) user.push(`• ${label(p)} — ${p.idle} ngày`);
+    if (more > 0) user.push(`• …và ${more} plan nữa (chạy \`node .claude/hooks/plan-checkin.mjs --list\` để xem hết)`);
 
-    model.push('DANGLING PLANS (status: active, untouched >= 10 days):');
+    model.push(
+      `DANGLING PLANS (status: active, untouched >= 10 days) — ${danglingTotal} total, showing ${dangling.length}:`,
+    );
     for (const p of dangling) model.push(`- ${p.path} (idle ${p.idle}d)`);
+    if (more > 0) model.push(`- (+${more} more not shown — the backlog is larger than this list)`);
     model.push(
       'ACTION: once the session\'s actual request is handled, offer ONE of these as the next piece of ' +
         'work — name the specific unchecked step, not just the plan. If it is stalled on the user, say ' +

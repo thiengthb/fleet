@@ -1,6 +1,6 @@
 ---
 title: Build — idea-queue + /idea skill (Phase 1, accepted)
-status: active # draft → active → done | abandoned
+status: done
 created: 2026-06-14
 updated: 2026-06-14
 related:
@@ -8,6 +8,12 @@ related:
   - nuc-platform/10-idea-queue.md
   - .claude/skills/idea/SKILL.md
 ---
+
+> **CLOSED 2026-07-28.** Both remaining boxes were "dogfood it" and "optionally wire the cadence into `/session-wrap`".
+> The first happened by use — the queue is the most-exercised skill on the platform (11 `/idea` references across the
+> day-log, more than any other). The second was never requested and is still not; if it is ever wanted it is a
+> one-line change, not a plan. Keeping a plan open to hold two optional items is how the plan clock loses meaning.
+
 
 ## Goal
 The accepted Phase 1 idea-queue is live: a maintained `10-idea-queue.md`, a working `/idea` skill, and CLAUDE.md pointers

@@ -1,7 +1,8 @@
 ---
 title: nuc-monitor app-health build (Option D) — alert on Docker `unhealthy` + deep readiness in journal/yakudoku
 kind: feature # feature | system-change | fix | refactor | chore
-status: active # draft → active → done | abandoned
+status: blocked
+checkin: 2026-09-26 # backstop: is the NUC back yet? (real trigger is the INVENTORY NUC STATUS row)
 auto_pilot: false # multi-repo + deploy gate; supervised
 created: 2026-06-17
 updated: 2026-06-17 # code complete (nuc-monitor + journal + yakudoku-core + core test); all py_compile OK; PARKED at deploy gate P2 (push to main = T4 = human)
@@ -15,6 +16,15 @@ related:
   - yakudoku/core/Dockerfile (already has a HEALTHCHECK)
   - nuc-platform/INVENTORY.md (§1 Monitor column)
 ---
+
+> **BLOCKED 2026-07-28 — on hardware, not on work.** M1/M2 and the app-side readiness endpoints are done (7 of 9
+> boxes). What is left is **P2: deploy to the NUC**, and the NUC has been down since 2026-07-22 (see the NUC STATUS
+> block in `INVENTORY.md`). There is nothing to do here until the host is back, so the status is `blocked` rather than
+> `active` — a plan that cannot move should not keep appearing on the dangling-plan clock as if someone were ignoring
+> it. The remaining M3 (an "🩺 Unhealthy" line in the daily heartbeat) is explicitly optional.
+>
+> **Unblock trigger:** the NUC STATUS row in `INVENTORY.md` flips to 🟢 (verified by `/nuc-health-audit`).
+
 
 ## Goal
 
@@ -118,3 +128,13 @@ catches "Postgres down" by putting the DB ping inside the app's own HEALTHCHECK.
 - nuc-monitor has no local ruff/mypy/test tooling on this machine — CI runs lint; M2 introduces the first test.
 - Commit/push only when the supervisor asks (CLAUDE.md). All edits so far are uncommitted, on whatever branch is checked
   out — keep them OFF the parallel `auto/retire-sr-sandbox` branch's commits.
+
+
+## Check-in runbook
+
+1. Read the **NUC STATUS** block at the top of `nuc-platform/INVENTORY.md`.
+2. Still 🔴 → push the `checkin:` date out and stop. Nothing else to do; do not re-plan.
+3. Now 🟢 → run `/nuc-health-audit` first (never trust the table blindly after an outage), then execute **P2**:
+   push `journal`, `yakudoku`, `nuc-monitor` to `main`, let CI build, confirm Watchtower pulls, verify the readiness
+   endpoints answer and that an intentionally-unhealthy container actually raises the alert. Then close this plan.
+4. M3 (heartbeat "🩺 Unhealthy" line) stays optional — do it only if the alerting proves noisy without it.

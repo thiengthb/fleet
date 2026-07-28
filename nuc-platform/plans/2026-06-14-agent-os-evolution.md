@@ -1,7 +1,7 @@
 ---
 title: Agent-OS evolution — temporal memory, idea-queue lifecycle, interest model, token-aware batching
 kind: system-change
-status: active # draft → active (Phase 1 shipped; Phases 2–4 + RAG queued) → done
+status: done
 created: 2026-06-14
 updated: 2026-06-14 # Phases 2 (interest model) + 3 (day-log recall tier) SHIPPED; idea-0002 shrunk→deferred (schema folded into P3)
 related:
@@ -12,6 +12,21 @@ related:
   - nuc-platform/05-documentation-standard.md
   - nuc-platform/07-SKILL-CANDIDATES.md
 ---
+
+> **CLOSED 2026-07-28.** Phases 1–3 shipped long ago (idea queue, interest model, day-log recall tier). Phase 4
+> (memory/harness) was largely delivered in the 2026-07-28 session, though **not the way this plan imagined it** —
+> which is why the plan is being closed rather than carried:
+>
+> | Phase 4 workstream | Outcome |
+> |---|---|
+> | S4.1 identity vs churning rules | **Solved differently.** No `VISION.md`; instead `CLAUDE.md` split by *layer* (machine-agnostic agent OS vs per-target deployment) and trimmed 254 → 200 lines. |
+> | S4.2 episodic compaction | **NOT done.** The day-log still grows unbounded. Re-filed as an idea so it gets ranked against everything else instead of lingering here. |
+> | S4.3 routing / on-demand loading | **Done, natively.** Path-scoped `.claude/rules/`, JIT doc loading, and native auto-memory topic files that are not preloaded. No custom router was needed. |
+> | S4.4 RAG / pgvector | **Still deferred, now measured.** Always-loaded context is ~10.7K tokens; grep + an index still answers retrieval. The real bloat was one 421KB ledger file, fixed by splitting it, not by embedding it. |
+>
+> The plan's own premise also shifted: it assumed the agent-OS would keep being hand-built. The 2026-07-28 session
+> moved memory onto native rails and deleted auto-pilot for the same reason. Remaining work lives in the idea queue.
+
 
 <!--
   NORTH-STAR capture of the supervisor's 2026-06-14 vision for evolving the agent's "operating system":

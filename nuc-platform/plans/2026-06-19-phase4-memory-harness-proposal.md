@@ -1,11 +1,26 @@
 ---
-status: draft # draft (research-pending) → proposed → accepted → done
+status: superseded
 created: 2026-06-19
 kind: proposal # analyze stage of /idea → proposal → /project-plan; NOT a build plan yet
 milestone_id: closed-loop-driver-phase4
 related: 2026-06-18-closed-loop-driver.md (Phase 4), 2026-06-14-agent-os-evolution.md, 10-idea-queue.md (idea-0002, idea-0005)
 research_status: PARTIAL — foundation grounded in the 2026-06-14 cited prior art; the 3 NEW mechanisms below await external research (interrupted 2026-06-19 by a session limit; re-run after reset). Per research-before-design, the new mechanisms are NOT yet designed, only framed with in-repo-precedent candidate options.
 ---
+
+> **SUPERSEDED 2026-07-28** by the session that actually did the work — and it is worth recording that this proposal
+> stopped at `research_status: PARTIAL` on 2026-06-19 and was never resumed, so its three "genuinely new mechanisms"
+> were designed by nobody and shipped anyway, differently:
+>
+> - **S4.1 (identity vs rules)** — no `VISION.md`. `CLAUDE.md` was split by *layer* instead (machine-agnostic agent OS
+>   vs per-target deployment) and cut 254 → 200 lines.
+> - **S4.2 (episodic compaction)** — still not done. Re-filed as an idea rather than left implied here.
+> - **S4.3 (routing)** — solved natively: path-scoped `.claude/rules/`, JIT doc loading, and native auto-memory topic
+>   files that are not preloaded. The "metadata/keyword router" this proposal weighed was never needed.
+> - **S4.4 (RAG)** — confirmed deferred, now with numbers rather than an estimate.
+>
+> The lesson is the same one the auto-pilot retirement produced on the same day: a design frozen mid-research is not a
+> design, and the platform moved on around it. Kept as the record.
+
 
 # Proposal — Closed-loop Phase 4: memory / harness redesign
 

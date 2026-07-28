@@ -1,7 +1,7 @@
 ---
 title: Token optimization — Batch 2 (the real per-session savings)
 kind: refactor # internal efficiency cleanup, grounded in our own measurements — no external/novel design ⇒ not a research-gated P3
-status: active
+status: done
 created: 2026-06-20
 updated: 2026-06-20
 related:
@@ -11,6 +11,20 @@ related:
     .claude/memory/direct-over-subagent-for-known-context.md,
   ]
 ---
+
+> **CLOSED 2026-07-28 — two of three delivered, the third is not the agent's to do.**
+>
+> - **#5 JIT context** — done. `CLAUDE.md` now states the just-in-time loading path explicitly ("read on need, NOT
+>   reflexively"); the mandated 3-tier read on every session entry is gone.
+> - **Structural `CLAUDE.md` cut** (listed as optional) — done, and further than proposed: 254 → **200 lines**, with the
+>   frontend law moved to a **path-scoped** `.claude/rules/frontend.md` (loads in full only when a UI file is touched)
+>   and the NUC invariants + routing/research tables moved to their reference docs.
+> - **#1 Shopify MCP** — **still open, and it is a USER action**: disconnect the connector at claude.ai. It cannot be
+>   done from this repo, so holding a plan open for it only makes the plan clock lie. Surfaced to the user instead.
+>
+> Measured after: always-loaded context is now ~10.7K tokens/session — of which the **skill catalog is ~4.2K**, the
+> largest single item and one this plan never counted. That is the next lever, not more `CLAUDE.md` trimming.
+
 
 ## Goal
 

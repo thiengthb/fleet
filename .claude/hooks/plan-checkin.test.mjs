@@ -99,7 +99,11 @@ const plan = (fm, extra = {}) => ({
   const many = Array.from({ length: 9 }, (_, i) =>
     plan({ status: 'active', updated: '2026-06-0' + ((i % 9) + 1) }, { file: `p${i}.md` }),
   );
-  assert.equal(classify(many, NOW).dangling.length, 3, 'capped — a wall of reminders is ignored wholesale');
+  const r = classify(many, NOW);
+  assert.equal(r.dangling.length, 3, 'capped — a wall of reminders is ignored wholesale');
+  // ...but the COUNT is never capped. Truncating the list silently made a 6-plan backlog read as 3 on
+  // 2026-07-28: three were closed and three more appeared, with no signal the pile had ever been bigger.
+  assert.equal(r.danglingTotal, 9, 'the true total is reported even though the list is truncated');
 }
 
 console.log('plan-checkin: all assertions passed');
