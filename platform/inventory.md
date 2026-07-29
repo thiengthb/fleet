@@ -76,7 +76,7 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 | `automation` | **n8n** | `infra` (third party) | `nuc` | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `fleet/n8n` | `/opt/apps/n8n` |
 | `automation` | **jobhunter-bot** | `node-bot` (worker) | `nuc` | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `fleet/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
 | `shared` | **commons** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/commons` | `fleet/commons` | — |
-| `shared` | **platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/miniserver-platform` | `fleet/` (root) | — |
+| `shared` | **platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/fleet` (renamed on GitHub 2026-07-29; the old `miniserver-platform` URL now only redirects) | `fleet/` (root) | — |
 
 **The 5 standard `kind`s** (shaping the archetype + the invariants that apply):
 

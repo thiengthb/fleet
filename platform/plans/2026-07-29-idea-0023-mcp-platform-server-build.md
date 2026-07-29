@@ -500,9 +500,10 @@ sends this plan to `abandoned` (or back to Option B), regardless of how much of 
 
 ## Open questions / risks
 
-- **Naming.** `fleet-mcp` is a placeholder. Cheap to change before the directory exists, annoying after — settle it at
-  Step 1.3, not later. (The GitHub repo is still `thiengthb/miniserver-platform`; the folder is `fleet`. Those already
-  disagree, so pick a name that survives either.)
+- ~~**Naming.**~~ **CLOSED.** Settled at Step 1.3: `rulebook`, not `fleet-mcp` — it names what the thing serves rather
+  than the transport, which is exactly why it survived the transport changing at Phase 3. The repo/folder disagreement
+  that prompted the caution is also gone: **the GitHub repo was renamed `miniserver-platform` → `fleet` on 2026-07-29**
+  (the old URL redirects; the local remote was re-pointed and `INVENTORY §0` updated).
 - **The counter-case is still live and this plan must not bury it.** RICE ranks idea-0023 at 1.35, *below* idea-0015
   (5.23). Phase 3 exists specifically so "we already built some of it" cannot become the argument.
 - **Step 0 measured the rulebook, not the checker.** 58.9% verification-shaped is a claim about what *could* be checked
