@@ -99,6 +99,14 @@ across sessions instead of evaporating.
   entry in `platform/ledger/YYYY-MM.md` **+** one index row in `registries/knowledge-ledger.md` — **never paste detail into
   the index**, that is how it reached 421KB). Infra traps → `registries/known-traps`.
 - **Convention:** end of a substantial pass → `/session-wrap`; a non-obvious decision → `decisions.md` (same commit).
+- **Is the second brain still working? ONE command: `node .claude/scripts/health-sweep.mjs`** (weekly, the
+  supervisor's own check — read the VERDICT line). It runs every checker and labels what each *clean* result
+  actually proves. `BROKEN` blocks other work; `drift` is a candidate list and is **never** auto-acted on.
+  Per-file metrics for a human to audit the agent with → `platform-report.mjs` (monthly). Retiring anything →
+  **`attic.mjs` only**: stage → ≥30 days + ≥4 sessions → verify → *the human* deletes. It has no delete command
+  by design; the burden of proof is on removal (memory `preserve-data-prove-before-removing`, plan
+  `plans/2026-07-30-second-brain-audit.md`). **After any move/rename, re-run every discovery tool and compare
+  COUNTS to a pre-change baseline** — one folder move silently broke five of them, all still exiting 0.
 
 ## Agent memory — two tiers, both on native rails (skill `/memory`)
 

@@ -253,6 +253,8 @@
 | 2026-07-29 | A check's firing rate measures your prose, not its accuracy — inspect the sample before loosening a threshold. | [→](ledger/2026-07.md#2026-07-29-firing-rate-measures-your-prose) |
 | 2026-07-29 | "No script reads it" is not evidence nobody reads it — count reads in the transcripts before deleting. | [→](ledger/2026-07.md#2026-07-29-count-reads-before-deleting) |
 | 2026-07-30 | A shared-code catalog is not a reuse mechanism: what is READ needs a counter, what is INSTALLED needs a registry. | [→](ledger/2026-07.md#2026-07-30-a-shared-code-catalog-is-not-a-reuse-mechanism-what-is-read) |
+| 2026-07-30 | A measurement can be confidently wrong, and there is no safe direction for the error — 5 ways, split evenly between condemning and protecting | [→](ledger/2026-07.md#2026-07-30-measurement-can-be-confidently-wrong) |
+| 2026-07-30 | An automated dead-weight list over a knowledge base is wrong nearly every time: 34 of 34 candidates kept on review | [→](ledger/2026-07.md#2026-07-30-dead-weight-lists-are-wrong) |
 
 ## B. Pointers to each project's knowledge log
 
