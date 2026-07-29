@@ -121,6 +121,38 @@ of self-improvement here as unverified.
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
+### idea-0025 — Make the agent's reporting + process-explanation legible to a human BY DESIGN, not by reminder
+state: active · source: **user** (2026-07-29, unprompted, after a session he approved 11+ times and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*) · created: 2026-07-29 · updated: 2026-07-29
+gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.7 effort: 2 · base: 3.15 · interest: 0.8 · **rank: 3.53**
+interest_why: the user RAISED it himself and asked for it to be queued — the strongest interest signal available (stronger than an accept, which is only a yes to my framing). Also sits in "agent governance / Knowledge OS", his explicit lean.
+> **The problem, in his words:** he is a human, so reporting and explaining process must be shaped for the easiest
+> possible human understanding — not merely accurate and complete. On 2026-07-29 he approved 11+ recommendations in one
+> session and only afterwards said he did not really understand what he was doing. **The failure signal was silence and
+> agreement, not objection** — which is the worst shape for a control system whose whole premise is that a human
+> supervises.
+> **Why a reminder is not the fix (and why this is an idea, not a memory line):** the rule ALREADY existed. `CLAUDE.md`
+> §"Legible decision surface" mandates plain language first, and `.claude/memory/legible-proposals-plain-language.md`
+> has said so since 2026-06-16. Both were violated repeatedly in the same session that produced them. A rule that is
+> already written and still not followed is not a knowledge problem — it is a **design** problem, and this platform's own
+> ledger has the pattern for that (`enforce-rules-with-gates`: restructure so compliance is easiest → measure → gate
+> only if prose lost).
+> **Immediate mitigation already applied 2026-07-29** (so this idea is about the durable version, not the stopgap): the
+> default report shape is now three plain sentences — *did / decide / next* — with technical detail written to files
+> instead of chat. He chose that shape and confirmed it worked. **That is a convention, and conventions are what just
+> failed.**
+> **Scope guess for `/idea analyze` to firm up:** (a) can the three-sentence shape be MEASURED rather than remembered —
+> e.g. a Stop-hook that flags a report over N lines or containing un-glossed internal jargon (`RICE`, `WIP cap`,
+> `exploration floor`, `T1–T4`, `propose-don't-execute`) — bearing in mind the honest limit that a hook can count lines
+> but cannot judge clarity; (b) a glossary the agent must link to on first use per session; (c) whether the deeper fix is
+> to cut process surface rather than explain it better (the `/idea` skill's own scope-discipline clause says to cut the
+> ritual if it costs more attention than it returns). **Research this before designing**: expert-to-novice explanation,
+> progressive disclosure, and readability measurement — do NOT design it from my own intuition about what is clear, which
+> is exactly the bias that produced the problem.
+> **Counter-case to carry into the analysis:** the cheapest real fix may be *less machinery to explain*, not better
+> explanation of the same machinery. If so, this idea should recommend deleting process and then close.
+
+---
+
 ### idea-0024 — The HAND-WRITTEN half of the graduation-thesis doc set (SRS · User Stories · Use Cases · UI/UX · Threat Model)
 state: parked · source: user (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29 · revisit_when: the supervisor has the university's rubric / đề cương in hand
 gate: defer · moscow: could · interest: n/a (explicitly NOT a platform-optimisation item — see below)

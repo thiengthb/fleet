@@ -8,6 +8,11 @@ metadata:
   modified: 2026-07-29T11:34:36.740Z
 ---
 
+**The principle this all comes from, stated by the user 2026-07-29:** *I am working with a HUMAN, so reporting and
+explaining process must be shaped for the easiest possible human understanding.* Not "accurate and complete" — accurate,
+complete AND understandable, with understandable as the binding constraint. Everything below is that principle applied;
+when a new situation isn't covered by the rules, derive from the principle, don't default to thoroughness.
+
 When I surface a decision to the user, three things are mandatory:
 
 1. **Flag the recommendation explicitly.** On every option list (in chat AND in proposal docs), mark the one I
