@@ -1,0 +1,198 @@
+---
+title: Cover every agent tool with a test that can fail — 21 suites, risk-ordered, no exceptions
+kind: system-change
+status: active
+created: 2026-07-30
+updated: 2026-07-30
+related:
+  [
+    platform/plans/2026-07-30-second-brain-audit.md,
+    platform/standards/testing.md,
+    .claude/scripts/tool-check.mjs,
+    .claude/memory/preserve-data-prove-before-removing.md,
+  ]
+---
+
+<!-- Persisted multi-session plan. Standard: platform/standards/documentation.md §5.5. Keep token-cheap. -->
+
+> **Bằng tiếng Việt, đọc trước phần này là đủ hiểu:** hiện có **27 công cụ** (hook + script) mà agent dùng để tự
+> đo và tự gác cửa mình, nhưng chỉ **8 cái có test**. Kế hoạch này viết test cho **toàn bộ phần còn lại — 19 cái,
+> cộng 2 file thư viện mà công cụ đếm đang cố tình bỏ qua → 21 bộ test**, làm theo thứ tự **cái nào sai thì thiệt
+> hại lớn nhất làm trước**, không phải theo thứ tự tên file.
+>
+> **Cái này KHÔNG phải làm cho đẹp số.** Lần trước, 5 bộ test đầu tiên khi chĩa vào repo thật đã lôi ra **15 lỗi**
+> — chia đều hai phía: một nửa suýt xoá oan file đang sống, một nửa thì bảo vệ tất cả nên vô dụng mà trông có
+> trách nhiệm. Nên ở đây tôi **dự đoán trước** là sẽ còn lỗi nữa, và ghi hẳn vào kế hoạch: **một đợt test mà không
+> tìm ra lỗi nào thì đó là dấu hiệu bộ test yếu, không phải dấu hiệu công cụ tốt** — lúc đó phải quay lại làm
+> mutation test (cố tình làm công cụ sai, xem test có bắt được không).
+>
+> **Cửa quyết định của anh nằm ở cuối mỗi đợt (Batch)**, không phải ở cuối kế hoạch: mỗi đợt xong là một lần
+> `tool-check` chạy ra con số mới + danh sách lỗi tìm được. Anh xem con số, thấy ổn thì đi đợt tiếp.
+
+## The ask, verbatim
+
+> hãy lên kế hoặc cover test hết không chừa đến khi nào hoàn thiện rồi tôi mới vô project rồi bạn hãy làm phần đặt
+> đồng hồ cho (lưu trong file) cho việc thông báo health sweep và platform report, trước đó hay session wrap và để
+> tôi compact rồi ta đi phần vừa kể trên
+
+(The second half — the file-stored schedule for health-sweep / platform-report — is built separately and is **not**
+in this plan's scope; see _Out of scope_.)
+
+## Goal
+
+`node .claude/scripts/tool-check.mjs` reports **every** hook and script as either _tested_ or _exempt with a printed
+reason_ — zero silently untested tools — and each new suite has demonstrated it can fail by killing at least one
+deliberate mutant.
+
+## Context
+
+Measured 2026-07-30: **8/27 tools have a test**; 19 do not, including **two PreToolUse hooks that can BLOCK a
+write** (`guide-coverage-reminder`, `reuse-guard`) and every script whose output a retirement decision is read
+from. The supervisor has gated forward work on closing this: no `projects/` work until coverage is complete. The
+prior batch of suites found 15 defects in tools that had been trusted for weeks — that is the base rate this plan
+assumes, not an anomaly.
+
+## Prior art & sources
+
+- [Risk-based testing — blast radius × likelihood](https://aquilatest.ai/blog/risk-based-testing/) — order by
+  _dependency concentration_ (how many things break if this is wrong) × _likelihood of failure_, not by file
+  order. **Adopted:** the tier order below is derived this way; `tool-check`'s own closing advice ("test the ones
+  that BLOCK first") is the same rule stated informally. **Avoided:** their matrix ceremony — with 21 items a
+  scored spreadsheet costs more than it decides.
+- [Trail of Bits — crafting hooks: false-positive avoidance and test shape](https://zread.ai/trailofbits/skills/30-crafting-performant-hooks-shell-jq-patterns-and-false-positive-avoidance)
+  — a guard's contract is **stdout + stderr + exit code, nothing else**; every fast-fail early-exit path needs its
+  own test, and **every deny branch must be verified for both the denial AND the suggestion text**. **Adopted
+  verbatim as the test-shape contract** (§ below) — this is the source that changed the design: I was going to
+  assert exit codes, which would have let a guard block for the wrong reason with a useless message and still pass.
+- [A taxonomy to assess and tailor risk-based testing in recent testing standards (arXiv 1905.10676)](https://arxiv.org/pdf/1905.10676)
+  — risk _items_ must be at the granularity you can actually act on. **Adopted:** the unit here is one tool = one
+  suite, never "the hooks directory".
+
+## Approach & tradeoffs
+
+**Chosen: risk-ordered batches of 2–4 suites, each batch ending in a measured `tool-check` number and a defect
+list.** Each suite follows one fixed shape (below), so writing the 21st is not a fresh design problem.
+
+**The test-shape contract** — every suite must contain all four, or it does not count as coverage:
+
+1. **The silent path.** At least one input the tool must ignore completely (exit 0, no output). This is the
+   false-positive half, and it is the half that makes a guard tolerable to work under.
+2. **The acting path, asserted by MESSAGE not by code.** `assert.match(out, /the specific phrase/)` — "it exited 2"
+   is not evidence it fired for the right reason. (ToB source; also the lesson from `attic.test.mjs`, where a
+   refusal for the wrong reason would have meant the guard that mattered never ran.)
+3. **≥1 mutant killed.** Break the tool deliberately in a copy, prove the suite goes red, restore. A suite that
+   has never been seen to fail is a suite of unknown value (`standards/testing.md §2.5`).
+4. **No repo mutation.** Assert `git status --porcelain` is byte-identical before/after, and set
+   `HOOK_USAGE_LOG: "off"` in every spawn so the suite does not pollute the hook-firing counter (it did: ~130
+   phantom firings per run, 2026-07-30).
+
+**Ruled out — one big `--test-all` harness with shared fixtures.** Cheaper to write, but a shared fixture couples
+21 suites: one fixture edit silently changes what 21 tests mean, and `link-check.test.mjs` already hit the small
+version of this (deleting one fixture project broke two unrelated wires). Isolation per suite is worth the
+duplication.
+
+**Ruled out — measuring line/branch coverage (`c8`) instead of writing behavioural suites.** It would produce a
+number fast, and the number would be a lie of the exact kind this platform keeps catching: `health-sweep` had 100%
+of its parser lines executed while reporting `ok` over 14 findings. Coverage says a line ran, not that a wrong
+answer would have been caught.
+
+**Ruled out — exempting the "reporters" as low-risk.** That is where the retirement verdicts come from. A reporter
+that is wrong does not crash; it gets believed.
+
+## The 21 tools, in the order they get tested
+
+Risk = what breaks if this is wrong × how likely nobody notices. **"Silent" is the aggravating factor throughout:
+a tool that crashes gets fixed; a tool that quietly answers wrong gets obeyed.**
+
+| Batch  | Tool                             | Ln  | If it is wrong, what happens                                                                  |
+| ------ | -------------------------------- | --- | --------------------------------------------------------------------------------------------- |
+| **B1** | `hooks/guide-coverage-reminder`  | 51  | **Blocks a write.** Fails open ⇒ a sakubun feature ships undocumented; fires wrong ⇒ blocks unrelated edits |
+| **B1** | `hooks/reuse-guard`              | 113 | **Blocks a write.** Fails open ⇒ the 4-theme-toggle duplication returns; over-fires ⇒ every new file fights back |
+| **B1** | `hooks/prettier-on-edit`         | 39  | **Rewrites the file just written**, on every edit. The only hook that changes content rather than allowing it |
+| **B2** | `scripts/platform-report`        | 435 | Emits the ACTIVE/ANCHOR/PROTECTED/WATCH verdicts a **deletion** is read from. 6 of the 15 known defects were here |
+| **B2** | `scripts/usage-census`           | 428 | The measurement every other verdict derives from. Already produced two wrong "never used" claims |
+| **B2** | `scripts/skill-audit`            | 244 | Declared **14 live skills dead** on 2026-07-30 (post-move path breakage) and exited 0 doing it |
+| **B3** | `scripts/plan-audit`             | 374 | Dual role: PostToolUse hook + the session-start read. Its heading regex already produced a **false ERROR** on a correct plan |
+| **B3** | `scripts/recurrence-check`       | 343 | The "has this mistake come back" detector. False negative ⇒ decorative; false positive ⇒ ignored |
+| **B3** | `scripts/memory-audit`           | 523 | Guards the 200-line/25KB index cap. Wrong ⇒ memory silently truncated at load |
+| **B4** | `scripts/ledger-split`           | 224 | **Rewrites the knowledge index in place.** Ran once, on a 421KB file. A byte lost here is a lesson lost |
+| **B4** | `scripts/decisions-split`        | 230 | Same, per project (sakubun: 382KB / 203 entries) |
+| **B4** | `hooks/_util` (lib)              | 88  | **Every hook imports it.** `tool-check` excludes it as "covered through its callers" — true only for the 8 callers that have tests |
+| **B4** | `scripts/_layout` (lib)          | 75  | **5 discovery tools import it.** It exists *because* one folder move broke all 5 silently |
+| **B5** | `hooks/git-sync-check`           | 135 | Session-start. Wrong ⇒ work starts on a stale tree (the exact failure `git-fetch-before-work` records) |
+| **B5** | `hooks/memory-wiring-check`      | 125 | Wrong ⇒ a new machine runs with no memory and never says so |
+| **B5** | `hooks/harness-drift-check`      | 83  | Wrong ⇒ a Claude Code change to hooks/settings lands unnoticed |
+| **B5** | `hooks/suggest-session-wrap`     | 124 | Stop hook. Wrong ⇒ a session ends without recording, which is how knowledge evaporates |
+| **B6** | `scripts/tool-check`             | 129 | **Meta.** If it skips a test file or miscounts, the coverage number in this plan is fiction |
+| **B6** | `scripts/reuse-scan`             | 387 | EXTRACT/CANDIDATE verdicts drive whether code is shared or copied |
+| **B6** | `scripts/rule-classify`          | 141 | **One-shot study**, not a standing tool — see the note below |
+| **B6** | `scripts/eval-ledger-rule`       | 275 | **One-shot study** (a model-in-the-loop eval with a pre-committed consequence) — see below |
+
+**The two one-shot studies get a _reproduction_ test, not a unit suite.** Their value is that a recorded verdict
+can be re-derived: re-run, and the classification percentage / arm comparison must still land on the same side of
+its pre-committed threshold. That is the honest test for a measurement whose only job was to answer one question
+— and it is stronger than an exemption, because a study whose number no longer reproduces is a finding.
+**If reproduction turns out to cost model calls (`eval-ledger-rule` does), it gets a printed exemption instead**
+(`tool-check` gains an EXEMPT block, reason required, ≥20 chars, shown in every run) — never a silent skip.
+
+## Acceptance criteria (Given / When / Then)
+
+- **AC-1** — Given any hook that can `exit(2)`, When its suite runs, Then it asserts **both** a silent path and a
+  blocking path **by message**, and ≥1 mutant is killed.
+- **AC-2** — Given `node .claude/scripts/tool-check.mjs`, When the campaign is finished, Then it prints
+  `N/N tools have a test` with an empty UNTESTED list, and any EXEMPT entry carries a printed reason.
+- **AC-3** — Given `.claude/hooks/_util.mjs` and `.claude/scripts/_layout.mjs`, When `tool-check --list` runs,
+  Then both are either counted-and-tested or named in EXEMPT with a reason — the current silent exclusion is gone.
+- **AC-4** — Given `ledger-split` / `decisions-split`, When their suites run, Then a **round-trip on a fixture
+  proves no content byte is lost** (split output re-concatenated == input, entry count preserved).
+- **AC-5** — Given any suite in this campaign, When it finishes, Then `git status --porcelain` and `git stash list`
+  are byte-identical to before, and the hook-usage log gained 0 lines.
+- **AC-6** — Given the whole runner, When `tool-check` runs on this machine, Then wall clock stays **≤ 90s**
+  (baseline 14s / 9 files) — a suite nobody waits for is a suite nobody runs.
+- **AC-7** — Given each finished batch, When it is reported, Then it states **the defects found** (count + one line
+  each) or explicitly states "zero found, and here is the mutant that proves the suite can fail".
+
+## Steps
+
+- [ ] **B1 — the three hooks that alter a write** · Files: Create `.claude/hooks/{guide-coverage-reminder,reuse-guard,prettier-on-edit}.test.mjs` · Test: `AC-1, AC-5` (silent path + block path by message + mutant each; `reuse-guard`'s hand-run self-test block at `reuse-guard.mjs:91-104` is the case list — automate exactly it, then add the once-per-session marker and malformed-registry fail-open cases)
+- [ ] **B2 — the three tools a deletion is read from** · Files: Create `.claude/scripts/{platform-report,usage-census,skill-audit}.test.mjs` · Test: `AC-1, AC-5` (fixture tree with known counts; assert each of the 6 known past defects stays fixed: `\x01` age marker, rename-following, unknown-age⇒NEW, report excluded from its own link corpus, GENERIC-basename parent-dir rule, skill-internal reads folded onto the skill)
+- [ ] **B3 — the three tools a session reads its instructions from** · Files: Create `.claude/scripts/{plan-audit,recurrence-check,memory-audit}.test.mjs` · Test: `AC-1, AC-5` (pin the heading-regex false ERROR as a regression case; each recurrence detector gets one true-positive and one must-not-fire fixture)
+- [ ] **B4 — the content rewriters and the two shared libraries** · Files: Create `.claude/scripts/{ledger-split,decisions-split,_layout}.test.mjs` + `.claude/hooks/_util.test.mjs` · Test: `AC-3, AC-4` (round-trip byte/entry preservation on a fixture; `_layout` asserts the marker set finds `platform/` via `plans` and all 9 `projects/*`; `_util` asserts payload parse, the usage-log cap, and `HOOK_USAGE_LOG=off`)
+- [ ] **B5 — the four session-boundary hooks** · Files: Create `.claude/hooks/{git-sync-check,memory-wiring-check,harness-drift-check,suggest-session-wrap}.test.mjs` · Test: `AC-1, AC-5` (each must stay silent when there is nothing to say — a session-start hook that always speaks is noise that gets ignored)
+- [ ] **B6 — the runner, the scanner, and the two studies** · Files: Create `.claude/scripts/{tool-check,reuse-scan}.test.mjs`; add EXEMPT support to `tool-check.mjs`; reproduce-or-exempt `rule-classify` / `eval-ledger-rule` · Test: `AC-2, AC-6` (tool-check's own suite must prove it cannot miss a `*.test.mjs`, cannot count a tool as tested without a file, and cannot exit 0 with a failing child)
+- [ ] **Close** — run `tool-check` + `health-sweep`, record the final numbers and the full defect list in this plan, distill to `decisions.md` / the ledger, then tell the supervisor the `projects/` gate is open · Test: `AC-2, AC-7`
+
+## Out of scope
+
+- **The health-sweep / platform-report schedule** (the ask's second half) — built separately, on the
+  `plan-checkin` rail. Not a test.
+- **Project-side test suites** (`projects/*/**`) — this campaign is the agent's own tooling only. sakubun's
+  `guide-coverage.test.ts` etc. are governed by `platform/standards/testing.md`, not by `tool-check`.
+- **Skills, standards and docs.** They are prose; `plan-audit` / `link-check` / `legibility-lint` are their checks
+  and already exist.
+- **Retiring anything.** Nothing in this campaign moves or deletes a file. Retirement stays with `attic.mjs` and
+  the audit plan.
+
+## Scope changes
+
+- (empty — the plan still matches the ask; the ask's second half is named in _Out of scope_ and delivered separately)
+
+## Open questions / risks
+
+- **The base rate cuts both ways.** 15 defects in 5 suites means ~3 per suite; 21 suites could surface ~60
+  findings, most trivial but some not. Mitigation: fix-as-found inside the batch, and report the count per batch
+  rather than saving a pile for the end.
+- **A suite that tests the tool I wrote, written by me, in the same session.** Same blind spot, twice. Partial
+  mitigation only: mutation testing (does the suite notice a break?) plus the fact that every fixture is checked
+  against the REAL repo's numbers, which I did not author.
+- **`eval-ledger-rule` may not be reproducible without model calls** — decided in B6, and the fallback is a
+  printed exemption, not silence.
+
+## Decisions to distill
+
+- The four-part test-shape contract for a guard (silent path · acting path asserted by message · a killed mutant ·
+  no repo mutation) — and that it came from an external source, not from taste.
+- Why coverage percentage was rejected as the metric in favour of "every tool has a suite that has been seen to
+  fail".
+- Whether a one-shot study belongs in `scripts/` at all, or whether "a measurement that already answered its
+  question" is a distinct artefact class needing its own home.
