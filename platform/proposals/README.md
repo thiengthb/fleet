@@ -7,7 +7,7 @@ autonomy contract §3 / CVE-2025-53773. It drafts a `.proposed` drop-in here; a 
 
 | Proposal | Target | Status |
 |----------|--------|--------|
-| `2026-07-29-quarantine-promotion-gate.md` + `autonomy-gate.mjs.proposed` + `autonomy-gate.quarantine.test.mjs` | `.claude/hooks/autonomy-gate.mjs` (+ test) | ⏳ **PROPOSED 2026-07-29** — blocks quarantine→governance promotion, and closes a **pre-existing shell bypass** of the governance write-block (`cp x .claude/hooks/y.mjs` was ALLOWED). 26/26 on the proposed gate, 10/26 on the live one. Install steps in the doc. |
+| `2026-07-29-quarantine-promotion-gate.md` + `autonomy-gate.mjs.proposed` + `autonomy-gate.quarantine.test.mjs` | `.claude/hooks/autonomy-gate.mjs` (+ test) | ✅ **INSTALLED 2026-07-29** (verified in place: 76/76 + 26/26) — blocks quarantine→governance promotion, and closes a **pre-existing shell bypass** of the governance write-block (`cp x .claude/hooks/y.mjs` was ALLOWED). 26/26 on the proposed gate, 10/26 on the live one. Install steps in the doc. |
 
 ## Status (2026-06-19) — earlier proposals, all applied/installed
 

@@ -1,6 +1,7 @@
 # Proposal — block the quarantine→governance promotion path in `autonomy-gate.mjs`
 
-**Status:** PROPOSED, awaiting a human commit. The agent wrote and tested this; it must not install it.
+**Status:** ✅ **INSTALLED 2026-07-29 by the supervisor.** Verified in place: the live hook is byte-identical to the
+drop-in, and both suites pass against it (**76/76** + **26/26**). The drop-ins can be deleted; this record stays.
 **Driver:** `platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md` Step 2.2 / **AC-5**.
 **Drop-ins:** `autonomy-gate.mjs.proposed` · `autonomy-gate.test.mjs.proposed` (the existing suite with the one flipped
 case already applied — 76/76 against the proposed gate) · `autonomy-gate.quarantine.test.mjs` (runnable now, 26 cases).

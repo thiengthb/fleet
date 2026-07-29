@@ -221,8 +221,10 @@ rather than at the point where it would settle the argument.
       proposed gate, 10/26 on the live one** — a new test that passes against the unchanged system measures nothing.
       Existing suite 75/75 → 74/75, the one flip being `Write platform/standards/documentation.md`, argued in the doc ·
       Files: Created `platform/proposals/2026-07-29-quarantine-promotion-gate.md`, `autonomy-gate.mjs.proposed`,
-      `autonomy-gate.quarantine.test.mjs` · Test: `AC-5` (promotion BLOCKED) ✅ **against the drop-in only — AC-5 is not
-      ticked until a human installs it**
+      `autonomy-gate.test.mjs.proposed`, `autonomy-gate.quarantine.test.mjs` · Test: `AC-5` (promotion BLOCKED) ✅
+      — **INSTALLED by the supervisor 2026-07-29**; verified against the live gate: the installed file is byte-identical
+      to the drop-in, and both suites pass in place (**76/76** + **26/26**). AC-5 is now fully earned: quarantine is a
+      gate, not a convention.
 - [x] 2.3 — **DONE 2026-07-29.** The runbook is in the inbox's own README, and it deliberately has **no tool**: read →
       check against the artifact not the claim → judge → **re-write it by hand in your own words** (retyping is the
       point at which a human actually reads what they are installing) → commit → close the file. Also recorded there:
@@ -377,8 +379,9 @@ INVENTORY row. The `rulebook` server stays exactly as it is — built, tested, l
 **if the supervisor accepts the re-target**, is a thin slice of B′: a private plugin marketplace shipping the checker as
 a hook to one real project, measured the same way Phase 1 was.
 
-**Still open and not affected by this verdict:** AC-5's second half. The promotion gate is a tested proposal in
-`platform/proposals/`; until a human installs it, quarantine is a convention.
+**AC-5 closed the same day.** The promotion gate was installed by the supervisor and verified in place (76/76 + 26/26
+against the live hook), so quarantine is now enforced rather than agreed. The pre-existing shell bypass it also closed —
+`cp x .claude/hooks/y.mjs` was ALLOWED in autonomous mode — is fixed independently of which delivery option wins.
 
 ### Supervisor decision on the re-target — 2026-07-29: **B′ accepted**
 
