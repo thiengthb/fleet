@@ -1,9 +1,9 @@
 ---
-title: Build — MCP platform server: tier-2 rule delivery (verdict, not rulebook) + quarantined lesson backflow
+title: Build — rule delivery without shipping the rulebook: tier-2 verdicts (MCP) → re-targeted to a plugin hook (B′), + quarantined lesson backflow
 kind: system-change # feature | system-change | fix | refactor | chore
-status: active # draft → active → done | abandoned — supervisor approved 2026-07-29, Phase 1 authorized
+status: active # Phases 1-3 + 5.1-5.6 DONE. Phase 4 NOT authorized (superseded by the Phase 3 verdict + the B′ re-target, both 2026-07-29). Open: 5.7, and the 2026-08-12 used-vs-built check-in
 created: 2026-07-29
-updated: 2026-07-29
+updated: 2026-07-29 # session 2 of the day: Phases 2-3 + 5, and the re-target
 related:
   [
     platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md (the ACCEPTED RFC — sources · options · pre-mortem · counter-case),
