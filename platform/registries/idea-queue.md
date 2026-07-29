@@ -276,9 +276,10 @@ interest_why: WILDCARD — ranked on `base` only, interest term SKIPPED by the e
 ---
 
 ### idea-0018 — Codify the "sacrificial record" rule into the testing standard (live-verification-vs-real-data gap)
-state: active · source: agent (C3 gap-analysis 2026-07-08) · created: 2026-07-08 · updated: 2026-07-29 (was 2026-07-08)
+state: proposed · source: agent (C3 gap-analysis 2026-07-08) · created: 2026-07-08 · updated: 2026-07-29 (was 2026-07-08)
 gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.9 effort: 1 · base: 5.40 · interest: 0.8 · **rank: 6.05**
 interest_why: codifies a dated incident into the durable standard = Knowledge-OS + governance, both explicit "leans toward"; extends an existing standard rather than adding a system
+proposal: platform/plans/2026-07-29-idea-0018-sacrificial-record-proposal.md
 > **Documented gap:** the 2026-07-06 `sakubun` incident — a live `submit_review` verification wrote a fake rating
 > onto the user's REAL item 「中」, corrupting its FSRS schedule; recovery only worked because `ReviewLog` happened
 > to be append-only (delete the injected rows, replay the rest through `ts-fsrs`). This was distilled to a
@@ -332,6 +333,7 @@ state: active · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-
 gate: pass · moscow: could · reach: 3 impact: 1 confidence: 0.7 effort: 1 · base: 2.10 · interest: 0.8 · **rank: 2.35**
 interest_why: same family as idea-0018 (standard + Knowledge-OS), but see the PUSHBACK: most of what it asked for now exists
 pushback: **its stated evidence is now STALE, checked 2026-07-29.** The block says *"Grep confirms `standards/testing.md` has zero mention of 'model-in-the-loop' or 'eval'"* — that was true when it was captured (2026-07-17) and is not any more: the `/behavioural-eval` skill now exists and `standards/testing.md` §2.5 references it by name. What is genuinely still missing is **one routing row** in the pyramid — no tier routes "does the calling model handle this tool result correctly" to that skill — so the idea survives at a fraction of its original scope (impact 1, effort 1). **FOLD CANDIDATE, supervisor's call:** it and idea-0018 are both single-row additions to the same governance file, both propose-only since `platform/standards/**` became governance on 2026-07-29 — one proposal and one human commit would do both. Not merged silently, per the dedup rule.
+proposal: platform/plans/2026-07-29-idea-0018-sacrificial-record-proposal.md (**folded into idea-0018's proposal as an optional second row** — the supervisor accepts A-only or A+fold; not merged, presented)
 > **Documented gap:** three separate dated knowledge-ledger incidents from one MCP server (sakubun) — 2026-07-06
 > (#56, display-contract paraphrasing), 2026-07-09 (#98 restated), 2026-07-11 (#98, a required-schema-field dead-end
 > for model recovery) — each explicitly states **"unit tests can't catch this"** / needs **"a model-in-the-loop
