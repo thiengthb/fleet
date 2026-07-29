@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict';
 
 process.env.LEGIBILITY_LINT_TEST = '1'; // import without running the hook body
-const { findJargon, lintGate, lintReport, lastAssistantText, TERMS, REPORT_NOTE, findNameOverload, MAX_NAMES } = await import(
+const { findJargon, lintGate, lintReport, lastAssistantText, TERMS, REPORT_NOTE, findNameOverload, MAX_NAMES, findBookkeeping } = await import(
   './legibility-lint.mjs'
 );
 
@@ -166,7 +166,7 @@ const q = (over = {}) => ({
   );
   const { findings, introduced } = lintReport('Tôi đã chạy mutation testing trên hai cổng mới.');
   assert.equal(findings.length, 1);
-  assert.match(findings[0], /cố tình làm hỏng code/, 'a finding carries the plain replacement');
+  assert.match(findings[0], /^unexplained: .*cố tình làm hỏng code/, 'a finding names the defect and the plain replacement');
   assert.deepEqual(introduced, ['mutation testing'], 'and reports which term it just introduced');
   // The standing note belongs to the message, not to each finding — three copies of the same
   // paragraph would make the legibility warning itself unreadable.
@@ -195,7 +195,7 @@ const q = (over = {}) => ({
   // The name-overload finding is a property of ONE message, so it must NOT be deduped away by a
   // set that happens to contain a term name.
   const many =
-    'idea-0023 idea-0025 idea-0026 /session-wrap docs/00-map.md .claude/hooks/a.mjs platform/standards/testing.md';
+    'idea-0023 idea-0025 idea-0026 /session-wrap /project-plan .claude/hooks/a.mjs platform/standards/testing.md';
   const { findings } = lintReport(many, new Set(['mutant', 'thin-slice', 'backflow']));
   assert.equal(findings.length, 1, 'the overload still reports through a populated seen-set');
   assert.match(findings[0], /7 artefacts named/);
@@ -225,13 +225,13 @@ const q = (over = {}) => ({
   assert.equal(findNameOverload('Đã ghi vào platform/registries/idea-queue.md.'), null, 'one name is fine');
   assert.equal(findNameOverload('Xong rồi, không có gì cần bạn quyết.'), null, 'no name is fine');
 
-  const six = 'idea-0023 idea-0025 idea-0026 /session-wrap docs/00-map.md .claude/hooks/a.mjs';
-  assert.equal(findNameOverload(six), null, `exactly ${MAX_NAMES} is within budget, not over it`);
+  const four = 'idea-0023 idea-0025 idea-0026 /session-wrap';
+  assert.equal(findNameOverload(four), null, `exactly ${MAX_NAMES} names is within budget, not over it`);
 
-  const seven = six + ' platform/standards/testing.md';
-  const over = findNameOverload(seven);
+  const five = four + ' /project-plan';
+  const over = findNameOverload(five);
   assert.ok(over, 'one past the budget must be reported');
-  assert.equal(over.count, 7);
+  assert.equal(over.count, 5);
 }
 
 {
@@ -249,11 +249,38 @@ const q = (over = {}) => ({
 
 {
   const { findings } = lintReport(
-    'idea-0023 idea-0025 idea-0026 /session-wrap docs/00-map.md .claude/hooks/a.mjs platform/standards/testing.md',
+    'idea-0023 idea-0025 idea-0026 /session-wrap /project-plan .claude/hooks/a.mjs platform/standards/testing.md',
   );
   assert.equal(findings.length, 1);
   assert.match(findings[0], /7 artefacts named/);
   assert.match(findings[0], /act on/, 'the warning must say what to do, not merely that it is too many');
+}
+
+// --- the bookkeeping check (idea-0026's actual cut) -----------------------------------------------
+{
+  // The 10 names of one session he never had to act on: where the agent files its own records.
+  assert.deepEqual(findBookkeeping('Đã ghi vào platform/ledger/2026-07.md.'), ['platform/ledger/']);
+  assert.deepEqual(findBookkeeping('Thêm entry vào docs/decisions.md rồi.'), ['docs/decisions.md']);
+  assert.deepEqual(findBookkeeping('Cập nhật docs/00-map.md.'), ['docs/00-map.md']);
+
+  // What he DOES act on must never be flagged: a command to type, or a file to run.
+  assert.deepEqual(findBookkeeping('Chạy `/exit` rồi `claude -c`.'), [], 'commands he types are kept');
+  assert.deepEqual(
+    findBookkeeping('cp platform/proposals/x.json.proposed .claude/settings.json'),
+    [],
+    'a path he has to run is not bookkeeping',
+  );
+  assert.deepEqual(findBookkeeping('Đã xong, không có gì cần bạn quyết.'), [], 'plain report is clean');
+}
+
+{
+  const first = lintReport('Đã ghi vào docs/decisions.md và platform/ledger/2026-07.md.');
+  assert.equal(first.findings.length, 1, 'both filing paths are one habit, one warning');
+  assert.match(first.findings[0], /đã ghi lại/, 'and it hands over the phrasing to use instead');
+
+  // One habit, not a fresh defect each message: silent once introduced.
+  const second = lintReport('Lại ghi vào docs/decisions.md.', new Set(first.introduced));
+  assert.equal(second.findings.length, 0, 'the same filing path does not nag twice in a session');
 }
 
 // --- the list itself ------------------------------------------------------------------------------

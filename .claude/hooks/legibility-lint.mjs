@@ -91,14 +91,39 @@ export const NAMED_ARTEFACT =
   /idea-\d{4}|platform\/[a-z-]+\/[\w.@-]+\.(?:md|mjs|json|sh)|\.claude\/[\w./@-]+|docs\/[\w./-]+\.md|(?<![\w/-])\/[a-z][a-z-]{2,}(?![\w/-])/g;
 
 /**
- * Warn above SIX distinct names in one message. Chosen from the distribution, not from taste:
- * >6 fires on 2 of 53 measured reports (~4%, roughly 0.7× per session), which is the bar this
- * hook's own pre-mortem committed to — "if it fires more than about once a session, the list is too
- * broad". Tighter thresholds are available and were measured: >4 → 11% (~2×/session), >5 → 9%.
- * Tighten it here if the warnings turn out to be useful rather than annoying; that is a data
- * question, and the data is in `platform/registries/idea-queue.md` under idea-0026.
+ * BOOKKEEPING the supervisor never opens — named 10 times in one session, and not once did he need
+ * to act on any of them.
+ *
+ * This came out of classifying all 31 names from the 2026-07-29 session by what he had to DO with
+ * them: type it (`/exit`, `/plugin`, a `cp` line), decide about it (an `idea-00NN` under discussion),
+ * or open it. The paths below are none of those — they are where the agent files its own records
+ * afterwards. Naming them spends his attention to describe filing.
+ *
+ * NOTE the deletion this replaced. The first instinct was to delete a tier: `platform/log/` is 29
+ * files and 392 KB, no hook or script reads it, and it is written at every wrap — a textbook
+ * write-only artefact. Counting tool calls across every transcript refuted it: **93 reads against
+ * 20 writes.** It is consulted more than it is produced. So the machinery stays and the NARRATION
+ * of it goes; that is the whole finding of idea-0026 in one line.
  */
-export const MAX_NAMES = 6;
+export const BOOKKEEPING =
+  /platform\/log\/|platform\/ledger\/|docs\/decisions(?:\.md|\/)|docs\/00-map\.md|knowledge-ledger\.md/g;
+
+export function findBookkeeping(text) {
+  return [...new Set(prose(text).match(BOOKKEEPING) ?? [])];
+}
+
+/**
+ * Warn above FOUR distinct names in one message. Lowered from six 2026-07-29 by INSPECTION, not by
+ * rate: all 31 names of one session were classified, and 17 of them (10 bookkeeping paths + 7 skill
+ * names cited only to justify the agent's reasoning) were things he never had to act on. The old
+ * threshold was set against prose written before that rule existed, so it measured the wrong thing.
+ * Inspect-then-tune is the only legitimate order — see the ledger entry on firing rates. Chosen from the distribution, not from taste:
+ * Measured on the same 53 reports: >4 fires on 11% (~2× per session), >6 on 4%. The higher number
+ * was chosen first to honour a pre-mortem sentence, then lowered once the names had actually been
+ * read one by one. A compliant message under the naming rule below carries one or two names, so this
+ * threshold should now be reached only by a genuine dump.
+ */
+export const MAX_NAMES = 4;
 
 /** Null when the message is within budget — the common case, and it must cost nothing to say so. */
 export function findNameOverload(text) {
@@ -238,13 +263,23 @@ export function lintReport(text, alreadyIntroduced = new Set()) {
     const key = term.toLowerCase();
     if (alreadyIntroduced.has(key)) continue;
     introduced.push(key);
-    findings.push(`"${term}" → ${gloss}`);
+    findings.push(`unexplained: "${term}" → ${gloss}`);
   }
   const overload = findNameOverload(text);
   if (overload) {
     findings.push(
       `${overload.count} artefacts named in one message (${overload.names.slice(0, 4).join(', ')}…). ` +
         `Keep the ONE he has to act on; the rest belong in the file, not in his head.`,
+    );
+  }
+
+  // Deduped like a term: it is one habit to break, not a fresh defect every message.
+  const books = findBookkeeping(text).filter((b) => !alreadyIntroduced.has(b));
+  if (books.length) {
+    introduced.push(...books);
+    findings.push(
+      `named the agent's own filing (${books.join(', ')}) — he never opens these. ` +
+        `Say "đã ghi lại" and let the file hold the detail.`,
     );
   }
   return { findings, introduced };
@@ -325,7 +360,7 @@ if (!process.env.LEGIBILITY_LINT_TEST) {
       if (findings.length) {
         console.log(
           JSON.stringify({
-            systemMessage: `Legibility — used without explaining: ${findings.join(' · ')} (${REPORT_NOTE})`,
+            systemMessage: `Legibility — ${findings.join(' · ')} (${REPORT_NOTE})`,
           }),
         );
       }
