@@ -90,7 +90,7 @@ records the intent as a step needing approval, and continues with other safe-zon
 - **Audit trail:** every batch ends with a `/session-wrap` log + commits on the branch; the run is fully reviewable.
 - **Research-before-design (anti-bias):** any new-feature / system-change design must be grounded in external prior
   art FIRST (≥2 sources + ≥2 ruled-out options) — `kind: feature` plans + the RFC-lite `templates/proposal.md`, nudged
-  in-loop by `prior-art-check.mjs`. The agent **proposes, it does not self-build** — proposals queue for human approval.
+  in-loop by `plan-audit.mjs --hook`. The agent **proposes, it does not self-build** — proposals queue for human approval.
 
 > Changing THIS contract or the gate is itself a T4 governance change — it requires a human-reviewed commit. The agent
 > may open a proposal; it may not self-apply.

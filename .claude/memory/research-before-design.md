@@ -13,7 +13,7 @@ one's own opinion). Applies especially to important / system-changing features.
 
 **Why:** Designing from one's own opinion bakes in bias; pure self-assessment is empirically unreliable (a critic
 primed to judge invents flaws / hallucinates gaps). The user wants designs grounded in what already exists and works.
-This is now also a platform rule (research-before-design gate + `prior-art-check.mjs` hook + RFC-lite proposal template).
+This is now also a platform rule (research-before-design gate + `plan-audit.mjs --hook` + RFC-lite proposal template).
 
 **How to apply:** This is the rule for **P3 changes** (architecture / new dependency / security / schema / topology) and
 for autonomous proposals — NOT a tax on every task. P1 (trivial/reversible) and P2 (medium) skip external research unless

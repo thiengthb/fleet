@@ -9,8 +9,14 @@ The user should never have to state a UI preference twice. When he does, that is
 enforcement layer**, not a memory problem — this skill converts the correction into something mechanical
 before the current work continues.
 
-Registry: `<project>/docs/ui-patterns.json`. Gate: `<project>/lib/ui-pattern-lock.test.ts`.
-Write-time enforcement: `.claude/hooks/ui-pattern-lock.mjs`.
+Registry: `<project>/docs/ui-patterns.json`. Gate: `<project>/lib/ui-pattern-lock.test.ts` — this is the
+enforcement that actually exists, and it fails the build.
+
+> **Write-time enforcement is NOT installed.** A `.claude/hooks/ui-pattern-lock.mjs` is drafted in
+> `platform/skill-proposals/ui-pattern-lock.md` and a human has not installed it, so nothing stops the
+> offending write in-loop; the test catches it at `npm test`. Stated plainly because this line previously
+> claimed the hook as fact — `recurrence-check.mjs` found the claim on 2026-07-30. A skill that promises
+> enforcement it does not have is worse than one that admits the gap: it stops the reader from checking.
 
 ## Trigger A — the user corrects a UI pattern (MANDATORY, interrupts the work)
 

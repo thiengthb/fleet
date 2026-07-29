@@ -51,7 +51,7 @@ Copy `templates/plan.md` and fill it in. Keep it **token-cheap** (tables + bulle
 > Recommendation · Pre-mortem · Counter-case). The **Recommendation MUST mark the picked option `(khuyến nghị)`** in the
 > options table + one plain-language sentence why. Then present it at the **human-accept gate** — name it in plain
 > language ("đây là bước duyệt: accept ⇒ thành plan này, reject ⇒ deferred") and get the user's explicit yes; do NOT
-> self-approve. Only after acceptance do you plan. The `prior-art-check.mjs` hook nudges in-loop if a feature plan goes
+> self-approve. Only after acceptance do you plan. The `plan-audit.mjs --hook` PostToolUse check nudges in-loop if a feature plan goes
 > `active` without sources. `fix`/`refactor`/`chore` plans are exempt — set `kind:`.
 
 The skeleton:

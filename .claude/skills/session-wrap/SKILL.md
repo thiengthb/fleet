@@ -106,6 +106,24 @@ If the project is creating its `decisions.md` for the first time → add/edit th
 > An **infrastructure**-level pitfall (Docker/Traefik/Watchtower/Authentik) does NOT go in 06 — record it in
 > `registries/known-traps.md`. App lifecycle (add/remove/change domain) → `inventory.md`.
 
+### Step 4b — the SECOND time, it stops being a lesson and becomes a check
+
+Before writing the entry, search the ledger index + `known-traps` for the same mistake. **If it is already
+there, writing it down again is not the fix — it is the evidence that writing it down does not work.** The
+second occurrence must leave behind one of these, and the wrap says which:
+
+| Where the mistake is catchable | What to add |
+|---|---|
+| At the moment of a specific write | a **hook** (`.claude/hooks/`) — the shape of `secret-guard` / `legibility-lint` |
+| Only across the repo, or across time | a **detector** in `.claude/scripts/recurrence-check.mjs` |
+| Only by a human looking | say so **explicitly in the entry** — "no mechanical check is possible because …" |
+
+The third option is legitimate and must not be the default: measured 2026-07-30, **29 of 224 ledger lessons
+named any check at all**, and `known-traps` named none, which is how a 224-entry ledger still lets a repeat
+through. Whatever is added, run `node .claude/scripts/recurrence-check.mjs` before closing the session — a
+new detector that has never been run against the live repo has not been shown to work, and one that fires
+on day one is usually mistuned rather than a genuine finding (its first two detectors both were).
+
 ## Step 5 — Personal memory (only when it's the right kind)
 
 If during the session the user revealed a **preference / way they want to work** (not knowledge about code) → record it
