@@ -242,6 +242,8 @@ Rules that make it safe:
 | Cadence | Who | Command | What to look at |
 |---|---|---|---|
 | Weekly | **supervisor** | `node .claude/scripts/health-sweep.mjs` | the VERDICT line only. `BROKEN` → tell the agent. `drift` → do nothing. |
+| Monthly, or when in doubt | **supervisor** | `node .claude/scripts/platform-report.mjs` | writes `platform/reports/<date>-platform-report.md`: every file, every metric, one row each. This is how you audit the agent's judgement instead of accepting it. |
+| Before any deletion | both | `node .claude/scripts/attic.mjs verify` | any ALIVE row restores the file and voids its clock |
 | Every session that changes structure | agent | `health-sweep` before and after | a move that changes a count is the bug, and it is silent |
 | At `/session-wrap` | agent | `recurrence-check` | a lesson recorded twice must leave a guard behind (Step 4b) |
 | Monthly | agent + supervisor | `usage-census --days 30` | one retirement pass, ≤5 items, per §4 |
@@ -285,13 +287,14 @@ Rules that make it safe:
 - [ ] B2 — A test for `health-sweep.mjs` asserting a BROKEN sub-checker surfaces as BROKEN — it silently mis-parsed `skill-audit` on its first run and reported calm over 14 findings · Files: `.claude/scripts/health-sweep.test.mjs` · Test: AC-2
 - [ ] B3 — Tests for the two checkers that BLOCK and still have none: `autonomy-gate` has one; `guide-coverage-reminder` and `reuse-guard` do not · Files: 2 test files · Test: AC-2
 
-**Batch C — the first retirement pass** (not before B, and not before 2026-08-06)
+**Batch C — the first retirement pass** (supervisor approved the attic mechanism 2026-07-30)
 
-- [ ] C1 — Create `platform/attic/` + `MANIFEST.md` with the procedure at the top · Files: 2 · Test: AC-3
-- [ ] C2 — Stage the 5 superseded proposal drafts (§3, group 1) · Files: `git mv` ×5 · Test: AC-3 + sweep green
-- [ ] C3 — Stage `nuc-set-env-sandbox/` + `behavioural-eval.md` + `app-env.ps1` · Files: `git mv` ×6 · Test: AC-3 + sweep green
-- [ ] C4 — Ask the supervisor to resolve the `prisma-expert-migration-rehearsal` contradiction · Files: — · Test: manual
-- [ ] C5 — **≥30 days later**: supervisor deletes or restores; record which, and why, in the manifest · Files: manifest · Test: manual
+- [x] C1 — `attic.mjs` + `platform/attic/MANIFEST.md` + `evidence/`. Five refusal paths verified: PROTECTED class, PROTECTED even under `--force`, a reason under 20 chars, an ACTIVE file, and a file with live inbound mentions · Files: `.claude/scripts/attic.mjs` · Test: AC-3 ✅
+- [x] C1a — **Reversibility proven, not assumed**: staged → `restore` → the file is back at its original path and `git status` shows no change at all → re-staged. A retirement path that has never been walked backwards is not reversible, it is only believed to be · Test: AC-3 ✅
+- [x] C3 — Staged `platform/plans/nuc-set-env-sandbox/` (6 files, superseded by the installed `/app-env`), with an evidence snapshot and an `⚠ OVERRIDE` note: its one remaining live mention is this plan, which is what authorised the staging · Files: `git mv` · Test: AC-3 ✅ sweep 0 BROKEN in the same session
+- [ ] C2 — The 5 superseded proposal drafts. **Blocked by the measurement, deliberately**: `platform-report` scores them ACTIVE because this audit read them, so the tool disagrees with the agent's judgement. They will qualify once that contamination ages out, or the supervisor may authorise `--force` with a reason · Files: — · Test: AC-3
+- [ ] C4 — Ask the supervisor to resolve the `prisma-expert-migration-rehearsal` contradiction (`status: installed`, no such skill) · Files: — · Test: manual
+- [ ] C5 — **2026-08-29 at the earliest**: `attic.mjs verify` must report 0 ALIVE, then the supervisor deletes or restores and records which, and why · Files: manifest · Test: manual
 
 **Batch D — close the measurement gaps**
 
@@ -337,6 +340,29 @@ retirement has proved it is still needed. A failing result forbids starting the 
 - ~~Are the connections between files intact?~~ **Answered 2026-07-30 by measurement:** memory cross-links
   0 broken, ledger anchors 0 broken, hook wiring 0 broken; INVENTORY and the shared-asset catalog were broken
   and are fixed.
+
+## 6 — What building the retirement mechanism itself revealed (2026-07-30)
+
+Five defects, every one of them found because the mechanism was pointed at real files instead of being
+reasoned about. Recorded because each is a way a *measurement* can be confidently wrong, which is the class
+of failure this whole plan exists to contain.
+
+| # | The defect | Which direction it erred | Fix |
+|---|---|---|---|
+| 1 | `--format="C%at"` collided with **`CLAUDE.md`** — a path in most commits parsed as a timestamp, so every file's age became NaN | **condemning**: unknown age fell through to WATCH. The most important file in the repo was quietly nominating everything else | a `\x01` marker, which no path can contain |
+| 2 | Renames not followed, so the 2026-07-28 restructure made the whole repo look 2 days old | **protecting**: nothing could ever qualify. A mechanism that condemns nobody looks safe and has silently stopped working | `--name-status -M` + an alias chain |
+| 3 | Unknown age treated as old age | **condemning**: `platform-report.mjs` nominated *itself* 30 seconds after being written | unknown age ⇒ NEW, never WATCH. When in doubt, protect |
+| 4 | The generated report was itself in the link corpus | **protecting**: on the day the first report was written, every file in the repo gained an inbound link from it — the instrument manufacturing its own signal | `platform/reports/` and `attic/` excluded from both corpus and inventory |
+| 5 | Inbound links matched on bare basenames | **protecting**: the sandbox scored 6 inbound links, and all six were about two *other* sandboxes' `INSTALL.md` | generic names (`README`, `INSTALL`, `SKILL`…) must be cited with their parent directory to count |
+
+Two of the five erred toward protecting and two toward condemning, which is the useful part: there is no
+"safe" direction for a broken measurement. A protecting error is not benign — it makes the mechanism useless
+while looking responsible, and a mechanism that never nominates anything is one people eventually bypass.
+
+**Observer effect, twice, in both directions.** Reading a file to audit it counts as using it. That
+exonerated one plan mid-audit and it is why the five superseded proposal drafts now read as ACTIVE. It
+biases toward keeping — the safe way to be wrong — but it means a single day's numbers are noise, and the
+30-day wait is doing real work rather than being caution theatre.
 
 ## Decisions to distill
 

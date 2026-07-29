@@ -1,0 +1,125 @@
+{
+  "original": "platform/plans/nuc-set-env-sandbox",
+  "staged": "2026-07-30",
+  "reason": "the June sandbox that produced the /app-env skill; the skill shipped and is installed, so this is the scaffolding of a finished build. The only live mention is the audit plan that authorises this staging",
+  "evidence": {
+    "at": "2026-07-29T18:32:54.019Z",
+    "row": {
+      "path": "platform/plans/nuc-set-env-sandbox",
+      "v": "WATCH",
+      "why": "6 file(s) inside, none of them ACTIVE, ANCHOR or PROTECTED"
+    },
+    "files": [
+      {
+        "path": "platform/plans/nuc-set-env-sandbox/INSTALL.md",
+        "kind": "knowledge",
+        "reads": 0,
+        "writes": 0,
+        "runs": 0,
+        "links": 0,
+        "last": null,
+        "total": 0,
+        "lines": 64,
+        "commits": 3,
+        "first": 1781453189000,
+        "last_touched": 1785254286000,
+        "linksOut": 6,
+        "v": "WATCH",
+        "why": "no recorded use, 0 inbound link(s), 45d old — eligible for the attic, NOT for deletion"
+      },
+      {
+        "path": "platform/plans/nuc-set-env-sandbox/skills/nuc-set-env/SKILL.md",
+        "kind": "knowledge",
+        "reads": 0,
+        "writes": 0,
+        "runs": 0,
+        "links": 0,
+        "last": null,
+        "total": 0,
+        "lines": 62,
+        "commits": 4,
+        "first": 1781453189000,
+        "last_touched": 1785256839000,
+        "linksOut": 6,
+        "v": "WATCH",
+        "why": "no recorded use, 0 inbound link(s), 45d old — eligible for the attic, NOT for deletion"
+      },
+      {
+        "path": "platform/plans/nuc-set-env-sandbox/scripts/nuc-set-env-remote.sh",
+        "kind": "other",
+        "reads": 0,
+        "writes": 0,
+        "runs": 0,
+        "links": 1,
+        "last": null,
+        "total": 0,
+        "lines": 66,
+        "commits": 5,
+        "first": 1781453189000,
+        "last_touched": 1785254286000,
+        "linksOut": 2,
+        "v": "WATCH",
+        "why": "no recorded use, 1 inbound link(s), 45d old — eligible for the attic, NOT for deletion"
+      },
+      {
+        "path": "platform/plans/nuc-set-env-sandbox/scripts/nuc-set-env.ps1",
+        "kind": "other",
+        "reads": 0,
+        "writes": 0,
+        "runs": 0,
+        "links": 0,
+        "last": null,
+        "total": 0,
+        "lines": 59,
+        "commits": 3,
+        "first": 1781453189000,
+        "last_touched": 1785254286000,
+        "linksOut": 3,
+        "v": "WATCH",
+        "why": "no recorded use, 0 inbound link(s), 45d old — eligible for the attic, NOT for deletion"
+      },
+      {
+        "path": "platform/plans/nuc-set-env-sandbox/scripts/nuc-set-env.sh",
+        "kind": "other",
+        "reads": 0,
+        "writes": 0,
+        "runs": 0,
+        "links": 0,
+        "last": null,
+        "total": 0,
+        "lines": 38,
+        "commits": 3,
+        "first": 1781453189000,
+        "last_touched": 1785254286000,
+        "linksOut": 4,
+        "v": "WATCH",
+        "why": "no recorded use, 0 inbound link(s), 45d old — eligible for the attic, NOT for deletion"
+      },
+      {
+        "path": "platform/plans/nuc-set-env-sandbox/tests/merge.test.sh",
+        "kind": "other",
+        "reads": 0,
+        "writes": 0,
+        "runs": 0,
+        "links": 1,
+        "last": null,
+        "total": 0,
+        "lines": 60,
+        "commits": 5,
+        "first": 1781453189000,
+        "last_touched": 1785254286000,
+        "linksOut": 2,
+        "v": "WATCH",
+        "why": "no recorded use, 1 inbound link(s), 45d old — eligible for the attic, NOT for deletion"
+      }
+    ],
+    "mentions": [
+      "platform/plans/2026-07-30-second-brain-audit.md"
+    ],
+    "historical": [
+      "platform/reports/2026-07-30-platform-report.md",
+      "platform/log/2026-06-15.md"
+    ],
+    "sessions": 24
+  }
+}

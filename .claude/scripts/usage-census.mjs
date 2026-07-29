@@ -87,8 +87,23 @@ function inventory() {
     ...walk(join(REPO, ".claude", "memory")),
     ...walk(join(REPO, ".claude", "rules")),
   ])
-    if (f.endsWith(".md")) add(relative(REPO, f), "knowledge");
+    if (
+      f.endsWith(".md") &&
+      !/^platform\/(attic|reports)\//.test(relative(REPO, f))
+    )
+      add(relative(REPO, f), "knowledge");
   add("CLAUDE.md", "knowledge");
+
+  // Everything ELSE under platform/ — `.proposed` drafts, JSON, sandbox scripts. They were invisible until
+  // 2026-07-30, which meant the retirement mechanism could not reason about them at all: the six genuinely
+  // obsolete drafts found by hand that day were all in this blind spot. An inventory that only sees the
+  // tidy file types will always report the tidy part of the repo as the whole of it.
+  // `attic/` is excluded on purpose: staged files must not be re-measured as if they were still in service.
+  for (const f of walk(join(REPO, "platform"))) {
+    const rel = relative(REPO, f);
+    if (f.endsWith(".md") || /^platform\/(attic|reports)\//.test(rel)) continue;
+    add(rel, "other");
+  }
 
   // skills: one entry per skill directory (its SKILL.md is the thing that loads)
   const skillsDir = join(REPO, ".claude", "skills");
@@ -228,16 +243,55 @@ async function countUse(items) {
 /* ------------------------------------------- axis 2: how many files LINK to it */
 
 function countLinks(items) {
+  /*
+   * GENERATED indexes are excluded from the link corpus, and this is not housekeeping. `platform/reports/`
+   * lists every artefact by path, so on the day the first report was written every file in the repo gained
+   * an inbound link from it — the instrument manufacturing the signal it measures. Within one run the
+   * sandbox went from 6 inbound links to 7 for no reason but being reported on. `attic/` is excluded for
+   * the mirror reason: a staged file must not look alive because the manifest names it.
+   */
+  const GENERATED = /^platform\/(reports|attic)\//;
   const corpus = [
     ...walk(join(REPO, "platform")),
     ...walk(join(REPO, ".claude")),
-  ].filter((f) => /\.(md|mjs|json)$/.test(f));
+  ].filter(
+    (f) => /\.(md|mjs|json)$/.test(f) && !GENERATED.test(relative(REPO, f)),
+  );
   const texts = corpus.map((f) => ({
     path: relative(REPO, f),
     text: readFileSync(f, "utf8"),
   }));
+  /*
+   * A basename that is not unique cannot identify a file. `INSTALL.md`, `README.md`, `SKILL.md` occur many
+   * times over, so matching on the bare name counted every mention of ANY of them as an inbound link to ALL
+   * of them. Measured 2026-07-30: the nuc-set-env sandbox scored 6 inbound links and therefore ANCHOR —
+   * protected from retirement — when all six citations were about two OTHER sandboxes' INSTALL.md.
+   * For a repeated basename, the citation must carry the parent directory to count. This makes the
+   * protection *narrower*, so it is exactly the kind of change that needs saying out loud: it is justified
+   * only because the links it removes were never real.
+   */
+  const nameCount = new Map();
   for (const it of items.values()) {
-    const name = it.skill ? `/${it.skill}` : basename(it.path);
+    const b = basename(it.path);
+    nameCount.set(b, (nameCount.get(b) ?? 0) + 1);
+  }
+  /*
+   * Counting duplicates in the CURRENT inventory is not enough. `INSTALL.md` is unique today only because
+   * the two other sandboxes that had one were deleted in June — while the documents discussing THEM remain.
+   * So a name that is generic by nature is always disambiguated, whether or not a twin exists right now.
+   */
+  const GENERIC =
+    /^(README|INSTALL|SKILL|MANIFEST|CHANGELOG|LICENSE|_TEMPLATE|index|page|layout|route)\.\w+$/i;
+
+  for (const it of items.values()) {
+    const base = basename(it.path);
+    const ambiguous =
+      !it.skill && ((nameCount.get(base) ?? 0) > 1 || GENERIC.test(base));
+    const name = it.skill
+      ? `/${it.skill}`
+      : ambiguous
+        ? it.path.split("/").slice(-2).join("/")
+        : base;
     if (!name || name.length < 4) continue;
     const needle = it.skill ? new RegExp(`(?:/|\`)${it.skill}\\b`) : null;
     for (const c of texts) {
@@ -256,11 +310,14 @@ function countLinks(items) {
  * ended in exit 2 — the guard actually said something — as opposed to merely looking and staying silent.
  */
 function countHookRuns(items) {
-  const path = process.env.HOOK_USAGE_LOG || join(homedir(), ".claude", "hook-usage.jsonl");
+  const path =
+    process.env.HOOK_USAGE_LOG ||
+    join(homedir(), ".claude", "hook-usage.jsonl");
   const stat = { exists: existsSync(path), lines: 0 };
   if (!stat.exists) return stat;
   const byHook = new Map();
-  for (const [, it] of items) if (it.kind === "hook") byHook.set(basename(it.path), it);
+  for (const [, it] of items)
+    if (it.kind === "hook") byHook.set(basename(it.path), it);
   for (const line of readFileSync(path, "utf8").split("\n")) {
     if (!line.trim()) continue;
     let e;
@@ -316,7 +373,7 @@ if (JSON_OUT) {
 
 const ago = (ts) =>
   ts ? `${Math.max(0, Math.round((Date.now() - ts) / 86400_000))}d` : "—";
-const KINDS = ["knowledge", "skill", "hook", "script"];
+const KINDS = ["knowledge", "skill", "hook", "script", "other"];
 console.log(
   `usage census — ${stats.files} sessions, ${stats.events} tool calls scanned` +
     (DAYS ? ` (last ${DAYS} days)` : " (all history)") +
