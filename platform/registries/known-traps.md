@@ -384,6 +384,27 @@ sitting in `app/guide/page.tsx` for weeks before a restore test exposed it.
 **Related.** `sakubun/scripts/verify-restore.sh` (proves the round-trip end to end),
 `sakubun/docs/decisions.md` 2026-07-20 "A backup is a claim until a restore has been performed".
 
+> **AUDITED 2026-07-29 (idea-0021) — which volumes on this platform actually have the trap.** An explicit
+> `name:` under the volume in `docker-compose.yml` turns the prefixing OFF, so the trap is per-file, not
+> platform-wide. Every compose file in the repo, checked:
+>
+> | Volume | Pins `name:`? | Real name on the host |
+> | --- | --- | --- |
+> | `authentik_{database,media,certs,templates}` | ✅ yes (with a comment saying why) | as declared |
+> | `n8n_data` | ✅ yes | `n8n_data` |
+> | `yakudoku_data` (`deploy/`) | ✅ yes | `yakudoku_data` |
+> | `sakubun_data` (both compose files) | ❌ no → **PINNED 2026-07-29** to `sakubun_sakubun_data`, the name verified live with `docker volume ls` | `sakubun_sakubun_data` |
+> | `journal_db` | ❌ no | `journal_journal_db` — **inferred, NOT verified** (its host is the NUC, down since 2026-07-22) |
+> | `todo_data` | ❌ no | `todo_todo_data` — **inferred, NOT verified** (same) |
+>
+> **Do NOT pin `journal_db` or `todo_data` from that inference.** Pinning a guessed name binds a different,
+> empty volume — the trap in its worst direction. Run `docker volume ls` on the NUC first, then pin what is
+> actually there. That is the one part of idea-0021 that needs the host back.
+>
+> **The backup config is fine and must not be "corrected":** `platform/backup/backup.env.example` names
+> `yakudoku_data` and `n8n_data` bare, which is right *because* those two pin `name:`. The file now says so
+> inline, because the obvious "fix" breaks the backup silently.
+
 ## 11. LATER TRAP (2026-07-21): a root-seeded volume makes an app running as `USER node` hit "readonly database"
 
 **Symptom.** Seeding a throwaway volume with a real SQLite DB (to verify an image build), the container's

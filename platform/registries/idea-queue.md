@@ -210,9 +210,20 @@ proposal: null · outcome: null
 ---
 
 ### idea-0021 — Verify the NUC backup script's volume/container names against the newly-documented compose-prefix trap before first run
-state: active · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21 · updated: 2026-07-29 (was 2026-07-21)
+state: done · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21 · updated: 2026-07-29 (was 2026-07-21)
 gate: pass · moscow: should · reach: 1 impact: 3 confidence: 0.9 effort: 1 · base: 2.70 · interest: 0.4 · **rank: 2.86**
 interest_why: infra correctness grounded in a documented trap, but neither governance nor Knowledge-OS; no explicit lean either way
+outcome: **done 2026-07-29 — and the premise inverted.** The worry was that `backup.env.example`'s bare volume names were
+wrong. Audited every compose file in the repo: **they are CORRECT**, because `n8n` and `yakudoku/deploy` pin an explicit
+`name:`, which turns compose's prefixing off. The trap is live in three OTHER volumes instead — `sakubun_data`,
+`journal_db`, `todo_data`. **Done:** `sakubun` pinned to `sakubun_sakubun_data` (verified with `docker volume ls`, then
+rebuilt: same volume, DB still 3,592,192 B, healthy + 200) · `backup.env.example` now says inline why its bare names must
+NOT be "fixed" · `known-traps.md §10` carries the full per-volume audit table · **`restic-restore-test.sh` rewritten from
+a printed "VERIFY MANUALLY" reminder into real assertions** (it asserted nothing, so a snapshot of empty dumps exited 0).
+**Blocked on the NUC, recorded not guessed:** `journal_db` / `todo_data` real names — pinning them from inference is the
+trap's worst direction. **Two bugs in my own new script, found by dry-running it, not by reading it:** it reported "not a
+database" for a real 3.5 MB DB when the `sqlite3` CLI was simply absent, and its summary claimed "the backup would NOT
+restore" when the truth was "this host could not check". Both fixed; PASS and FAIL paths each exercised.
 > **Documented gap:** `registries/known-traps.md` §10 (added 2026-07-20, commit `2d1c756`) and knowledge-ledger line
 > 2026-07-20 ("compose PREFIXES a named volume with the project name … every project on this platform") document
 > that a `docker-compose.yml` volume named e.g. `sakubun_data` actually exists on the host as
