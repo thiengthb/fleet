@@ -99,7 +99,24 @@ of self-improvement here as unverified.
      2026-07-28: idea-0023 (MCP platform server) captured from the supervisor, gated pass, analyzed in one pass
      (research was already done in-session: 5 external sources, 4 options) → state `proposed`, AWAITING THE HUMAN-ACCEPT
      GATE. idea-0013's revisit trigger is ARMED but deliberately NOT fired (a proposed 3rd consumer is not a consumer);
-     it fires iff idea-0023 is accepted. No /idea sort run — this was a capture+analyze, not a re-rank cadence. -->
+     it fires iff idea-0023 is accepted. No /idea sort run — this was a capture+analyze, not a re-rank cadence.
+
+     2026-07-29 /idea sort (post-feature cadence, after idea-0023 shipped). **7 inbox ideas had NEVER been gated**
+     (`gate: null` since 2026-07-06..07-24), so the queue's ordering was decoration. All 7 gated + scored; interest
+     re-derived per idea from human signals ONLY (user-profile §Interest signals + 9 accepts / 0 rejects in the
+     `outcome:` log, all on governance / Knowledge-OS / infra-EXTENSION work — confidence stays low, hence coarse
+     buckets and the 15% cap). `interest_why:` records the derivation per idea so it is auditable.
+     **Two feasibility deferrals, both because `target` beats rank:** idea-0015 (Watchtower, rank 5.23) and idea-0016
+     both live on the NUC, **down since 2026-07-22** — 0015 had been sitting at #1 the entire time it was impossible.
+     **New top-1: idea-0018 (rank 6.05)**, actionable today and needing no host.
+     **Wildcard surfaced: idea-0017** (journal MCP server), ranked on `base` only per the exploration floor. It displaced
+     nothing: the two feasibility deferrals freed the room, so the WIP-5 is 0018 · 0021 · 0020 · 0022 · 0017-as-wildcard.
+     (First pass of this sort DID displace idea-0022 to make room — wrong, because it assumed idea-0015 stayed active.
+     Counted the survivors instead of asserting them.)
+     **One pushback: idea-0020's own evidence went stale** — `/behavioural-eval` now exists and `testing.md` §2.5
+     cites it, so it survives at a fraction of scope, and is flagged as a FOLD candidate with idea-0018 (same file,
+     same propose-only constraint) for the supervisor to decide. No gap-analysis pass was run: nothing
+     externally-grounded surfaced that isn't already captured, and "nothing worth proposing" is a first-class outcome. -->
 
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
@@ -136,7 +153,7 @@ gate: defer · moscow: could · interest: n/a (explicitly NOT a platform-optimis
 ---
 
 ### idea-0015 — Migrate Watchtower → maintained drop-in fork `nickfedor/watchtower`
-state: active · source: agent (Quick-research finding 2026-06-20) · created: 2026-06-20 · updated: 2026-06-20
+state: deferred · source: agent (Quick-research finding 2026-06-20) · created: 2026-06-20 · updated: 2026-06-20 · revisit_when: the NUC is back up — Watchtower runs there, so a migration cannot be applied or verified while the host is off (down since 2026-07-22). **This idea has ranked #1 the whole time it was unactionable**, which is what reading `target` before trusting a rank is for
 gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.8 effort: 1 · base: 4.8 · interest: 0.6 · **rank: 5.23**
 proposal: null · outcome: null
 > **External signal (web, 2026-06-20):** `containrrr/watchtower` repo ARCHIVED 2025-12-17 — maintainers stepped away, no
@@ -152,7 +169,7 @@ proposal: null · outcome: null
 ---
 
 ### idea-0005 — Phase 4: token-aware batching + estimation-accuracy research
-state: active · source: user · created: 2026-06-14 · updated: 2026-06-14
+state: deferred · source: user · created: 2026-06-14 · updated: 2026-06-14 · revisit_when: a WIP slot frees up (rank 0.85, lowest of the gated set)
 gate: pass · moscow: could · reach: 2 impact: 1 confidence: 0.8 effort: 2 · base: 0.8 · interest: 0.4 · **rank: 0.85**
 proposal: null · outcome: null
 > `cost: S/M/L` on plan steps + post-hoc calibration; a batch runner reads `cost` not a fixed step count. Research confirmed
@@ -161,8 +178,9 @@ proposal: null · outcome: null
 ---
 
 ### idea-0021 — Verify the NUC backup script's volume/container names against the newly-documented compose-prefix trap before first run
-state: inbox · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21 · updated: 2026-07-21
-gate: null · moscow: null · proposal: null · outcome: null
+state: active · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21 · updated: 2026-07-29 (was 2026-07-21)
+gate: pass · moscow: should · reach: 1 impact: 3 confidence: 0.9 effort: 1 · base: 2.70 · interest: 0.4 · **rank: 2.86**
+interest_why: infra correctness grounded in a documented trap, but neither governance nor Knowledge-OS; no explicit lean either way
 > **Documented gap:** `registries/known-traps.md` §10 (added 2026-07-20, commit `2d1c756`) and knowledge-ledger line
 > 2026-07-20 ("compose PREFIXES a named volume with the project name … every project on this platform") document
 > that a `docker-compose.yml` volume named e.g. `sakubun_data` actually exists on the host as
@@ -195,8 +213,9 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ### idea-0022 — Backfill the guide-coverage drift gate (sakubun) to todo/yakudoku's `/guide` pages
-state: inbox · source: agent (C3 gap-analysis 2026-07-24) · created: 2026-07-24 · updated: 2026-07-24
-gate: null · moscow: null · proposal: null · outcome: null
+state: active · source: agent (C3 gap-analysis 2026-07-24) · created: 2026-07-24 · updated: 2026-07-29 (was 2026-07-24)
+gate: pass · moscow: should · reach: 2 impact: 2 confidence: 0.8 effort: 2 · base: 1.60 · interest: 0.8 · **rank: 1.79**
+interest_why: EXTENDS a gate that already exists in sakubun to its siblings — "extending existing infra over parallel systems" is the strongest stated lean; docs continuity
 > **Documented gap, stated by its own source:** `registries/knowledge-ledger.md` 2026-07-23 ("Keep the in-app guide in
 > sync with features is a rule too") records that sakubun's `/guide` had drifted ~10 features behind the code
 > silently, and ships the fix as a `docs/guide-coverage.json` registry (route/MCP-prompt/capability → `ref`
@@ -223,8 +242,9 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ### idea-0016 — Pinned-image staleness alerting for n8n + Authentik
-state: inbox · source: agent (C3 gap-analysis 2026-07-06) · created: 2026-07-06 · updated: 2026-07-06
-gate: null · moscow: null · proposal: null · outcome: null
+state: deferred · source: agent (C3 gap-analysis 2026-07-06) · created: 2026-07-06 · updated: 2026-07-29 (was 2026-07-06) · revisit_when: the NUC is back up (down since 2026-07-22) — alerting on the staleness of images on a dead host measures nothing
+gate: pass · moscow: should · reach: 2 impact: 3 confidence: 0.7 effort: 2 · base: 2.10 · interest: 0.4 · **rank: 2.23**
+interest_why: security work, but a NET-NEW alerting mechanism is an explicit "leans away"; and it is unactionable while the host is off
 > **External signal:** INVENTORY §1 documents n8n (`2.25.7`) and Authentik (`2026.5.2`) as manually-pinned
 > images with no Watchtower label and **no staleness alert** — the platform has zero mechanism to detect when a
 > security patch or new version is released for these two apps. Authentik is the central IdP; a missed CVE patch
@@ -238,8 +258,9 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ### idea-0017 — journal MCP server (exploration-floor WILDCARD)
-state: inbox · source: agent (C3 gap-analysis 2026-07-06, exploration-floor WILDCARD) · created: 2026-07-06 · updated: 2026-07-06
-gate: null · moscow: null · proposal: null · outcome: null
+state: active · source: agent (C3 gap-analysis 2026-07-06, exploration-floor WILDCARD) · created: 2026-07-06 · updated: 2026-07-29 (was 2026-07-06)
+gate: pass · moscow: could · reach: 1 impact: 2 confidence: 0.5 effort: 3 · base: 0.33 · interest: 0.2 (SKIPPED — wildcard) · **rank: 0.33**
+interest_why: WILDCARD — ranked on `base` only, interest term SKIPPED by the exploration floor. Its own interest would be low (a net-new service in a third app is an explicit "leans away"), which is exactly the starvation the floor exists to prevent
 > **Documented trigger + external signal:** (1) idea-0013 is deferred with
 > `revisit_when: "journal (or any 3rd app) adds an MCP server"` — this idea IS that trigger. (2)
 > `registries/shared-assets.md` flags the MCP OAuth shim as "DUPLICATED — extract candidate (built 2×; extract at 3rd
@@ -255,8 +276,9 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ### idea-0018 — Codify the "sacrificial record" rule into the testing standard (live-verification-vs-real-data gap)
-state: inbox · source: agent (C3 gap-analysis 2026-07-08) · created: 2026-07-08 · updated: 2026-07-08
-gate: null · moscow: null · proposal: null · outcome: null
+state: active · source: agent (C3 gap-analysis 2026-07-08) · created: 2026-07-08 · updated: 2026-07-29 (was 2026-07-08)
+gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.9 effort: 1 · base: 5.40 · interest: 0.8 · **rank: 6.05**
+interest_why: codifies a dated incident into the durable standard = Knowledge-OS + governance, both explicit "leans toward"; extends an existing standard rather than adding a system
 > **Documented gap:** the 2026-07-06 `sakubun` incident — a live `submit_review` verification wrote a fake rating
 > onto the user's REAL item 「中」, corrupting its FSRS schedule; recovery only worked because `ReviewLog` happened
 > to be append-only (delete the injected rows, replay the rest through `ts-fsrs`). This was distilled to a
@@ -283,8 +305,9 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ### idea-0019 — Live-refresh + sessionStorage UI-state parity check for todo/journal (external-writer staleness)
-state: inbox · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-17 · updated: 2026-07-17
-gate: null · moscow: null · proposal: null · outcome: null
+state: deferred · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-17 · updated: 2026-07-29 (was 2026-07-17) · revisit_when: an external-writer staleness bug is actually observed in todo or journal — this is an audit of a generalisation, not a reported defect
+gate: pass · moscow: could · reach: 2 impact: 2 confidence: 0.7 effort: 2 · base: 1.40 · interest: 0.6 · **rank: 1.53**
+interest_why: extends an existing pattern to siblings (mild lean toward), but the ledger generalised it BY PATTERN, not by verified audit — so the premise itself is unaudited
 > **Documented gap:** two dated 2026-07-14 knowledge-ledger lessons (#106, #107) generalize sakubun's fixes to
 > **named siblings by pattern, not by verified audit**: (1) "any RSC app with an external writer (sakubun MCP;
 > **todo/journal bots**)" needs a client `router.refresh()` on window-focus + light poll, because a Server-Component
@@ -305,8 +328,10 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ### idea-0020 — Codify "MCP model-in-the-loop eval" as its own testing-standard rule (unit-tests-can't-catch-this gap)
-state: inbox · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-17 · updated: 2026-07-17
-gate: null · moscow: null · proposal: null · outcome: null
+state: active · source: agent (C3 gap-analysis 2026-07-17) · created: 2026-07-17 · updated: 2026-07-29 (was 2026-07-17)
+gate: pass · moscow: could · reach: 3 impact: 1 confidence: 0.7 effort: 1 · base: 2.10 · interest: 0.8 · **rank: 2.35**
+interest_why: same family as idea-0018 (standard + Knowledge-OS), but see the PUSHBACK: most of what it asked for now exists
+pushback: **its stated evidence is now STALE, checked 2026-07-29.** The block says *"Grep confirms `standards/testing.md` has zero mention of 'model-in-the-loop' or 'eval'"* — that was true when it was captured (2026-07-17) and is not any more: the `/behavioural-eval` skill now exists and `standards/testing.md` §2.5 references it by name. What is genuinely still missing is **one routing row** in the pyramid — no tier routes "does the calling model handle this tool result correctly" to that skill — so the idea survives at a fraction of its original scope (impact 1, effort 1). **FOLD CANDIDATE, supervisor's call:** it and idea-0018 are both single-row additions to the same governance file, both propose-only since `platform/standards/**` became governance on 2026-07-29 — one proposal and one human commit would do both. Not merged silently, per the dedup rule.
 > **Documented gap:** three separate dated knowledge-ledger incidents from one MCP server (sakubun) — 2026-07-06
 > (#56, display-contract paraphrasing), 2026-07-09 (#98 restated), 2026-07-11 (#98, a required-schema-field dead-end
 > for model recovery) — each explicitly states **"unit tests can't catch this"** / needs **"a model-in-the-loop
