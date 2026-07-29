@@ -11,6 +11,8 @@ autonomy contract §3 / CVE-2025-53773. It drafts a `.proposed` drop-in here; a 
 
 | `2026-07-29-mcp-path-keep-or-retire.md` | `rulebook/server/**`, `lib/report-lesson.*`, `lib/request-log.*` (998 lines, 0 consumers) | ✅ **ACCEPTED 2026-07-29 — Option A (keep), conditionally.** The B′ re-target left the MCP path unused. 4 options; **A (keep, with a falsifiable retire-trigger) recommended**, and its weakness stated first because "do nothing" is also what sunk cost would say. Nothing removed; the three retire-triggers became checkboxes in the plan's check-in runbook (Q2), and `00-map` now opens with which path is live. |
 
+| `2026-07-29-idea-0018-sacrificial-record-proposal.md` + `testing.md.proposed` | `platform/standards/testing.md` | ⏳ **ACCEPTED 2026-07-29, awaiting the human commit.** Adds §2.6 (verify a write path on a sacrificial record, never a real one — from the 2026-07-06 sakubun FSRS corruption) + one §1 pyramid row routing model-in-the-loop seams to `/behavioural-eval` (idea-0020, folded). **+22 lines in exactly 2 places**; diff is clean against the live file. |
+
 ## Status (2026-06-19) — earlier proposals, all applied/installed
 
 | Proposal | Target | Status |

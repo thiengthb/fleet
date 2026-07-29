@@ -1,7 +1,7 @@
 ---
 title: Proposal — a rule for verifying a live write path without touching a real user's data (+ the model-in-the-loop routing row, folded)
 kind: system-change # edits platform/standards/testing.md, which became governance 2026-07-29 → propose-only
-status: draft # draft → accepted → rejected | superseded
+status: accepted # supervisor 2026-07-29 — Option A + the idea-0020 fold
 created: 2026-07-29
 related:
   [
@@ -131,6 +131,14 @@ drop-in for `standards/testing.md` and you commit it (that file became governanc
 install it). Reject with a reason ⇒ idea-0018 goes `deferred`/`dead` and the reason becomes Reflexion memory that biases
 future gap-analysis. No response is **not** approval.
 
-- **Decision:** _(supervisor — accept A only · accept A + the idea-0020 fold · reject (reason) · deferred (until …))_
-- **Date / by:**
-- **Why:**
+- **Decision:** **accept — Option A + the idea-0020 fold.**
+- **Date / by:** 2026-07-29 · supervisor ("accept A + fold").
+- **Why:** both are one-row-scale additions to the same governance file, so one human commit covers both; the counter-case
+  ("the ledger is enough") was presented and not taken.
+- **Delivered:** `platform/proposals/testing.md.proposed` — **+22 lines in exactly 2 places** (one §1 pyramid row, one
+  §2.6 section). Awaiting the human commit; the agent may not install it (`platform/standards/**` became governance
+  2026-07-29).
+- **Self-correction worth keeping:** the first draft of §2.6 ran **34 lines against the ~15 this proposal's own
+  pre-mortem committed to** — the mitigation would have been theatre. Trimmed to **21**; the 6 lines over budget are the
+  three source links plus the prose-not-a-gate sentence, kept because the CSA link is the thing that stops the obvious
+  wrong fix. Stated rather than quietly rounded.
