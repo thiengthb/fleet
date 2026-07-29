@@ -2,7 +2,9 @@
 
 **Status:** PROPOSED, awaiting a human commit. The agent wrote and tested this; it must not install it.
 **Driver:** `platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md` Step 2.2 / **AC-5**.
-**Drop-ins:** `autonomy-gate.mjs.proposed` · `autonomy-gate.quarantine.test.mjs` (runnable now, 26 cases).
+**Drop-ins:** `autonomy-gate.mjs.proposed` · `autonomy-gate.test.mjs.proposed` (the existing suite with the one flipped
+case already applied — 76/76 against the proposed gate) · `autonomy-gate.quarantine.test.mjs` (runnable now, 26 cases).
+**Supervisor chose Option A (full) on 2026-07-29**; install remains a human commit.
 
 ## In plain terms
 
@@ -72,10 +74,20 @@ Measured, not guessed:
 
 1. Read the diff: `diff .claude/hooks/autonomy-gate.mjs platform/proposals/autonomy-gate.mjs.proposed`
 2. `cp platform/proposals/autonomy-gate.mjs.proposed .claude/hooks/autonomy-gate.mjs`
-3. In `.claude/hooks/autonomy-gate.test.mjs`, change the `Write a doc → ALLOW` case from
-   `platform/standards/documentation.md` to a genuinely safe doc path (e.g. `platform/plans/2026-07-28-x.md` is already
-   covered — use `sakubun/docs/00-map.md`), and add the `platform/standards/… → BLOCK` case.
+3. `cp platform/proposals/autonomy-gate.test.mjs.proposed .claude/hooks/autonomy-gate.test.mjs` — the flip is already
+   applied in it (`Write a project doc → ALLOW` + `Write a platform standard → BLOCK`), 76 cases.
 4. `cp platform/proposals/autonomy-gate.quarantine.test.mjs .claude/hooks/` — it resolves the live gate from there with
    no edit.
 5. Run both: `node .claude/hooks/autonomy-gate.test.mjs && node .claude/hooks/autonomy-gate.quarantine.test.mjs`
-6. Commit, then tick Step 2.2 in the plan and delete the two drop-ins (this record stays).
+6. Commit, then tick Step 2.2 in the plan and delete the three drop-ins (this record stays).
+
+Copy-paste:
+
+```bash
+cd /home/thien/projects/fleet
+diff .claude/hooks/autonomy-gate.mjs platform/proposals/autonomy-gate.mjs.proposed
+cp platform/proposals/autonomy-gate.mjs.proposed        .claude/hooks/autonomy-gate.mjs
+cp platform/proposals/autonomy-gate.test.mjs.proposed   .claude/hooks/autonomy-gate.test.mjs
+cp platform/proposals/autonomy-gate.quarantine.test.mjs .claude/hooks/
+node .claude/hooks/autonomy-gate.test.mjs && node .claude/hooks/autonomy-gate.quarantine.test.mjs
+```
