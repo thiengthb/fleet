@@ -452,17 +452,19 @@ no hosting.
 
 **Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict + the B′ accept, SUPERSEDED).**
 
-These four are listed so Phase 3's verdict is made against a known cost, not a vague "and then more". They are
-intentionally left without `Files:`/`Test:` — **naming files for work that is not authorized is how a scoped list turns
-into a commitment.** Each gets them in its own plan, after its own accept.
+These four were listed so Phase 3's verdict could be made against a known cost rather than a vague "and then more".
+**They are now closed, not waiting** — `[~]` = superseded, and none of them is work anyone should pick up:
+4.1's prerequisite vanished with hosting (`idea-0013` back to ARMED-not-fired), 4.2 is cancelled (`target` stays
+`local`), 4.3 **shipped instead as Phase 5** (the marketplace was built for the checker, and it carries hooks natively),
+and 4.4 is now a question for the plugin, not the server — and only worth asking once Q1 says the plugin is used.
 
-- [ ] 4.1 — `idea-0013`: extract `@thiengthb/mcp-auth` (this is the 3rd consumer — the rule-of-three has fired) ·
+- [~] 4.1 — **SUPERSEDED 2026-07-29, not pending.** `idea-0013`: extract `@thiengthb/mcp-auth` (this is the 3rd consumer — the rule-of-three has fired) ·
       Files: — · Test: deferred to Phase 4's own plan
-- [ ] 4.2 — Host it: first real exercise of `targets/cloud/README.md`; add the INVENTORY row with `target: cloud` ·
+- [~] 4.2 — **SUPERSEDED 2026-07-29, not pending.** Host it: first real exercise of `targets/cloud/README.md`; add the INVENTORY row with `target: cloud` ·
       Files: — · Test: deferred to Phase 4's own plan
-- [ ] 4.3 — Private plugin marketplace for the **hooks** (they cannot ride MCP — local executables) ·
+- [~] 4.3 — **SUPERSEDED 2026-07-29, not pending.** Private plugin marketplace for the **hooks** (they cannot ride MCP — local executables) ·
       Files: — · Test: deferred to Phase 4's own plan
-- [ ] 4.4 — Widen tier 2 past the frontend rules to the rest of the artifact-decidable 58.9% ·
+- [~] 4.4 — **SUPERSEDED 2026-07-29, not pending.** Widen tier 2 past the frontend rules to the rest of the artifact-decidable 58.9% ·
       Files: — · Test: deferred to Phase 4's own plan
 
 ## Check-in runbook
