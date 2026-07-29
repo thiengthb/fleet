@@ -249,6 +249,7 @@
 | 2026-07-29 | A printed reminder is not a control: the backup drill said "VERIFY MANUALLY" and exited 0. | [→](ledger/2026-07.md#2026-07-29-a-printed-reminder-is-not-a-control) |
 | 2026-07-29 | Before applying a documented trap, check whether the specific artifact is already immune; ours were. | [→](ledger/2026-07.md#2026-07-29-check-the-artifact-before-applying-a-documented-trap) |
 | 2026-07-29 | A control that depends on a human understanding must be tested for understanding, not for approval. | [→](ledger/2026-07.md#2026-07-29-test-for-understanding-not-for-approval) |
+| 2026-07-29 | Publishing is not delivering: a consumer resolves by declared VERSION, not by commit (6 fixes undelivered). | [→](ledger/2026-07.md#2026-07-29-publishing-is-not-delivering) |
 
 ## B. Pointers to each project's knowledge log
 

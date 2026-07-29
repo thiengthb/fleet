@@ -3,7 +3,7 @@ title: Build — rule delivery without shipping the rulebook: tier-2 verdicts (M
 kind: system-change # feature | system-change | fix | refactor | chore
 status: active # Phases 1-3 + ALL of Phase 5 DONE (5.1-5.7). Phase 4 NOT authorized (superseded by the Phase 3 verdict + the B′ re-target, both 2026-07-29). Nothing left to build — the ONLY thing open is the 2026-08-12 used-vs-built check-in, which cannot be answered early by design
 created: 2026-07-29
-updated: 2026-07-29 # session 2 of the day: Phases 2-3 + 5, and the re-target
+updated: 2026-07-29 # session 3: plugin v0.2.0 RELEASED — the installed copy had been 6 commits stale (consumers resolve by version, not commit), and the hook now counts every check so the check-in below has evidence instead of an inference
 related:
   [
     platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md (the ACCEPTED RFC — sources · options · pre-mortem · counter-case),
@@ -496,11 +496,15 @@ failing result means the whole feature — not one of its two halves — was mac
 ### Q1 (the gate) — is the plugin hook actually used?
 
 1. `claude plugin list` — is `rulebook-frontend@rulebook` still installed and enabled? (Uninstalled ⇒ that IS the answer.)
-2. Has it fired on real work? The hook is silent when clean, so absence of complaints is not evidence. Check whether any
-   UI file was written since 2026-07-29 in a repo on this machine:
-   `git -C /home/thien/projects/fleet/<app> log --since=2026-07-29 --name-only | grep -E '\.(tsx|jsx|css)$' | head`
-   No UI file written anywhere ⇒ the gate is **not answerable yet**; roll `checkin:` forward and say so. UI files written
-   and the hook still installed ⇒ **PASS** (it ran; it is silent on clean files by design).
+2. **Read the usage log — do not infer.** `node /home/thien/projects/fleet/rulebook/scripts/usage-report.mjs`
+   Added 2026-07-29 (v0.2.0) precisely because this step used to be an inference: the hook is silent on a clean file, so
+   the original instruction was to look at git history for UI files and *assume* the hook saw them. It now counts every
+   check, including the clean ones, in `~/.claude/rulebook-usage.jsonl` (metadata only).
+   - **≥1 check on a real file** ⇒ it ran. That is Q1's factual half, **PASS**.
+   - **Zero checks** ⇒ either no UI work happened (not answerable yet — roll `checkin:` forward and say so) or the hook
+     is not firing (a defect, not a verdict — the report's own output distinguishes "no log" from "empty log").
+   - **Any `load-error` / `checker-error`** ⇒ it fired and verified NOTHING. Fix that before reading anything else here;
+     a broken checker looks exactly like a quiet one.
 3. Ask the supervisor one question, because this part is not measurable from disk: *did an exit-2 finding ever land in
    front of you, and was it useful or noise?* One "it was noise" outweighs any count.
 
