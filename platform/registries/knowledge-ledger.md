@@ -246,6 +246,9 @@
 | 2026-07-29 | An artifact that AGGREGATES others is a check on them, and it finds what per-file review cannot. | [→](ledger/2026-07.md#2026-07-29-an-artifact-that-aggregates-others-is-a-check-on-them-and) |
 | 2026-07-29 | Generate the documentation to find the bugs in the source. | [→](ledger/2026-07.md#2026-07-29-generate-the-documentation-to-find-the-bugs-in-the-source) |
 | 2026-07-29 | Measure a new dependency against the INCUMBENT, and expect the measurement to refute your reason for wanting it. | [→](ledger/2026-07.md#2026-07-29-measure-a-new-dependency-against-the-incumbent-and-expect) |
+| 2026-07-29 | A printed reminder is not a control: the backup drill said "VERIFY MANUALLY" and exited 0. | [→](ledger/2026-07.md#2026-07-29-a-printed-reminder-is-not-a-control) |
+| 2026-07-29 | Before applying a documented trap, check whether the specific artifact is already immune; ours were. | [→](ledger/2026-07.md#2026-07-29-check-the-artifact-before-applying-a-documented-trap) |
+| 2026-07-29 | A control that depends on a human understanding must be tested for understanding, not for approval. | [→](ledger/2026-07.md#2026-07-29-test-for-understanding-not-for-approval) |
 
 ## B. Pointers to each project's knowledge log
 

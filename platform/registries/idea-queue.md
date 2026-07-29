@@ -256,7 +256,7 @@ restore" when the truth was "this host could not check". Both fixed; PASS and FA
 ---
 
 ### idea-0022 — Backfill the guide-coverage drift gate (sakubun) to todo/yakudoku's `/guide` pages
-state: active · source: agent (C3 gap-analysis 2026-07-24) · created: 2026-07-24 · updated: 2026-07-29 (was 2026-07-24)
+state: deferred · source: agent (C3 gap-analysis 2026-07-24) · created: 2026-07-24 · updated: 2026-07-29 (was 2026-07-24) · revisit_when: **the next time `todo` is worked on** — supervisor's call 2026-07-29: kept as a REMINDER attached to that repo rather than as queue work, because it is only worth doing while someone is already in that codebase. `yakudoku` rides along whenever it happens.
 gate: pass · moscow: should · reach: 2 impact: 2 confidence: 0.8 effort: 2 · base: 1.60 · interest: 0.8 · **rank: 1.79**
 interest_why: EXTENDS a gate that already exists in sakubun to its siblings — "extending existing infra over parallel systems" is the strongest stated lean; docs continuity
 > **Documented gap, stated by its own source:** `registries/knowledge-ledger.md` 2026-07-23 ("Keep the in-app guide in
