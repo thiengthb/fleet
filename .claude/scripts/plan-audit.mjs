@@ -187,6 +187,31 @@ function auditFile(path) {
     else if (via) add('WARN', `\`## ${h}\` written as \`## ${via}\` — same job, non-standard heading (drift, not a violation)`);
   }
 
+  /* the ask, verbatim — the one section the agent did not write
+   *
+   * Every other section is the agent's restatement of the request, so closing a plan against them can only
+   * confirm the agent's own reading. Added 2026-07-30 after the supervisor asked whether finished work is
+   * ever compared to what he originally asked for: it was not, anywhere. Advisory on plans that predate the
+   * block, an ERROR on anything created after it — and an empty quote is worse than no section at all,
+   * because it looks satisfied. */
+  if (!isProposal && !preStandard) {
+    const { body: askBody } = sectionOrSynonym(text, 'The ask, verbatim');
+    const quoted = (uncomment(askBody || '').match(/^\s*>\s*\S+/gm) || []).length;
+    const placeholder = /\(paste the request here\)/i.test(askBody || '');
+    if (askBody === null) {
+      const bornAfterTheRule = String(fm.created || '') >= '2026-07-30';
+      add(
+        bornAfterTheRule ? 'ERROR' : 'INFO',
+        'no `## The ask, verbatim` section — nothing here records what was actually requested, so closing this plan can only check the work against the agent\'s own restatement of it',
+      );
+    } else if (placeholder || quoted === 0) {
+      add(
+        'ERROR',
+        '`## The ask, verbatim` is present but holds no quoted request — an unfilled block reads as satisfied at close, which is worse than an absent one',
+      );
+    }
+  }
+
   /* research-before-design */
   const { body: priorArtBody } = sectionOrSynonym(text, 'Prior art & sources');
 

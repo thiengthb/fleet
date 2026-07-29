@@ -18,9 +18,23 @@ related: [] # file.ts · INVENTORY §n · docs/plans/<prior>.md
   Keep it token-cheap (tables + bullets + checklist, not prose). Keep the checklist in sync as you execute.
 -->
 
+## The ask, verbatim
+
+<!-- REQUIRED. Paste what the user actually asked, in their words — the sentence(s) that started this, not a
+     tidied summary. Quote it; translate nothing.
+
+     WHY. Every other section below is the agent's INTERPRETATION. If the interpretation drifted at the start,
+     the plan closes by checking the work against the drift and passes — the one error the whole doc set
+     cannot catch. The raw ask is the only fixed point. (Transcripts already store every prompt forever, so
+     this is not storage; it is the LINK between the prompt and the artefact it produced.)
+     Scope that changes later goes under "Scope changes" at the bottom — never edit this block. -->
+
+> (paste the request here)
+
 ## Goal
 
-One sentence: what "done" looks like (the observable outcome).
+One sentence: what "done" looks like (the observable outcome). This is the agent's reading of the ask above —
+if it says anything the ask does not, that is a scope decision and belongs in the section below.
 
 ## Context
 
@@ -29,7 +43,7 @@ Why now, the constraints, what triggered it. 1–3 lines.
 ## Prior art & sources
 
 <!-- kind: feature | system-change ⇒ REQUIRED before flipping status: active — ≥2 external URLs (research-before-design,
-     anti-bias). Omit this section for fix/refactor/chore plans. The prior-art-check.mjs hook nudges if it's missing. -->
+     anti-bias). Omit this section for fix/refactor/chore plans. `plan-audit.mjs` reports it if it's missing. -->
 
 - [Source 1](url) — what we learn / can reuse · what to avoid
 - [Source 2](url) — ...
@@ -69,6 +83,18 @@ The chosen approach + **≥2 options ruled out and why** (brief — the durable 
 ## Out of scope
 
 Explicit non-goals, so a later session doesn't scope-creep.
+
+## Scope changes
+
+<!-- Append-only, dated. Anything this plan now does that "The ask, verbatim" did not ask for, or anything
+     it asked for that we are NOT doing — with who decided and why. Leave empty if the plan still matches
+     the ask; an empty section is a finding, not an oversight.
+
+     This is what makes the closing check honest: at `/session-wrap` the plan is compared against the raw
+     ask PLUS this list, so "we did something else, and here is when it was agreed" is a pass and "we did
+     something else" alone is not. -->
+
+- YYYY-MM-DD — <what changed> · decided by <user | agent> · why
 
 ## Open questions / risks
 

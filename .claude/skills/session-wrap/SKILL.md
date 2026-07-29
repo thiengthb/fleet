@@ -57,9 +57,16 @@ after the session. No structural change → leave it as is.
 
 If this session worked off a persisted plan (`docs/plans/*.md`, `status: active`):
 
-- Did the work **finish**? → flip its `status:` to `done` and **distill its _Decisions to distill_ bullets into
+- Did the work **finish**? → **first re-read the plan's `## The ask, verbatim` block** and answer, in the plan,
+  under a dated heading: *does what shipped satisfy what was actually asked?* Compare against the raw quote plus
+  the `## Scope changes` list — a difference that appears in neither is a **miss**, and it is named as one, not
+  smoothed over. Only then flip `status:` to `done` and **distill its _Decisions to distill_ bullets into
   `docs/decisions.md`** (the durable "why" migrates plan → decisions, per `standards/documentation.md §5.5`). Don't leave the
   knowledge living only in a closed plan.
+  > Why this order: every other section of a plan is the agent's own restatement of the request, so checking the
+  > work against them can only confirm the agent's reading. The verbatim ask is the one thing in the file the
+  > agent did not write. An older plan with no such block → say so and judge against the original request as
+  > best it can be reconstructed; do not backfill a quote from memory, which would fabricate the fixed point.
 - Did the work **partially** advance? → tick off completed steps + bump `updated:` (leave `status: active`).
 - Was it **dropped**? → `status: abandoned` with a one-line reason.
 - Does it hold a **time-gated** step (something only answerable by letting time pass)? → make sure the
