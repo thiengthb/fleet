@@ -88,7 +88,12 @@ check('autonomous: Edit to a hook → BLOCK (Edit is gated too, not just Write)'
 
 // ---- Safe-zone writes ------------------------------------------------------
 check('autonomous: Write app code → ALLOW', () => assert.equal(write('sakubun/lib/foo.ts'), ALLOW));
-check('autonomous: Write a doc → ALLOW', () => assert.equal(write('platform/standards/documentation.md'), ALLOW));
+// PROPOSED 2026-07-29 — this case FLIPPED. `platform/standards/**` is the durable law layer (it
+// holds autonomy-contract.md, the policy this hook enforces), so it is governance, not a doc.
+// A genuinely safe doc path stands in for the original intent.
+check('autonomous: Write a project doc → ALLOW', () => assert.equal(write('sakubun/docs/00-map.md'), ALLOW));
+check('autonomous: Write a platform standard → BLOCK (was ALLOW before 2026-07-29)', () =>
+  assert.equal(write('platform/standards/documentation.md'), BLOCK));
 check('autonomous: Write a plan → ALLOW', () => assert.equal(write('platform/plans/2026-07-28-x.md'), ALLOW));
 check('autonomous: Write a test → ALLOW', () => assert.equal(write('sakubun/lib/foo.test.ts'), ALLOW));
 

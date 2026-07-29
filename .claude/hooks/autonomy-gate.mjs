@@ -35,6 +35,22 @@
 // entrypoint (an IDE, the desktop app) would then break hands-on work, and a gate that gets in the way
 // gets disabled. Explicitly set CLAUDE_AUTONOMOUS=1 in any scheduled/remote run's config.
 //
+// 2026-07-29 — PROPOSED (not installed). Three changes, all marked `PROPOSED 2026-07-29` below.
+// Driver: platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md Step 2.2 / AC-5 — the
+// `rulebook` MCP server now accepts lessons from other projects into platform/inbox/quarantine/,
+// and quarantine is only a wall if PROMOTION out of it is blocked rather than merely discouraged.
+//
+//   1. platform/standards/** joins the governance write-block (durable law, incl. the autonomy
+//      contract this hook enforces). This FLIPS an existing test case that asserted ALLOW.
+//   2. platform/inbox/quarantine/** joins it too — the agent must not launder untrusted input by
+//      editing it into shape.
+//   3. Bash can no longer write to governance either. `cp evil.md .claude/hooks/x.mjs` was ALLOWED
+//      before this change: the governance block lived only on Write/Edit, and a shell copy walked
+//      straight around it. That hole predates quarantine; the promotion path is what exposed it.
+//
+// Rationale, alternatives and the residual risk (the Read tool is not gated by this matcher):
+// platform/proposals/2026-07-29-quarantine-promotion-gate.md
+//
 // Tiers + full contract: platform/standards/autonomy-contract.md. This is enforcement, not policy.
 
 import { existsSync, writeFileSync } from 'node:fs';
@@ -119,6 +135,12 @@ try {
       { name: 'a CI/CD workflow', re: /\.github\/workflows\// },
       { name: 'git internals', re: /(^|\/)\.git\// },
       { name: 'an .env secret file', re: /(^|\/)\.env(\.|$)/ },
+      // PROPOSED 2026-07-29 (1) — the durable law layer. `standards/autonomy-contract.md` is the
+      // policy THIS hook enforces; an agent that can edit it unattended can rewrite its own tiers.
+      { name: 'a platform standard (durable law)', re: /platform\/standards\// },
+      // PROPOSED 2026-07-29 (2) — untrusted input. Editing a quarantined lesson is how it gets
+      // laundered into something that looks reviewed. Only a human touches these.
+      { name: 'the quarantine inbox (untrusted input)', re: /platform\/inbox\/quarantine\// },
     ];
     for (const g of GOVERNANCE) {
       if (g.re.test(fp)) {
@@ -134,6 +156,32 @@ try {
   // ---- Bash: deny irreversible / outward command classes ----
   if (tool === 'Bash') {
     const cmd = String(input.command || '');
+    // Windows-style separators normalised for the path checks ONLY — rewriting `cmd` itself would
+    // quietly change what every pre-existing HARD_DENY regex below sees.
+    const cmdPaths = cmd.replace(/\\/g, '/');
+
+    // PROPOSED 2026-07-29 (3) — close the shell bypass of the governance write-block above.
+    // The file-tool branch protects governance from Write/Edit; nothing protected it from
+    // `cp`, `tee`, `sed -i` or a redirect, so the CVE-2025-53773 class was reachable by shell.
+    const GOV_PATH =
+      /(?:\.claude\/(?:settings|hooks|skills|rules|scripts|memory)|\.github\/workflows|(?:^|[\s"'/=])claude(?:\.local)?\.md|platform\/standards\/|platform\/inbox\/quarantine\/)/i;
+    // Verbs that can put bytes into a file. `grep`/`cat`/`ls` are absent on purpose: reading
+    // governance is not the threat, and a gate that blocks reading gets disabled.
+    const WRITE_VERB =
+      /(?:^|[\s|&;(])(?:cp|mv|ln|install|rsync|tee|dd|truncate|shred|sed\s+-i|perl\s+-[a-z]*i|python3?\s+-c|node\s+-e|awk\s+-i)\b/i;
+    if (WRITE_VERB.test(cmdPaths) && GOV_PATH.test(cmdPaths)) {
+      block(
+        `writing to governance from a shell command — the Write/Edit gate does not see this path: \`${cmd.slice(0, 120)}\``,
+      );
+    }
+    // A redirect is judged by its TARGET, not by the command: `grep -r x .claude/skills > /tmp/o`
+    // must stay allowed, `cat lesson.md >> CLAUDE.md` must not.
+    for (const m of cmdPaths.matchAll(/>>?\s*("[^"]*"|'[^']*'|[^\s|&;<>]+)/g)) {
+      const target = m[1].replace(/^["']|["']$/g, '');
+      if (GOV_PATH.test(target)) {
+        block(`redirecting output into governance (${target}) — propose the change for a human to commit`);
+      }
+    }
 
     const HARD_DENY = [
       {
