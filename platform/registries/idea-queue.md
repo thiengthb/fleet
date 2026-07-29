@@ -129,6 +129,13 @@ rather than depending on the consuming model choosing to call a tool (n=1 eviden
 `platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md` §Phase 3 verdict. **The 2026-07-28 accept was the
 supervisor's; only the supervisor reverses it — the agent proposes.**
 `idea-0013` stays ARMED-not-fired: it was a prerequisite of Phase 4, and Phase 4 is not authorized.
+**RE-TARGET ACCEPTED 2026-07-29 (supervisor — "Chuyển sang B′").** The 2026-07-28 Option-A accept is superseded from
+Phase 4 onward; Phases 1–3 stand as the evidence that produced the change. Phase 5 thin slice is **built and verified**:
+`rulebook` is now itself a plugin marketplace, both manifests pass `claude plugin validate --strict`, and the hook fires
+on every UI write (exit 2 on an error-severity violation, silent when clean). **The slice paid for itself immediately** —
+it exposed that `emoji-as-icon` was line-scoped and brace-blind, so it had been missing nearly all real JSX while 33
+tests stayed green. **Still open: 5.5** — install it into a REAL project, which is the same used-vs-merely-built gate
+Phase 1 was given.
 > **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
 > machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and
 > can push a server-supplied `instructions` block into the consumer's system prompt — so the rulebook updates without ever

@@ -380,7 +380,47 @@ a hook to one real project, measured the same way Phase 1 was.
 **Still open and not affected by this verdict:** AC-5's second half. The promotion gate is a tested proposal in
 `platform/proposals/`; until a human installs it, quarantine is a convention.
 
-**Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict above, NOT RECOMMENDED).**
+### Supervisor decision on the re-target — 2026-07-29: **B′ accepted**
+
+Asked with the three options and their costs, the supervisor chose **"Chuyển sang B′"**. Option A's accept of
+2026-07-28 is therefore superseded for Phase 4 onward; Phases 1–3 stand as built and are what produced the evidence.
+`idea-0013` (extract `@thiengthb/mcp-auth`) returns to ARMED-not-fired — it was a prerequisite of hosting, and there is
+no hosting.
+
+**Phase 5 — B′: ship the checker as a plugin hook (thin slice first, same discipline as Phase 1).**
+
+- [x] 5.1 — **DONE 2026-07-29.** Format taken from the **official marketplace already installed on this machine**
+      (`~/.claude/plugins/marketplaces/claude-plugins-official`) rather than from the web — it is authoritative for the
+      installed CLI (2.1.220) and cost nothing. `rulebook` is itself the marketplace: `.claude-plugin/marketplace.json`
+      + `plugins/rulebook-frontend/`. **Both manifests pass `claude plugin validate --strict`** ·
+      Files: Created `rulebook/.claude-plugin/marketplace.json`, `plugins/rulebook-frontend/.claude-plugin/plugin.json`,
+      `plugins/rulebook-frontend/README.md` · Test: `claude plugin validate --strict` ✅
+- [x] 5.2 — **DONE 2026-07-29.** `PostToolUse` hook on `Write|Edit|MultiEdit`, filtered to `.tsx/.jsx/.css`. **Exit 2 on
+      any `error`-severity violation** — stderr goes to the model as something it must resolve; warnings report without
+      interrupting, because a hook that shouts on every judgement call gets turned off. Fail-open but never silent: an
+      unreadable file or a checker throw prints *"NOT checked — unknown, not clean"*, inheriting §C from the server ·
+      Files: Created `plugins/rulebook-frontend/hooks/{hooks.json,check-file.mjs}`,
+      `scripts/build-plugin.mjs`, `npm run build:plugin` · Test: fired with real payloads — dirty ⇒ exit 2, clean ⇒
+      silent, non-UI ⇒ silent, missing ⇒ loud ✅
+- [x] 5.3 — **DONE 2026-07-29.** The plugin ships **committed build output** (consumed by `git clone`, not
+      `npm install`), which is a silent-staleness trap: edit a rule, forget the build, and every consumer keeps
+      enforcing the old rulebook with no error anywhere. `lib/plugin-artifact.test.ts` fires the real hook as a
+      subprocess and asserts every source rule id is present in what ships. **Proven able to fail:** adding a rule to
+      source without rebuilding turns it red · Files: Created `rulebook/lib/plugin-artifact.test.ts` · Test: 5 tests,
+      **78 total** ✅
+- [x] 5.4 — **DONE 2026-07-29, unplanned — the thin slice found a real checker bug within minutes.** Running the checker
+      from the hook on a hand-written file showed `emoji-as-icon` silently missing two enormous cases: the scan was
+      **line-scoped** (so every Prettier-formatted element, where `>` `text` `<` span three lines, was invisible) and its
+      text regex excluded braces (so `>🔥{label}<` matched nothing). Fixed as a whole-file pass that blanks expressions
+      while preserving offsets, and rejects regions with unbalanced braces — because an arrow function's `=>` contains a
+      `>` and opens bogus regions inside attributes. Three regression tests, one known miss pinned as deliberate ·
+      Files: Modified `rulebook/lib/check-component.{ts,test.ts}` · Test: **mutation-checked** — the first mutant
+      survived, and a test was added until it died ✅
+- [ ] 5.5 — Install it into one **real** project (not a fixture) and let it fire on actual work. **This is the step that
+      decides whether B′ is used or merely built** — it is the same gate Phase 1 was given, and it is not yet done ·
+      Files: — · Test: the hook fires on a real edit in a real repo
+
+**Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict + the B′ accept, SUPERSEDED).**
 
 These four are listed so Phase 3's verdict is made against a known cost, not a vague "and then more". They are
 intentionally left without `Files:`/`Test:` — **naming files for work that is not authorized is how a scoped list turns
