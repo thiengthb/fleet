@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: b3e55123-14d7-4f5b-8542-6a81cf4c4eb2
-  modified: 2026-07-29T11:34:36.740Z
+  modified: 2026-07-29T16:36:45.959Z
 ---
 
 **The principle this all comes from, stated by the user 2026-07-29:** *I am working with a HUMAN, so reporting and
@@ -40,6 +40,23 @@ session — and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*
 an objection. So the check is on me, per turn: if a report can't be said in three plain sentences, it is too long,
 regardless of whether he complained. Rubber-stamped approval is worse than a rejection, because it looks like
 supervision and isn't.
+
+**It is now ENFORCED, not remembered (2026-07-29).** `.claude/hooks/legibility-lint.mjs` runs at two moments and the
+supervisor installed it himself. Do not treat the rules above as advice to recall — they are checked:
+
+- **A gate question with no `(khuyến nghị)` is BLOCKED** (exit 2, the question never reaches him). One mark exactly;
+  opting out needs `(no-recommendation: <reason ≥15 chars>)` in the question.
+- **The last message of a turn is scanned** for internal terms used without a plain gloss in the same breath (each term
+  is flagged on first use per session), for naming the agent's own filing — the paths where records get written, which he
+  never opens — and for naming **more than 4** artefacts in one message.
+- **Why a hook and not a better-worded rule:** this file said the right thing since 2026-06-16 and was broken by its own
+  author in the session that produced the complaint. The curse-of-knowledge literature is why: experts read their own
+  fluency as the topic being simple, and **the bias survives being warned about it**, so no self-check can catch it.
+- **The rule the classification produced:** name an artefact only if he must **type it, open it, or decide about it**.
+  Of 31 names in one real session, 17 were neither — 10 filing paths and 7 skill names cited only to justify my
+  reasoning. Say "đã ghi lại" and let the file hold the detail.
+- **Open follow-up:** on 2026-07-29 these checks fired on 25–37% of historical reports. If that has not collapsed by
+  ~2026-08-05, the warnings have become wallpaper and the design — not the rate — is what needs revisiting.
 
 **How to apply:** every proposal/option block → `(khuyến nghị)` on my pick + one plain-language sentence on why; every
 "bạn duyệt nhé?" → name the skill + the workflow step it gates; explain flow conversationally first, technical terms
