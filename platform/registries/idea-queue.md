@@ -121,9 +121,29 @@ of self-improvement here as unverified.
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
+### idea-0026 — Cut process surface instead of explaining it better
+state: inbox · source: **agent, raised out of idea-0025's research and greenlit by the supervisor** (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29
+gate: null — needs `/idea gate`
+> **The question, plainly:** a session currently asks the supervisor to hold a lot of separate machinery in his head —
+> skills, registries, plans, ledger, log, quarantine, gates. idea-0025 makes the *explanation* of that machinery
+> checkable. This idea asks the harder question: **how much of the machinery should exist at all?**
+> **Why it is separate and not folded into idea-0025:** they point opposite ways. One improves the explanation; the
+> other deletes the thing being explained. Folding them would let the cheap fix (better words) quietly stand in for the
+> expensive one (less process), which is precisely how a platform accumulates ceremony.
+> **Grounding, so this is not just a mood:** `/idea`'s own scope-discipline clause says to cut the ritual if it costs
+> more attention than the ideas are worth; the 2026-07-28 milestone reflection names *"too much machinery per unit of
+> shipped value"* as the diagnosed disease; and `practice-first-lean-ceremony` records that the supervisor deletes his
+> own work on evidence. NN/g's progressive-disclosure result is the design counterpart: fewer things up front measurably
+> improves first-task completion.
+> **Shape for `/idea analyze` to firm up:** count what one real session actually required him to hold (distinct skills
+> invoked, registries touched, gates crossed, files he was asked to read), then propose deleting the weakest — with the
+> honest constraint that this same machinery produced the last two days' wins, so a cut on a hunch risks deleting the
+> good half. **Measure first; propose deletions second.**
+
 ### idea-0025 — Make the agent's reporting + process-explanation legible to a human BY DESIGN, not by reminder
-state: proposed · source: **user** (2026-07-29, unprompted, after a session he approved 11+ times and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*) · created: 2026-07-29 · updated: 2026-07-29
-proposal: platform/plans/2026-07-29-idea-0025-legible-reporting-proposal.md — **the research refuted this idea's own scope-guess (a)**: readability/length scoring does not measure comprehension (the plain-language field dropped it in the 1970s), and the curse-of-knowledge literature says the bias survives being warned about, which kills "write a better reminder" as a fix. What survives is a closed-vocabulary jargon lint at two moments + enforcement of the `(khuyến nghị)` rule `CLAUDE.md` already mandates. Awaiting the supervisor's accept/reject
+state: done · source: **user** (2026-07-29, unprompted, after a session he approved 11+ times and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*) · created: 2026-07-29 · updated: 2026-07-29
+proposal: platform/plans/2026-07-29-idea-0025-legible-reporting-proposal.md — **the research refuted this idea's own scope-guess (a)**: readability/length scoring does not measure comprehension (the plain-language field dropped it in the 1970s), and the curse-of-knowledge literature says the bias survives being warned about, which kills "write a better reminder" as a fix. What survives is a closed-vocabulary jargon lint at two moments + enforcement of the `(khuyến nghị)` rule `CLAUDE.md` already mandates.
+outcome: **accept** (2026-07-29, supervisor — "Đồng ý bản đầy đủ": Option A in full, both surfaces, over the gate-only narrowing and over rejection). **Built and tested the same session** — `.claude/hooks/legibility-lint.mjs` + 30 assertions; two mutants planted, one survived and was killed by a new test. **NOT wired in:** the agent is blocked from editing `.claude/settings.json` (the block fired on the attempt, as designed), so the last step is the supervisor's one-line `cp` from `platform/proposals/2026-07-29-settings-legibility-hook.json.proposed`. Reflexion signal: he accepts research-grounded governance work that names its own limits, and specifically took the option that admitted it "catches jargon, not confusion".
 gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.7 effort: 2 · base: 3.15 · interest: 0.8 · **rank: 3.53**
 interest_why: the user RAISED it himself and asked for it to be queued — the strongest interest signal available (stronger than an accept, which is only a yes to my framing). Also sits in "agent governance / Knowledge OS", his explicit lean.
 > **The problem, in his words:** he is a human, so reporting and explaining process must be shaped for the easiest

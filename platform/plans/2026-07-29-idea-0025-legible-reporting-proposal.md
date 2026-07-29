@@ -1,7 +1,7 @@
 ---
 title: Proposal — make the agent's reporting legible by construction, after the research refuted the way this idea proposed to do it
 kind: system-change # edits .claude/hooks/** + CLAUDE.md → propose-only, a human installs
-status: draft # draft → accepted → rejected | superseded
+status: accepted # supervisor 2026-07-29 — Option A in full, both surfaces; delivered the same session
 created: 2026-07-29
 related:
   [
@@ -165,6 +165,38 @@ biases my future proposals away from this shape. Silence is not a yes.
 - **Also worth your call, separately:** should Option D — *cut process surface rather than explain it better* — be raised
   as its own idea? I think yes, and I think it may matter more than this one.
 
-- **Decision:**
-- **Date / by:**
-- **Why:**
+- **Decision:** **accept — Option A in full** (both surfaces), **and** raise Option D as its own idea.
+- **Date / by:** 2026-07-29 · supervisor ("Đồng ý bản đầy đủ" + "Có, mở thành idea riêng").
+- **Why:** he chose the full version over the gate-only narrowing and over rejection, with the counter-case
+  ("three sentences already worked, this may be a fourth mechanism") presented and not taken.
+
+### Delivered the same session — and why there is no separate `/project-plan` file
+
+The build fit in one pass, so a multi-session plan file would have been ceremony for its own sake
+(`practice-first-lean-ceremony`); this section is the record instead. Stated rather than quietly skipped.
+
+- **`.claude/hooks/legibility-lint.mjs`** — pure functions (`findJargon`, `lintGate`, `lintReport`,
+  `lastAssistantText`) + a hook body guarded by `LEGIBILITY_LINT_TEST` so the test imports without executing it, the
+  same shape as `plan-checkin.mjs`.
+- **`.claude/hooks/legibility-lint.test.mjs`** — 30 assertions. Fixtures are **lifted from the real 2026-07-29
+  messages**, not invented: an invented fixture would be written by the same intuition this control exists to distrust.
+- **Measured end-to-end:** a gate with no `(khuyến nghị)` exits 2 with the fix named; a compliant one is silent; a
+  jargon-carrying final message emits one advisory line; other tools are untouched; the whole Stop path costs ~26 ms
+  including Node startup (the pre-mortem's bar was "sub-10 ms of work, or it does not ship").
+- **Two mutants planted, one SURVIVED and was killed by a new test.** The end-of-line clamp on the gloss window had
+  been fixed twice over (clamp *and* per-field linting), so deleting the clamp broke nothing that was asserted — two
+  fixes, one test, is one fix untested. This is the third time in two days that a surviving mutant was about a check's
+  **scope** rather than its logic (`standards/testing.md` §2.5).
+- **The lint found a real defect in itself before shipping:** the gloss window bled across lines, so an unrelated
+  option's `(` two lines below silently excused a bare `T3` in the question above it.
+
+**Not installed by me, and that is the design.** Editing `.claude/settings.json` is blocked for the agent — the
+CVE-2025-53773 rule — and the block fired on the attempt, which is the control working rather than an obstacle. The
+merged file is at `platform/proposals/2026-07-29-settings-legibility-hook.json.proposed` (diff: exactly two added
+blocks, nothing else). Apply with:
+
+```bash
+cp platform/proposals/2026-07-29-settings-legibility-hook.json.proposed .claude/settings.json
+```
+
+Then restart the session. To undo, `git checkout .claude/settings.json` — the hook file itself is inert until wired.
