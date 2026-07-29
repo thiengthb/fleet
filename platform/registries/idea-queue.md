@@ -122,7 +122,8 @@ of self-improvement here as unverified.
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
 ### idea-0025 — Make the agent's reporting + process-explanation legible to a human BY DESIGN, not by reminder
-state: active · source: **user** (2026-07-29, unprompted, after a session he approved 11+ times and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*) · created: 2026-07-29 · updated: 2026-07-29
+state: proposed · source: **user** (2026-07-29, unprompted, after a session he approved 11+ times and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*) · created: 2026-07-29 · updated: 2026-07-29
+proposal: platform/plans/2026-07-29-idea-0025-legible-reporting-proposal.md — **the research refuted this idea's own scope-guess (a)**: readability/length scoring does not measure comprehension (the plain-language field dropped it in the 1970s), and the curse-of-knowledge literature says the bias survives being warned about, which kills "write a better reminder" as a fix. What survives is a closed-vocabulary jargon lint at two moments + enforcement of the `(khuyến nghị)` rule `CLAUDE.md` already mandates. Awaiting the supervisor's accept/reject
 gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.7 effort: 2 · base: 3.15 · interest: 0.8 · **rank: 3.53**
 interest_why: the user RAISED it himself and asked for it to be queued — the strongest interest signal available (stronger than an accept, which is only a yes to my framing). Also sits in "agent governance / Knowledge OS", his explicit lean.
 > **The problem, in his words:** he is a human, so reporting and explaining process must be shaped for the easiest
