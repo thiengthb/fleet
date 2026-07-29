@@ -167,7 +167,9 @@ on every UI write (exit 2 on an error-severity violation, silent when clean). **
 it exposed that `emoji-as-icon` was line-scoped and brace-blind, so it had been missing nearly all real JSX while 33
 tests stayed green. **5.5 done the same day:** installed at user scope from a local marketplace path (no repo touched, no push), 1 hook,
 **~0 tokens per session**; scanned 333 real UI files across 4 apps → 24 findings in 11 files, of which **three classes
-were false positives** now fixed, plus a reasoned `rulebook-allow` exception for code the rule cannot judge. The
+were false positives** now fixed, plus a reasoned `rulebook-allow` exception for code the rule cannot judge. **5.6: published** — `github.com/thiengthb/rulebook` (public), marketplace resolves from GitHub — **and applied to
+`sakubun`**: 14 findings → 0, split 8 real whole-file exceptions (new `rulebook-allow-file:` directive) + 6 that were
+not exceptions but drift from that repo's own palette module. Container rebuilt, healthy + 200. The
 used-vs-merely-built gate stays open until it fires on real work in a real session (`checkin: 2026-08-12`).
 > **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
 > machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and

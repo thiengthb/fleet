@@ -431,8 +431,24 @@ no hosting.
       ≥20-char floor taken from `/ui-pattern-lock`) rather than a weakened rule · Files: Modified
       `rulebook/lib/check-component.{ts,test.ts}`, added `.prettierignore` · Test: **86 tests**, 3 mutants run, one
       survived (directive scoping) and was killed ✅
-- [ ] 5.6 — The 20 findings left standing are in the app repos; fixing or exempting them is the app owner's call. Not
-      agent work, and deliberately not done here · Files: — · Test: —
+- [x] 5.6 — **DONE 2026-07-29 — published, and applied to one real repo (supervisor's call: sakubun only).**
+      `rulebook` is public at `github.com/thiengthb/rulebook`; the marketplace now resolves from GitHub, so any machine
+      installs with two lines and no local path. Then all 14 `sakubun` findings were worked through, and they split
+      three ways — which is the finding: **8 were whole-file exceptions** (a Next.js `opengraph-image` renders through
+      Satori where CSS variables do not exist; the Google "G" is a brand mark with externally fixed colours — the file
+      already said so in prose the checker cannot read), so `rulebook-allow-file:` was added, a **deliberately different
+      token**, first 10 lines only, same 20-char reason floor; and **6 were not exceptions but drift** — the last flame
+      colours still inline in the components, while `lib/streak-tiers.ts` opens by saying they must live in one place.
+      Consolidated, values unchanged. **Stated plainly:** moving a literal from `.tsx` to `.ts` also moves it out of the
+      rule's scope; those colours still do not follow light/dark, and should not — the flame's colour encodes the streak,
+      so it is data. The claim is *centralised*, not *themed*. **Verified as an end state:** 0 findings across 166 files,
+      `tsc`/`eslint`/`next build` clean, then the container rebuilt → **healthy + HTTP 200** ·
+      Files: `sakubun` 5 files (`84ad590`); `rulebook/lib/check-component.{ts,test.ts}`, plugin README ·
+      Test: **90 tests**, 3 mutants run on the new directive, all 3 killed ✅
+- [ ] 5.7 — `todo` (2) and `yakudoku` (4) still carry findings. Deliberately left: the supervisor scoped this pass to
+      `sakubun`. One of them is a genuine judgement call for a human — `todo/app/history/page.tsx:147` renders
+      `Đang ở mức kỷ lục! 🔥`, and the rule forbids an emoji as an *icon-marker*, which a decorative emoji at the end of
+      a sentence arguably is not · Files: — · Test: —
 
 **Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict + the B′ accept, SUPERSEDED).**
 
