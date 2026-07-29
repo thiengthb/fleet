@@ -151,8 +151,18 @@ interest_why: the supervisor greenlit it explicitly when offered; it sits in age
 > and reports at ~3× the length it had just agreed to. **So idea-0026's own premise is half wrong for this platform:
 > the thing to cut is not the process, it is how much of the process gets narrated.** That is a different and cheaper
 > intervention, and it is measurable the same way the jargon lint is (count named artefacts per message).
-> **Next, before this becomes a proposal:** ≥2 external sources (NN/g progressive disclosure is one), and a
-> per-artefact judgement of which of the 19 he needed vs. which were named out of habit.
+> **⑥ SHIPPED 2026-07-29 (supervisor: "hãy theo khuyến nghị của bạn").** Rather than a new mechanism, ⑤ was added to
+> the lint idea-0025 had just installed: warn above **6 distinct artefact names in one message** — a threshold taken
+> from the distribution (median 1, p75 2, p90 4, max 9; >6 fires on 2 of 53 reports), not from taste.
+> **The bigger finding came from replaying the whole check over real history.** The jargon half fires 16× across 43
+> deduped reports — 4–8 distinct terms in a working session — which by its own pre-mortem's number meant "shrink the
+> list". Reading the 16 one by one instead of counting them: **all 16 were true positives.** The rate measures the
+> agent's prose, not the check's accuracy, so shrinking would have deleted detections, not noise. Fixed the real defect
+> instead — **a term is introduced once per session** (16 → 12 warnings, nothing distinct hidden), and the pre-mortem's
+> number is corrected in the file with the data. Ledger: `#2026-07-29-firing-rate-measures-your-prose`.
+> **Still open, and it is the ORIGINAL question:** a per-artefact judgement of which of the 19 names he actually needed
+> vs. which were habit, plus ≥2 external sources — that is what would make this a proposal rather than two lint rules.
+> The counting is done; the deleting has not started.
 > **The question, plainly:** a session currently asks the supervisor to hold a lot of separate machinery in his head —
 > skills, registries, plans, ledger, log, quarantine, gates. idea-0025 makes the *explanation* of that machinery
 > checkable. This idea asks the harder question: **how much of the machinery should exist at all?**

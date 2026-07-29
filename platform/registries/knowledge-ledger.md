@@ -250,6 +250,7 @@
 | 2026-07-29 | Before applying a documented trap, check whether the specific artifact is already immune; ours were. | [→](ledger/2026-07.md#2026-07-29-check-the-artifact-before-applying-a-documented-trap) |
 | 2026-07-29 | A control that depends on a human understanding must be tested for understanding, not for approval. | [→](ledger/2026-07.md#2026-07-29-test-for-understanding-not-for-approval) |
 | 2026-07-29 | Publishing is not delivering: a consumer resolves by declared VERSION, not by commit (6 fixes undelivered). | [→](ledger/2026-07.md#2026-07-29-publishing-is-not-delivering) |
+| 2026-07-29 | A check's firing rate measures your prose, not its accuracy — inspect the sample before loosening a threshold. | [→](ledger/2026-07.md#2026-07-29-firing-rate-measures-your-prose) |
 
 ## B. Pointers to each project's knowledge log
 
