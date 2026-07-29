@@ -78,7 +78,16 @@ function parseFrontmatter(text) {
  * Matching is therefore a PREFIX match on the heading text.
  */
 function section(text, heading) {
-  const re = new RegExp(`^##\\s+${heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(?:[—\\-–:(].*)?$`, 'im');
+  /*
+   * `[ \t]*`, NOT `\s*`. With `\s*` the whitespace run crossed the newline, and the optional trailing
+   * descriptor `(?:[—\-–:(].*)?` then matched the section's FIRST BULLET — because a markdown bullet
+   * starts with `-`, which is in that class. The heading match therefore ate the first line of the body.
+   * Found 2026-07-30 when this hook failed a compliant plan for "prior art has 1 external URL" while the
+   * file plainly listed two: the first source had been swallowed by the heading. A parser that eats one
+   * line of its input fails in the safest-looking way there is — it reports a shortfall, and the author
+   * adds redundant material to satisfy it.
+   */
+  const re = new RegExp(`^##[ \\t]+${heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[ \\t]*(?:[—\\-–:(].*)?$`, 'im');
   const m = text.match(re);
   if (!m) return null;
   const rest = text.slice(m.index + m[0].length);

@@ -1,0 +1,352 @@
+---
+title: Second-brain audit — is everything outside projects/ actually working, and what should retire
+kind: system-change
+status: active
+created: 2026-07-30
+updated: 2026-07-30
+related:
+  [
+    platform/inventory.md,
+    .claude/scripts/health-sweep.mjs,
+    .claude/scripts/link-check.mjs,
+    platform/plans/2026-07-28-fleet-rename-and-restructure.md,
+  ]
+checkin: 2026-08-06
+checkin_every: 7d
+checkin_owner: agent
+---
+
+<!--
+  A PERSISTED, multi-session plan. Standard: platform/standards/documentation.md §5.5.
+  LANGUAGE: the body is English per the dev-artifact rule in CLAUDE.md. The summary block immediately below
+  is Vietnamese on purpose — the supervisor is this report's actual reader, and a report he has to translate
+  is a report that gets skimmed. Same exemption logic as an app's in-product /guide page.
+-->
+
+## The ask, verbatim
+
+> hãy viết cho tôi một file md báo cáo rõ, trong fleet đặc biệt những phần nằm ngoài projects những phần
+> quan trọng như platform, .claude là những phần bộ não thứ 2 (1 là bạn), có hoạt đông ổn thỏa không, cần
+> một báo và một đợt plan truy quét để đánh giá, những thứ obsolete, những thứ nên đưa vào danh sách để loại
+> bỏ (nhưng chưa loại bỏ liền), cần thời gian làm việc dài để loại bỏ dần, chứ không phải thứ hư loại bỏ
+> phát một (trường hợp mà lỡ tool hoặc bạn đánh giá sai rồi delete hay update lỗi sẽ làm hỏng hết thành quả
+> chúng ta đã gây dựng). tôi cần một file báo cáo rõ […] phải có giám sát rõ ràng từ tôi, và những session
+> sau từ bạn để chúng ta chắc chắn hơn với những gì mới xây, tôi vẫn nghi ngờ, sẽ có một điểm lỏng lẻo,
+> hoặc phần nào đó bị mất kết nối. rồi một plan chi tiết và có các công cụ truy quét toàn diện để nắm trọn
+> sự hoạt động có bình thường hay không của platform này. Rồi tôi mới an tâm đi tiếp đến các project
+
+---
+
+## Tóm tắt (tiếng Việt — phần còn lại của file là tiếng Anh theo luật tài liệu)
+
+**Kết luận: bộ não thứ hai đang chạy được, nhưng nghi ngờ của bạn là đúng — có chỗ đứt, và tôi đã tìm ra.**
+
+Việc dọn 9 dự án vào `projects/` sáng nay làm hỏng **5 công cụ trong im lặng**. Sáng nay tôi bắt được 4 và
+tưởng đã xong. Đợt truy quét này tìm ra **cái thứ 5, nguy hiểm nhất**: công cụ soát kỹ năng bỗng báo *"14 kỹ
+năng không còn gì để làm"* — trong khi `/docker-expert` có 12 Dockerfile và `/prisma-expert` có 4 schema
+ngay trong cây thư mục. Nếu tôi tin con số đó, bước tiếp theo nó mời gọi chính là **xoá 14 kỹ năng**.
+
+Đó là bằng chứng cụ thể nhất cho điều bạn lo: **một công cụ đánh giá sai không kêu lỗi — nó đưa ra một câu
+trả lời nhỏ hơn nhưng trông vẫn thật.** Vì vậy quy trình loại bỏ trong file này là *dời vào kho → chờ →
+mới xoá*, không bao giờ xoá thẳng.
+
+| | |
+|---|---|
+| **Hỏng thật** | 0 — cả 9 lỗi tìm được hôm nay đã sửa xong (xem bảng §2) |
+| **Dây nối** | 6/6 thông (hook ↔ cấu hình, đường dẫn sổ kiểm kê, liên kết trí nhớ, mỏ neo sổ tri thức, đường dẫn trong `CLAUDE.md`, kho tài sản dùng chung) |
+| **Có mùi mục** | 159 mục — **là danh sách ứng viên, không phải danh sách việc cần làm** |
+| **Máy đề xuất loại bỏ** | 34 mục — tôi soi từng cái và **khuyến nghị GIỮ CẢ 34** |
+
+Câu cuối là phần quan trọng nhất của cả báo cáo: **danh sách "đồ chết" do máy sinh ra thì gần như sai
+hoàn toàn.** Nó sai vì trí nhớ được hệ thống tự nạp chứ không mở bằng tay (nên đếm ra 0), vì sổ ngày được
+đọc theo cả tầng chứ không theo từng file, vì kế hoạch đã đóng vẫn được 63 file khác gọi tên. Máy đo được
+*"không ai mở"*; nó không đo được *"có đáng giữ không"*. Đó là lý do phải chậm.
+
+Những thứ **thật sự** đã lỗi thời (11 file: bản nháp của các thứ đã cài xong, một sandbox tháng 6, một
+script PowerShell còn sót từ thời chạy Windows) thì **không phải máy tìm ra — tôi tìm bằng cách đọc**. Danh
+sách đó ở §3, và kể cả chúng cũng chỉ được **dời vào kho `attic/`, chờ ≥30 ngày, rồi bạn mới quyết xoá**.
+
+**Bạn cần làm gì:** mỗi tuần chạy **một câu lệnh** — `node .claude/scripts/health-sweep.mjs` — và chỉ nhìn
+dòng VERDICT. Có chữ BROKEN thì gọi tôi; chỉ có drift thì không cần làm gì cả. Mọi việc xoá đều phải qua
+bạn duyệt, và không có gì bị xoá trong phiên mà nó được đề xuất.
+
+---
+
+## Goal
+
+A single command answers "is the second brain working?", every broken wire found today is fixed, and
+everything that merely *looks* dead sits on a dated, reversible retirement track that no tool can execute
+by itself.
+
+## Context
+
+`fleet` outside `projects/` is 3.3MB across 187 markdown files, 12 hooks, 25 scripts and 38 skills —
+the accumulated agent OS. It had eight checkers and no way to run them together, so its health was
+asserted rather than measured. The trigger is concrete: this morning nine app repos moved into `projects/`,
+and the supervisor's stated worry ("sẽ có một điểm lỏng lẻo, hoặc phần nào đó bị mất kết nối") turned out to
+be correct within an hour of looking.
+
+## Prior art & sources
+
+- [Google SRE — Monitoring Distributed Systems, "symptoms vs causes"](https://sre.google/sre-book/monitoring-distributed-systems/)
+  — why a dashboard must state what a green signal actually proves; adopted as the `clean means:` line printed
+  next to every checker in `health-sweep.mjs`. Avoided their paging model: nothing here is urgent enough to alert on.
+- [Martin Fowler — StranglerFigApplication](https://martinfowler.com/bliki/StranglerFigApplication.html) — retire by
+  moving the old thing out of the path first and deleting only once nothing has failed for a while. That is exactly
+  the `attic/` + wait + delete procedure in §4; what we take is the staging, not the traffic-routing machinery.
+- Internal, and the sharpest source available: `platform/plans/2026-07-28-fleet-rename-and-restructure.md` §Decisions
+  to distill — a blanket rewrite silently corrupted the very documents that described the rename, twice in one
+  session, and "knowing the trap did not prevent it". That is why §4 forbids bulk deletion by pattern.
+
+## Approach & tradeoffs
+
+**Chosen: one orchestrating command over the checkers that already exist, plus exactly one genuinely new
+capability (`link-check`), and a retirement path that stages rather than deletes.** The platform's problem
+was never a shortage of checkers — it was that they answered different questions, were run only when someone
+was already suspicious, and none of them looked at the wires *between* files. Orchestration is cheap and
+adds no new thing to maintain per checker; `link-check` is new because nothing covered the failure mode that
+actually bit us three times in three days.
+
+Ruled out:
+
+- **A dashboard / status file regenerated on a schedule.** Rejected: a green dashboard is read as "the system
+  is fine", which is the exact misreading §1 exists to prevent, and a stale one is worse than none. A command
+  run on demand carries its own timestamp and cannot rot silently.
+- **A SessionStart hook that sweeps automatically.** Rejected on cost and on noise: the sweep takes up to 8
+  seconds and its output is mostly drift, which must never be acted on reflexively. Session start is for
+  things that change what you do *now*; this is a weekly question.
+- **Let the agent delete the obsolete items directly, since they are verifiably superseded.** Rejected, and
+  this is the plan's central tradeoff. It would be faster and it would be right most of the time — but defect
+  5 in §2 is a tool confidently declaring 14 live skills dead, six hours before this was written. The cost of
+  being wrong is asymmetric and unrecoverable, so the slow path wins even though it will feel like friction
+  for weeks.
+- **Delete nothing, ever; just let it accumulate.** Rejected too: the skill catalog is loaded into every
+  session, so dead weight is a permanent tax, and an unreviewed pile is where a stale instruction hides.
+
+The accepted cost: retirement takes ≥30 days per batch, the attic will hold files that turn out to be needed,
+and the supervisor has to make a decision he could have delegated. That is the price of never losing work.
+
+## 1 — What was checked, and what a clean result actually proves
+
+Run it all with **`node .claude/scripts/health-sweep.mjs`** (0.5–8s, no network, no writes).
+
+| Checker | A clean result proves | And does NOT prove |
+|---|---|---|
+| `link-check` **(new)** | every wire between files resolves | that what they connect is worth keeping |
+| `recurrence-check` **(new)** | no mistake we already recorded has come back | that new mistakes are caught |
+| `tool-check` **(new)** | every checker that *has* a test still passes it | that the untested ones work |
+| `plan-audit` | plans are well **shaped** | that anyone is working on them |
+| `memory-audit` | the memory index is inside its caps, no orphans | that the memories are still true |
+| `skill-audit` | every skill has something in this repo to act on | that any of them is any good |
+| `reuse-scan` | nothing was built a third time | that the second copy was wise |
+| `usage-census` | **nothing.** It measures use; it never says "safe to delete" | anything about value |
+
+The last row is the one to keep in mind while reading §3.
+
+## 2 — Findings: everything BROKEN, and all of it fixed
+
+Nine defects, all found on 2026-07-30, all repaired the same day. Eight of the nine were caused by one
+structural change — moving the projects — which is the pattern worth remembering: **a reorganisation does not
+announce what it breaks.**
+
+| # | What was broken | How it failed | Status |
+|---|---|---|---|
+| 1 | git repo discovery | watched 13 repos → 4, silently | fixed — `_layout.mjs` |
+| 2 | `plan-audit` | found 0 of 63 plans, reported success | fixed |
+| 3 | `plan-checkin` | scanned no project plans; still printed "nothing due" | fixed |
+| 4 | `reuse-scan` | 0 of 9 projects → "no duplication found" | fixed |
+| 5 | **`skill-audit`** | **declared 14 skills dead** (`/docker-expert` with 12 Dockerfiles in the tree) | fixed |
+| 6 | INVENTORY `Dev path` | all 9 rows pointed at the pre-move location | fixed |
+| 7 | shared-asset catalog | 3 rows pointed at files that had moved inside `sakubun` | fixed |
+| 8 | 4 documents + 1 memory | instructed the reader to run `prior-art-check.mjs`, retired in June | fixed |
+| 9 | `/ui-pattern-lock` | claimed a write-time hook that was never installed | fixed (now says so) |
+| 10 | **`plan-audit` itself** | its heading regex let whitespace cross a newline, so the optional trailing descriptor `[—\-–:(]` matched the section's first `-` **bullet** and ate it. It failed this very report for "prior art has 1 external URL" while the file listed two | fixed — `[ \t]*` |
+
+Defect 5 is the one that matters for policy: the tool did not crash, it produced a **confident false
+verdict of death**, and the action it invites is deletion. Nothing in the old process would have caught it —
+this morning's own verification read the tail of that tool's output and missed it.
+
+## 3 — Drift: 161 items, and why the machine's list is mostly wrong
+
+Drift is not damage. These are things that work and may be decaying.
+
+| Signal | Count | Read it as |
+|---|---|---|
+| tools with no test | 20 of 25 | the real backlog; prioritise the ones that **block** |
+| plan files with a shape error | 105 across 64 files | 84 of them on `done`/`superseded` plans — history, not debt |
+| artefacts with no recorded use and ≤1 inbound link | 34 | **candidates only — see below** |
+
+### The machine's 34 "retirement candidates", reviewed one by one
+
+| Group | n | My recommendation | Why |
+|---|---|---|---|
+| Day logs, June–July | 21 | **KEEP — reject** | The tier was measured on 2026-07-29 at **93 reads vs 20 writes**. Reads land on *recent* days; an old day scoring 0 is the tier working, not the file dying. |
+| Memory files | 10 | **KEEP — reject, and the count is not even valid** | Memory content is injected by the harness, which is not a tool call and cannot be mined. `usage-census` says so in its own LIMITS block. Retiring a memory on this number is forbidden. |
+| Closed plans | 3 | **KEEP — reject** | Measured 2026-07-29: **63 files reference closed plans by name.** Deleting them breaks the links that stop us re-litigating settled decisions. |
+
+**All 34 rejected.** That is the finding, not a footnote: an automated dead-weight list, run against a
+knowledge base, is wrong nearly every time, because it can only measure *access* and the question is *value*.
+
+**And the list moved while being read.** `platform/skill-proposals/behavioural-eval.md` was a candidate at
+the start of this audit and had dropped off by the end — because the audit opened it, which counts as a read.
+The metric is affected by observing it. Two consequences: a single day's candidate list is noise, and the
+30-day wait in §4 is doing real work rather than being caution theatre.
+
+### Genuinely obsolete, found by inspection rather than by the counter
+
+These are superseded by something that now exists — verifiable, not a judgement call:
+
+| Item | Superseded by | Note |
+|---|---|---|
+| `platform/proposals/2026-07-29-reuse-guard-hook.mjs.proposed` | the installed `.claude/hooks/reuse-guard.mjs` | installed 2026-07-30 by the supervisor |
+| `platform/proposals/2026-07-29-settings-legibility-hook.json.proposed` | the applied `.claude/settings.json` | applied 2026-07-29 |
+| `platform/proposals/autonomy-gate.mjs.proposed`, `.proposed-v2`, `autonomy-gate.test.mjs.proposed` | the installed gate + its two live test files | three drafts of a shipped thing |
+| `platform/plans/nuc-set-env-sandbox/` (4 files) | the installed `/app-env` skill | a June sandbox for a skill that shipped |
+| `platform/skill-proposals/behavioural-eval.md` | the installed `/behavioural-eval` | |
+| `.claude/scripts/app-env.ps1` | `app-env.sh` | PowerShell; this fleet has run on Linux since the move off Windows. 0 recorded uses |
+
+Total: **11 files**, none of them load-bearing, none of them deleted by this plan.
+
+**One contradiction needing a human decision, not an agent guess:**
+`platform/skill-proposals/prisma-expert-migration-rehearsal.md` says `status: installed`, but no such skill
+directory exists. Either the status is wrong or an installed skill was removed. Do not resolve by deleting.
+
+## 4 — The retirement procedure: move, wait, then delete
+
+Non-negotiable, and it exists because of defect 5 above.
+
+```
+stage 1  git mv <item> platform/attic/<YYYY-MM>/     ← reversible in one command, history preserved
+stage 2  record it in platform/attic/MANIFEST.md     ← what, when, why, what supersedes it, earliest delete date
+stage 3  run: node .claude/scripts/health-sweep.mjs  ← must stay at 0 BROKEN, in the same session
+stage 4  WAIT ≥ 30 days and ≥ 4 sessions             ← the wait IS the test; nothing else proves absence of need
+stage 5  the supervisor deletes, or says keep        ← a human move, always
+```
+
+Rules that make it safe:
+
+1. **Never more than 5 items per pass**, and never two groups in one pass. A batch is how a wrong assumption
+   scales.
+2. **Never by pattern.** No `rm` with a glob, no "all files older than X". Each item is named individually in
+   the manifest with its own reason. (July's rename learned this twice in one session with `sed`.)
+3. **The wait is not negotiable and not shortened by confidence.** Anything read once during the wait resets
+   its clock and goes back.
+4. **`health-sweep` must be green before AND after** each stage-1 move, in the same session, by the same person.
+5. **Nothing in `.claude/memory/`, `platform/log/` or any closed plan enters the attic** without a specific
+   argument that beats the three rejections in §3 — and that argument goes in the manifest, in writing.
+6. **The agent may propose and stage; only the supervisor deletes.** Deletion is irreversible-shaped and is
+   therefore his move, per the autonomy contract.
+
+## 5 — Supervision: who checks what, and when
+
+| Cadence | Who | Command | What to look at |
+|---|---|---|---|
+| Weekly | **supervisor** | `node .claude/scripts/health-sweep.mjs` | the VERDICT line only. `BROKEN` → tell the agent. `drift` → do nothing. |
+| Every session that changes structure | agent | `health-sweep` before and after | a move that changes a count is the bug, and it is silent |
+| At `/session-wrap` | agent | `recurrence-check` | a lesson recorded twice must leave a guard behind (Step 4b) |
+| Monthly | agent + supervisor | `usage-census --days 30` | one retirement pass, ≤5 items, per §4 |
+| 2026-08-06, then weekly | agent | this plan's check-in runbook | the numbers below must not drift silently |
+
+**Numbers to beat, recorded 2026-07-30** so a future session can tell improvement from noise:
+
+| Metric | Today (2026-07-30) | Direction |
+|---|---|---|
+| BROKEN | 0 | must stay 0 |
+| wires checked / broken | 6 / 0 | wires only ever added |
+| tools with a test | 5 of 25 | up; block-first order |
+| drift total | 159 | falling is good, rising without a cause is a finding |
+| plan-shape errors | 105 over 64 plans | only the ~21 on live plans are real debt |
+| hooks that have fired at least once | unknown until ~2026-08-06 | ≥1 firing each, or justify the hook |
+| retirement candidates rejected on review | 34 of 34 | if this stays >50%, the counter needs work, not the repo |
+
+## Acceptance criteria (Given / When / Then)
+
+- **AC-1** — Given a clean checkout, When `node .claude/scripts/health-sweep.mjs` runs, Then it prints one line
+  per checker plus a VERDICT, and exits 0 with `nothing broken`. ✅ verified 2026-07-30.
+- **AC-2** — Given any wire named in §1, When it is broken deliberately (a hook renamed, an INVENTORY path
+  edited), Then `link-check` reports it and exits 1. ✅ verified for stale citations; **not yet** for the other five.
+- **AC-3** — Given the retirement procedure, When an item is staged, Then it is in `platform/attic/MANIFEST.md`
+  with an earliest-delete date ≥30 days out, and `health-sweep` is green in the same session.
+- **AC-4** — Given a structural change (a move, a rename), When the session ends, Then `health-sweep` was run
+  before and after and both counts recorded — the check this morning's work skipped.
+
+## Steps
+
+**Batch A — the sweep exists and is honest** (done 2026-07-30)
+
+- [x] A1 — `link-check.mjs`: 6 wires · Files: `.claude/scripts/link-check.mjs` · Test: AC-1 ✅ found 3 real breaks on first run
+- [x] A2 — `health-sweep.mjs`: one command, one verdict, `clean means:` per row · Files: `.claude/scripts/health-sweep.mjs` · Test: AC-1 ✅
+- [x] A3 — Fix all 9 defects in §2 · Files: `_layout.mjs`, `skill-audit.mjs`, `inventory.md`, `shared-assets.md`, 5 docs · Test: AC-1 ✅ 0 BROKEN
+- [x] A4 — Record the 2026-07-30 baseline numbers (§5) · Files: this plan · Test: manual
+
+**Batch B — prove the sweep can fail** (the part that makes it trustworthy)
+
+- [ ] B1 — A test for `link-check.mjs` that breaks each of the 6 wires in a temp tree and asserts each is caught · Files: `.claude/scripts/link-check.test.mjs` · Test: AC-2
+- [ ] B2 — A test for `health-sweep.mjs` asserting a BROKEN sub-checker surfaces as BROKEN — it silently mis-parsed `skill-audit` on its first run and reported calm over 14 findings · Files: `.claude/scripts/health-sweep.test.mjs` · Test: AC-2
+- [ ] B3 — Tests for the two checkers that BLOCK and still have none: `autonomy-gate` has one; `guide-coverage-reminder` and `reuse-guard` do not · Files: 2 test files · Test: AC-2
+
+**Batch C — the first retirement pass** (not before B, and not before 2026-08-06)
+
+- [ ] C1 — Create `platform/attic/` + `MANIFEST.md` with the procedure at the top · Files: 2 · Test: AC-3
+- [ ] C2 — Stage the 5 superseded proposal drafts (§3, group 1) · Files: `git mv` ×5 · Test: AC-3 + sweep green
+- [ ] C3 — Stage `nuc-set-env-sandbox/` + `behavioural-eval.md` + `app-env.ps1` · Files: `git mv` ×6 · Test: AC-3 + sweep green
+- [ ] C4 — Ask the supervisor to resolve the `prisma-expert-migration-rehearsal` contradiction · Files: — · Test: manual
+- [ ] C5 — **≥30 days later**: supervisor deletes or restores; record which, and why, in the manifest · Files: manifest · Test: manual
+
+**Batch D — close the measurement gaps**
+
+- [ ] D1 — After 7 days of hook-usage data, report which hooks have never fired · Files: — · Test: manual
+- [ ] D2 — Decide whether the 106 plan-shape errors on closed plans should be exempted by status, so the number
+      means something · Files: `plan-audit.mjs` · Test: the count drops to live plans only
+
+## Check-in runbook
+
+**What this gate decides** — whether the second brain is still healthy, and whether anything staged for
+retirement has proved it is still needed. A failing result forbids starting the next retirement batch.
+
+1. `node .claude/scripts/health-sweep.mjs`
+2. Read the VERDICT line. **`0 BROKEN` is the pass condition**; any BROKEN item stops all retirement work
+   until it is fixed, because a broken wire means the sweep's other answers are suspect too.
+3. Compare the drift numbers against the table in §5. A drift count that *rose* without a change explaining
+   it is itself a finding.
+4. If a retirement batch is in the attic: `git log --since=<stage date> -- platform/attic/` and grep the
+   session transcripts for any attic path. **Anything read during the wait goes back and its clock resets.**
+5. **Close the loop** — write the outcome into this plan under a dated heading, then roll `checkin:` forward
+   by `checkin_every` (7d), or clear it when Batch C5 has been decided.
+
+## Out of scope
+
+- **Anything inside `projects/`.** The supervisor's sequencing is explicit: the platform is verified first.
+- **Deleting anything.** This plan stages at most; C5 is a human action ≥30 days out.
+- **Rewriting history in `platform/log/` or `platform/ledger/`.** Those record what was true on the day.
+- **Reducing the skill catalog.** 0 NO-SUBSTRATE after the fix; there is no evidence-based case today.
+
+## Scope changes
+
+<!-- Append-only, dated. Empty is a valid state and a finding in itself. -->
+
+- (none yet — the plan still matches the ask above)
+
+## Open questions / risks
+
+- **The biggest risk is this plan's own tooling.** Four new checkers were written in one day; two of them
+  mis-reported on their first run and were retuned. Batch B exists precisely because they are not yet
+  trustworthy, and until B lands, a green sweep is *weak* evidence, not proof.
+- **The hook-usage counter has no history.** It began on 2026-07-30, so "never fired" means nothing before
+  ~2026-08-06. Do not retire a hook on it until then.
+- ~~Are the connections between files intact?~~ **Answered 2026-07-30 by measurement:** memory cross-links
+  0 broken, ledger anchors 0 broken, hook wiring 0 broken; INVENTORY and the shared-asset catalog were broken
+  and are fixed.
+
+## Decisions to distill
+
+- **A structural change breaks tools without breaking anything visibly.** One folder move broke five
+  independent checkers; every one kept exiting 0 and returned a smaller true-looking answer. The rule:
+  after any move or rename, re-run every discovery tool and **compare counts to a pre-change baseline** —
+  reading the tail of the output is what let defect 5 through for six hours.
+- **An automated "dead weight" list, run over a knowledge base, is wrong ~97% of the time.** 34 of 35
+  candidates were rejected on review. Access is measurable; value is not. Any retirement mechanism must
+  therefore be staged, slow and human-gated — the counter's job is to nominate, never to decide.
+- **The most dangerous tool output is a confident false verdict of death**, because the action it invites is
+  irreversible. A checker that says "this is unused" needs a higher standard of proof than one that says
+  "this is broken", and it must state what it cannot see.

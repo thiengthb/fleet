@@ -30,6 +30,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { projectRoots } from "./_layout.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SKILLS_DIR = join(REPO, ".claude", "skills");
@@ -80,9 +81,26 @@ function globExists(pattern) {
   return all.length ? all[0] : null;
 }
 
+/**
+ * Where a `*​/X` pattern starts looking. NOT just the repo root: the substrate patterns were written when
+ * every project was an immediate child of it, and on 2026-07-30 the nine app repos moved into `projects/`.
+ * The globber kept working and kept finding nothing, so skill-audit reported **14 skills as NO-SUBSTRATE**
+ * — /docker-expert with 12 Dockerfiles in the tree, /prisma-expert with four schemas. A "this is dead"
+ * verdict produced by a path assumption is the most expensive kind of wrong answer this repo can produce,
+ * because the next step it invites is deletion.
+ *
+ * Seeded from `_layout.projectRoots()` so the root and every container that holds projects are both
+ * searched, and a future reorganisation costs no edit here.
+ */
+function globRoots() {
+  const roots = new Set([REPO]);
+  for (const p of projectRoots(REPO)) roots.add(dirname(p.dir));
+  return [...roots];
+}
+
 function globAll(pattern) {
   const segs = pattern.split("/").filter(Boolean);
-  let frontier = [REPO];
+  let frontier = globRoots();
   const found = [];
   for (let i = 0; i < segs.length; i++) {
     const re = segToRegex(segs[i]);

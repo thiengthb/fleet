@@ -115,6 +115,10 @@ detectors.push({
           )
         )
           continue;
+        // An UNCHECKED plan step names a file it intends to create — intent, not a stale citation. A
+        // CHECKED one naming a missing file is the opposite: a step marked done whose output is not there,
+        // which is worth every bit of the alarm. So the box matters, and only `[ ]` is excused.
+        if (/^\s*-\s*\[ \]/.test(line)) continue;
         hits.push({ file: rel, name });
       }
     }
