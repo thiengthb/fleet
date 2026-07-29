@@ -1,8 +1,11 @@
 ---
 name: legible-proposals-plain-language
-description: When proposing/deciding, flag the recommended option explicitly, name the skill/process behind any approve gate, and explain in plain everyday language
-metadata:
+description: "When proposing/deciding, flag the recommended option explicitly, name the skill/process behind any approve gate, and explain in plain everyday language"
+metadata: 
+  node_type: memory
   type: feedback
+  originSessionId: b3e55123-14d7-4f5b-8542-6a81cf4c4eb2
+  modified: 2026-07-29T11:34:36.740Z
 ---
 
 When I surface a decision to the user, three things are mandatory:
@@ -18,9 +21,20 @@ When I surface a decision to the user, three things are mandatory:
    the flow. Lead with the plain-language "what this means / what happens next", keep jargon (RICE, MemGPT, T1–T4) as
    a labelled aside, not the main thread.
 
+4. **Default report shape = THREE things, chosen by the user 2026-07-29 after a session he stopped being able to
+   follow:** (a) what I did, in plain Vietnamese, (b) what he needs to decide, if anything, (c) what's next. Technical
+   detail goes into the files (`decisions.md`, the plan, the ledger) where whoever needs it can read it — **not into
+   chat**. Go deep only when he asks. Long, layered reports were costing more attention than they returned.
+
 **Why:** the user is the supervisor/oracle in propose-don't-execute. If they can't tell what I recommend, which gate
 they're at, or what the flow is in plain terms, they can't actually supervise — the governance is theatre. Legibility
 of the decision surface IS the control surface.
+
+**The tell, and it is quiet (2026-07-29).** He will NOT push back on jargon. He kept approving — 11+ accepts in one
+session — and then said *"tôi vẫn chưa hiểu mình đang làm gì lắm"*. Silent, agreeable drift is the failure signal, not
+an objection. So the check is on me, per turn: if a report can't be said in three plain sentences, it is too long,
+regardless of whether he complained. Rubber-stamped approval is worse than a rejection, because it looks like
+supervision and isn't.
 
 **How to apply:** every proposal/option block → `(khuyến nghị)` on my pick + one plain-language sentence on why; every
 "bạn duyệt nhé?" → name the skill + the workflow step it gates; explain flow conversationally first, technical terms
