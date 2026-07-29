@@ -419,9 +419,20 @@ no hosting.
       `>` and opens bogus regions inside attributes. Three regression tests, one known miss pinned as deliberate ·
       Files: Modified `rulebook/lib/check-component.{ts,test.ts}` · Test: **mutation-checked** — the first mutant
       survived, and a test was added until it died ✅
-- [ ] 5.5 — Install it into one **real** project (not a fixture) and let it fire on actual work. **This is the step that
-      decides whether B′ is used or merely built** — it is the same gate Phase 1 was given, and it is not yet done ·
-      Files: — · Test: the hook fires on a real edit in a real repo
+- [x] 5.5 — **DONE 2026-07-29 — installed and measured against real code.** Installed at **user scope** from a local
+      marketplace path, so no app repo was touched and no push was needed; `claude plugin details` reports 1 PostToolUse
+      hook and **~0 tokens added to every session** — the quiet argument for B′, since the MCP path pays for its
+      `instructions` block in every session whether or not the tool is called. Then scanned every UI file in `todo`,
+      `sakubun`, `journal`, `yakudoku`: **333 files, 24 findings in 11 files** — low enough that exit-2 enforcement is
+      viable. **Three of the classes were wrong**, and fixing them is what the step was for: `initial={{…}}` on a
+      component in a file that never imports Motion (gated on the import); `var(--token, #hex)`, where the literal is
+      only a fallback; and code the rule genuinely cannot judge — a brand mark, and an `opengraph-image` that renders to
+      PNG where CSS variables do not exist. The last got a **reasoned exception** (`rulebook-allow: <rule> — <reason>`,
+      ≥20-char floor taken from `/ui-pattern-lock`) rather than a weakened rule · Files: Modified
+      `rulebook/lib/check-component.{ts,test.ts}`, added `.prettierignore` · Test: **86 tests**, 3 mutants run, one
+      survived (directive scoping) and was killed ✅
+- [ ] 5.6 — The 20 findings left standing are in the app repos; fixing or exempting them is the app owner's call. Not
+      agent work, and deliberately not done here · Files: — · Test: —
 
 **Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict + the B′ accept, SUPERSEDED).**
 

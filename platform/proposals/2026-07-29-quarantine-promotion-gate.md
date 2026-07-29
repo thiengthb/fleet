@@ -171,3 +171,40 @@ question. Both pass 76/76; the difference is only visible under the red-team pro
 `autonomy-gate.redteam.mjs` in the repo and running it whenever this hook is touched.
 
 **Still a human's move.** The agent wrote and measured this; it has not installed anything, and must not.
+
+---
+
+## ⇢ HANDOFF — for whoever picks up the gate (written 2026-07-29, by the session that reviewed it)
+
+**State right now:** v1 (`autonomy-gate.mjs.proposed`) is **INSTALLED** by the supervisor and green — 76/76 + 26/26.
+`.claude/hooks/{autonomy-gate.mjs,autonomy-gate.test.mjs,autonomy-gate.quarantine.test.mjs}` are **uncommitted**. They
+are governance, so a human commits them; do not commit them on the agent's behalf.
+
+**Measured on the installed file, not assumed:** 13/24 on the red-team probe — **8 bypasses, 3 false positives**.
+Reproduce with `node platform/proposals/autonomy-gate.redteam.mjs .claude/hooks/autonomy-gate.mjs`.
+
+**Correction to the review above, in the installed version's favour.** The 3 false positives do **not** affect
+interactive sessions — verified by running the same commands with `CLAUDE_CODE_ENTRYPOINT=cli`, both ALLOW, because the
+gate stands down for a human. The review filed them under "an alarm that fires on a compliant file", but that class is
+dangerous precisely because people *see* it daily and learn to ignore it. Nobody sees these during hands-on work. Real
+severity is lower than the review's tone implied. They still bite headless runs.
+
+**Three things left, in priority order:**
+
+1. **Decide `git apply` / `patch`.** The only hole no path matcher can close — the target lives inside the patch file,
+   not in the command. Recommend blocking both outright in autonomous mode; no legitimate unattended use here. This is
+   a decision, not an implementation, and it is the one blocking item.
+2. **`autonomy-gate.mjs.proposed-v2` is ready and verified against BOTH suites** (76/76 + 26/26 — the quarantine suite
+   did not exist when v2 was built, so this was re-checked after installation) and scores **23/24, 0 false positives**.
+   Its three deltas: segment the command on `&& || ; |` before ANDing verb with path · widen write verbs
+   (`curl`,`wget`,`patch`,`chmod`,`chown`,`git checkout|restore|apply|stash`) + `>|` + `.env` on the shell side ·
+   carry `cd` across segments (segmenting alone *loses* the `cd .claude/hooks && cp …` block, which v1 caught only by
+   the accident of its sloppy AND). Not urgent — v1 already closed 9 of 17 holes.
+3. **Keep `autonomy-gate.redteam.mjs` and run it whenever this hook is touched.** The reason it exists: both suites
+   return the same green on v1 and v2, i.e. **76/76 cannot distinguish a gate with 8 bypasses from one with 1.** The
+   unit suites cover the file-tool branch well and the shell branch barely.
+
+**Consequence nobody has recorded yet:** `platform/standards/**` is now governance. Every future edit to a standard —
+including `standards/testing.md §2.5`, added hours before this landed — is blocked in autonomous mode and must go
+through `platform/proposals/`. That is a genuine tightening of the contract and belongs in a decisions entry when this
+batch is committed.

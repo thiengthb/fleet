@@ -134,8 +134,10 @@ Phase 4 onward; Phases 1–3 stand as the evidence that produced the change. Pha
 `rulebook` is now itself a plugin marketplace, both manifests pass `claude plugin validate --strict`, and the hook fires
 on every UI write (exit 2 on an error-severity violation, silent when clean). **The slice paid for itself immediately** —
 it exposed that `emoji-as-icon` was line-scoped and brace-blind, so it had been missing nearly all real JSX while 33
-tests stayed green. **Still open: 5.5** — install it into a REAL project, which is the same used-vs-merely-built gate
-Phase 1 was given.
+tests stayed green. **5.5 done the same day:** installed at user scope from a local marketplace path (no repo touched, no push), 1 hook,
+**~0 tokens per session**; scanned 333 real UI files across 4 apps → 24 findings in 11 files, of which **three classes
+were false positives** now fixed, plus a reasoned `rulebook-allow` exception for code the rule cannot judge. The
+used-vs-merely-built gate stays open until it fires on real work in a real session (`checkin: 2026-08-12`).
 > **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
 > machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and
 > can push a server-supplied `instructions` block into the consumer's system prompt — so the rulebook updates without ever
