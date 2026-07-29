@@ -135,69 +135,6 @@ gate: defer · moscow: could · interest: n/a (explicitly NOT a platform-optimis
 
 ---
 
-### idea-0023 — MCP platform server: one-way skill/rule delivery to other machines + filtered lesson backflow
-state: proposed · source: user (2026-07-28, two consecutive framings: multi-machine harness, then "only expose a small surface") · created: 2026-07-28 · updated: 2026-07-28
-gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.6 effort: 4 · base: 1.35 · interest: 0.8 · **rank: 1.51**
-proposal: platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md
-outcome: **accept** (2026-07-28, supervisor — "làm theo đề xuất của bạn"), Option A (hybrid: MCP for skills/rules
-at tiers 1+2, private plugin marketplace for hooks). **Graduation deliberately SEQUENCED, not immediate:** the
-`fleet` rename (`platform/` → `platform/`, plan `2026-07-28-fleet-rename-and-restructure.md`) rewrites every
-path this build would reference, and the `cloud` target it needs does not exist as data until that plan's B3/B4.
-Writing the build plan first would mean writing it twice. **Step 0 (the kill-switch measurement — classify the
-rulebook generation-shaping vs verification-shaped, reject if <40% verification-shaped) does NOT depend on the
-rename and can run at any time.**
-blocks_on: idea-0013 (extract `@thiengthb/mcp-auth`) — its `revisit_when` is ARMED by this idea, and fires only if this one is accepted
-**PHASE 3 VERDICT 2026-07-29 — Phase 4 NOT authorized; a re-target is PROPOSED, awaiting the supervisor.** Phases 1–3
-built and closed in one session (69 tests). The finding that decides it: **Step 0 measured the rulebook, not the tool
-shape.** 58.9% verification-shaped is a property of the rules; `review_component` is stateless, single-file and
-model-free, and re-classifying the same 33 statements against *that* leaves 36% clearly decidable, 21% partly, and
-**42% needing repo state, host state, a running UI or judgment** ⇒ the tool reaches **~21–34% of the rulebook**, not
-58.9%. Meanwhile the confidentiality delta over simply shipping the compiled rule data is **4.4 KB** (vs the ~760 KB
-that made the RFC reject Option B), and the checker is **pure**, so it can run on the consumer's machine.
-**Proposed re-target — B′:** ship the checker + rule data through the private plugin marketplace **that Step 4.3 already
-required for hooks**, as a hook. Offline, free, no OAuth extraction, no `cloud` row — and **enforced deterministically**
-rather than depending on the consuming model choosing to call a tool (n=1 evidence that it does). Detail + red-team:
-`platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md` §Phase 3 verdict. **The 2026-07-28 accept was the
-supervisor's; only the supervisor reverses it — the agent proposes.**
-`idea-0013` stays ARMED-not-fired: it was a prerequisite of Phase 4, and Phase 4 is not authorized.
-**RE-TARGET ACCEPTED 2026-07-29 (supervisor — "Chuyển sang B′").** The 2026-07-28 Option-A accept is superseded from
-Phase 4 onward; Phases 1–3 stand as the evidence that produced the change. Phase 5 thin slice is **built and verified**:
-`rulebook` is now itself a plugin marketplace, both manifests pass `claude plugin validate --strict`, and the hook fires
-on every UI write (exit 2 on an error-severity violation, silent when clean). **The slice paid for itself immediately** —
-it exposed that `emoji-as-icon` was line-scoped and brace-blind, so it had been missing nearly all real JSX while 33
-tests stayed green. **5.5 done the same day:** installed at user scope from a local marketplace path (no repo touched, no push), 1 hook,
-**~0 tokens per session**; scanned 333 real UI files across 4 apps → 24 findings in 11 files, of which **three classes
-were false positives** now fixed, plus a reasoned `rulebook-allow` exception for code the rule cannot judge. **5.6: published** — `github.com/thiengthb/rulebook` (public), marketplace resolves from GitHub — **and applied to
-`sakubun`**: 14 findings → 0, split 8 real whole-file exceptions (new `rulebook-allow-file:` directive) + 6 that were
-not exceptions but drift from that repo's own palette module. Container rebuilt, healthy + 200. The
-**5.7 done — and it was a checker-accuracy pass:** of the last 6 findings, **3 were false positives** (Extended_Pictographic
-is not "an emoji" — `↔`/`⚙`/`™` render as text; the data-SVG exemption only matched a literal `viewBox`), 2 were real
-(→ lucide icons), 1 was a written exception. **0 findings across all 333 UI files in 4 apps.** **Nothing left to build**
-— the used-vs-merely-built gate is now the only open item and it cannot be answered early by design
-(`checkin: 2026-08-12`).
-> **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
-> machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and
-> can push a server-supplied `instructions` block into the consumer's system prompt — so the rulebook updates without ever
-> touching the consumer repo. Agent-teams docs confirm teammates load MCP servers the same as a regular session, so an
-> MCP-delivered ruleset reaches every teammate while the lead's conversation does not.
-> **Core design:** three exposure tiers — *transmit the rule* (t1) / *transmit the verdict* (t2, rules never leave the
-> server) / *transmit the result* (t3). Dividing line: **generation-shaping rules must be transmitted; verification-shaped
-> rules need not be.** Hooks cannot ride MCP (local executables) → hybrid with a private plugin marketplace.
-> **Two file-level consequences if accepted:** `idea-0013` becomes a prerequisite (building a 3rd copy of the OAuth glue
-> would violate `/code-reuse` on the very change meant to demonstrate reuse), and `INVENTORY §0` needs a 4th `target`
-> value `cloud` (the service must be reachable off-machine while the NUC is down → neither `nuc` nor `local`).
-> **Honest ranking note:** base 1.35 ranks BELOW idea-0015 (5.23). That is not a scoring artifact — RICE is correctly
-> reporting a large, speculative effort. The proposal's Counter-case argues that if the supervisor's real priority is
-> "reach every machine" rather than "don't expose the core", **Option B (private plugin marketplace) is the cheaper
-> correct answer and this should be rejected in its favour.**
-> **Kill-switch pre-committed before any code:** classify the rulebook generation-shaping vs verification-shaped; if
-> **under 40% is verification-shaped**, Option A collapses into Option C and this is rejected, not rescoped.
-> *Interest 0.8:* the supervisor asked for it directly and twice, and every prior user-sourced agent-OS/leverage idea
-> (0010 testing discipline, 0011 skill-proposer, 0003 day-log memory, 0001 interest model) was accepted. Not derived from
-> the agent's own enthusiasm.
-
----
-
 ### idea-0015 — Migrate Watchtower → maintained drop-in fork `nickfedor/watchtower`
 state: active · source: agent (Quick-research finding 2026-06-20) · created: 2026-06-20 · updated: 2026-06-20
 gate: pass · moscow: should · reach: 3 impact: 2 confidence: 0.8 effort: 1 · base: 4.8 · interest: 0.6 · **rank: 5.23**
@@ -393,6 +330,70 @@ gate: null · moscow: null · proposal: null · outcome: null
 ---
 
 ## Done (graduated to an accepted plan / shipped — kept for the Reflexion trail)
+
+### idea-0023 — Rule delivery without shipping the rulebook (built as an MCP server, SHIPPED as a plugin hook)
+state: done · source: user (2026-07-28, two consecutive framings: multi-machine harness, then "only expose a small surface") · created: 2026-07-28 · updated: 2026-07-28
+gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.6 effort: 4 · base: 1.35 · interest: 0.8 · **rank: 1.51**
+proposal: platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md
+outcome: **accept** (2026-07-28, supervisor — "làm theo đề xuất của bạn"), Option A (hybrid: MCP for skills/rules
+at tiers 1+2, private plugin marketplace for hooks). **Graduation deliberately SEQUENCED, not immediate:** the
+`fleet` rename (`platform/` → `platform/`, plan `2026-07-28-fleet-rename-and-restructure.md`) rewrites every
+path this build would reference, and the `cloud` target it needs does not exist as data until that plan's B3/B4.
+Writing the build plan first would mean writing it twice. **Step 0 (the kill-switch measurement — classify the
+rulebook generation-shaping vs verification-shaped, reject if <40% verification-shaped) does NOT depend on the
+rename and can run at any time.**
+blocks_on: idea-0013 (extract `@thiengthb/mcp-auth`) — its `revisit_when` is ARMED by this idea, and fires only if this one is accepted
+**PHASE 3 VERDICT 2026-07-29 — Phase 4 NOT authorized; a re-target is PROPOSED, awaiting the supervisor.** Phases 1–3
+built and closed in one session (69 tests). The finding that decides it: **Step 0 measured the rulebook, not the tool
+shape.** 58.9% verification-shaped is a property of the rules; `review_component` is stateless, single-file and
+model-free, and re-classifying the same 33 statements against *that* leaves 36% clearly decidable, 21% partly, and
+**42% needing repo state, host state, a running UI or judgment** ⇒ the tool reaches **~21–34% of the rulebook**, not
+58.9%. Meanwhile the confidentiality delta over simply shipping the compiled rule data is **4.4 KB** (vs the ~760 KB
+that made the RFC reject Option B), and the checker is **pure**, so it can run on the consumer's machine.
+**Proposed re-target — B′:** ship the checker + rule data through the private plugin marketplace **that Step 4.3 already
+required for hooks**, as a hook. Offline, free, no OAuth extraction, no `cloud` row — and **enforced deterministically**
+rather than depending on the consuming model choosing to call a tool (n=1 evidence that it does). Detail + red-team:
+`platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md` §Phase 3 verdict. **The 2026-07-28 accept was the
+supervisor's; only the supervisor reverses it — the agent proposes.**
+`idea-0013` stays ARMED-not-fired: it was a prerequisite of Phase 4, and Phase 4 is not authorized.
+**RE-TARGET ACCEPTED 2026-07-29 (supervisor — "Chuyển sang B′").** The 2026-07-28 Option-A accept is superseded from
+Phase 4 onward; Phases 1–3 stand as the evidence that produced the change. Phase 5 thin slice is **built and verified**:
+`rulebook` is now itself a plugin marketplace, both manifests pass `claude plugin validate --strict`, and the hook fires
+on every UI write (exit 2 on an error-severity violation, silent when clean). **The slice paid for itself immediately** —
+it exposed that `emoji-as-icon` was line-scoped and brace-blind, so it had been missing nearly all real JSX while 33
+tests stayed green. **5.5 done the same day:** installed at user scope from a local marketplace path (no repo touched, no push), 1 hook,
+**~0 tokens per session**; scanned 333 real UI files across 4 apps → 24 findings in 11 files, of which **three classes
+were false positives** now fixed, plus a reasoned `rulebook-allow` exception for code the rule cannot judge. **5.6: published** — `github.com/thiengthb/rulebook` (public), marketplace resolves from GitHub — **and applied to
+`sakubun`**: 14 findings → 0, split 8 real whole-file exceptions (new `rulebook-allow-file:` directive) + 6 that were
+not exceptions but drift from that repo's own palette module. Container rebuilt, healthy + 200. The
+**5.7 done — and it was a checker-accuracy pass:** of the last 6 findings, **3 were false positives** (Extended_Pictographic
+is not "an emoji" — `↔`/`⚙`/`™` render as text; the data-SVG exemption only matched a literal `viewBox`), 2 were real
+(→ lucide icons), 1 was a written exception. **0 findings across all 333 UI files in 4 apps.** **Nothing left to build**
+— the used-vs-merely-built gate is now the only open item and it cannot be answered early by design
+(`checkin: 2026-08-12`).
+> **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
+> machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and
+> can push a server-supplied `instructions` block into the consumer's system prompt — so the rulebook updates without ever
+> touching the consumer repo. Agent-teams docs confirm teammates load MCP servers the same as a regular session, so an
+> MCP-delivered ruleset reaches every teammate while the lead's conversation does not.
+> **Core design:** three exposure tiers — *transmit the rule* (t1) / *transmit the verdict* (t2, rules never leave the
+> server) / *transmit the result* (t3). Dividing line: **generation-shaping rules must be transmitted; verification-shaped
+> rules need not be.** Hooks cannot ride MCP (local executables) → hybrid with a private plugin marketplace.
+> **Two file-level consequences if accepted:** `idea-0013` becomes a prerequisite (building a 3rd copy of the OAuth glue
+> would violate `/code-reuse` on the very change meant to demonstrate reuse), and `INVENTORY §0` needs a 4th `target`
+> value `cloud` (the service must be reachable off-machine while the NUC is down → neither `nuc` nor `local`).
+> **Honest ranking note:** base 1.35 ranks BELOW idea-0015 (5.23). That is not a scoring artifact — RICE is correctly
+> reporting a large, speculative effort. The proposal's Counter-case argues that if the supervisor's real priority is
+> "reach every machine" rather than "don't expose the core", **Option B (private plugin marketplace) is the cheaper
+> correct answer and this should be rejected in its favour.**
+> **Kill-switch pre-committed before any code:** classify the rulebook generation-shaping vs verification-shaped; if
+> **under 40% is verification-shaped**, Option A collapses into Option C and this is rejected, not rescoped.
+> *Interest 0.8:* the supervisor asked for it directly and twice, and every prior user-sourced agent-OS/leverage idea
+> (0010 testing discipline, 0011 skill-proposer, 0003 day-log memory, 0001 interest model) was accepted. Not derived from
+> the agent's own enthusiasm.
+
+---
+
 
 ### idea-0014 — NUC volume backup strategy (ops data-safety)
 state: done · source: agent (C3 gap-analysis 2026-06-18, exploration-floor WILDCARD) · created: 2026-06-18 · updated: 2026-06-19
