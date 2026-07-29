@@ -116,6 +116,19 @@ Writing the build plan first would mean writing it twice. **Step 0 (the kill-swi
 rulebook generation-shaping vs verification-shaped, reject if <40% verification-shaped) does NOT depend on the
 rename and can run at any time.**
 blocks_on: idea-0013 (extract `@thiengthb/mcp-auth`) — its `revisit_when` is ARMED by this idea, and fires only if this one is accepted
+**PHASE 3 VERDICT 2026-07-29 — Phase 4 NOT authorized; a re-target is PROPOSED, awaiting the supervisor.** Phases 1–3
+built and closed in one session (69 tests). The finding that decides it: **Step 0 measured the rulebook, not the tool
+shape.** 58.9% verification-shaped is a property of the rules; `review_component` is stateless, single-file and
+model-free, and re-classifying the same 33 statements against *that* leaves 36% clearly decidable, 21% partly, and
+**42% needing repo state, host state, a running UI or judgment** ⇒ the tool reaches **~21–34% of the rulebook**, not
+58.9%. Meanwhile the confidentiality delta over simply shipping the compiled rule data is **4.4 KB** (vs the ~760 KB
+that made the RFC reject Option B), and the checker is **pure**, so it can run on the consumer's machine.
+**Proposed re-target — B′:** ship the checker + rule data through the private plugin marketplace **that Step 4.3 already
+required for hooks**, as a hook. Offline, free, no OAuth extraction, no `cloud` row — and **enforced deterministically**
+rather than depending on the consuming model choosing to call a tool (n=1 evidence that it does). Detail + red-team:
+`platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md` §Phase 3 verdict. **The 2026-07-28 accept was the
+supervisor's; only the supervisor reverses it — the agent proposes.**
+`idea-0013` stays ARMED-not-fired: it was a prerequisite of Phase 4, and Phase 4 is not authorized.
 > **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
 > machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and
 > can push a server-supplied `instructions` block into the consumer's system prompt — so the rulebook updates without ever

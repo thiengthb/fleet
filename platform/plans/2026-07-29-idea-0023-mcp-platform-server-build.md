@@ -254,14 +254,133 @@ Phase 3 must weigh that, not just the review path.
 
 **Phase 3 — the honest gate: did the thin slice earn Phase 4?**
 
-- [ ] 3.1 — Answer, with evidence, the counter-case the proposal itself raised: **is Option B (private plugin
-      marketplace, offline, free) the better answer after all?** Compare on what Phase 1 actually cost, what tier 2
-      actually covered, and whether the confidentiality benefit is real or theatre · Files: append a dated section to
-      this plan · Test: a written verdict with numbers, not an impression
-- [ ] 3.2 — Record the outcome in `registries/idea-queue.md` (idea-0023) + `decisions.md`; if the verdict is "Option B",
-      **say so and stop** — a sunk thin slice is not a reason to build a server · Files: Modify the queue · Test: manual
+- [x] 3.1 — **DONE 2026-07-29 — verdict below: Phase 4 as scoped is NOT authorized.** The load-bearing finding is not
+      about cost or usage: **Step 0 measured the rulebook, and nobody measured the tool shape.** Re-classifying the same
+      33 verification-shaped statements by what `review_component`'s shape can actually decide (one file, stateless, no
+      repo/host/runtime access, no model) cuts 58.9% of the rulebook down to **~21–34%** · Files: §Phase 3 verdict below ·
+      Test: numbers, not an impression ✅
+- [x] 3.2 — **DONE 2026-07-29.** Recorded in `registries/idea-queue.md` (idea-0023) + `rulebook/docs/decisions.md`. The
+      verdict is **neither A nor B but a third option the RFC did not list (B′)**, so it is written as a PROPOSAL to
+      revise an accepted decision, not as a decision — the accept was the supervisor's and only the supervisor reverses
+      it · Files: Modified the queue · Test: manual
 
-**Phase 4 — off-machine (SCOPED, NOT AUTHORIZED BY THIS PLAN; needs its own accept after Phase 3).**
+### Phase 3 verdict — 2026-07-29: do NOT authorize Phase 4 as scoped
+
+**The one-sentence version.** The thin slice works and cost almost nothing, but it turns out the *shape* of the tool —
+one file in, a verdict out, no memory of the repo — can only reach about a quarter to a third of the rulebook, and the
+only thing the hosted server buys over shipping the checker itself is keeping **4.4 KB** of rule data off other
+machines. That is not worth a hosted service, an OAuth extraction, and a bill that runs while idle.
+
+#### 1. What it cost — cheap, and not the issue
+
+| | |
+| --- | --- |
+| Source | 1,929 lines (`check-component` 310 · `report-lesson` 200 · `mcp-server` 185 · `frontend.rules` 142 · `leak-check` 140 · `http` 71 · `request-log` 48) |
+| Tests | 833 lines, **69 tests**, plus two mutation rounds (3 mutants at 1.2, 5 at 2.1 — one survivor found and killed) |
+| Commits / elapsed | 5 commits, first to last **01:52 → 02:40** on 2026-07-29 (Step 0 ran the previous day) |
+
+Cost is not the argument against Phase 4. **Phase 4 is where the money starts** — hosting billed while idle, the
+`idea-0013` OAuth extraction, and an uptime dependency for every consumer.
+
+#### 2. Coverage — the measurement Step 0 did not make
+
+Step 0's kill-switch passed at **58.9%** verification-shaped (33 of 56 classifiable statements, n=60 sample). That is a
+claim about the **rulebook**. It is not a claim about what a *stateless, single-file, model-free* tool can decide, and
+`review_component` is exactly that. Re-classifying the same 33 statements against the tool's real constraints:
+
+| Can `review_component(code, filename)` decide it? | Count | Examples |
+| --- | --- | --- |
+| Yes — from the submitted file alone | **12 (36%)** | no `console.log`; animate only compositor-safe properties; Server Action authz; no secret in a Dockerfile `ENV`; SQLite has no native enums; `MEMORY.md` ≤ 200 lines |
+| Partly — heuristic, or needs a convention call | 7 (21%) | "function names are verbs"; "never self-code auth"; "each test seeds and cleans its own data" |
+| **No — needs repo state, host state, a running UI, or judgment** | **14 (42%)** | Traefik router name unique *across the NUC*; update `shared-assets.md` when extracting; add `ui:audit` to `package.json`; push the `'use client'` boundary deep *through the component tree*; "no hover/focus states" (a rendered UI); "sentence case, plain verbs" (a model call) |
+
+So the reachable share is **36–58% of the verification half ⇒ ~21–34% of the rulebook**, against a headline of 58.9%.
+The plan already carried the warning one level shallower — *"Step 0 measured the rulebook, not the checker"* — but
+framed it as *does the checker catch them well*. The deeper question was whether the tool's shape can **see** them at
+all, and for 42% it cannot. Two-thirds of the rulebook must still be transmitted, landing on the consumer's disk or in
+its transcript exactly as before.
+
+**Within its own domain it also stops early:** 9 rules shipped, all frontend. Only 36% of the verification-shaped
+statements live in the frontend/code-style domain; the other 64% (asyncio, Docker secrets, Prisma, memory caps, host
+ops, e2e discipline) each need their own checker, none of which exists.
+
+#### 3. Confidentiality — measured against the alternative, not against zero
+
+Phase 1 already downgraded the claim to *metered, revocable, logged access — not secrecy*, because a fix that names a
+remedy partly reconstructs its rule. The question Phase 3 has to add is **how much less exposing the server is than the
+alternative**, and the answer is small:
+
+| What lands on the consumer's disk | Size |
+| --- | --- |
+| Option A (today) | nothing — verdicts only, **verified**: 0 of 1391 distinctive shingles, disk + transcript |
+| Ship the compiled rule data (`frontend.rules.ts`) | **4.4 KB** |
+| The prose it encodes (`rules/frontend.md` + `standards/ui-layout.md`) | 10 KB |
+| The whole rulebook, Option B as the RFC framed it | **~760 KB** across 64 files |
+
+The RFC rejected Option B for putting a *"full copy on every consumer disk, permanent and unrevocable"*. That is a fair
+objection to 760 KB. It is not a fair objection to 4.4 KB of regexes and remedy strings — which is what the supervisor's
+actual words, *"only expose a small surface"*, would seem to permit.
+
+#### 4. Usage — zero, and that cuts both ways
+
+One `.mcp.json` on this machine points at the server: `~/projects/scratch-consumer`, the fixture built at Step 1.4. **No
+real consumer exists.** The check-in gate is not due until 2026-08-12, so this is *not yet* evidence of abandonment —
+but it is evidence that **nothing depends on this yet**, which makes re-targeting free today and expensive after Phase 4.
+
+#### 5. The option the RFC did not list — B′
+
+The RFC's four options assumed the checker must live wherever the rules live. It does not: `check-component.ts` is
+**pure by invariant** — no I/O, no network, no model. A pure function runs anywhere, including the consumer's machine.
+
+And the plan already requires the delivery mechanism: **Step 4.3 is a private plugin marketplace**, because hooks are
+local executables and cannot ride MCP. So the marketplace is not the alternative to Option A — *it is already mandatory
+inside Option A*. Given it must exist, the question becomes: what does the hosted server add on top of shipping the
+checker through it?
+
+> **B′ — ship the checker and its rule data through the private plugin marketplace, as a hook.** Not the RFC's Option B
+> (which shipped the whole prose rulebook); not Option A (which hosts a service).
+
+| | A — host the MCP server | **B′ — ship the checker in the plugin** |
+| --- | --- | --- |
+| On the consumer's disk | nothing | 4.4 KB of rule data, permanent, unrevocable |
+| Reach | needs network, auth, uptime | **offline, every machine, git-native** |
+| **Enforcement** | the consuming model must **choose** to call the tool | **a hook fires deterministically** |
+| Cost to finish | `idea-0013` OAuth extraction + `cloud` hosting (billed idle) + an uptime dependency for every consumer | a manifest + a plugin directory |
+| Telemetry | central request log (built, 48 lines) | local only |
+| Rule updates | server-side, instant | `/plugin update` per machine |
+| Untrusted backflow | needed, and needed a governance change to be safe | not needed |
+
+**The enforcement row is the one that should decide it on this platform.** `CLAUDE.md` says a rule the supervisor states
+must be *enforced, not just documented*, and the three most damaging NUC invariants live in `invariant-warn.mjs` rather
+than in prose for exactly that reason. An MCP tool is **advisory**: it works only if the consuming model decides to call
+it. The evidence that it does is **n = 1** (Step 1.4), and that one consumer complied because the `instructions` block
+told it to. A hook does not depend on anyone's cooperation.
+
+#### 6. Red-teaming this verdict, before anyone else has to
+
+- **The supervisor accepted Option A explicitly, and twice.** This verdict does not overturn that and cannot — it is a
+  proposal to revise it. The accept gate is the supervisor's; §3.2 records it as such.
+- **B′ is permanent and unrevocable**, exactly the property that killed Option B. If the requirement is genuinely
+  revocation, B′ fails it. The counter is that 4.4 KB of regexes is not the core know-how; the core is the *process
+  spine*, which is tier 1 and travels under every option including A.
+- **Deciding at zero usage is deciding early.** True. But the decision Phase 3 gates is whether to *spend* on Phase 4,
+  and the honest reading of "zero consumers on day one" is not "it failed" — it is "nothing is anchored yet".
+- **Sunk cost is not an argument here, and it also isn't a cost.** Under B′ almost everything built survives:
+  the 9 rules as data, `check-component` and its 33 tests, the leak gate, the quarantine inbox, and — independent of
+  all of it — the autonomy-gate bypass found at Step 2.2. What becomes optional is `server/http.ts` (71 lines) and the
+  MCP wrapper. **Switching costs roughly nothing, which is itself the strongest argument for switching now.**
+
+#### 7. Verdict
+
+**Phase 4 is not authorized.** Do not extract `@thiengthb/mcp-auth` for this, do not host, do not add a `cloud`
+INVENTORY row. The `rulebook` server stays exactly as it is — built, tested, local, costing nothing — and the next step,
+**if the supervisor accepts the re-target**, is a thin slice of B′: a private plugin marketplace shipping the checker as
+a hook to one real project, measured the same way Phase 1 was.
+
+**Still open and not affected by this verdict:** AC-5's second half. The promotion gate is a tested proposal in
+`platform/proposals/`; until a human installs it, quarantine is a convention.
+
+**Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict above, NOT RECOMMENDED).**
 
 These four are listed so Phase 3's verdict is made against a known cost, not a vague "and then more". They are
 intentionally left without `Files:`/`Test:` — **naming files for work that is not authorized is how a scoped list turns
