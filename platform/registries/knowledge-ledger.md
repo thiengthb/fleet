@@ -242,6 +242,10 @@
 | 2026-07-29 | A guardrail enforced on the file-writing tools is bypassable by the shell; test the ACT, not the tool. | [→](ledger/2026-07.md#2026-07-29-guardrail-on-file-tools-is-bypassable-by-shell) |
 | 2026-07-29 | A green suite is not contact with real code: 33 tests hid a rule that missed almost every real file. | [→](ledger/2026-07.md#2026-07-29-green-suite-is-not-contact-with-real-code) |
 | 2026-07-29 | When a mutant survives, look at the check's SCOPE before its logic — three for three so far. | [→](ledger/2026-07.md#2026-07-29-surviving-mutants-are-scope-not-logic) |
+| 2026-07-29 | An empty measurement renders as a result, and the direction it lies in is arbitrary. | [→](ledger/2026-07.md#2026-07-29-an-empty-measurement-renders-as-a-result-and-the-directio) |
+| 2026-07-29 | An artifact that AGGREGATES others is a check on them, and it finds what per-file review cannot. | [→](ledger/2026-07.md#2026-07-29-an-artifact-that-aggregates-others-is-a-check-on-them-and) |
+| 2026-07-29 | Generate the documentation to find the bugs in the source. | [→](ledger/2026-07.md#2026-07-29-generate-the-documentation-to-find-the-bugs-in-the-source) |
+| 2026-07-29 | Measure a new dependency against the INCUMBENT, and expect the measurement to refute your reason for wanting it. | [→](ledger/2026-07.md#2026-07-29-measure-a-new-dependency-against-the-incumbent-and-expect) |
 
 ## B. Pointers to each project's knowledge log
 

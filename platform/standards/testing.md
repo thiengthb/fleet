@@ -30,6 +30,7 @@ technique and the skill that owns its how-to.
 | **Components** | UI behaviour a user observes (only where logic lives) | No — test-alongside | React Testing Library · `/vitest-server-actions` §3 |
 | **Cross-repo HTTP seams** | One repo calling another's API (todo↔core, web↔core, MCP) | No — write the contract | **Consumer-driven contract tests** (§4) · `registries/shared-assets` template |
 | **End-to-end (user flows)** | Critical multi-step journeys, sparse | No | Playwright · `/playwright-e2e-builder` (idea-0006 = this top tier) |
+| **Model-in-the-loop seams** | Whether the *calling model* handles a tool result or a rejected argument correctly — paraphrasing, reordering, a dead-end it cannot recover from. A contract test checks the SHAPE; this checks the behaviour | No — write the eval | **Model-in-the-loop eval** · `/behavioural-eval` |
 
 **Do NOT** chase a coverage %, test framework internals, or assert on a value you mocked yourself (carried from
 `/vitest-server-actions`). A test worth keeping fails only when behaviour you meant to keep actually breaks.
@@ -82,6 +83,27 @@ had a hole, and it is what tells the next reader which part of the check was nev
 
 > Do **not** turn this into a coverage ritual or install a mutation-testing framework. It is a targeted question asked
 > at the moment of trusting a green, on the mechanism that green is standing in for. Anti-ceremony (§7) still applies.
+
+## 2.6 — Verifying a write path: never against a record the user cares about
+
+Added 2026-07-29 (idea-0018) from a dated incident, not a principle: a live `submit_review` check in `sakubun` wrote a
+fake rating onto the user's **real** item and corrupted its FSRS schedule. It was recoverable only because that table
+happens to be append-only.
+
+> **A verification you cannot run on a sacrificial record is not a verification — it is a gamble on the schema being
+> forgiving.**
+
+| Situation | What to do |
+| --- | --- |
+| the write path works on a new record | create a **sacrificial record**, marked so it stays greppable (`__verify__` in a name field) → verify → delete. Deletion **idempotent** and in **reverse creation order** |
+| the harness gives you a transaction | wrap and **roll back** — strongest form, free where available |
+| only a REAL record can exercise it (a real schedule, streak, balance) | **stop and ask the human.** Cite this row rarely: reaching for it to avoid building a fixture turns the rule into permission |
+| it already happened | record what was written **before** repairing, then replay rather than hand-patch |
+
+**Not a permanent test account** — that is itself a [compliance risk (CSA)](https://cloudsecurityalliance.org/blog/2011/10/07/test-accounts-another-compliance-risk);
+a short-lived record trades away no standing credential ([shape](https://microsoft.github.io/code-with-engineering-playbook/automated-testing/synthetic-monitoring-tests/) ·
+[cleanup mechanics](https://www.thegreenreport.blog/articles/techniques-for-effective-test-data-cleanup-in-cicd/techniques-for-effective-test-data-cleanup-in-cicd.html)).
+Prose, not a gate: *"this row belongs to a real user"* is in the intent, never in the artifact.
 
 ## 3 — Acceptance criteria: the spec→test bridge (SDD-lite)
 
