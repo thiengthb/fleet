@@ -283,9 +283,18 @@ Rules that make it safe:
 
 **Batch B — prove the sweep can fail** (the part that makes it trustworthy)
 
-- [ ] B1 — A test for `link-check.mjs` that breaks each of the 6 wires in a temp tree and asserts each is caught · Files: `.claude/scripts/link-check.test.mjs` · Test: AC-2
-- [ ] B2 — A test for `health-sweep.mjs` asserting a BROKEN sub-checker surfaces as BROKEN — it silently mis-parsed `skill-audit` on its first run and reported calm over 14 findings · Files: `.claude/scripts/health-sweep.test.mjs` · Test: AC-2
-- [ ] B3 — Tests for the two checkers that BLOCK and still have none: `autonomy-gate` has one; `guide-coverage-reminder` and `reuse-guard` do not · Files: 2 test files · Test: AC-2
+- [x] B1 — `link-check.test.mjs`: a fixture fleet with all 6 wires intact, then **8 breakages one at a time**, each asserting that check fires *and that no other one does* — a checker that reports six problems for one broken file gets skimmed. Needed a `FLEET_ROOT` override so the suite can damage a copy instead of the repo · Test: AC-2 ✅
+- [x] B2 — `health-sweep.test.mjs`: 6 sub-checker failure modes each surfaced as BROKEN, plus a case pinning the 2026-07-30 regression verbatim (a findings count read as zero), plus drift never failing the run · Test: AC-2 ✅
+- [x] B2a — `attic.test.mjs`, added because `attic` is the only tool here that MOVES files. It asserts the thing that actually matters: **after every refusal, `git status` is byte-identical** — a half-done refusal would leave the repo in a state nobody chose. Also asserts no delete path exists at all · Test: AC-2 ✅
+- [ ] B3 — Tests for the two hooks that BLOCK and still have none: `guide-coverage-reminder` and `reuse-guard` · Files: 2 test files · Test: AC-2
+
+> **What building Batch B taught, and it is the most useful thing in this batch:** the first `health-sweep`
+> test ran the live sweep, which runs `tool-check`, which runs every test file — **including that test**,
+> which ran the sweep again. Unbounded recursion, ended only by timeouts (2m18s, killed twice before the
+> shape was obvious). A test suite that invokes the tool that invokes all suites cannot contain itself. The
+> rule: a summariser's test stubs its children; it never calls the real thing.
+>
+> Coverage went 5/27 → **8/27**, and `tool-check` runs the lot in 14s.
 
 **Batch C — the first retirement pass** (supervisor approved the attic mechanism 2026-07-30)
 

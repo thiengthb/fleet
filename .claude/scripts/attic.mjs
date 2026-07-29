@@ -311,6 +311,8 @@ function stage() {
   const rel = relative(REPO, resolve(REPO, target));
   if (!existsSync(join(REPO, rel))) die(`attic: ${rel} does not exist`);
 
+  // Cheap preconditions FIRST. Measuring costs ~8s (it mines every transcript), and spending that to
+  // reject a missing --reason is how a guard becomes something people avoid running.
   const reason = arg("--reason");
   if (!reason || reason.length < 20)
     die(

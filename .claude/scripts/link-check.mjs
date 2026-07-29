@@ -25,7 +25,14 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+/**
+ * FLEET_ROOT exists so the suite can point this at a fixture tree and BREAK each wire on purpose. Without
+ * it the only way to test a wire-checker is to damage the real repo, which nobody will do — so the checker
+ * would ship unverified, which is the exact thing it was written to stop happening elsewhere.
+ */
+const REPO = process.env.FLEET_ROOT
+  ? resolve(process.env.FLEET_ROOT)
+  : resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const JSON_OUT = process.argv.includes("--json");
 const QUIET = process.argv.includes("--quiet");
 
