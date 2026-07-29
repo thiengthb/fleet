@@ -96,8 +96,12 @@ detectors.push({
           continue; // generic example names
         // A proposal file is `<name>.mjs.proposed`: the `.mjs` inside it is not a claim that `<name>.mjs`
         // exists. The detector's own first run reported this as drift — a checker gets audited too.
-        if (text.slice(m.index + m[0].length - 1).startsWith(".proposed"))
-          continue;
+        // OFF-BY-ONE, found by recurrence-check.test.mjs on 2026-07-30. This used to slice from
+        // `+ m[0].length - 1`, i.e. from the LAST character of the match, so the comparison was against
+        // "s.proposed" and could never be true — dead code. It went unnoticed because the on-disk check on
+        // the next line covers every draft that exists in this repo; the gap only shows when a document
+        // cites a `.proposed` draft that lives somewhere else, which is a false positive nobody had hit yet.
+        if (text.slice(m.index + m[0].length).startsWith(".proposed")) continue;
         if (onDisk.has(`${name}.proposed`)) continue;
         // A document that names the tool IN ORDER TO SAY it is gone is the fix, not the defect. Without
         // this, repairing a stale citation by explaining the supersession makes the detector fire forever
