@@ -76,6 +76,6 @@ deactivate an entry without deleting it.
 
 ## `init` — a new project
 
-Copy `sakubun/lib/ui-pattern-lock.test.ts` (project-agnostic) and create
+Copy `projects/sakubun/lib/ui-pattern-lock.test.ts` (project-agnostic) and create
 `<project>/docs/ui-patterns.json` with `{"$doc": "...", "patterns": []}`. The hook picks it up
 automatically by walking up from the edited file — no registration anywhere.

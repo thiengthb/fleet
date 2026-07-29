@@ -8,8 +8,8 @@ description: Set up & write Vitest tests for the MiniServer web stack (Next.js A
 The platform's web apps are Next.js App Router + React 19 + TS + Prisma + **server actions** (no separate Express). The
 hardest-to-test and most-used path is exactly that: a server action that validates input, calls `prisma.*`, and calls
 `revalidatePath`. This skill covers it. Complements `/coding-convention` (naming, ESM, Prettier) and `/react-ui-craft`
-(it says "parse with Zod"; this shows how to test that boundary). Living code to mirror: `todo/app/actions.ts`,
-`todo/lib/db.ts`, pure-logic libs `todo/lib/{streak,dates,capacity}.ts`.
+(it says "parse with Zod"; this shows how to test that boundary). Living code to mirror: `projects/todo/app/actions.ts`,
+`projects/todo/lib/db.ts`, pure-logic libs `projects/todo/lib/{streak,dates,capacity}.ts`.
 
 ## Test in ROI order (don't test everything — test what breaks)
 

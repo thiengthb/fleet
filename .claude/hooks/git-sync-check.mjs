@@ -17,10 +17,11 @@
 // platform's no-noise hook style (cf. suggest-session-wrap.mjs).
 
 import { execFile } from 'node:child_process';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPayload } from './_util.mjs';
+import { gitRepos } from '../scripts/_layout.mjs';
 
 const FETCH_TIMEOUT_MS = 8000; // per-repo network budget; the fetch process is killed if exceeded
 const LOCAL_TIMEOUT_MS = 5000; // local-only git calls (status / rev-list)
@@ -50,23 +51,12 @@ function git(repo, args, timeout) {
   });
 }
 
-/** The MiniServer root repo (if it is one) + every immediate subdirectory that is a git repo. */
-function findRepos(root) {
-  const repos = [];
-  if (existsSync(path.join(root, '.git'))) repos.push(root);
-  let entries = [];
-  try {
-    entries = readdirSync(root, { withFileTypes: true });
-  } catch {
-    return repos;
-  }
-  for (const e of entries) {
-    if (!e.isDirectory()) continue;
-    const full = path.join(root, e.name);
-    if (existsSync(path.join(full, '.git'))) repos.push(full);
-  }
-  return repos;
-}
+/**
+ * The fleet root repo (if it is one) + every project repo, wherever it lives in the tree.
+ * Delegated to `_layout.mjs`: this used to look only at immediate children, so when the nine app repos moved
+ * into `projects/` on 2026-07-30 it went from watching 13 repos to 4 — without reporting anything wrong.
+ */
+const findRepos = (root) => gitRepos(root);
 
 async function scan(repo) {
   const name = path.basename(repo);

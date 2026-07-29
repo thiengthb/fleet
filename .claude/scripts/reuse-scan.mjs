@@ -32,6 +32,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { projectRoots } from "./_layout.mjs";
 
 const FLEET = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CATALOG = join(FLEET, "platform", "registries", "shared-assets.md");
@@ -79,24 +80,16 @@ const GENERATED = new Set([
   "tailwind.config.ts", // tailwind init (v3-era)
 ]);
 
-/** Projects = top-level dirs that hold code. `platform` and `commons` are not consumers. */
+/**
+ * Projects = the dirs that hold consumer code. `platform` and `commons` are not consumers.
+ * Discovery is delegated to `_layout.mjs` so this keeps working now that the app repos live under
+ * `projects/` — before that fix this returned 0 projects and the scan reported "no duplication" silently.
+ */
 function projects() {
-  const skip = new Set([
-    "platform",
-    "commons",
-    "docgen",
-    "n8n",
-    ".claude",
-    ".git",
-  ]);
-  const out = [];
-  for (const entry of readdirSync(FLEET)) {
-    if (entry.startsWith(".") || skip.has(entry)) continue;
-    const abs = join(FLEET, entry);
-    if (!statSync(abs).isDirectory()) continue;
-    out.push(entry);
-  }
-  return out;
+  const skip = new Set(["platform", "commons", "docgen", "n8n"]);
+  return projectRoots(FLEET)
+    .filter((p) => !skip.has(p.name))
+    .map((p) => relative(FLEET, p.dir));
 }
 
 const isGenerated = (path) =>
@@ -236,13 +229,16 @@ if (flags.has("--calibrate")) {
     ],
     ["todo/lib/ai.ts", "sakubun/lib/coach.ts", "NOT (unrelated)"],
   ];
-  const find = (p) => {
-    const i = p.indexOf("/");
-    const project = p.slice(0, i);
-    let rel = p.slice(i + 1);
-    if (project === "yakudoku") rel = rel; // already project-relative
-    return files.find((f) => f.project === project && f.path === rel);
-  };
+  // Match on the TAIL of `<project>/<path>` rather than splitting off the first segment. The pairs above
+  // are written as `todo/lib/db.ts`, but `projects()` now yields `projects/todo` (the 2026-07-30 move into
+  // `projects/`), and a first-segment split turned all six pairs into "n/a" — the calibration silently
+  // stopped calibrating anything. A tail match survives the next reorganisation too, which is the same
+  // reasoning `_layout.mjs` applies to discovery.
+  const find = (p) =>
+    files.find((f) => {
+      const full = `${f.project}/${f.path}`;
+      return full === p || full.endsWith(`/${p}`);
+    });
   console.log(`k=${K}  NEAR=${NEAR}\n`);
   for (const [a, b, label] of pairs) {
     const fa = find(a);

@@ -146,7 +146,7 @@ Ask the user whether they want to delete the repo — some projects are only rem
 1. **`platform/inventory.md`:** remove the app's row from **§0** (the project map — its `domain`/`kind`/path)
    AND from §1 (apps); remove the provider/group row from §3 (if any); add a line to §6 "Decommissioned apps" with
    the date + what was deleted.
-2. **`authentik/docs/auth-apps.md`** (if the app is listed there): remove the app's entry, note "Removed
+2. **`projects/authentik/docs/auth-apps.md`** (if the app is listed there): remove the app's entry, note "Removed
    YYYY-MM-DD".
 3. Commit + push the modified doc repos — **only when the user asks** (per the git rule). Message like:
    `docs(inventory): retire <name> project` / `chore: tear down <name>`.

@@ -7,7 +7,7 @@ frame consistency**: the container, spacing rhythm, breadcrumb, and animation ba
 
 > Born 2026-07-22 from sakubun, where new pages (groups/account/admin) had drifted — each hand-rolled
 > its own padding + max-width and several shipped with no breadcrumb at all. The fix is a single shared
-> page wrapper, applied everywhere. Reference implementation: `sakubun/components/page-shell.tsx`.
+> page wrapper, applied everywhere. Reference implementation: `projects/sakubun/components/page-shell.tsx`.
 
 ## The rule
 
@@ -52,7 +52,7 @@ visible above the collapse toggle when collapsed (hide the wordmark, not the log
 library; wrap the app once in `<MotionConfig reducedMotion="user">` so no component re-implements the
 `prefers-reduced-motion` guard. Animate only `transform`/`opacity`. Prefer a tiny shared vocabulary of
 reusable variants/components (`fadeUp`, `StaggerGroup`/`StaggerItem`, `Reveal` — see
-`sakubun/components/motion-primitives.tsx`) over hand-writing `<motion.div>` variants per screen, so motion
+`projects/sakubun/components/motion-primitives.tsx`) over hand-writing `<motion.div>` variants per screen, so motion
 reads as one system. Pre-existing CSS-keyframe animations can stay; migrate them to Motion opportunistically
 when you're already touching them, not in a big-bang rewrite.
 

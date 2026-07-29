@@ -74,7 +74,7 @@ of self-improvement here as unverified.
 <!-- newest/active near top; sorted by rank within active. one block per idea, stable id.
      2026-06-19 SUPERVISOR GATE: idea-0014 (Restic backup) ACCEPTED → proposal → graduated to build plan
      platform/plans/2026-06-19-idea-0014-nuc-backup.md (status: active). idea-0013 (extract MCP OAuth)
-     DEFERRED → revisit when journal/3rd app adds MCP.
+     DEFERRED → revisit when projects/journal/3rd app adds MCP.
      last /idea sort: 2026-07-06 (C3 autonomous gap-analysis); interest re-derived (coarse, oracle-based).
      idea-0012 done (graduated 2026-06-17 → build plan).
      2026-07-06 NEW INBOX: idea-0016 (pinned-image staleness alert) + idea-0017 (journal MCP, WILDCARD).
@@ -292,7 +292,7 @@ state: done · source: agent (C3 gap-analysis 2026-07-21) · created: 2026-07-21
 gate: pass · moscow: should · reach: 1 impact: 3 confidence: 0.9 effort: 1 · base: 2.70 · interest: 0.4 · **rank: 2.86**
 interest_why: infra correctness grounded in a documented trap, but neither governance nor Knowledge-OS; no explicit lean either way
 outcome: **done 2026-07-29 — and the premise inverted.** The worry was that `backup.env.example`'s bare volume names were
-wrong. Audited every compose file in the repo: **they are CORRECT**, because `n8n` and `yakudoku/deploy` pin an explicit
+wrong. Audited every compose file in the repo: **they are CORRECT**, because `n8n` and `projects/yakudoku/deploy` pin an explicit
 `name:`, which turns compose's prefixing off. The trap is live in three OTHER volumes instead — `sakubun_data`,
 `journal_db`, `todo_data`. **Done:** `sakubun` pinned to `sakubun_sakubun_data` (verified with `docker volume ls`, then
 rebuilt: same volume, DB still 3,592,192 B, healthy + 200) · `backup.env.example` now says inline why its bare names must
@@ -344,7 +344,7 @@ interest_why: EXTENDS a gate that already exists in sakubun to its siblings — 
 > `ref`, plus a once-per-session PreToolUse nudge before a route/MCP-catalog edit. **The ledger line's own scope
 > field says "any app with an in-app `/guide` (sakubun now; **todo/yakudoku next**)"** — i.e. the follow-up was
 > already named, not inferred by this pass. `inventory.md` confirms both are live production web-apps with an
-> in-app guide mandated by `CLAUDE.md`'s `/user-guide` skill (`todo/app/guide/page.tsx` is literally the skill's
+> in-app guide mandated by `CLAUDE.md`'s `/user-guide` skill (`projects/todo/app/guide/page.tsx` is literally the skill's
 > reference impl) and both run an MCP server (`todo` row 34/66; `yakudoku` row 36/70-71) — the exact
 > route-drift **and** MCP-prompt-drift surfaces the gate targets. Without it, todo/yakudoku have no mechanism
 > to catch a shipped feature/tool that never made it into their guide, same failure mode sakubun just had.
@@ -442,7 +442,7 @@ interest_why: extends an existing pattern to siblings (mild lean toward), but th
 > web-app**, copied by other repos) already has this staleness handling or is silently missing it.
 > **Not yet verified:** whether todo already implements an equivalent (may already be fine) — this is a
 > check-and-backfill candidate, not a confirmed bug. Scope for `/idea analyze`: (a) read todo's list/detail pages
-> for a live-refresh or polling mechanism, (b) if absent, port `sakubun/components/live-refresh.tsx` +
+> for a live-refresh or polling mechanism, (b) if absent, port `projects/sakubun/components/live-refresh.tsx` +
 > `use-session-state.ts` (small, already-built, already reused-once components) rather than re-deriving from scratch.
 > *RICE (pre-gate, rough):* Reach 2 (todo confirmed MCP writer; journal unconfirmed) · Impact 2 (stale-UI correctness
 > bug, not security) · Confidence 0.6 (gap existence unverified — audit first) · Effort 1 (copy-in from sakubun,
@@ -471,7 +471,7 @@ installed: **INSTALLED 2026-07-29 as one `§1` pyramid row (`7ca43ea`), placed A
 > just in local-only sakubun.
 > **Scope guess (for `/idea analyze` to firm up):** add a tier/row to `standards/testing.md` distinct from the
 > contract-test row — "MCP tool-schema / display-contract behavior" → model-in-the-loop eval (a subagent role-playing
-> the client, graded on pass criteria), referencing `sakubun/eval/display-contract-eval.md` as the worked template.
+> the client, graded on pass criteria), referencing `projects/sakubun/eval/display-contract-eval.md` as the worked template.
 > Doc-only addition, no new infra.
 > *RICE (pre-gate, rough):* Reach 3 (todo, yakudoku, every future MCP app route through this standard) · Impact 2
 > (process/testing-discipline fix, prevents a recurring class of model-behavior bugs) · Confidence 0.8 (pattern
@@ -649,7 +649,7 @@ outcome: **accept** — supervisor took full scope (B4a+B4b) 2026-06-14; B4b's `
 state: deferred · source: agent (C3 gap-analysis 2026-06-18) · created: 2026-06-18 · updated: 2026-06-19 · revisit_when: journal (or any 3rd app) adds an MCP server — the rule-of-three extraction trigger
 gate: defer · moscow: could · interest: n/a
 > **External signal:** `registries/shared-assets.md` row 1 explicitly flags "DUPLICATED — extract candidate (built 2×;
-> extract at 3rd app **or now if churn has stopped**)". Churn check: both `todo` and `yakudoku/web` have had
+> extract at 3rd app **or now if churn has stopped**)". Churn check: both `todo` and `projects/yakudoku/web` have had
 > stable MCP OAuth since 2026-06-13 with no changes. Code is near-identical across repos (auth 38≈39, oauth
 > 86≈89, token 63≈67, authorize 124≈129, register 32=32 lines). Security-sensitive glue — a shared package
 > means one audit covers all consumers and prevents drift.

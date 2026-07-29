@@ -55,11 +55,11 @@ has a **living reference implementation** — COPY from it instead of rewriting;
 
 | archetype | Reference (copy from) | Take what | Specifics |
 |-----------|----------------------|--------|---------|
-| `web-app` (Next) | `todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (commons), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/app-protect`). |
-| `python-worker` | `nuc-monitor/` | `Dockerfile` (python slim), `deploy.yml`, sample `requirements.txt` | Headless: NO Traefik/port. Join `edge` only if egress is needed. |
-| `node-bot` | `jobhunter-bot/` | `Dockerfile` (node), `deploy.yml`, `package.json` (ESM, Node ≥22) | Headless Discord worker: NO Traefik. Secrets in NUC `.env`. |
-| `monorepo` (→N images) | `yakudoku/` | CI **matrix** building N images from 1 repo, layout `web/ core/ bot/`, compose with multiple services | One image is the **sole DB writer** if using SQLite; internal images do NOT get Traefik labels. |
-| `infra` (third-party) | `n8n/` or `authentik/` | `docker-compose.yml` + `.env` | Version-pinned image, NO Watchtower label; update = bump the tag manually. No CI build. |
+| `web-app` (Next) | `projects/todo/` | `Dockerfile` (standalone multi-stage), `.github/workflows/deploy.yml`, `components.json` + the `@thiengthb` registry declaration (commons), `.dockerignore`, `next.config` (`output:'standalone'`) | Public: 4 Traefik labels. Follow `/coding-convention` + `/react-ui-craft`. Protection = Authentik forward-auth (`/app-protect`). |
+| `python-worker` | `projects/nuc-monitor/` | `Dockerfile` (python slim), `deploy.yml`, sample `requirements.txt` | Headless: NO Traefik/port. Join `edge` only if egress is needed. |
+| `node-bot` | `projects/jobhunter-bot/` | `Dockerfile` (node), `deploy.yml`, `package.json` (ESM, Node ≥22) | Headless Discord worker: NO Traefik. Secrets in NUC `.env`. |
+| `monorepo` (→N images) | `projects/yakudoku/` | CI **matrix** building N images from 1 repo, layout `web/ core/ bot/`, compose with multiple services | One image is the **sole DB writer** if using SQLite; internal images do NOT get Traefik labels. |
+| `infra` (third-party) | `projects/n8n/` or `projects/authentik/` | `docker-compose.yml` + `.env` | Version-pinned image, NO Watchtower label; update = bump the tag manually. No CI build. |
 
 **Then pick its `domain`** (the purpose axis for browsing, orthogonal to `kind` — `INVENTORY §0`):
 `platform` (runs/secures/observes the system) · `product` (end-user-facing app) · `automation`
@@ -82,8 +82,8 @@ go to stage 2. None yet → write one following these principles:
 - Run as a non-root user if possible (`USER node`).
 - `EXPOSE <port>` for the exact port the app listens on.
 - Should have a `HEALTHCHECK` (wget/curl the health endpoint) — `docker ps` will show (healthy).
-- Next.js: needs `output: 'standalone'` in next.config; **living reference: `todo/Dockerfile`**
-  (Next.js standalone multi-stage). Python/other apps: `nuc-monitor/Dockerfile`.
+- Next.js: needs `output: 'standalone'` in next.config; **living reference: `projects/todo/Dockerfile`**
+  (Next.js standalone multi-stage). Python/other apps: `projects/nuc-monitor/Dockerfile`.
 - Create/check `.dockerignore` (node_modules, .git, .env…).
 
 **VERIFICATION:** test-build locally if the dev machine has Docker; if not, let CI

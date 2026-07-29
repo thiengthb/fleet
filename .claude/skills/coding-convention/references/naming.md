@@ -6,13 +6,13 @@ load_priority: high
 
 # Naming rules
 
-> Living reference: `todo/`. When unsure, open the matching file there before inventing.
+> Living reference: `projects/todo/`. When unsure, open the matching file there before inventing.
 
 ## Core mappings
 
 | Object | Rule | Example |
 |---|---|---|
-| Directory | kebab-case | `nuc-monitor/`, `components/ui/` |
+| Directory | kebab-case | `projects/nuc-monitor/`, `components/ui/` |
 | React component file | kebab-case `.tsx` | `link-card.tsx`, `theme-toggle.tsx` |
 | lib / util / logic file | kebab/lowercase `.ts` | `api.ts`, `auth.ts`, `utils.ts` |
 | React component | PascalCase, **named export** | `export function LinkCard(...)` |

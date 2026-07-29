@@ -10,8 +10,8 @@ This skill exists so the agent stops **reinventing** the same subsystem in each 
 letting each project focus on its *special* feature), without falling into the opposite trap — coupling independent
 services through a premature shared library.
 
-> Proven case it guards against: the **MCP self-issued OAuth shim** was built twice — `todo/lib/mcp/{auth,oauth}.ts` +
-> `app/api/oauth/*` is near-identical to `yakudoku/web/...` (auth.ts 38≈39, oauth.ts 86≈89, token 63≈67, authorize 124≈129).
+> Proven case it guards against: the **MCP self-issued OAuth shim** was built twice — `projects/todo/lib/mcp/{auth,oauth}.ts` +
+> `app/api/oauth/*` is near-identical to `projects/yakudoku/web/...` (auth.ts 38≈39, oauth.ts 86≈89, token 63≈67, authorize 124≈129).
 > Only `server.ts` (the *tool definitions*) legitimately differs per app. That glue is exactly what should have been shared.
 
 ## When this fires

@@ -460,8 +460,8 @@ no hosting.
       **Result: 0 findings across all 333 UI files in 4 apps.** **Honest limit:** `todo` and `yakudoku` have no
       `node_modules` here, so neither edit was type-checked, linted or built — what ran was the checker, Prettier, a TSX
       parse via the compiler API, and an icon-name existence check ·
-      Files: `rulebook/lib/check-component.{ts,test.ts}`, `yakudoku/web/components/practice-client.tsx`,
-      `todo/app/history/page.tsx` · Test: **95 tests**, 3 mutants on the new predicate + exemption, all 3 killed ✅
+      Files: `rulebook/lib/check-component.{ts,test.ts}`, `projects/yakudoku/web/components/practice-client.tsx`,
+      `projects/todo/app/history/page.tsx` · Test: **95 tests**, 3 mutants on the new predicate + exemption, all 3 killed ✅
 
 **Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict + the B′ accept, SUPERSEDED).**
 

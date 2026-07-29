@@ -6,7 +6,7 @@ load_priority: high
 
 # UI rules — mandatory stack & UX floor
 
-> Living reference: `todo/`. Every new app is scaffolded to match. **Do NOT swap framework, UI lib, style, or font.**
+> Living reference: `projects/todo/`. Every new app is scaffolded to match. **Do NOT swap framework, UI lib, style, or font.**
 > For composition / state / motion / a11y depth, see skill `/react-ui-craft` + its `references/`.
 
 ## Mandatory stack
@@ -48,7 +48,7 @@ load_priority: high
 
 ## Layout order (`app/layout.tsx`)
 
-`ThemeProvider` → `TooltipProvider` → `AppShell` → `children`, then `<Toaster>` at the end. Keep this exact order. Reference: `todo/app/layout.tsx`.
+`ThemeProvider` → `TooltipProvider` → `AppShell` → `children`, then `<Toaster>` at the end. Keep this exact order. Reference: `projects/todo/app/layout.tsx`.
 
 ## See also
 

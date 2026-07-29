@@ -14,7 +14,7 @@ regressed twice.
 (`lib/no-emoji.test.ts` gates the no-emoji rule). Documentation is a reminder; a failing test is a gate.
 
 **How to apply:** when the user gives a rule that could regress, don't just document it — add a
-**gate**: a source-scanning vitest test (like `sakubun/lib/no-emoji.test.ts` /
+**gate**: a source-scanning vitest test (like `projects/sakubun/lib/no-emoji.test.ts` /
 `lib/layout-standard.test.ts`) that fails `npm test`/CI on violation, PLUS a `CLAUDE.md` invariant
 (loaded every session so the agent applies it by default), PLUS the reference doc. The trio =
 written + agent-read-each-session + machine-blocked. Prefer making the wrong thing structurally
@@ -54,7 +54,7 @@ existing strict UI rules** (don't walk past a violation). So: during a refactor/
 hits rule-of-three (esp. layout — the `standards/ui-layout` concern), extract the shared component AND lock
 it (`docs/ui-patterns.json` + a gate where mechanically checkable); and repair any strict-rule violation found
 in a file I'm already touching. This is captured as a standing principle in
-`sakubun/docs/plans/2026-07-24-optimization-maintainability-v2.md` (P1.8 + AC-8).
+`projects/sakubun/docs/plans/2026-07-24-optimization-maintainability-v2.md` (P1.8 + AC-8).
 
 ## Refinement (2026-07-28, measured — not argued)
 

@@ -337,7 +337,7 @@ regenerated `package-lock.json`. (No relation to the added package itself.)
 force-restore the binding (`npm rebuild` + `COPY` into standalone) — don't trust nft to carry it. ② After
 adding ANY dependency (especially from a non-Linux machine), **rebuild and confirm the container actually
 starts** (`docker inspect -f '{{.State.Health.Status}}'` + `docker logs`), because a native transitive
-dep can lose its binding silently while the image build still succeeds. Detail: `sakubun/docs/decisions.md`
+dep can lose its binding silently while the image build still succeeds. Detail: `projects/sakubun/docs/decisions.md`
 2026-07-18.
 
 ## 9. LATER TRAP (2026-07-19): `docker compose up -d --build` silently kept the OLD image (full cache hit)
@@ -381,8 +381,8 @@ their data is back.
 user-facing copy, confirm the name with `docker volume ls`. In sakubun the stale bare name had been
 sitting in `app/guide/page.tsx` for weeks before a restore test exposed it.
 
-**Related.** `sakubun/scripts/verify-restore.sh` (proves the round-trip end to end),
-`sakubun/docs/decisions.md` 2026-07-20 "A backup is a claim until a restore has been performed".
+**Related.** `projects/sakubun/scripts/verify-restore.sh` (proves the round-trip end to end),
+`projects/sakubun/docs/decisions.md` 2026-07-20 "A backup is a claim until a restore has been performed".
 
 > **AUDITED 2026-07-29 (idea-0021) — which volumes on this platform actually have the trap.** An explicit
 > `name:` under the volume in `docker-compose.yml` turns the prefixing OFF, so the trap is per-file, not
@@ -414,7 +414,7 @@ even though the file is present and readable, and the same image runs fine again
 **Cause.** The DB was piped in via a **root** helper container
 (`docker run -i -v vol:/data alpine sh -c 'cat > /data/sakubun.db'`), so `/data` AND the file are **root-owned**.
 The app image runs as `USER node` (uid 1000). SQLite's write path — and Prisma's SQLite migrations, which use a
-RedefineTables rebuild — must create a **journal/WAL file in the directory**, not just write the file. A
+RedefineTables rebuild — must create a **projects/journal/WAL file in the directory**, not just write the file. A
 root-owned directory is read-only to uid 1000, so the whole migration is "readonly".
 
 **Why it hides.** The normal flow never trips it: the app container starts with an EMPTY volume and creates the
@@ -423,7 +423,7 @@ DB itself, so everything is already `node`-owned. The trap only appears when you
 **Rule.** After seeding a volume for an app that runs as non-root, `chown -R <uid>:<gid> /data` to the app's user
 (uid 1000 for `node:alpine`). Bake it into the seed step: `sh -c 'cat > /data/db && chown -R 1000:1000 /data'`.
 
-**Related.** `sakubun/scripts/verify-image.sh`, `sakubun/docs/decisions.md` 2026-07-21 "Verify a rebuilt image
+**Related.** `projects/sakubun/scripts/verify-image.sh`, `projects/sakubun/docs/decisions.md` 2026-07-21 "Verify a rebuilt image
 against a COPY of the real volume".
 
 
@@ -448,7 +448,7 @@ build to a commit (worktree) and forbid the implicit rebuild (`--no-build`). Ver
 worktree schema` before building. (Belt: back up the live volume first — the OLD image's `/api/backup` is still
 un-authed pre-cutover.)
 
-**Related.** `sakubun/Dockerfile` (`COPY . .`, `CMD … migrate deploy`), `sakubun/docker-compose.yml` (`build: .`).
+**Related.** `projects/sakubun/Dockerfile` (`COPY . .`, `CMD … migrate deploy`), `projects/sakubun/docker-compose.yml` (`build: .`).
 
 ## 13. LATER TRAP (2026-07-21): better-auth rejects `localhost` when `baseURL` is the public domain
 
@@ -468,7 +468,7 @@ localhost after the rebuild".
 **Lesson.** `baseURL` is single-valued but a home-server app has two legitimate origins (host + tunnel).
 `trustedOrigins` is the multi-origin knob; set it the moment the app is reachable on more than one host.
 
-**Related.** `sakubun/lib/auth.ts` (`trustedOrigins`), `sakubun/docs/decisions.md` 2026-07-21.
+**Related.** `projects/sakubun/lib/auth.ts` (`trustedOrigins`), `projects/sakubun/docs/decisions.md` 2026-07-21.
 
 ## 14. LATER TRAP (2026-07-21): Cloudflare Access gating a whole host also blocks the app's MACHINE endpoint
 
@@ -505,8 +505,8 @@ harmless: with no gate there is no hole to keep. Verified: `/login` → 200 (app
 `/api/mcp` → 401 JSON. So a `/host-audit` now sees the WHOLE sakubun host edge-open **by design** — do NOT
 "re-secure" it with Access. The bypass-carve-out lesson above still applies to any OTHER host kept behind Access.
 
-**Related.** `sakubun/app/api/[transport]/route.ts` (`withMcpAuth` Bearer gate), `sakubun/lib/mcp-key.ts`
-(`verifyMcpToken`), `sakubun/docs/decisions.md` 2026-07-21 + 2026-07-22 (G6 open-up).
+**Related.** `projects/sakubun/app/api/[transport]/route.ts` (`withMcpAuth` Bearer gate), `projects/sakubun/lib/mcp-key.ts`
+(`verifyMcpToken`), `projects/sakubun/docs/decisions.md` 2026-07-21 + 2026-07-22 (G6 open-up).
 
 ---
 
@@ -529,8 +529,8 @@ went green.)
 build (back to ~5.9 GB soon after) — prune periodically. LOCAL-dev-specific while the NUC is down (deploy =
 local rebuilds), but the same "EROFS = disk full" logic applies to the NUC if `/var/lib/docker` ever fills.
 
-**Related.** `sakubun/Dockerfile` (the cache mounts + npm fetch-retries added the same session);
-`sakubun/docs/decisions.md` 2026-07-22.
+**Related.** `projects/sakubun/Dockerfile` (the cache mounts + npm fetch-retries added the same session);
+`projects/sakubun/docs/decisions.md` 2026-07-22.
 
 ## 16. LATER TRAP (2026-07-24): Docker Desktop on Linux is a SEPARATE daemon — its GUI can't see native-engine containers, and launching it hijacks the CLI context
 

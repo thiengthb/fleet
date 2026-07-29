@@ -6,8 +6,8 @@ description: Put an app behind authentication, using whatever the app's target p
 # Skill: Protect an app with Authentik (NUC platform)
 
 Authentik is the central IdP at `https://auth.thientnse.site` (`/opt/apps/authentik`).
-Living docs: the `authentik/` repo (especially `authentik/docs/auth-apps.md` — the registry of every
-provider/app, UPDATE it after each use of this skill) and `authentik/README.md`.
+Living docs: the `projects/authentik/` repo (especially `projects/authentik/docs/auth-apps.md` — the registry of every
+provider/app, UPDATE it after each use of this skill) and `projects/authentik/README.md`.
 The invariants in `D:\Projects\MiniServer\CLAUDE.md` under the "Authentik" section are law.
 
 SSH NUC: `ssh thien25@thienminiserver`. App at `/opt/apps/<name>`.
@@ -137,7 +137,7 @@ one beat: new image + env + middleware).
 
 ## Stage 5 — Report + update the registry
 
-1. Update `authentik/docs/auth-apps.md` (the app table + provider/group details), commit & push the
+1. Update `projects/authentik/docs/auth-apps.md` (the app table + provider/group details), commit & push the
    `authentik` repo.
 2. Tell the user: which level the app is protected at, which group can enter, how to grant more access (add a user to the
    group in the Authentik admin), and remind them to test a browser login once.

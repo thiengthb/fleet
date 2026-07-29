@@ -28,6 +28,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readPayload } from './_util.mjs';
+import { projectRoots } from '../scripts/_layout.mjs';
 
 const STALE_DAYS = 10; // an `active` plan untouched this long is offered as dangling
 const LEAD_DAYS = 1; // a check-in this close is shown as "sắp tới" so it is never a surprise
@@ -70,20 +71,17 @@ function frontmatter(text) {
   return out;
 }
 
-/** Every plan directory on the platform: `<project>/docs/plans` and `<project>/plans`. */
+/**
+ * Every plan directory on the platform: `<project>/docs/plans` and `<project>/plans`.
+ * Project discovery is delegated to `_layout.mjs`, so a project nested under `projects/` is still found —
+ * this function used to scan only the repo's immediate children and went silently blind on 2026-07-30.
+ */
 function planDirs(root) {
   const dirs = [];
-  let entries = [];
-  try {
-    entries = readdirSync(root, { withFileTypes: true });
-  } catch {
-    return dirs;
-  }
-  for (const e of entries) {
-    if (!e.isDirectory() || e.name.startsWith('.') || e.name === 'node_modules') continue;
+  for (const project of projectRoots(root)) {
     for (const rel of [path.join('docs', 'plans'), 'plans']) {
-      const dir = path.join(root, e.name, rel);
-      if (existsSync(dir)) dirs.push({ project: e.name, dir });
+      const dir = path.join(project.dir, rel);
+      if (existsSync(dir)) dirs.push({ project: project.name, dir });
     }
   }
   return dirs;

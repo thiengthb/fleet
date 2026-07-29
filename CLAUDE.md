@@ -70,7 +70,7 @@ CSS-var theming · sonner · **lucide icons only** · no emoji as icon), and `/u
 
 Ship a task-oriented in-app `/guide` page. **One tab per machine-facing integration:** Discord → setup + command table +
 notification types + troubleshooting; MCP → endpoint+auth, how to connect, tool table, safety. New command/tool ⇒ update
-the tab **in the same change**. Reference: `todo/app/guide/page.tsx`.
+the tab **in the same change**. Reference: `projects/todo/app/guide/page.tsx`.
 
 ## Code reuse across projects — skill `/code-reuse`
 
@@ -191,6 +191,6 @@ over-powered staffing on mechanical work.
 **onboard/new** → `/app-onboard` · **remove** → `/app-remove` (confirm data loss + no impact FIRST; then
 code → container+volume+image+dir → Authentik provider/group → subdomain 404s → update INVENTORY + `auth-apps.md`) ·
 **audit/cleanup** → `/host-audit` (**report only** — every destructive action asks) · **protect (login/SSO/authz)**
-→ `/app-protect`, registry + traps in `authentik/docs/auth-apps.md` · **env/secrets** → `/app-env` (from the
+→ `/app-protect`, registry + traps in `projects/authentik/docs/auth-apps.md` · **env/secrets** → `/app-env` (from the
 LOCAL mirror `~/.nuc-env/<app>.env` over ssh STDIN; the agent never receives secret values) · **web is broken** → debug
 by layer DNS → tunnel → Traefik → app, symptom table in `targets/nuc/architecture-and-operations.md §7`.

@@ -23,6 +23,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { projectRoots } from './_layout.mjs';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const JSON_OUT = process.argv.includes('--json');
@@ -39,9 +40,9 @@ function findPlanFiles() {
       if (f.endsWith('.md')) out.push(join(platformPlans, f));
     }
   }
-  for (const entry of readdirSync(REPO, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-    const dir = join(REPO, entry.name, 'docs', 'plans');
+  // Discovery via _layout so a project living under `projects/` is still found (see _layout.mjs).
+  for (const project of projectRoots(REPO)) {
+    const dir = join(project.dir, 'docs', 'plans');
     if (!existsSync(dir)) continue;
     for (const f of readdirSync(dir)) {
       if (f.endsWith('.md') && !f.startsWith('_')) out.push(join(dir, f));

@@ -31,7 +31,7 @@
     "memory": ".claude/memory/MEMORY.md",
     "host-audit": "platform/inventory.md",
     "app-onboard": "*/.github/workflows/deploy.yml",
-    "app-protect": "authentik/docs/auth-apps.md",
+    "app-protect": "projects/authentik/docs/auth-apps.md",
     "app-remove": "platform/inventory.md",
     "host-maintenance": "platform/targets/nuc/architecture-and-operations.md",
     "app-env": ".claude/scripts/app-env.sh",

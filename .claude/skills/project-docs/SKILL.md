@@ -21,10 +21,10 @@ change the standard file first, then follow it.
 
 | kind | Reference to copy structure from | Mandatory file set |
 |------|--------------------------|------------------|
-| `web-app` (Next) | `todo/docs/` | 00-map · decisions · README · 01-product · 02-technical · 03-user-guide |
-| `monorepo` | `todo/docs/` (02-technical describes a multi-image topology like `yakudoku`) | same as web-app |
-| `worker` (node-bot/python-worker) | `nuc-monitor/` (lean structure) | 00-map · decisions · README |
-| `infra` | `authentik/docs/` | 00-map · decisions · README |
+| `web-app` (Next) | `projects/todo/docs/` | 00-map · decisions · README · 01-product · 02-technical · 03-user-guide |
+| `monorepo` | `projects/todo/docs/` (02-technical describes a multi-image topology like `yakudoku`) | same as web-app |
+| `worker` (node-bot/python-worker) | `projects/nuc-monitor/` (lean structure) | 00-map · decisions · README |
+| `infra` | `projects/authentik/docs/` | 00-map · decisions · README |
 | `meta` | — | README · (decisions if valuable) |
 
 ## Mode A — scaffold (create the missing files)
@@ -41,8 +41,8 @@ Run when the project lacks the doc-set (a new project, or an old one that's empt
 3. **Generate `docs/decisions.md`** from the template `templates/decisions.md` (header + 1 seed entry if a non-obvious
    decision can be extracted from the code/CLAUDE.md/INVENTORY; if there's nothing worth recording yet → keep the header + the note "no
    entries yet").
-4. **web-app/monorepo**: also generate `docs/README.md` (index — copy the table style of `todo/docs/README.md`),
-   `01-product.md`, `02-technical.md`, `03-user-guide.md`. Copy the **section layout** from `todo/docs/` then fill in
+4. **web-app/monorepo**: also generate `docs/README.md` (index — copy the table style of `projects/todo/docs/README.md`),
+   `01-product.md`, `02-technical.md`, `03-user-guide.md`. Copy the **section layout** from `projects/todo/docs/` then fill in
    the project's REAL content (don't leave any of todo's placeholders behind).
 5. **Thin `CLAUDE.md`**: if there isn't one → create a short version (rules + project-specific invariants + a pointer "read
    `docs/00-map.md`"). If one exists but is bloated with spec → propose splitting the spec out into `docs/` (as `todo` did), ASK

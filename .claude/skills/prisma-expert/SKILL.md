@@ -5,8 +5,8 @@ description: Prisma ORM depth for a MiniServer web-app — schema & relations de
 
 # Prisma Expert (platform-adapted)
 
-Deep Prisma knowledge for the standard data layer. Living references: `todo/prisma/schema.prisma` + `todo/lib/db.ts`
-(the singleton) + `todo/app/actions.ts` (server actions calling `prisma.*`).
+Deep Prisma knowledge for the standard data layer. Living references: `projects/todo/prisma/schema.prisma` + `projects/todo/lib/db.ts`
+(the singleton) + `projects/todo/app/actions.ts` (server actions calling `prisma.*`).
 
 > **Adapted from** `development/prisma-expert` (`davila7/claude-code-templates`). Stripped: its "recommend a different
 > specialist" routing (those skills don't exist here) and its serverless connection-pooling framing — **our apps are

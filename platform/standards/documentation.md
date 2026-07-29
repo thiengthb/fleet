@@ -4,7 +4,7 @@
 > **understand a project in one cheap read**, and non-obvious knowledge **accumulates across sessions**
 > instead of evaporating. This is the source of truth that the two skills `/project-docs` and `/session-wrap` reference.
 >
-> Established 2026-06-12. Inspiration + gold standard: the documentation set of `todo/`.
+> Established 2026-06-12. Inspiration + gold standard: the documentation set of `projects/todo/`.
 
 ---
 
@@ -73,8 +73,8 @@ compounding one). Worker/infra stopping there is enough — do NOT force the 01/
 > `/user-guide`: task-oriented, with a dedicated tab per machine-facing integration (Discord / MCP). The
 > in-app guide mirrors `docs/03-user-guide.md` but is user-facing (written in the product's language).
 
-> Gold standard `web-app`: `todo/docs/` (full 01/02/03/04 + README). `todo`'s `00-map.md` is exactly the distillation
-> of §3 (module map) + §4 (flows) from `todo/docs/02-technical.md`.
+> Gold standard `web-app`: `projects/todo/docs/` (full 01/02/03/04 + README). `todo`'s `00-map.md` is exactly the distillation
+> of §3 (module map) + §4 (flows) from `projects/todo/docs/02-technical.md`.
 
 ---
 
@@ -96,7 +96,7 @@ A short table: framework · UI · data · AI/external · deploy. (web-app follow
 
 ## 3. Module map / entry points
 A CONDENSED directory tree — only the important directories/files + a one-line "what it does". This is the part the agent uses most.
-(Template: todo/docs/02-technical.md §3.)
+(Template: projects/todo/docs/02-technical.md §3.)
 
 ## 4. Main flows
 The 1–3 most important flows, each a few numbered steps (e.g.: mutation, AI call, cron). Note traps/trust-boundaries inline.

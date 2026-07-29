@@ -120,7 +120,7 @@ Notes:
 - **App-health = Docker HEALTHCHECK read over `docker.sock`** (idea-0012, Option D, 2026-06-17): nuc-monitor's
   `check_app_health` reads each container's `State.Health.Status` and alerts (edge-triggered) on `unhealthy` — **no
   network change, the "no edge" invariant holds**. The *deep* DB check lives in each app's own container HEALTHCHECK
-  (journal/yakudoku-core → `/api/ready`·`/ready` run `SELECT 1`; yakudoku-web has no DB → liveness only). So a container
+  (projects/journal/yakudoku-core → `/api/ready`·`/ready` run `SELECT 1`; yakudoku-web has no DB → liveness only). So a container
   reading `unhealthy` ⇒ a Discord alert even while it's still "running". Build: `plans/2026-06-17-nuc-monitor-app-health-build.md`.
 - **n8n** and **authentik** use version-pinned third-party images → they do **not** carry the
   `com.centurylinklabs.watchtower.enable=true` label; to upgrade = bump the tag manually then `docker compose up -d`.

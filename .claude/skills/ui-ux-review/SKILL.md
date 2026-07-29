@@ -51,7 +51,7 @@ twice — once in `--base`, once in `UI_AUDIT_ALLOW_WRITE_BASE`. You cannot fat-
 no port is hardcoded, so the guard travels to any project. Credentials come from the env, never argv.
 Point it at a throwaway server (`sakubun`: `:3799`, seeded by `e2e/global-setup.ts` + an HTTP sign-up).
 
-If the project has no `scripts/ui-audit.mjs`, copy it from `sakubun/scripts/ui-audit.mjs` — it is
+If the project has no `scripts/ui-audit.mjs`, copy it from `projects/sakubun/scripts/ui-audit.mjs` — it is
 project-agnostic apart from `DEFAULT_ROUTES`. It needs `@playwright/test` + `axe-core`.
 
 **Read the report by distinct check, not by count.** 122 findings across 10 routes collapsed to **7

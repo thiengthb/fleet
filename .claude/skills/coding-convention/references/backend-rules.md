@@ -6,7 +6,7 @@ load_priority: high
 
 # Backend rules — Next.js (Route Handlers + Server Actions, NO separate Express)
 
-> Living reference: `todo/app/`. **NEVER** stand up a separate Express; all backend lives in Next.js.
+> Living reference: `projects/todo/app/`. **NEVER** stand up a separate Express; all backend lives in Next.js.
 
 ## Where each kind of server code goes
 
@@ -16,7 +16,7 @@ load_priority: high
 | Browser-side query (rare) | Server Action or Route Handler | — |
 | HTTP / machine endpoint | **Route Handler** | `app/api/<x>/route.ts` |
 | Health probe | Route Handler, **always open** | `app/api/health/route.ts` |
-| MCP / OAuth / webhook (machine clients) | Route Handler in a separate router | `todo/app/api/[transport]`, `app/api/oauth/*` |
+| MCP / OAuth / webhook (machine clients) | Route Handler in a separate router | `projects/todo/app/api/[transport]`, `app/api/oauth/*` |
 
 ## Hard rules
 
@@ -43,5 +43,5 @@ Order of preference:
 ## See also
 
 - `CLAUDE.md` invariant #8 + skill `/app-protect` — protection workflow
-- `authentik/docs/auth-apps.md` — registry + traps
+- `projects/authentik/docs/auth-apps.md` — registry + traps
 - `references/typescript-style.md` — `node:` prefix, ESM, async/await on the server

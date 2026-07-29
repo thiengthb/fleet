@@ -138,7 +138,7 @@ Copy into `.claude/skills/`, then **adapt** to our conventions (strip serverless
 > **MISSING — no catalog fit → BUILT CUSTOM:** unit/integration testing for our **core path: Vitest + Next.js server
 > actions** (mock the Prisma singleton + `next/cache`, assert guards + `revalidatePath`), pure-logic units, RTL
 > components, and a GH-Actions `test` job gating `deploy.yml`. Every JS-unit candidate was a stub →
-> **`/vitest-server-actions`** authored (grounded in `todo/app/actions.ts` + `lib/db.ts`), with templates
+> **`/vitest-server-actions`** authored (grounded in `projects/todo/app/actions.ts` + `lib/db.ts`), with templates
 > (vitest.config/setup, actions.test.ts, ci-test-job.yml). `.claude/skills/vitest-server-actions/`.
 
 ### Agent thinking / process (what the user asked to improve)

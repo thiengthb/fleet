@@ -7,7 +7,7 @@ description: Build & maintain the in-app user guide for any MiniServer app with 
 
 Every MiniServer app with a UI must teach the user how to use it **inside the app** — not only in
 `docs/`. This skill defines what that guide page must contain and keeps it in sync with the features.
-Living reference: `todo/app/guide/page.tsx` (route `/guide`, tabs "Using the app" + "Use with AI/MCP").
+Living reference: `projects/todo/app/guide/page.tsx` (route `/guide`, tabs "Using the app" + "Use with AI/MCP").
 
 Standards this builds on: `/react-ui-craft` (frontend engineering) + `/coding-convention` (stack, UI rules)
 + `platform/standards/documentation.md` (the guide mirrors `docs/03-user-guide.md`).
@@ -47,14 +47,14 @@ Document, concretely:
 - **Workflow / prompt guidance**: how the AI is expected to behave (read context → present → wait for
   approval → write), and any capacity/safety limits it must respect.
 - **Safety**: which endpoints are exempt from forward-auth and why (machine clients), per
-  `authentik/docs/auth-apps.md` + the app's `docs/00-map.md`.
+  `projects/authentik/docs/auth-apps.md` + the app's `docs/00-map.md`.
 > Living MCP example: `todo` (`app/api/[transport]`, OAuth shim) — mirror its guide tab.
 
 ## Procedure
 
 1. Detect integrations: does the app have a Discord bot/webhook? an MCP route (`app/api/[transport]` /
    `…/api/mcp`)? Check `docs/00-map.md` §3/§7 + code. Each present integration ⇒ its tab is required.
-2. If `/guide` doesn't exist, scaffold it following `todo/app/guide/page.tsx` (shadcn `Tabs`, motion via
+2. If `/guide` doesn't exist, scaffold it following `projects/todo/app/guide/page.tsx` (shadcn `Tabs`, motion via
    `/react-ui-craft`, app-shell width per the app's UI conventions). Server Component for static copy.
 3. Fill the base tab from `docs/03-user-guide.md`; fill integration tabs from the real command/tool list
    (read the bot's command registry / `lib/mcp/server.ts` — don't invent commands).

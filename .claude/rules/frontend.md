@@ -22,7 +22,7 @@ in **full** (not compressed to fit a line budget) at the moment it actually appl
 Every page body = a shared `PageShell` (vertical rhythm + a width tier + the breadcrumb slot); the app shell `<main>`
 owns horizontal width only; breadcrumbs replace page titles on EVERY page; sidebar footer stacks + collapses to icons
 (logout = destructive); animation = **Motion** wrapped once in `<MotionConfig reducedMotion="user">` + a small reusable
-variant vocab. Reference impl: `sakubun/components/{page-shell,app-breadcrumbs,motion-primitives}.tsx`.
+variant vocab. Reference impl: `projects/sakubun/components/{page-shell,app-breadcrumbs,motion-primitives}.tsx`.
 
 ## Stack (running in `todo`)
 
