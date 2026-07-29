@@ -122,8 +122,26 @@ of self-improvement here as unverified.
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
 ### idea-0026 — Cut process surface instead of explaining it better
-state: inbox · source: **agent, raised out of idea-0025's research and greenlit by the supervisor** (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29
-gate: null — needs `/idea gate`
+state: active · source: **agent, raised out of idea-0025's research and greenlit by the supervisor** (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29
+gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.8 effort: 2 · base: 3.60 · interest: 0.8 · **rank: 4.03**
+interest_why: the supervisor greenlit it explicitly when offered; it sits in agent-governance (his stated lean); and `practice-first-lean-ceremony` records that he deletes his own work on evidence, so a measured cut is the shape he acts on. Ranks ABOVE idea-0025 did (3.53) — deletion is cheaper than the machinery it removes.
+> **MEASURED 2026-07-29, before proposing any cut** (the idea's own instruction: measure first, propose deletions second).
+> Numbers are from `git`/the filesystem and from the three real transcripts of 2026-07-29 — not estimated.
+>
+> **① What exists:** 38 skills · 12 hooks · 13 scripts · 5 registries · 6 standards · **31 plan files** · 11 proposals.
+> **② What one real session actually put in front of him** (the session where he said he did not understand):
+> 25 turns, **7 decision gates**, 132 messages from the agent, **19 distinct named artefacts** (`idea-00NN`, plan
+> paths, `.claude/*` paths). The load is ②, not ① — 38 skills cost him nothing while they stay unnamed.
+> **③ The natural experiment already in the data.** Mid-session he asked for three-sentence reports. Median
+> turn-ending report: **1,980 chars / 19 lines BEFORE → 942 chars / 7 lines AFTER** (n=21 → n=5). So the convention
+> **worked — and immediately drifted**: 942 chars is still ~3× what "three sentences" means. Both halves of
+> idea-0025's premise are now numeric rather than asserted.
+> **④ The cheapest concrete cut found so far:** of **31 plan files, exactly 1 is `active`** — 12 `done`, 8 `accepted`,
+> 6 `superseded`, 2 `blocked`, 1 `proposed`, 1 `draft`. Live work and archive share one directory, and two hooks
+> (`plan-audit`, `plan-checkin`) walk all 31 every session. Moving the closed ones to `platform/plans/archive/` cuts
+> the visible surface ~84% with **zero information loss** — nothing is deleted, only moved out of the way.
+> **Still to do before this becomes a proposal:** ≥2 external sources (NN/g progressive disclosure is one), and a
+> per-artefact judgement of which of the 19 he actually needed vs. which I named out of habit.
 > **The question, plainly:** a session currently asks the supervisor to hold a lot of separate machinery in his head —
 > skills, registries, plans, ledger, log, quarantine, gates. idea-0025 makes the *explanation* of that machinery
 > checkable. This idea asks the harder question: **how much of the machinery should exist at all?**
