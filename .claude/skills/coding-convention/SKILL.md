@@ -50,13 +50,14 @@ Read the description above and pull the 1-2 reference files the task actually ne
 
 When scaffolding a new project (skill `/app-onboard`), install at the repo-init step:
 
-- **Prettier config + ignore** — copy from `templates/`:
+- **Prettier config + ignore** — install from `commons`, the single source for these two files:
   ```sh
-  cp ".claude/skills/coding-convention/templates/.prettierrc"     "<repo>/.prettierrc"
-  cp ".claude/skills/coding-convention/templates/.prettierignore" "<repo>/.prettierignore"
+  npx shadcn@latest add ../commons/public/r/config-prettier.json   # or: @thiengthb/config-prettier
   npm i -D prettier
   # package.json: "format": "prettier --write .", "format:check": "prettier --check ."
   ```
+  (A new repo gets them anyway via `@thiengthb/starter-web-app`, which depends on this item. The *rule* —
+  the settings table — stays in `references/typescript-style.md`: read here, installed from there.)
 - **Git hooks** (commit-msg + pre-commit) — copy from `hooks/`:
   ```sh
   cp ".claude/skills/coding-convention/hooks/commit-msg" "<repo>/.git/hooks/commit-msg"

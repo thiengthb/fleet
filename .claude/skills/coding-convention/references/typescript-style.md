@@ -17,7 +17,7 @@ load_priority: high
 - **TypeScript is mandatory.** No casual `any`.
 - **IF** you need a permissive type at a boundary **→** use `unknown`, then narrow (don't reach for `any`).
 - **IF** declaring an object shape **→** prefer `interface`. **IF** a union/alias **→** use `type`.
-- **IF** declaring a domain entity used in multiple files **→** put it in `lib/types.ts` (see `todo/lib/types.ts`).
+- **IF** declaring a domain entity used in multiple files **→** put it in `lib/types.ts` (see `projects/todo/lib/types.ts`).
 - **Strict mode is on** in every `tsconfig.json` — keep it on.
 - Export types explicitly when consumed across modules.
 
@@ -38,9 +38,11 @@ load_priority: high
 
 ### Per-repo install (one-time)
 
+Install from `commons`, which is the single source for the two files (the settings table above stays here —
+the RULE is read, the FILE is installed):
+
 ```sh
-cp ".claude/skills/coding-convention/templates/.prettierrc"     "<repo>/.prettierrc"
-cp ".claude/skills/coding-convention/templates/.prettierignore" "<repo>/.prettierignore"
+npx shadcn@latest add ../commons/public/r/config-prettier.json   # or: @thiengthb/config-prettier
 npm i -D prettier
 # package.json scripts:
 #   "format": "prettier --write ."
