@@ -122,7 +122,7 @@ of self-improvement here as unverified.
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
 ### idea-0026 — Cut process surface instead of explaining it better
-state: active · source: **agent, raised out of idea-0025's research and greenlit by the supervisor** (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29
+state: done · source: **agent, raised out of idea-0025's research and greenlit by the supervisor** (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29
 gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.8 effort: 2 · base: 3.60 · interest: 0.8 · **rank: 4.03**
 interest_why: the supervisor greenlit it explicitly when offered; it sits in agent-governance (his stated lean); and `practice-first-lean-ceremony` records that he deletes his own work on evidence, so a measured cut is the shape he acts on. Ranks ABOVE idea-0025 did (3.53) — deletion is cheaper than the machinery it removes.
 > **MEASURED 2026-07-29, before proposing any cut** (the idea's own instruction: measure first, propose deletions second).
@@ -160,9 +160,27 @@ interest_why: the supervisor greenlit it explicitly when offered; it sits in age
 > agent's prose, not the check's accuracy, so shrinking would have deleted detections, not noise. Fixed the real defect
 > instead — **a term is introduced once per session** (16 → 12 warnings, nothing distinct hidden), and the pre-mortem's
 > number is corrected in the file with the data. Ledger: `#2026-07-29-firing-rate-measures-your-prose`.
-> **Still open, and it is the ORIGINAL question:** a per-artefact judgement of which of the 19 names he actually needed
-> vs. which were habit, plus ≥2 external sources — that is what would make this a proposal rather than two lint rules.
-> The counting is done; the deleting has not started.
+> **⑦ THE CUT, made 2026-07-29 (supervisor: "cắt luôn đi") — and it is not the cut anyone expected.**
+> All **31** distinct names of that session (not 19 — the earlier figure was measured over a subset) were pulled with
+> their context and classified by what he had to DO: **type it** (`/exit`, `/plugin`, a `cp` line), **decide about it**
+> (an `idea-00NN` under discussion), or **open it**. Result: **17 of 31 were none of those** — 10 paths where the agent
+> files its own records, and 7 skill names cited only to justify the agent's reasoning.
+>
+> **A second deletion was proposed and refuted, which is why the cut landed where it did.** The day-log tier looked like
+> textbook dead weight: 29 files, 392 KB, written at every wrap, and **no hook or script reads it**. Counting tool calls
+> across every transcript on this machine killed that: **93 reads against 20 writes** — it is consulted more often than
+> it is produced. Two deletion hypotheses in one pass, both refuted by measurement (the plan-archive move in ④ was the
+> first). **The machinery is not the problem; narrating it is.**
+>
+> **So what was cut is the narration, and it is enforced rather than promised:** the lint now warns whenever a message
+> names the agent's own filing, and the name budget dropped from 6 to **4** — lowered by *inspection* (the 31-name
+> classification), never by firing rate, per the ledger rule written earlier the same day.
+> **Falsifiable follow-up, and the honest weakness of all of this:** replayed over history the checks fire on **25–37%
+> of reports**, because the old prose broke the new rule almost everywhere. If a re-measure in a week does not show that
+> collapsing, the rule is not being followed and the warning has become wallpaper — that, not the rate itself, is the
+> signal to act on.
+> **Left undone on purpose:** the ≥2 external sources for a formal proposal. The cut was made directly instead, because
+> writing a research document to justify deleting a habit would have been the very ceremony this idea exists to reduce.
 > **The question, plainly:** a session currently asks the supervisor to hold a lot of separate machinery in his head —
 > skills, registries, plans, ledger, log, quarantine, gates. idea-0025 makes the *explanation* of that machinery
 > checkable. This idea asks the harder question: **how much of the machinery should exist at all?**
