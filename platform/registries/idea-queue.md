@@ -104,6 +104,37 @@ of self-improvement here as unverified.
 
 ## Inbox (captured — awaiting supervisor gate before entering active)
 
+### idea-0024 — The HAND-WRITTEN half of the graduation-thesis doc set (SRS · User Stories · Use Cases · UI/UX · Threat Model)
+state: parked · source: user (2026-07-29) · created: 2026-07-29 · updated: 2026-07-29 · revisit_when: the supervisor has the university's rubric / đề cương in hand
+gate: defer · moscow: could · interest: n/a (explicitly NOT a platform-optimisation item — see below)
+> **Parked on purpose, by the supervisor, with the reason stated plainly:** *"tôi chưa hiểu rõ đồ án tốt nghiệp của tôi
+> sẽ viết document như thế nào, đợi một dịp khi tôi nắm rõ thì ta sẽ active phần này"*. The blocker is not effort, it is
+> **not knowing the marking scheme** — and writing an SRS against a guessed rubric produces the one thing worse than no
+> document: a long one that is wrong in ways nobody checks.
+>
+> **What is parked here** (everything that cannot be derived from an existing artifact): `SRS` (ISO/IEC/IEEE 29148:2018
+> — **not** IEEE 830, which is superseded) · `User Stories` + `Acceptance Criteria` · `Use Cases` · `Wireframe` /
+> `Mockup` / `Prototype` · `Design System` (write-up; the rules already exist in `.claude/rules/frontend.md`) ·
+> `Product Vision` / `BRD` / `Market Research` · `Threat Model` (STRIDE) · `Security Requirements`.
+>
+> **What is NOT parked** — the derivable half is being built now as `docgen` (see `docgen/docs/00-map.md`), because it
+> costs近 zero and cannot drift: ERD + Data Dictionary from `schema.prisma`, C4 from `inventory.md`, Coding Standard /
+> Git Workflow from the `coding-convention` references, Test Plan from `standards/testing.md`, Decision Log + ADRs from
+> each project's `decisions.md`, Development Log from `platform/log/`, Changelog from Conventional Commits.
+>
+> **Honest scoring note, recorded because it is unusual for this queue.** The supervisor pre-emptively conceded the
+> platform value: *"hiện tại những phần này có thể chưa có tác dụng tối ưu cho platform … có thể khi xong đồ án, có một
+> vài phần doc có thể bị lược bỏ và desolve, vứt vào sọt rác."* So this is deliberately **not** RICE-scored against
+> platform benefit — it would rank last and that ranking would be answering a question nobody asked. It is a personal
+> deliverable with a real external deadline, and the queue records it as such rather than pretending otherwise.
+> The design consequence is concrete: `docgen` is a **separate repo, reading fleet read-only, deletable in one `rm`** —
+> chosen so that "vứt vào sọt rác" stays cheap. A feature that is expected to be thrown away should be built so it can be.
+>
+> **Activation trigger:** the rubric arrives ⇒ map each required section to (a) already generated, (b) derivable, or
+> (c) genuinely hand-written, and only then estimate. Do not start before that; the rubric is the requirement doc.
+
+---
+
 ### idea-0023 — MCP platform server: one-way skill/rule delivery to other machines + filtered lesson backflow
 state: proposed · source: user (2026-07-28, two consecutive framings: multi-machine harness, then "only expose a small surface") · created: 2026-07-28 · updated: 2026-07-28
 gate: pass · moscow: should · reach: 3 impact: 3 confidence: 0.6 effort: 4 · base: 1.35 · interest: 0.8 · **rank: 1.51**
