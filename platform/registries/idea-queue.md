@@ -136,12 +136,23 @@ interest_why: the supervisor greenlit it explicitly when offered; it sits in age
 > turn-ending report: **1,980 chars / 19 lines BEFORE → 942 chars / 7 lines AFTER** (n=21 → n=5). So the convention
 > **worked — and immediately drifted**: 942 chars is still ~3× what "three sentences" means. Both halves of
 > idea-0025's premise are now numeric rather than asserted.
-> **④ The cheapest concrete cut found so far:** of **31 plan files, exactly 1 is `active`** — 12 `done`, 8 `accepted`,
-> 6 `superseded`, 2 `blocked`, 1 `proposed`, 1 `draft`. Live work and archive share one directory, and two hooks
-> (`plan-audit`, `plan-checkin`) walk all 31 every session. Moving the closed ones to `platform/plans/archive/` cuts
-> the visible surface ~84% with **zero information loss** — nothing is deleted, only moved out of the way.
-> **Still to do before this becomes a proposal:** ≥2 external sources (NN/g progressive disclosure is one), and a
-> per-artefact judgement of which of the 19 he actually needed vs. which I named out of habit.
+> **④ The cut I proposed, and then REFUTED with the next measurement — recorded because the reversal is the finding.**
+> The pitch was: 31 plan files, only 1 `active`, so move the closed ones to `platform/plans/archive/` for a ~84%
+> smaller directory at zero information loss. The supervisor picked it. Checking the artefact before applying it (the
+> 2026-07-29 ledger lesson) killed it on two counts:
+> - **The noise it claimed to remove does not exist.** `plan-checkin.mjs` already skips `done`/`abandoned`, dangling
+>   only applies to `active`, and **exactly 3 plans carry a `checkin:` date — all 3 legitimately open** (2 `blocked`
+>   on the NUC, 1 `active`). No closed plan has ever nagged him.
+> - **The cost is real and silent:** **63 files** outside `platform/plans/` reference a `done`/`superseded` plan by
+>   filename. A move breaks all of them, and nothing would fail loudly.
+>
+> **⑤ What the measurement actually says, once ④ is gone.** The machinery on disk is *quiet* — 38 skills, 31 plans and
+> 11 proposals cost him nothing while unnamed. The load is **what the agent says**: 19 artefact names in one session,
+> and reports at ~3× the length it had just agreed to. **So idea-0026's own premise is half wrong for this platform:
+> the thing to cut is not the process, it is how much of the process gets narrated.** That is a different and cheaper
+> intervention, and it is measurable the same way the jargon lint is (count named artefacts per message).
+> **Next, before this becomes a proposal:** ≥2 external sources (NN/g progressive disclosure is one), and a
+> per-artefact judgement of which of the 19 he needed vs. which were named out of habit.
 > **The question, plainly:** a session currently asks the supervisor to hold a lot of separate machinery in his head —
 > skills, registries, plans, ledger, log, quarantine, gates. idea-0025 makes the *explanation* of that machinery
 > checkable. This idea asks the harder question: **how much of the machinery should exist at all?**
