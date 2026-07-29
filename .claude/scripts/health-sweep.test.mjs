@@ -71,6 +71,10 @@ const runSweep = (scriptsDir) => {
       encoding: "utf8",
       cwd: REPO,
       timeout: 180_000,
+      // The sweep stamps a dated row into `platform/reports/health-sweep-log.md` on every run. In the sandbox
+      // that resolves inside the temp dir, so the real repo is safe either way — but a test must not depend on
+      // that reasoning holding after someone changes how the path is derived. Off, explicitly.
+      env: { ...process.env, HEALTH_SWEEP_LOG: "off" },
     },
   );
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };

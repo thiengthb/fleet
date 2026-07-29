@@ -109,10 +109,16 @@ detectors.push({
           lineStart,
           lineEnd === -1 ? undefined : lineEnd,
         );
+        // The second family: a tool named IN ORDER TO REJECT IT. An "Approach & tradeoffs" section that says
+        // "ruled out — a dedicated `cadence-check.mjs` hook, because …" is doing exactly what the plan standard
+        // asks for (≥2 options ruled out, named concretely). Firing on it would punish the best available
+        // documentation and push authors toward vague alternatives nobody can evaluate — found 2026-07-30, when
+        // this detector fired on the very plan that ruled the tool out.
         if (
           /supersed|retired|no longer|not installed|replaced by|removed|deleted|folded in/i.test(
             line,
-          )
+          ) ||
+          /ruled out|decided against|rejected|not built|never built/i.test(line)
         )
           continue;
         // An UNCHECKED plan step names a file it intends to create — intent, not a stale citation. A

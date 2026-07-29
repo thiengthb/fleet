@@ -16,11 +16,15 @@
  *             NEVER auto-acted on. Drift is where a confident cleanup destroys work, so it produces a
  *             candidate list for a human to retire slowly — never a deletion.
  *
- * Usage:  node .claude/scripts/health-sweep.mjs [--quiet] [--json]
+ * Usage:  node .claude/scripts/health-sweep.mjs [--quiet] [--json] [--no-log]
  * Exit code: 1 if anything is BROKEN, 0 otherwise. DRIFT never fails the run.
+ *
+ * Every run stamps one dated row into `platform/reports/health-sweep-log.md` — the evidence the standing
+ * cadence reminder reads, and the only place the broken/drift TREND is visible. `--no-log` suppresses it.
  */
 
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -176,12 +180,60 @@ const checkers = [
   },
 ];
 
+/**
+ * Leave dated evidence that the sweep actually RAN — one row per calendar day, the last run of the day wins.
+ *
+ * WHY. The weekly cadence reminder (`platform/plans/2026-07-30-standing-cadence.md`) needs to know when this
+ * was last run, and the cheap way — a `last_run:` field someone edits by hand — is precisely the erosion this
+ * platform keeps documenting: a self-reported clock reads "on schedule" the moment anyone forgets. Measuring
+ * it from an artefact the tool writes itself cannot drift. The row doubles as the broken/drift TREND, which is
+ * the one thing a single sweep cannot show: 3 drift items is meaningless, 3 → 40 over a month is a finding.
+ *
+ * Never fatal: this is bookkeeping, and a sweep that dies while reporting health would be its own punchline.
+ * Off with `--no-log` or `HEALTH_SWEEP_LOG=off` (a dry run, or a test that must not touch the tree).
+ */
+function stampRunLog(broken, drift) {
+  if (process.argv.includes("--no-log")) return;
+  if (/^(0|off|false|no)$/i.test((process.env.HEALTH_SWEEP_LOG || "").trim()))
+    return;
+
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  // LOCAL calendar day — the supervisor's week, not UTC's (same choice as plan-checkin.mjs).
+  const day = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  const file = join(REPO, "platform", "reports", "health-sweep-log.md");
+  const HEADER = `# health-sweep — run log
+
+One row per DAY (the last run of that day wins). Written by \`.claude/scripts/health-sweep.mjs\` on every run —
+**this is the evidence the standing-cadence reminder reads, so it is never edited by hand.** Two things live
+here that a single sweep cannot tell you: *whether the weekly cadence is actually being kept*, and *which
+direction the numbers are moving.*
+
+| date | broken | drift | verdict |
+| --- | --- | --- | --- |
+`;
+  const row = `| ${day} | ${broken} | ${drift} | ${broken ? `${broken} BROKEN` : "clean"} |`;
+
+  try {
+    mkdirSync(dirname(file), { recursive: true });
+    let text = existsSync(file) ? readFileSync(file, "utf8") : HEADER;
+    if (!text.endsWith("\n")) text += "\n";
+    const rowRe = new RegExp(`^\\| ${day} \\|.*$`, "m");
+    text = rowRe.test(text) ? text.replace(rowRe, row) : `${text}${row}\n`;
+    writeFileSync(file, text);
+  } catch {
+    /* bookkeeping is best-effort — never the reason a health report fails */
+  }
+}
+
 const results = checkers.map((c) => {
   const r = c.read(run(c.args));
   return { id: c.id, proves: c.proves, ...r };
 });
 const broken = results.reduce((n, r) => n + (r.bad || 0), 0);
 const drift = results.reduce((n, r) => n + (r.drift || 0), 0);
+
+stampRunLog(broken, drift);
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ broken, drift, results }, null, 2));
