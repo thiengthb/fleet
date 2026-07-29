@@ -38,8 +38,21 @@ import { readPayload } from './_util.mjs';
  * phrasing to use instead, because a warning that only says "too jargony" reproduces the problem.
  *
  * GROWTH RULE (reactive by design, and that limit is acknowledged): a term joins this list the turn
- * the supervisor says he does not follow it. It is not meant to be exhaustive; if it fires more than
- * roughly once a session, the list is too broad and should SHRINK — noise is how this gets disabled.
+ * the supervisor says he does not follow it. It is not meant to be exhaustive.
+ *
+ * MEASURED FIRING RATE, and a correction to this file's own first draft. That draft said "if it
+ * fires more than roughly once a session, the list is too broad and should SHRINK". Replaying the
+ * check over 43 deduped real reports says otherwise: it fires 16 times — about 4 to 8 distinct terms
+ * in a working session, 0 in a light one. **Every one of those was a true positive.** `mutant`,
+ * `thin-slice`, `backflow`, `RICE`, `exploration floor`, `Reflexion`, `idempotent`, `wildcard`,
+ * `oracle` are all genuinely opaque to the reader they were aimed at.
+ *
+ * So the "once a session" number was a guess made before the data, and shrinking the list to meet it
+ * would be weakening a rule to get a green light — the exact move the rulebook forbids. The rate
+ * measures the AGENT'S PROSE, not this check's accuracy, and it falls to zero by writing
+ * differently. What was fixed instead is repetition: a term is introduced ONCE per session (see
+ * `lintReport`), which cut 16 warnings to 12 without hiding a single distinct defect. SHRINK the
+ * list only for a term that fires on prose he would have understood anyway.
  */
 export const TERMS = [
   [/\bRICE\b/, 'điểm ưu tiên tính từ: bao nhiêu người dùng × lợi ích × độ chắc chắn ÷ công sức'],
@@ -60,6 +73,38 @@ export const TERMS = [
   [/\bshingle\b/i, 'cụm 6 từ liên tiếp, dùng để dò trùng văn bản'],
   [/\bidempotent\b/i, 'chạy lại nhiều lần vẫn ra cùng kết quả'],
 ];
+
+/**
+ * The SECOND defect, added 2026-07-29 after idea-0026's measurement pass — and the measurement is
+ * the reason this rule exists in this shape rather than another.
+ *
+ * The pass began by proposing to shrink the machinery on disk (31 plan files, 1 of them live). That
+ * was refuted by checking it: the closed plans nag nobody (`plan-checkin` already skips them, and
+ * only 3 plans carry a `checkin:` date — all open), while moving them would break **63 files** that
+ * reference them by name. The machinery on disk is quiet.
+ *
+ * What is NOT quiet is how much of it gets named out loud. Across the three real transcripts of
+ * 2026-07-29 the median turn-ending report named **1** artefact, p75 was 2, p90 was 4 — and the
+ * worst named **9**. Those outliers are the sessions he stopped following.
+ */
+export const NAMED_ARTEFACT =
+  /idea-\d{4}|platform\/[a-z-]+\/[\w.@-]+\.(?:md|mjs|json|sh)|\.claude\/[\w./@-]+|docs\/[\w./-]+\.md|(?<![\w/-])\/[a-z][a-z-]{2,}(?![\w/-])/g;
+
+/**
+ * Warn above SIX distinct names in one message. Chosen from the distribution, not from taste:
+ * >6 fires on 2 of 53 measured reports (~4%, roughly 0.7× per session), which is the bar this
+ * hook's own pre-mortem committed to — "if it fires more than about once a session, the list is too
+ * broad". Tighter thresholds are available and were measured: >4 → 11% (~2×/session), >5 → 9%.
+ * Tighten it here if the warnings turn out to be useful rather than annoying; that is a data
+ * question, and the data is in `platform/registries/idea-queue.md` under idea-0026.
+ */
+export const MAX_NAMES = 6;
+
+/** Null when the message is within budget — the common case, and it must cost nothing to say so. */
+export function findNameOverload(text) {
+  const names = [...new Set(prose(text).match(NAMED_ARTEFACT) ?? [])];
+  return names.length > MAX_NAMES ? { count: names.length, names } : null;
+}
 
 /** A term counts as explained if a gloss opens shortly after it, in the same breath. */
 const GLOSS_MARKERS = /[—–:(]|\bnghĩa là\b|\btức là\b|\bhiểu là\b|\bmeans\b|\bi\.e\.\b/i;
@@ -155,6 +200,15 @@ export function lintGate(questions = []) {
     for (const { term, gloss } of jargonAcross(fields)) {
       warnings.push(`${label}: "${term}" is used without explaining it. Plain version: ${gloss}.`);
     }
+
+    // A decision point carries the same budget: if he has to hold seven names to answer, the
+    // question is doing the work the file should be doing.
+    const overload = findNameOverload(fields.filter(Boolean).join('\n'));
+    if (overload) {
+      warnings.push(
+        `${label}: ${overload.count} artefacts named in one question. Name the one he acts on.`,
+      );
+    }
   });
 
   return { blocking, warnings };
@@ -169,8 +223,31 @@ export function lintGate(questions = []) {
 export const REPORT_NOTE =
   'warning only — he does not object to jargon, he silently stops following.';
 
-export function lintReport(text) {
-  return findJargon(text).map(({ term, gloss }) => `"${term}" → ${gloss}`);
+/**
+ * `alreadyIntroduced` carries the terms this session has already been warned about, so a word is
+ * flagged on FIRST use and not on every use — which is what introducing a term actually means, and
+ * is scope-guess (b) of idea-0025 arriving by measurement rather than by taste.
+ *
+ * The name-overload finding is deliberately NOT deduped: it is a property of one message, not a
+ * word that gets learned once.
+ */
+export function lintReport(text, alreadyIntroduced = new Set()) {
+  const findings = [];
+  const introduced = [];
+  for (const { term, gloss } of findJargon(text)) {
+    const key = term.toLowerCase();
+    if (alreadyIntroduced.has(key)) continue;
+    introduced.push(key);
+    findings.push(`"${term}" → ${gloss}`);
+  }
+  const overload = findNameOverload(text);
+  if (overload) {
+    findings.push(
+      `${overload.count} artefacts named in one message (${overload.names.slice(0, 4).join(', ')}…). ` +
+        `Keep the ONE he has to act on; the rest belong in the file, not in his head.`,
+    );
+  }
+  return { findings, introduced };
 }
 
 /** Last assistant text block in a Claude Code transcript (JSONL, one event per line). */
@@ -216,9 +293,35 @@ if (!process.env.LEGIBILITY_LINT_TEST) {
     }
 
     if (event === 'Stop') {
-      const { readFileSync } = await import('node:fs');
+      const { readFileSync, writeFileSync, existsSync } = await import('node:fs');
+      const { tmpdir } = await import('node:os');
+      const { join } = await import('node:path');
+
+      // Per-session memory of which terms have already been introduced. Temp dir on purpose: if it
+      // is cleared, the worst case is one repeated warning — harmless — whereas a file in the repo
+      // would be session state committed by accident. Same trade `suggest-session-wrap.mjs` makes.
+      const sessionId = String(payload.session_id || '').replace(/[^A-Za-z0-9_-]/g, '');
+      const marker = join(tmpdir(), `claude-legibility-${sessionId || 'nosession'}.json`);
+      let seen = new Set();
+      if (sessionId && existsSync(marker)) {
+        try {
+          seen = new Set(JSON.parse(readFileSync(marker, 'utf8')));
+        } catch {
+          // A corrupt marker means "introduce everything again" — noisier, never wrong.
+        }
+      }
+
       const lines = readFileSync(payload.transcript_path, 'utf8').split('\n').filter(Boolean);
-      const findings = lintReport(lastAssistantText(lines));
+      const { findings, introduced } = lintReport(lastAssistantText(lines), seen);
+
+      if (sessionId && introduced.length) {
+        try {
+          writeFileSync(marker, JSON.stringify([...seen, ...introduced]));
+        } catch {
+          // Unwritable temp dir → the check still works, it just repeats itself.
+        }
+      }
+
       if (findings.length) {
         console.log(
           JSON.stringify({

@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict';
 
 process.env.LEGIBILITY_LINT_TEST = '1'; // import without running the hook body
-const { findJargon, lintGate, lintReport, lastAssistantText, TERMS, REPORT_NOTE } = await import(
+const { findJargon, lintGate, lintReport, lastAssistantText, TERMS, REPORT_NOTE, findNameOverload, MAX_NAMES } = await import(
   './legibility-lint.mjs'
 );
 
@@ -159,14 +159,46 @@ const q = (over = {}) => ({
 
 // --- report linting + transcript reading ---------------------------------------------------------
 {
-  assert.equal(lintReport('Đã xong, không có gì cần bạn quyết.').length, 0, 'plain report is silent');
-  const findings = lintReport('Tôi đã chạy mutation testing trên hai cổng mới.');
+  assert.equal(
+    lintReport('Đã xong, không có gì cần bạn quyết.').findings.length,
+    0,
+    'plain report is silent',
+  );
+  const { findings, introduced } = lintReport('Tôi đã chạy mutation testing trên hai cổng mới.');
   assert.equal(findings.length, 1);
   assert.match(findings[0], /cố tình làm hỏng code/, 'a finding carries the plain replacement');
+  assert.deepEqual(introduced, ['mutation testing'], 'and reports which term it just introduced');
   // The standing note belongs to the message, not to each finding — three copies of the same
   // paragraph would make the legibility warning itself unreadable.
   assert.ok(!findings[0].includes(REPORT_NOTE), 'the note is not repeated inside every finding');
   assert.match(REPORT_NOTE, /warning only/, 'and it still says the check never blocks');
+}
+
+{
+  // First use per session. Measured on 43 real reports: 16 warnings → 12 with this rule, and
+  // nothing distinct hidden. A term is introduced once; repeating it is not a new defect.
+  const msg = 'Tôi đã chạy mutation testing trên hai cổng mới.';
+  const first = lintReport(msg, new Set());
+  assert.equal(first.findings.length, 1, 'first use warns');
+
+  const second = lintReport(msg, new Set(first.introduced));
+  assert.equal(second.findings.length, 0, 'second use of the SAME term is silent');
+  assert.deepEqual(second.introduced, [], 'and nothing new is recorded');
+
+  // A different term in a later message still gets introduced — the dedupe is per term, not a
+  // once-per-session mute on the whole check.
+  const third = lintReport('Đây là một thin slice của backflow.', new Set(first.introduced));
+  assert.equal(third.findings.length, 2, 'unseen terms still warn after another was introduced');
+}
+
+{
+  // The name-overload finding is a property of ONE message, so it must NOT be deduped away by a
+  // set that happens to contain a term name.
+  const many =
+    'idea-0023 idea-0025 idea-0026 /session-wrap docs/00-map.md .claude/hooks/a.mjs platform/standards/testing.md';
+  const { findings } = lintReport(many, new Set(['mutant', 'thin-slice', 'backflow']));
+  assert.equal(findings.length, 1, 'the overload still reports through a populated seen-set');
+  assert.match(findings[0], /7 artefacts named/);
 }
 
 {
@@ -185,6 +217,43 @@ const q = (over = {}) => ({
   ];
   assert.equal(lastAssistantText(lines), 'câu cuối', 'reads the LAST assistant text, past tool calls');
   assert.equal(lastAssistantText(['not json', '{"a":1}']), '', 'garbage in the transcript is survivable');
+}
+
+// --- the name-density check (idea-0026) -----------------------------------------------------------
+{
+  // A normal report names one or two things. It must stay silent, or the check is worthless.
+  assert.equal(findNameOverload('Đã ghi vào platform/registries/idea-queue.md.'), null, 'one name is fine');
+  assert.equal(findNameOverload('Xong rồi, không có gì cần bạn quyết.'), null, 'no name is fine');
+
+  const six = 'idea-0023 idea-0025 idea-0026 /session-wrap docs/00-map.md .claude/hooks/a.mjs';
+  assert.equal(findNameOverload(six), null, `exactly ${MAX_NAMES} is within budget, not over it`);
+
+  const seven = six + ' platform/standards/testing.md';
+  const over = findNameOverload(seven);
+  assert.ok(over, 'one past the budget must be reported');
+  assert.equal(over.count, 7);
+}
+
+{
+  // A unix path is not an artefact of this platform's process. Counting /home would make every
+  // message about a file look like an overload — the false positive that would get this disabled.
+  const paths = '/home/thien/projects/fleet và /tmp/scratch và /usr/local/bin và /var/log';
+  assert.equal(findNameOverload(paths), null, 'filesystem paths are not named artefacts');
+}
+
+{
+  // Repeats are not extra load — he holds a name once, however often it appears.
+  const repeated = Array(9).fill('idea-0026').join(' ');
+  assert.equal(findNameOverload(repeated), null, 'the same name nine times is still one name');
+}
+
+{
+  const { findings } = lintReport(
+    'idea-0023 idea-0025 idea-0026 /session-wrap docs/00-map.md .claude/hooks/a.mjs platform/standards/testing.md',
+  );
+  assert.equal(findings.length, 1);
+  assert.match(findings[0], /7 artefacts named/);
+  assert.match(findings[0], /act on/, 'the warning must say what to do, not merely that it is too many');
 }
 
 // --- the list itself ------------------------------------------------------------------------------
