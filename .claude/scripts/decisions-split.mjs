@@ -58,8 +58,21 @@ const header = [];
 const entries = [];
 let current = null;
 
+/**
+ * FENCE AWARENESS, added 2026-07-30 after `decisions-split.test.mjs` caught it. The entry regex is
+ * line-based, so a heading-shaped line INSIDE a fenced code block — and decision entries quote markdown
+ * constantly — was promoted into an entry of its own. The effect is one decision silently cut in two, with
+ * half of it filed under whatever date the quoted line happened to carry, and the digest self-check cannot
+ * see it: both halves are present, so no byte is lost and nothing complains.
+ *
+ * Verified before fixing: sakubun's real 205-entry log contains no fenced blocks at all, so the defect was
+ * latent and did no damage. It is fixed rather than noted because the next entry to quote a decision
+ * heading would have corrupted the file with no warning.
+ */
+let inFence = false;
 for (const line of lines) {
-  const m = line.match(ENTRY);
+  if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
+  const m = inFence ? null : line.match(ENTRY);
   if (m) {
     if (current) entries.push(current);
     current = { date: m[1], title: m[2].trim(), heading: line, body: [] };
@@ -109,11 +122,23 @@ for (const e of entries) {
   byMonth.get(month).push(e);
 }
 
+/**
+ * Newest first, BY DATE — not by reversing file position.
+ *
+ * Found 2026-07-30 by `decisions-split.test.mjs`. This used to `.reverse()` the source order, which is only
+ * "newest first" if the source happened to be sorted oldest-first. sakubun's log is newest-on-top and not
+ * perfectly sorted, so the real output claims "newest first" in both the index and every month-file header
+ * while being ordered oldest-first and, in the index, not monotonic at all. No data was lost — but a tool
+ * that prints a false statement about its own output is the kind of thing that gets believed.
+ *
+ * `sort` is stable in V8, so entries sharing a date keep the order their author wrote them in.
+ */
+const byDateDesc = (a, b) => b.date.localeCompare(a.date);
+
 const monthFiles = [...byMonth.entries()]
   .sort()
   .map(([month, list]) => {
-    // Newest first inside a month, matching the convention of the file being replaced.
-    const ordered = [...list].reverse();
+    const ordered = [...list].sort(byDateDesc);
     const content = [
       `# ${project} — decisions, ${month}`,
       '',
@@ -139,7 +164,7 @@ const monthFiles = [...byMonth.entries()]
 /* --------------------------------------------------------- build index -- */
 
 const indexRows = [...entries]
-  .reverse()
+  .sort(byDateDesc)
   .map(
     (e) =>
       `| ${e.date} | ${clip(e.title).replace(/\|/g, '\\|')} | [→](decisions/${e.date.slice(0, 7)}.md#${slugOf(e)}) |`,
@@ -154,7 +179,10 @@ const newIndex = [
   '',
   '## Index',
   '',
-  `**${entries.length} decisions**, ${entries[entries.length - 1].date} → ${entries[0].date}, newest first.`,
+  // The span is computed from the dates, not from the ends of the array — the array's ends are only the
+  // oldest and newest entry if the source file happened to be sorted, which is what the ordering fix above
+  // stopped assuming.
+  `**${entries.length} decisions**, ${entries.map((e) => e.date).sort()[0]} → ${entries.map((e) => e.date).sort().at(-1)}, newest first.`,
   `Detail lives in \`docs/decisions/YYYY-MM.md\` — this file is the scannable index.`,
   '',
   '> **Split 2026-07-29.** This file had reached 382KB / 4874 lines / ~95K tokens — 10× the next largest',
