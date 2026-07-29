@@ -1,6 +1,8 @@
 # Proposal — keep or retire the MCP path in `rulebook`?
 
-**Status:** PROPOSED 2026-07-29, awaiting the supervisor. Nothing has been removed.
+**Status:** ✅ **ACCEPTED 2026-07-29 — Option A (keep), on its stated condition.** Nothing removed. The three
+retire-triggers are now checkboxes in the build plan's **§Check-in runbook Q2**, not prose here — they have to be read on
+the day, and a proposal file is not what anyone opens on the day.
 **Driver:** the Phase 3 verdict + the B′ re-target (`platform/plans/2026-07-29-idea-0023-mcp-platform-server-build.md`)
 chose the plugin hook. The MCP server it replaced is still here, and I built it this morning — which is a reason to be
 careful about my own judgement, not a reason to keep it.

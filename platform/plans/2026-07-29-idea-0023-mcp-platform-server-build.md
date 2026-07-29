@@ -467,10 +467,41 @@ into a commitment.** Each gets them in its own plan, after its own accept.
 
 ## Check-in runbook
 
-**What this gate decides** — whether the thin slice is *in use* or was built and abandoned. This platform's own
+**What this gate decides** — whether the delivery mechanism is *in use* or was built and abandoned. This platform's own
 milestone reflection (2026-07-28) names the disease: *"too much machinery per unit of shipped value"* — "verified but
-never used" is the failure mode, and it is invisible without a dated look. **A FAILING result forbids Phase 4** and
-sends this plan to `abandoned` (or back to Option B), regardless of how much of Phases 1–3 is built.
+never used" is the failure mode, and it is invisible without a dated look.
+
+**REWRITTEN 2026-07-29 after the B′ re-target.** Phase 4 is superseded, so the original consequence ("a failing result
+forbids Phase 4") no longer bites. The gate now has a sharper subject: **the PLUGIN HOOK, which is the live path.** A
+failing result means the whole feature — not one of its two halves — was machinery without value, and this plan goes to
+`abandoned`.
+
+**Two questions, kept separate on purpose.** Do NOT let the second quietly answer the first.
+
+### Q1 (the gate) — is the plugin hook actually used?
+
+1. `claude plugin list` — is `rulebook-frontend@rulebook` still installed and enabled? (Uninstalled ⇒ that IS the answer.)
+2. Has it fired on real work? The hook is silent when clean, so absence of complaints is not evidence. Check whether any
+   UI file was written since 2026-07-29 in a repo on this machine:
+   `git -C /home/thien/projects/fleet/<app> log --since=2026-07-29 --name-only | grep -E '\.(tsx|jsx|css)$' | head`
+   No UI file written anywhere ⇒ the gate is **not answerable yet**; roll `checkin:` forward and say so. UI files written
+   and the hook still installed ⇒ **PASS** (it ran; it is silent on clean files by design).
+3. Ask the supervisor one question, because this part is not measurable from disk: *did an exit-2 finding ever land in
+   front of you, and was it useful or noise?* One "it was noise" outweighs any count.
+
+### Q2 (the kept option, NOT the gate) — should the MCP path be retired?
+
+Decided 2026-07-29 as Option A — keep — in `platform/proposals/2026-07-29-mcp-path-keep-or-retire.md`, **on the explicit
+condition that any one of these retires it.** Check all three; do not weigh them, any single one is sufficient:
+
+- [ ] **It stopped being free.** `git -C /home/thien/projects/fleet/rulebook log --since=2026-07-29 --oneline -- server/ lib/report-lesson.ts lib/request-log.ts` — any commit here that was *forced* by a change to `check-component`'s interface means the unused half is now costing maintenance. ⇒ **retire (Option B).**
+- [ ] **Q1 failed.** If the hook is unused too, the question is not which half to keep. ⇒ **abandon the whole plan.**
+- [ ] **A second month at zero.** `grep -c review_component /home/thien/projects/fleet/rulebook/logs/requests.jsonl` (missing file = 0) **and** `ls /home/thien/projects/fleet/platform/inbox/quarantine/*.quarantine.md 2>/dev/null | wc -l` = 0, on or after **2026-08-29**. ⇒ **retire (Option B).**
+
+Retiring means Option B in that proposal: delete `server/**` + `lib/request-log.*`, keep `lib/report-lesson.*` as a
+library with its 14 tests, and update `00-map`/README/INVENTORY. **Option A is only defensible while these boxes stay
+unchecked** — that was the condition it was accepted on, and it is written here rather than in the proposal so it is read
+on the day.
 
 > **CORRECTED 2026-07-29 at Step 2.1.** Both commands below were unrunnable as written: they named `fleet-mcp/`, a
 > directory that never existed (the project is `rulebook/`, and it is a **separate git repo**, so a `git log` in `fleet`

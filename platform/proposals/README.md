@@ -9,7 +9,7 @@ autonomy contract §3 / CVE-2025-53773. It drafts a `.proposed` drop-in here; a 
 |----------|--------|--------|
 | `2026-07-29-quarantine-promotion-gate.md` + `autonomy-gate.mjs.proposed` + `autonomy-gate.quarantine.test.mjs` | `.claude/hooks/autonomy-gate.mjs` (+ test) | ✅ **INSTALLED 2026-07-29** (verified in place: 76/76 + 26/26) — blocks quarantine→governance promotion, and closes a **pre-existing shell bypass** of the governance write-block (`cp x .claude/hooks/y.mjs` was ALLOWED). 26/26 on the proposed gate, 10/26 on the live one. Install steps in the doc. |
 
-| `2026-07-29-mcp-path-keep-or-retire.md` | `rulebook/server/**`, `lib/report-lesson.*`, `lib/request-log.*` (998 lines, 0 consumers) | ⏳ **PROPOSED 2026-07-29** — the B′ re-target left the MCP path unused. 4 options; **A (keep, with a falsifiable retire-trigger) recommended**, and its weakness stated first because "do nothing" is also what sunk cost would say. Nothing removed. |
+| `2026-07-29-mcp-path-keep-or-retire.md` | `rulebook/server/**`, `lib/report-lesson.*`, `lib/request-log.*` (998 lines, 0 consumers) | ✅ **ACCEPTED 2026-07-29 — Option A (keep), conditionally.** The B′ re-target left the MCP path unused. 4 options; **A (keep, with a falsifiable retire-trigger) recommended**, and its weakness stated first because "do nothing" is also what sunk cost would say. Nothing removed; the three retire-triggers became checkboxes in the plan's check-in runbook (Q2), and `00-map` now opens with which path is live. |
 
 ## Status (2026-06-19) — earlier proposals, all applied/installed
 
