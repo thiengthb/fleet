@@ -248,10 +248,44 @@ function countLinks(items) {
   }
 }
 
+/* ------------------------------------- axis 3: hooks record their own runs (they cannot be mined) */
+
+/**
+ * A hook is never a tool call, so no amount of transcript mining can see it run. `_util.mjs` therefore
+ * has every hook append {ts, hook, code} to a local log as it exits. `fired` is the count of runs that
+ * ended in exit 2 — the guard actually said something — as opposed to merely looking and staying silent.
+ */
+function countHookRuns(items) {
+  const path = process.env.HOOK_USAGE_LOG || join(homedir(), ".claude", "hook-usage.jsonl");
+  const stat = { exists: existsSync(path), lines: 0 };
+  if (!stat.exists) return stat;
+  const byHook = new Map();
+  for (const [, it] of items) if (it.kind === "hook") byHook.set(basename(it.path), it);
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    if (!line.trim()) continue;
+    let e;
+    try {
+      e = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    const ts = Date.parse(e.ts || "") || 0;
+    if (SINCE && ts && ts < SINCE) continue;
+    stat.lines++;
+    const it = byHook.get(e.hook);
+    if (!it) continue;
+    it.ran = (it.ran || 0) + 1;
+    if (e.code === 2) it.fired = (it.fired || 0) + 1;
+    if (!it.last || ts > it.last) it.last = ts;
+  }
+  return stat;
+}
+
 /* ------------------------------------------------------------------ report */
 
 const items = inventory();
 const stats = await countUse(items);
+const hookLog = countHookRuns(items);
 countLinks(items);
 
 let rows = [...items.values()].map((it) => ({
@@ -293,20 +327,32 @@ for (const kind of KINDS) {
     .filter((r) => r.kind === kind)
     .sort((a, b) => b.total - a.total || b.links - a.links);
   if (!group.length) continue;
-  const used = group.filter((r) => r.total > 0).length;
+  const used = group.filter((r) => r.total > 0 || r.ran).length;
   console.log(
     `── ${kind}  (${group.length} items, ${used} used, ${group.length - used} never)`,
   );
+  // Hooks get two extra columns because "was it read" is the wrong question for them: `ran` is how often
+  // it executed, `fired` how often it actually said something (exit 2). ran>0 with fired=0 over weeks is
+  // the signature of a guard that costs time and catches nothing.
+  const isHook = kind === "hook";
   console.log(
-    `   ${"use".padStart(5)} ${"links".padStart(5)} ${"lines".padStart(5)} ${"last".padStart(5)}  path`,
+    `   ${"use".padStart(5)} ${isHook ? `${"ran".padStart(6)} ${"fired".padStart(5)} ` : ""}${"links".padStart(5)} ${"lines".padStart(5)} ${"last".padStart(5)}  path`,
   );
   for (const r of group)
     console.log(
-      `   ${String(r.total).padStart(5)} ${String(r.links).padStart(5)} ${String(r.lines).padStart(5)} ${ago(r.last).padStart(5)}  ${r.path}`,
+      `   ${String(r.total).padStart(5)} ` +
+        (isHook
+          ? `${String(r.ran ?? 0).padStart(6)} ${String(r.fired ?? 0).padStart(5)} `
+          : "") +
+        `${String(r.links).padStart(5)} ${String(r.lines).padStart(5)} ${ago(r.last).padStart(5)}  ${r.path}`,
+    );
+  if (isHook && !hookLog.exists)
+    console.log(
+      `   (no hook-usage log yet — ran/fired stay 0 until a session runs with the recorder installed)`,
     );
   console.log("");
 }
-const dead = rows.filter((r) => r.total === 0 && r.links <= 1);
+const dead = rows.filter((r) => r.total === 0 && !r.ran && r.links <= 1);
 console.log(
   `── retirement candidates: ${dead.length} (zero recorded use AND ≤1 file linking to it)`,
 );
@@ -314,8 +360,9 @@ for (const r of dead) console.log(`   ${r.kind.padEnd(9)} ${r.path}`);
 console.log(`
 LIMITS — read before cutting anything:
   • Zero use ≠ worthless. A runbook or a restore drill earns its keep on the day it is needed, not by being read.
-  • Hooks do NOT appear in transcripts (they are not tool calls) — a hook's "use" here counts only the times it was
-    read or run by hand. Hook firing needs live instrumentation, not mining.
+  • Hooks do NOT appear in transcripts (they are not tool calls), so their "use" column counts only reads/edits.
+    "ran"/"fired" come from ~/.claude/hook-usage.jsonl, which hooks append to as they exit — a LOCAL log, so it
+    starts empty on a new machine and says nothing about history before 2026-07-30. Switch off: HOOK_USAGE_LOG=off.
   • Subagent tool calls live in their own transcripts and may be missed; counts are a floor, never a ceiling.
   • MEMORY FILES: 0 here means "never explicitly opened", NOT "never used". The index line loads every session and
     the harness can inject a memory's content as a system-reminder, which is not a tool call and is not mined.

@@ -44,7 +44,8 @@ const ALLOW = 0;
 const BLOCK = 2;
 
 function run(payload) {
-  const env = { ...process.env, CLAUDE_AUTONOMOUS: '1', CLAUDE_CODE_ENTRYPOINT: 'cli' };
+  // HOOK_USAGE_LOG=off keeps this suite out of the hook-usage counter (see _util.mjs).
+  const env = { ...process.env, CLAUDE_AUTONOMOUS: '1', CLAUDE_CODE_ENTRYPOINT: 'cli', HOOK_USAGE_LOG: 'off' };
   env.CLAUDE_CODE_SESSION_ID = `qtest-${Math.random().toString(36).slice(2)}`;
   return spawnSync(process.execPath, [HOOK], { input: JSON.stringify(payload), env, encoding: 'utf8' }).status;
 }
@@ -107,7 +108,7 @@ for (const [label, cmd] of [
 
 // ---- Supervised runs are still untouched ----------------------------------
 check('interactive: cp a lesson onto a hook → ALLOW (the gate stands down for a human)', () => {
-  const env = { ...process.env, CLAUDE_CODE_ENTRYPOINT: 'cli' };
+  const env = { ...process.env, CLAUDE_CODE_ENTRYPOINT: 'cli', HOOK_USAGE_LOG: 'off' };
   delete env.CLAUDE_AUTONOMOUS;
   const r = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify({

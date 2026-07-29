@@ -27,6 +27,9 @@ function run(payload, { autonomous = true, entrypoint = 'cli', sid } = {}) {
   if (entrypoint === null) delete env.CLAUDE_CODE_ENTRYPOINT;
   else env.CLAUDE_CODE_ENTRYPOINT = entrypoint;
   env.CLAUDE_CODE_SESSION_ID = sid ?? `test-${Math.random().toString(36).slice(2)}`;
+  // The suite fires the gate ~76 times per run; without this it would be the loudest entry in the
+  // hook-usage counter that `_util.mjs` keeps, and that counter exists to measure REAL firing.
+  env.HOOK_USAGE_LOG = 'off';
   const r = spawnSync(process.execPath, [HOOK], {
     input: typeof payload === 'string' ? payload : JSON.stringify(payload),
     env,
@@ -42,6 +45,7 @@ function runFull(payload, opts) {
   else delete env.CLAUDE_AUTONOMOUS;
   env.CLAUDE_CODE_ENTRYPOINT = opts.entrypoint;
   env.CLAUDE_CODE_SESSION_ID = opts.sid;
+  env.HOOK_USAGE_LOG = 'off';
   return spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify(payload),
     env,
@@ -194,7 +198,7 @@ check('no entrypoint at all → ALLOW, no notice (nothing to report)', () => {
   const r = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify(PUSH),
     env: (() => {
-      const e = { ...process.env };
+      const e = { ...process.env, HOOK_USAGE_LOG: 'off' };
       delete e.CLAUDE_AUTONOMOUS;
       delete e.CLAUDE_CODE_ENTRYPOINT;
       return e;

@@ -24,6 +24,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { recordRun } from './_util.mjs';
+
+recordRun(); // reads no stdin, so it must count itself (see _util.mjs — usage recording)
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BASELINE = join(REPO, '.claude', 'harness-baseline.json');

@@ -56,6 +56,12 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { recordRun } from './_util.mjs';
+
+// Deliberately NOT via readPayload (this hook parses stdin strictly, fail-closed — see below), so it
+// records itself. The gate is the one hook whose firing rate must be readable: a gate nobody trips is
+// either perfect or dead, and only the count tells you which.
+recordRun();
 
 const ENTRYPOINT = process.env.CLAUDE_CODE_ENTRYPOINT || '';
 /** Verified non-interactive: nobody is watching, enforce. */
