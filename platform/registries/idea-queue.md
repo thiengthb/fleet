@@ -170,7 +170,11 @@ tests stayed green. **5.5 done the same day:** installed at user scope from a lo
 were false positives** now fixed, plus a reasoned `rulebook-allow` exception for code the rule cannot judge. **5.6: published** — `github.com/thiengthb/rulebook` (public), marketplace resolves from GitHub — **and applied to
 `sakubun`**: 14 findings → 0, split 8 real whole-file exceptions (new `rulebook-allow-file:` directive) + 6 that were
 not exceptions but drift from that repo's own palette module. Container rebuilt, healthy + 200. The
-used-vs-merely-built gate stays open until it fires on real work in a real session (`checkin: 2026-08-12`).
+**5.7 done — and it was a checker-accuracy pass:** of the last 6 findings, **3 were false positives** (Extended_Pictographic
+is not "an emoji" — `↔`/`⚙`/`™` render as text; the data-SVG exemption only matched a literal `viewBox`), 2 were real
+(→ lucide icons), 1 was a written exception. **0 findings across all 333 UI files in 4 apps.** **Nothing left to build**
+— the used-vs-merely-built gate is now the only open item and it cannot be answered early by design
+(`checkin: 2026-08-12`).
 > **External signal (verified against official docs, 2026-07-28):** a remote MCP server can deliver rules JIT into another
 > machine's context with **nothing written to that machine's disk**, revocably (per-token), with every request logged, and
 > can push a server-supplied `instructions` block into the consumer's system prompt — so the rulebook updates without ever

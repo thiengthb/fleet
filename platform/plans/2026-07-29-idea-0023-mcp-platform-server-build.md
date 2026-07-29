@@ -1,7 +1,7 @@
 ---
 title: Build — rule delivery without shipping the rulebook: tier-2 verdicts (MCP) → re-targeted to a plugin hook (B′), + quarantined lesson backflow
 kind: system-change # feature | system-change | fix | refactor | chore
-status: active # Phases 1-3 + 5.1-5.6 DONE. Phase 4 NOT authorized (superseded by the Phase 3 verdict + the B′ re-target, both 2026-07-29). Open: 5.7, and the 2026-08-12 used-vs-built check-in
+status: active # Phases 1-3 + ALL of Phase 5 DONE (5.1-5.7). Phase 4 NOT authorized (superseded by the Phase 3 verdict + the B′ re-target, both 2026-07-29). Nothing left to build — the ONLY thing open is the 2026-08-12 used-vs-built check-in, which cannot be answered early by design
 created: 2026-07-29
 updated: 2026-07-29 # session 2 of the day: Phases 2-3 + 5, and the re-target
 related:
@@ -445,10 +445,23 @@ no hosting.
       `tsc`/`eslint`/`next build` clean, then the container rebuilt → **healthy + HTTP 200** ·
       Files: `sakubun` 5 files (`84ad590`); `rulebook/lib/check-component.{ts,test.ts}`, plugin README ·
       Test: **90 tests**, 3 mutants run on the new directive, all 3 killed ✅
-- [ ] 5.7 — `todo` (2) and `yakudoku` (4) still carry findings. Deliberately left: the supervisor scoped this pass to
-      `sakubun`. One of them is a genuine judgement call for a human — `todo/app/history/page.tsx:147` renders
-      `Đang ở mức kỷ lục! 🔥`, and the rule forbids an emoji as an *icon-marker*, which a decorative emoji at the end of
-      a sentence arguably is not · Files: — · Test: —
+- [x] 5.7 — **DONE 2026-07-29 — and it was mostly a checker-accuracy pass, not a cleanup.** Of the 6 findings in `todo`
+      and `yakudoku`: **3 were false positives in 2 classes, fixed in the checker not the apps** — (a)
+      `Extended_Pictographic` is not "an emoji": `↔`, bare `⚙` and `™` render as TEXT and need VS16, so a heading of
+      `Nhật ↔ Việt` was reported as an emoji icon; the predicate is now presentation-aware, and written as an
+      **alternation** because the `v`-flag set intersection is *wrong* (a flag like `🇻🇳` is regional indicators, which
+      are `Emoji_Presentation=Yes` but NOT `Extended_Pictographic`, so it misses every flag — both were run against 20
+      characters before choosing); (b) the data-SVG exemption only matched a double-quoted literal `viewBox`, so a
+      score-ring building `viewBox={...}` was called a hand-rolled icon — a **computed** viewBox is now the signal.
+      **2 were real** (`💡 {feedback}`, `✍️ Sắc thái:` in `yakudoku`) → lucide `LightbulbIcon`/`PenLineIcon`, names
+      verified against the installed `lucide-react@1.23` d.ts rather than assumed. **1 was nobody's fault** —
+      `Đang ở mức kỷ lục! 🔥` is decoration at the end of copy, not an icon-marker, so it carries a written
+      `rulebook-allow`; deleting working copy to green a rule that does not forbid it is the inverse of the rule.
+      **Result: 0 findings across all 333 UI files in 4 apps.** **Honest limit:** `todo` and `yakudoku` have no
+      `node_modules` here, so neither edit was type-checked, linted or built — what ran was the checker, Prettier, a TSX
+      parse via the compiler API, and an icon-name existence check ·
+      Files: `rulebook/lib/check-component.{ts,test.ts}`, `yakudoku/web/components/practice-client.tsx`,
+      `todo/app/history/page.tsx` · Test: **95 tests**, 3 mutants on the new predicate + exemption, all 3 killed ✅
 
 **Phase 4 — off-machine (SCOPED, NOT AUTHORIZED — and after the Phase 3 verdict + the B′ accept, SUPERSEDED).**
 
