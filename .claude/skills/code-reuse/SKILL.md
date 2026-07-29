@@ -1,6 +1,6 @@
 ---
 name: code-reuse
-description: Before building a feature in any MiniServer project, check whether it already exists elsewhere (todo/yakudoku/journal/…) and decide reuse-vs-rebuild — a piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/registries/shared-assets.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (commons owns those).
+description: Before building a feature in any MiniServer project, check whether it already exists — in a sibling project, in an already-installed tool, or in the open-source world outside — and decide adopt-vs-rebuild. A piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/registries/shared-assets.md and the external verdict log commons/docs/external-patterns.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (commons owns those).
 ---
 
 # Code reuse across projects (DRY across independent repos)
@@ -16,8 +16,10 @@ services through a premature shared library.
 
 ## When this fires
 
-1. **Before scaffolding/coding a feature** — first ask "has a sibling project already built this?" (auth glue, Prisma
-   singleton, Discord bot bootstrap, deploy.yml, Dockerfile, forward-auth header reader, a public-router split…).
+1. **Before scaffolding/coding a feature** — ask, in this order: has a sibling project already built this (auth glue,
+   Prisma singleton, Discord bot bootstrap, deploy.yml, Dockerfile, forward-auth header reader, a public-router split…),
+   does a tool already installed resolve it, and **has the open-source world already solved it better than the spec asks
+   for**. Writing original code is the LAST of those, not the first.
 2. **When you notice the same thing built a 2nd time** — record it in the catalog as a duplication (don't extract yet).
 3. **On an explicit "audit duplication" request** — sweep the projects, reconcile against the catalog.
 
@@ -34,6 +36,38 @@ It does **not** fire for an in-repo refactor (ordinary coding) or for visual sha
    ```
    (Only `todo` + `yakudoku` are usually checked out locally; for the rest, reason from the catalog + INVENTORY, or ask
    the user to check out the repo.)
+3. **Then look OUTSIDE.** Sources 1 and 2 only ever answer "have *we* built this" — the request is broader than that:
+   *"điều bạn nghĩ đầu tiên không phải là code làm sao để hoàn thành giúp tôi"* — the first thought is whether it already
+   exists out there, whether it is good enough, and what to bring back. **An outside source may exceed what the user was
+   able to ask for, and surfacing that is doing the job, not scope creep.** Two sub-steps, strictly in this order:
+
+   **1c-i — Probe the tools already installed, BEFORE searching prose.** Cheapest source, and the most likely to be
+   directly usable. Measured 2026-07-30: eight `shadcn search` calls found ~3,400 external items reachable with **zero
+   configuration** — the whole vendoring pipeline that had been planned was unnecessary. Ask literally: does a registry /
+   package / CLI already on this machine resolve this?
+   ```bash
+   npx shadcn@latest search @<namespace> -l 5     # UI, blocks, configs — 8 namespaces resolve with no config
+   npx shadcn@latest view @<ns>/<item>            # read `dependencies` BEFORE adopting anything
+   npm search <keyword> | head                    # is this a solved, maintained package?
+   ```
+
+   **1c-ii — Web, but only when the probe is inconclusive AND the work is P2 or above.** P1 (a CRUD shape built before,
+   copy, a small fix) gets **no external search** — an unconditional search-first rule is a token furnace that slows
+   exactly the work that must stay fast. Budget = the research tiers already in
+   `platform/standards/token-and-research.md` (Quick is the default: 1–2 searches, ≤2 fetches, no fan-out). Search wide,
+   fetch narrow.
+
+   **Then record a verdict — including the refusals.** One row in `commons/docs/external-patterns.md`. A refusal *with
+   its reason* is the valuable half: on 2026-07-30 exactly 1 of 8 candidate registries fit, and naming why the other 7
+   did not is what stopped them being re-evaluated. The four pre-adopt gates live in that file's §2 (read
+   `dependencies` first — reject a second primitive library beside Radix; the licence must be named; never `--overwrite`
+   a living app; record the row).
+
+> **The FOMO brake — this is why the step is PULL, not PUSH.** Never pre-build or pre-vendor for software that might be
+> written later. Evidence: `commons` holds 27 proven items and **0 installs into any app** so far, which is what the
+> 2026-08-26 check-in exists to measure. **A verdict row is cheap; an item is expensive.** So the outside check produces
+> knowledge on every run and code only when a real project needs it. Anything else is, in the user's own words,
+> *"chuẩn bị một thứ mà mình chưa rõ có làm hay không — FOMO tốn tài nguyên."*
 
 ## Step 2 — The stability ladder (rule of three — do NOT extract too early)
 
@@ -78,6 +112,10 @@ catalog is worse than none (the next session trusts it). This is the standing ob
 ## Done when
 
 - [ ] Checked the catalog + grepped prior art **before** building.
+- [ ] Looked OUTSIDE too (Step 1c): probed the installed tools first, then web only if inconclusive and the work is P2+.
+      P1 legitimately skips this — say so rather than searching by reflex.
+- [ ] Wrote the verdict — adopted or refused, with the reason — into `commons/docs/external-patterns.md`.
+- [ ] Nothing was pre-built or pre-vendored "for later". Code entered only because a real project needed it now.
 - [ ] Applied the rule of three (didn't extract at 1×/2×; only extracted at 3× stable same-shape).
 - [ ] Chose the mechanism from the hybrid table; extracted glue, kept feature local.
 - [ ] Updated `registries/shared-assets.md` in the same change.
