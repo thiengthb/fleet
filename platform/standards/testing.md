@@ -84,6 +84,25 @@ had a hole, and it is what tells the next reader which part of the check was nev
 > Do **not** turn this into a coverage ritual or install a mutation-testing framework. It is a targeted question asked
 > at the moment of trusting a green, on the mechanism that green is standing in for. Anti-ceremony (§7) still applies.
 
+**And point the same suspicion at the INSTRUMENT.** Added 2026-07-29 after four instances in a single session. §2.5 asks
+whether the CHECK can fail; this asks whether the check RAN at all — a distinct failure, and the more common one:
+
+> **"The harness did not run" must be a THIRD state, never folded into pass or fail.**
+
+Measured, and note the directions, because there is no safe bias to assume:
+
+| What happened | What it reported |
+| --- | --- |
+| a probe fed payloads to a hook saved as `*.mjs.proposed`; node refuses that extension, every case exited 1, and the probe scored "not 2" as ALLOW | **17 bypasses**, including every fix the change actually makes |
+| `node --test test/` resolved `test/` as a module and failed to find it | `fail 1` — a resolution error as a failing test |
+| a comparison `cd`'d before unzipping a RELATIVE path, so nothing was extracted | pandoc produces **0 headings, 0 images, 0 tables** — condemning the tool under evaluation |
+| a generator created its output directory only inside its diagram loop | every document *without* a diagram failed on first write |
+
+Once it invented catastrophe, once uselessness, once a test failure. **The guard is one line:** return an explicit
+`ERR(exit)` for any exit code that is neither the expected success nor the expected failure, and confirm a runner
+actually collected tests before believing its count. Cheapest version of all: before trusting a number, check that the
+thing producing it did something at all.
+
 ## 2.6 — Verifying a write path: never against a record the user cares about
 
 Added 2026-07-29 (idea-0018) from a dated incident, not a principle: a live `submit_review` check in `sakubun` wrote a
