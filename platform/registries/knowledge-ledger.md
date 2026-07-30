@@ -235,6 +235,7 @@
 | 2026-07-28 | A plan step that can only be finished by WAITING needs a clock the human does not have to keep — otherwise the wait… | [→](ledger/2026-07.md#2026-07-28-a-plan-step-that-can-only-be-finished-by-waiting-needs-a-cl) |
 | 2026-07-28 | Do not plan a feature whose core mechanism lives inside a third-party client you cannot test, version, or control. | [→](ledger/2026-07.md#2026-07-28-do-not-plan-a-feature-whose-core-mechanism-lives-inside-a-t) |
 | 2026-07-28 | An alarm that fires on a compliant file trains everyone to ignore it — including the one true firing. **2nd instance 2026-07-29.** | [→](ledger/2026-07.md#2026-07-28-an-alarm-that-fires-on-a-compliant-file-trains-everyone-to) |
+| 2026-07-30 | A rule enforced at the wrong trigger reads as coverage: prior-art was required of plan files, not of code. | [→](ledger/2026-07.md#2026-07-30-a-rule-enforced-at-the-wrong-trigger-reads-as-coverage) |
 | 2026-07-30 | Before building a way to import something, check whether the tool already resolves it with zero config. | [→](ledger/2026-07.md#2026-07-30-before-building-an-import-check-whether-the-tool-already-resolves-it) |
 | 2026-07-29 | A gate that has never failed is not evidence: mutation-test the check, not only the code. | [→](ledger/2026-07.md#2026-07-29-a-gate-that-has-never-failed-is-not-evidence-mutation-test) |
 | 2026-07-29 | A design document cannot notice that it disagrees with the repo; ten minutes of thin slice can. | [→](ledger/2026-07.md#2026-07-29-a-design-document-cannot-notice-that-it-disagrees-with-the) |

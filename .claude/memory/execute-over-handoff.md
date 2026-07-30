@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: ce5bb8ad-0fed-4458-b08d-75ba6d9ecff7
-  modified: 2026-07-29T21:32:13.775Z
+  modified: 2026-07-30T11:25:45.470Z
 ---
 
 The user prefers the agent to DO the work end-to-end — make the edits, run the commands, run the baseline, commit when
@@ -49,6 +49,28 @@ classifier is a separate, blunter layer:
 | `.claude/settings.json` | yes (Edit) |
 | `.claude/skills/**` | yes (Edit) |
 | `.claude/scripts/**`, `.claude/memory/**` | yes |
+
+**The rehearsal checklist, written down because this shape has now run 3× and was re-derived each time** (a Prisma
+migration 2026-07-27; the workflow-permissions and CLAUDE.md patches 2026-07-30). A hand-over is ready when the apply
+script has been proven on a **sacrificial copy** against all five:
+
+1. **dry-run** prints the exact diff and writes nothing (default; `--apply` is opt-in)
+2. **apply** produces the intended end state, and it is inspected, not assumed
+3. **re-run is idempotent** — reports "already applied", does not double-write
+4. **refuses on a drifted anchor** rather than half-applying (exact-string match, count must be 1)
+5. **the real file is still untouched** after the rehearsal — verified, not presumed
+
+Rehearsing is not ceremony: on 2026-07-30 step 3 caught a real bug in my own script — the "already applied" check used a
+prefix that was byte-identical in both versions, so it reported success against an unmodified file. Reading the code
+three times had not found it.
+
+**Do not over-read "a human commits" — it means the human DECIDES, not that they type every command** (corrected
+2026-07-30). The governance rule says the agent may propose and a human commits. I read that as "the git commit itself is
+theirs" and handed back a one-line `git add CLAUDE.md && git commit` twice. When the supervisor was then given eight
+repos' worth of the same shape, they answered *"Commit + push cả 8"* and later, for the last file, simply *"bạn hãy làm
+giúp tôi"*. The decision point is the **apply** — once they have run the change into the working tree themselves, or
+explicitly approved it, committing is mechanical and belongs to me. Right shape: rehearse → hand over the ONE
+decision-bearing command → then offer to finish the rest, rather than leaving a per-repo chore list.
 
 So the useful shape is: do every part that is not blocked, then hand over **only** the blocked step as a copy-pasteable
 command with the verification already done. On 2026-07-30 that was a single `cp` — they ran it immediately and I
