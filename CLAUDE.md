@@ -74,8 +74,14 @@ the tab **in the same change**. Reference: `projects/todo/app/guide/page.tsx`.
 
 ## Code reuse across projects — skill `/code-reuse`
 
-Independent repos → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature:** read the catalog
-**`platform/registries/shared-assets.md`** + grep sibling projects for prior art. **Rule of three:** 1× build local · 2× log
+Independent repos → reuse isn't free, but reinventing wastes tokens+time. **Before building a feature, IN THIS ORDER:**
+① read the catalog **`platform/registries/shared-assets.md`** + grep sibling projects · ② **probe the tools already
+installed** — `npx shadcn@latest search @<ns>`: 8 community namespaces resolve with **no config at all** (~3.4k items,
+measured 2026-07-30) · ③ **look outside** (web; P2+ only, Quick tier — P1 skips it and says so), then write a verdict row
+**including refusals** into `commons/docs/external-patterns.md`. **Writing original code is the LAST step, not the
+first** — an outside source may exceed what the user was able to ask for, and surfacing that is the job, not scope creep.
+**FOMO brake:** never pre-build for software that *might* come later — a verdict row is cheap, an item is expensive
+(`commons`: 27 proven items, **0 installs** so far). **Rule of three:** 1× build local · 2× log
 as DUPLICATED · 3× same-shape+stable ⇒ extract (earlier = premature coupling). **Hybrid share:** visual → `commons`
 copy-in; heavy+stable+security glue (e.g. the MCP OAuth shim) → a `@thiengthb/*` package baked at CI build; lighter →
 copy-in. Extract the **glue**, keep the **feature** local. Any reuse/extraction MUST update `registries/shared-assets.md` in the
