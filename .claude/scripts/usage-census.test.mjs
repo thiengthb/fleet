@@ -89,7 +89,14 @@ function census(s, args = []) {
   const r = spawnSync(process.execPath, [join(s.scripts, "usage-census.mjs"), ...args], {
     encoding: "utf8",
     timeout: 120_000,
-    env: { ...process.env, HOME: s.home, HOOK_USAGE_LOG: s.hookLogPath },
+    // HOME redirects os.homedir() on POSIX only — on Windows it reads USERPROFILE, so without this the
+    // sandbox is ignored and every case silently measures the REAL transcript store instead of its fixtures.
+    env: {
+      ...process.env,
+      HOME: s.home,
+      USERPROFILE: s.home,
+      HOOK_USAGE_LOG: s.hookLogPath,
+    },
   });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
 }
@@ -487,7 +494,7 @@ function rows(s, args = []) {
       spec: { files: { "platform/attic/MANIFEST.md": "x\n" } },
       apply: (s) =>
         s.replace(
-          '!/^platform\\/(attic|reports)\\//.test(relative(REPO, f))',
+          '!/^platform\\/(attic|reports)\\//.test(posix(relative(REPO, f)))',
           "true",
         ),
       probe: (s) => Boolean(rows(s).map["platform/attic/MANIFEST.md"]),

@@ -42,6 +42,20 @@ import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+/**
+ * Every repo-relative path in this script is POSIX-shaped, on every OS. `relative()` yields backslashes on
+ * Windows, and both axes of this census are keyed by path: the inventory built from the filesystem, and the
+ * usage mined from transcripts (which always record forward slashes). Mixing the two shapes did not error —
+ * it silently made the join fail, and the `platform/(attic|reports)/` exclusions matched nothing, so staged
+ * files were measured as if in service and the tool's OWN report was back inside the link corpus it counts.
+ *
+ * Measured on Windows, 2026-07-30, before/after: 247 artefacts / **0 with any recorded use** / 51 retirement
+ * candidates → 237 artefacts / 27 used / 61 candidates. The count went UP because the fake inbound links the
+ * generated report was manufacturing had been *protecting* 25 files from the list. Note the number is
+ * per-MACHINE: this box holds 70 sessions of transcripts, the Linux box holds its own, and neither can see
+ * the other's — so a 0 here means "not used from this machine", never "not used".
+ */
+const posix = (p) => String(p).replace(/\\/g, "/");
 const arg = (flag, dflt = null) => {
   const i = process.argv.indexOf(flag);
   return i > -1 && process.argv[i + 1] && !process.argv[i + 1].startsWith("--")
@@ -70,8 +84,8 @@ const walk = (dir, out = []) => {
 function inventory() {
   const items = new Map();
   const add = (path, kind, extra = {}) =>
-    items.set(path, {
-      path,
+    items.set(posix(path), {
+      path: posix(path),
       kind,
       reads: 0,
       writes: 0,
@@ -89,9 +103,9 @@ function inventory() {
   ])
     if (
       f.endsWith(".md") &&
-      !/^platform\/(attic|reports)\//.test(relative(REPO, f))
+      !/^platform\/(attic|reports)\//.test(posix(relative(REPO, f)))
     )
-      add(relative(REPO, f), "knowledge");
+      add(posix(relative(REPO, f)), "knowledge");
   add("CLAUDE.md", "knowledge");
 
   // Everything ELSE under platform/ — `.proposed` drafts, JSON, sandbox scripts. They were invisible until
@@ -100,7 +114,7 @@ function inventory() {
   // tidy file types will always report the tidy part of the repo as the whole of it.
   // `attic/` is excluded on purpose: staged files must not be re-measured as if they were still in service.
   for (const f of walk(join(REPO, "platform"))) {
-    const rel = relative(REPO, f);
+    const rel = posix(relative(REPO, f));
     if (f.endsWith(".md") || /^platform\/(attic|reports)\//.test(rel)) continue;
     add(rel, "other");
   }
@@ -115,21 +129,34 @@ function inventory() {
   // hooks + scripts: the executable layer
   for (const f of walk(join(REPO, ".claude", "hooks")))
     if (/\.mjs$/.test(f) && !/\.test\.mjs$/.test(f) && !/_util/.test(f))
-      add(relative(REPO, f), "hook");
+      add(posix(relative(REPO, f)), "hook");
   for (const f of walk(join(REPO, ".claude", "scripts")))
-    if (/\.(mjs|sh|ps1)$/.test(f)) add(relative(REPO, f), "script");
+    if (/\.(mjs|sh|ps1)$/.test(f)) add(posix(relative(REPO, f)), "script");
 
   return items;
 }
 
 /* ------------------------------------------------- axis 1: recorded USE */
 
-/** Transcript stores for this repo, including the slug it had before the rename to `fleet`. */
+/**
+ * Transcript stores for this repo, including the slug it had before the rename to `fleet`.
+ *
+ * Claude Code names the store after the project path with `/`, `\` and `:` each replaced by `-`, so the
+ * name is MACHINE-specific: `-home-thien-projects-fleet` on the Linux box, `C--project-miniserver-platform`
+ * on the Windows one. The first cut of this matched only the Linux form, which meant that on any other
+ * machine it read ZERO transcripts and still printed a retirement-candidate list — every artefact looked
+ * unused because there was no evidence at all (measured 2026-07-30 on Windows). Derive the slug from REPO,
+ * and keep the historical folder names so the 2026-07 rename does not split the counts.
+ */
 function transcriptDirs() {
   const root = join(homedir(), ".claude", "projects");
   if (!existsSync(root)) return [];
+  const slug = REPO.replace(/[\\/:]/g, "-");
+  const suffixes = ["fleet", "miniserver-platform", basename(REPO)].map(
+    (n) => "-" + n,
+  );
   return readdirSync(root)
-    .filter((d) => /-home-thien-projects-(fleet|miniserver-platform)$/.test(d))
+    .filter((d) => d === slug || suffixes.some((s) => d.endsWith(s)))
     .map((d) => join(root, d));
 }
 
@@ -255,10 +282,10 @@ function countLinks(items) {
     ...walk(join(REPO, "platform")),
     ...walk(join(REPO, ".claude")),
   ].filter(
-    (f) => /\.(md|mjs|json)$/.test(f) && !GENERATED.test(relative(REPO, f)),
+    (f) => /\.(md|mjs|json)$/.test(f) && !GENERATED.test(posix(relative(REPO, f))),
   );
   const texts = corpus.map((f) => ({
-    path: relative(REPO, f),
+    path: posix(relative(REPO, f)),
     text: readFileSync(f, "utf8"),
   }));
   /*
@@ -410,10 +437,22 @@ for (const kind of KINDS) {
   console.log("");
 }
 const dead = rows.filter((r) => r.total === 0 && !r.ran && r.links <= 1);
-console.log(
-  `── retirement candidates: ${dead.length} (zero recorded use AND ≤1 file linking to it)`,
-);
-for (const r of dead) console.log(`   ${r.kind.padEnd(9)} ${r.path}`);
+// No transcripts read ⇒ "zero recorded use" is the absence of evidence, not evidence of absence. Printing a
+// candidate list from it is a FALSE PASS, so refuse to print one and say why (see the header comment on
+// transcriptDirs: this is exactly what happened on the Windows box).
+if (stats.files === 0) {
+  console.log(
+    `── retirement candidates: NOT COMPUTED — 0 transcript files were read, so every artefact would look\n` +
+      `   unused. Looked in ${join(homedir(), ".claude", "projects")} for a store named after this repo\n` +
+      `   (${REPO.replace(/[\\/:]/g, "-")}) or ending in -fleet / -miniserver-platform / -${basename(REPO)}.\n` +
+      `   Run this on a machine that has this repo's transcripts, or widen transcriptDirs().`,
+  );
+} else {
+  console.log(
+    `── retirement candidates: ${dead.length} (zero recorded use AND ≤1 file linking to it)`,
+  );
+  for (const r of dead) console.log(`   ${r.kind.padEnd(9)} ${r.path}`);
+}
 console.log(`
 LIMITS — read before cutting anything:
   • Zero use ≠ worthless. A runbook or a restore drill earns its keep on the day it is needed, not by being read.
