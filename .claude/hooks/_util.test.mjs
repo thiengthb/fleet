@@ -53,11 +53,19 @@ function driver(body, { util = readFileSync(MODULE, "utf8"), name = "fixture-hoo
   return { dir, hook };
 }
 
+/**
+ * `cwd` is the hook's own sandbox directory, and that is not cosmetic. One mutant here REMOVES the
+ * `HOOK_USAGE_LOG=off` check; the mutated code then treats the literal string "off" as a log PATH and writes
+ * it relative to cwd. With cwd left at the repo root that produced a stray `off` file in the repo — a
+ * mutation test leaking into the tree it was supposed to leave untouched (found 2026-07-30, 2250 bytes of
+ * hook log). Any test that runs deliberately-broken code must give it a cwd it is allowed to dirty.
+ */
 function fire(hook, { input = "", env = {} } = {}) {
   const r = spawnSync(process.execPath, [hook], {
     input,
     encoding: "utf8",
     timeout: 30_000,
+    cwd: dirname(hook),
     env: { ...process.env, ...env },
   });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
