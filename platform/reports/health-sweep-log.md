@@ -16,3 +16,4 @@ direction the numbers are moving.*
 > machine is genuinely unknown and is NOT guessed — including the 2026-07-30 pair, where one box reported
 > 44 BROKEN and another reported clean on the same day, which is why the column exists.
 | 2026-07-31 | thien-ubuntu | 1 | 61 | 1 BROKEN |
+| 2026-07-31 | TNT-Laptop | 1 | 83 | 1 BROKEN |
