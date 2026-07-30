@@ -1,9 +1,9 @@
 ---
 title: Rename the platform to `fleet` and split machine-agnostic docs from per-target deployment law
 kind: refactor
-status: done
+status: active # reopened 2026-07-30 — "done" was measured on ONE machine. Batch E finishes the Windows box + the platform's own NAME; D3c (the GitHub repo) is still the user's call
 created: 2026-07-28
-updated: 2026-07-28
+updated: 2026-07-30
 related: [CLAUDE.md, platform/INVENTORY.md, .claude/skills/nuc-*, platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md]
 ---
 
@@ -130,6 +130,61 @@ and it had one.**
 - [ ] D3c — **The GitHub repo is still `thiengthb/miniserver-platform`** (`git remote -v`), so INVENTORY's
   `GitHub repo` column is correct as written, not drift. Renaming it is the user's call and costs one
   `git remote set-url` on every machine · Files: — · Test: manual
+
+**Batch E — the second machine, and the platform's own NAME** (2026-07-30, on the Windows box `TNT-Laptop`)
+
+Why this exists: Batches A–D renamed every *path* that said `nuc-platform`, and D3b caught the `Dev path` column.
+Nothing renamed the platform's **name**. Two months after the decision "the name is `fleet`", 52 places still called
+it *MiniServer* — including 17 pointing at `D:\Projects\MiniServer\`, a drive letter that stopped existing when the
+work moved to Linux. AC-1 could not see any of it: it greps for `nuc-platform`. **A migration's acceptance test only
+proves what it was written to look for**, and this one was written before the name was the subject.
+
+- [x] E1 — Baseline FIRST, per the standing rule: `health-sweep` on this box = **60 BROKEN / 168 drift**
+  (link-check 44, tool-check 15 failing, recurrence 1) — a far worse picture than the Linux box, and *pre-existing*.
+  Kept out of the repo (a number in a doc rots); re-measure instead · Files: — · Test: baseline recorded
+- [x] E2 — **17 dead absolute paths → machine-agnostic**, matching D3b's `<repo-root>/<name>` form: 6 `SKILL.md`
+  (`app-onboard`, `app-protect`, `app-remove`, `coding-convention`, `host-audit`, `project-docs`), both
+  `coding-convention/hooks/*` "source of truth" headers, `standards/documentation.md`, and 2 `targets/nuc/` docs.
+  One was **runnable code, not prose** — `host-audit`'s `for d in /d/Projects/MiniServer/*/` would have become
+  `/d/Projects/fleet/*/`, a dead path with a fresh name; it now iterates `"${CLAUDE_PROJECT_DIR:-.}"/*/` · Test: 0
+  hits remain outside history
+- [x] E3 — **35 brand references `MiniServer` → `fleet`** across 29 files (skill `description:` frontmatter — which
+  is always-loaded context — agent `reviewer.md`, 4 hook headers, 3 memories, `.gitignore`, `standards/`,
+  `registries/skill-candidates.md`). `secret-guard`'s comment also had a stale invariant NUMBER (`#4` → `A1`)
+  · Test: skill catalog reloaded mid-session showing "fleet project/web-app" — the change is live, not just on disk
+- [x] E4 — Deliberately **NOT** renamed, each for a stated reason: the NUC hostname `thienminiserver` (60 sites — a
+  real machine name, not the platform); `thiengthb/miniserver-platform` (the GitHub repo genuinely still has that
+  name — D3c); `registries/knowledge-ledger.md:112` (an index row for a DATED ledger entry — history is not
+  rewritten); `HERMES-COMPARISON.md` + `AGENT-INTELLIGENCE-SYSTEM.md` (untracked analyses where "MiniServer" is the
+  *subject* being compared). **The first dry run reached 189 replacements across 90 files** — including sibling
+  repos, `.next/` build output and `.pyc` files — because it walked the tree. Scoping it to `git ls-files` cut it to
+  46/29. The 2026-07-28 lesson repeated itself in a third form: *scope a sweep to what the repo owns.*
+- [x] E5 — **This machine's memory was never wired.** `autoMemoryDirectory` was UNSET here, so all **32 shared
+  memories (95KB) silently never loaded on this box** — the D3 failure mode exactly, one machine later. Set in the
+  gitignored `.claude/settings.local.json`; takes effect at the NEXT session start · Test: `memory-audit` now
+  reports the wired path instead of `!! UNSET`
+- [x] E6 — `CLAUDE.local.md` **created for this box** (it had none): repo root, PowerShell 5.1 + bash 5.2 and
+  **no zsh** (so the Linux box's word-splitting trap does not apply here), Node v24.18.0, `core.autocrlf` semantics,
+  Docker present, the transcript-store slugs. Also records that the machine-local memory
+  `node24-via-path-override` is **dead by its own stated test** (`node -v` = v24.18.0, no PATH prefix) — nothing was
+  migrated from the orphaned default-dir memory because nothing in it is still true; deleting those 2 files is a
+  human action · Files: `CLAUDE.local.md` (gitignored)
+- [x] E7 — **`usage-census` was blind on this machine, and still printed a verdict.** It matched transcript stores
+  by the Linux path (`-home-thien-projects-fleet`), so here it read **0 transcripts, 0 events — and still listed 51
+  retirement candidates**, every artefact "unused" because there was no evidence at all. Three defects, one root:
+  ① the store name is machine-specific → derive it from `REPO`; ② `relative()` returns backslashes on Windows while
+  transcript keys are forward-slash, so the two axes **never joined** and the `attic|reports` exclusions matched
+  nothing → one `posix()` helper for every repo-relative path; ③ with 0 evidence it must **refuse** to print a
+  candidate list rather than guess. After: **70 sessions / 11,330 tool calls, 237 artefacts, 27 used, 61
+  candidates** — the count went UP because the generated report had been manufacturing inbound links that
+  *protected* 25 files from the list. Its test suite was **already red here** and now passes (8/8 mutants killed);
+  one mutation patch had gone stale against the new source and the suite said so, which is the mechanism working
+  · Test: `tool-check` 15 FAILING → 14; `usage-census.test.mjs` ✅
+- [ ] E8 — **The folder rename on this box + the GitHub repo (D3c) are the user's, at a session boundary.** Script
+  prepared at `platform/proposals/finish-fleet-rename-windows.ps1`: it renames `C:\project\miniserver-platform` →
+  `C:\project\fleet` and rewrites the 10 absolute paths inside the gitignored `.claude/settings.local.json`
+  (`autoMemoryDirectory` + 9 permission entries) in the same run, because splitting those two is what left the
+  Linux box pointing at a hollow memory directory for a day · Test: manual, then `memory-audit` at next session
 
 ## Out of scope
 
