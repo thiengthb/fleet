@@ -223,6 +223,65 @@ The `marketplace.json` fetch returned entries alphabetically and stopped around 
 **floor observed in the A section**, not a count. Stated because a floor quoted as a total is the exact mistake
 the sibling plan had to correct twice.
 
+## agnix evaluation (Batch 2 — DONE 2026-07-31)
+
+**Verdict: KEEP. It found a real defect class that all ten of fleet's own tools miss, and it is the first oracle on
+this platform that is neither me nor the supervisor.**
+
+**Supply-chain check first** (`/supply-chain-guard`, and the tool has a `postinstall`, so this was not optional).
+`agnix@0.41.1`, npm, sole maintainer `avifenesh` — consistent with the author of its public writeups; created
+2026-02-05, published 2026-07-27; **7,292 downloads/week**; **zero runtime dependencies**. The tarball is 5.3KB /
+5 files, so the 10.7MB binary arrives via `postinstall: node install.js`, which was **read before being run**: it
+downloads only from the version-pinned `github.com/agent-sh/agnix/releases/download/v0.41.1/…`, then
+**verifies a SHA-256 sidecar and aborts on mismatch** before extracting. No telemetry call, no env access, no
+arbitrary URL. `telemetry status` → `disabled` / `disabled`, opt-in by design. Residual risk stated rather than
+waved away: the sidecar shares a host with the archive, so it protects transport, **not a compromised release**.
+Installed into the session scratchpad with `--no-save --prefix`, so fleet's tree is untouched.
+
+**Run:** `agnix --target claude-code .claude CLAUDE.md` → exit 1, **42 errors · 50 warnings · 1 info**, 32 marked
+auto-fixable. **`--fix` was not run.** Triage:
+
+| Count | Finding | Verdict | Why |
+| --- | --- | --- | --- |
+| **10** | `Failed to parse SKILL.md: mapping values are not allowed in this context` | **REAL, and the reason to keep the tool** | See below |
+| 32 | `Unclosed XML tag` — `<repo>`, `<project>`, `<app>`, `<path>` | **noise for fleet, real for rulebook** | These are markdown placeholders in templates. But Anthropic's spec says a `description` may not contain XML tags, and a `<name>` in a body is ambiguous to a model. Convention clash, not a bug |
+| 31 | `Hard-coded Claude Code path '.claude/' may cause portability issues` | **noise for fleet, REAL for rulebook** | fleet *is* the control plane, so `.claude/` paths are correct here. But this is the same defect as the rulebook-readiness row "skills reference `platform/…` paths that only exist here" — an independent instrument hitting a known problem from a different angle |
+| 1 | `CLAUDE.md exceeds recommended token limit (~3,948 tokens, limit 1,500)` | **REAL** | **A fourth independent measurement of F1/L1**, on a different metric again (tokens, not lines or words). fleet is **2.6× a third party's limit** |
+| 10 | `Negative instruction '…' without positive alternative` | **REAL but low value** | Matches Anthropic's "say what to do, not only what not to do". fleet is deliberately prohibition-heavy (Invariants A) so most are intentional |
+| 7 | `Critical keyword 'never'/'MUST' at 43–57% of document ('lost in the middle' zone)` | **REAL and genuinely NEW** | Derived from attention research: a rule placed mid-document is attended least. fleet had **no way to detect this**, and it is direct mechanical evidence for F14 — CLAUDE.md is a laundry list whose middle is where the prohibitions sit |
+| 1 | `No tool or spec versions pinned` | **REAL, trivial** | Relates to C5 (`version:` absent everywhere) |
+
+**The 10 parse failures, verified independently rather than taken on the tool's word.** Affected:
+`app-env` · `app-onboard` · `app-protect` · `honest-critique` · `host-audit` · `host-maintenance` · `idea` ·
+`mcp-builder` · `react-ui-craft` · `skill-proposer`.
+Cause, confirmed by reading the raw bytes: an **unquoted `: ` inside a plain YAML scalar**, e.g. `app-env`'s
+description contains ``On `nuc`: idempotent upsert…`` — to a strict parser, `` `nuc`: `` opens a nested mapping.
+Cross-checked with a **second, unrelated** parser (the `yaml` package from `projects/sakubun`): it names **the same
+10 of 38 files**, `Nested mappings are not allowed in compact mappings at line 3`. Two independent parsers, same
+verdict.
+
+**Why this matters and why fleet could not see it:**
+
+- **Claude Code's own parser is lenient** — all 38 skills load here, descriptions and all. So the defect is
+  *invisible in normal use* and produces no symptom on this machine.
+- **fleet's `skill-audit` checks descriptions for length and substrate, never for validity.** The sibling plan's
+  checklist row 23 records "descriptions ≤1024 chars ✓" — length was measured, **well-formedness was never
+  checked**, and the ✓ read as if it had been.
+- **It is exactly the rulebook failure mode.** `agnix` validates for Codex, Cursor and Kiro as well; a stricter
+  parser — another tool, or a future Claude Code — rejects 26% of fleet's skills. That is not a hypothetical for a
+  thing whose entire purpose is to leave this repo.
+
+**What this says about self-audit, in both directions.** fleet has ten measurement tools, 33 green suites and five
+recurrence detectors, and none of them could find this, because **every one of them encodes fleet's own idea of what
+to check**. That is the structural limit of self-audit, and it is the strongest argument in either plan for an
+outside instrument. Counterweight, stated so this is not a sales pitch: **~63 of 92 findings are noise or
+low-value for fleet as it stands**, the tool is pre-1.0 (0.41.1) with a rule count its own pages quote as 156 /
+414 / 444, and it must never be run with `--fix` on prose a human wrote for a human.
+
+**Open question 3 is answered: one-off audit now, standing check only after A3.** Adding a young third-party binary
+to the weekly sweep buys a dependency for a check whose value is front-loaded — it has already told fleet the one
+thing it did not know. Re-run it when `rulebook` is packaged, where a strict parser is the actual customer.
+
 ## Approach & tradeoffs
 
 **Chosen: read artefacts in descending order of evidential value, with a hard adoption cap and a mandatory refusal
@@ -310,10 +369,15 @@ Replaced by a **symmetry rule with no target number**, which is what the supervi
       what they enforce, and what they assume about the operator. Plus `anthropics/skills` and the rest of the
       community catalogue past the A section (C14).
       _Files: this plan `## Findings`._ · _Test: AC-1, and the pre-committed consequence is evaluated._
-- [ ] **Batch 2 — run `agnix` against fleet.** Install, run, triage every finding into real / noise / wrong-for-us
-      with counts, and decide keep-or-drop. **This is the only Batch that may run before the sibling plan's gate
-      opens, because it is read-only and answers a row that plan already marked FAIL.**
-      _Files: this plan `## agnix evaluation`, `commons/docs/external-patterns.md`._ · _Test: AC-4._
+- [x] **Batch 2 — run `agnix` against fleet. DONE 2026-07-31. Verdict: KEEP.** 42 errors · 50 warnings · 1 info;
+      **10 of 38 skills have strictly-invalid YAML frontmatter**, confirmed by a second independent parser, and
+      invisible to all ten of fleet's own tools plus Claude Code's lenient loader. ~63 of 92 findings are noise for
+      fleet as it stands, and that is recorded too. `--fix` not run. Supply chain checked before install
+      (`postinstall` read, SHA-256-verified pinned download, telemetry off, zero deps, scratchpad-only install).
+      _Files: this plan `## agnix evaluation`._ · _Test: AC-4 ✓._
+      **Follow-up queued, NOT done here:** fixing the 10 frontmatter files touches `skills/**`, which is on
+      `CLAUDE.md`'s hard governance-prohibition list — so it goes up as a branch + diff for a human to merge, per
+      `memory: sandbox-propose-governance`. It is a one-character-per-file fix (quote the description scalar).
 - [ ] **Batch 3 — the verdict table: ADOPT (≤3) / REFUSE / CONFIRMS-FLEET.** **Supervisor's gate.**
       _Files: this plan `## Verdict table`._ · _Test: AC-2, AC-3._
 - [ ] **Batch 4 — execute the ≤3 adoptions, write every verdict to the shared log, amend the sibling plan.**
