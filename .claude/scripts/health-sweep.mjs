@@ -99,6 +99,26 @@ const checkers = [
     },
   },
   {
+    id: "sprawl-check",
+    proves:
+      "the platform is not accumulating faster than it is being used — the count of things unused for a month may only fall",
+    args: [S("sprawl-check.mjs"), "--gate"],
+    /**
+     * DRIFT, deliberately not BROKEN, and `bad` is pinned to 0 rather than derived from the exit code. A tier
+     * growing past its baseline is a judgment for the supervisor, not a fault: sometimes the right answer is
+     * "that skill is about to be needed, lower nothing." Reporting it as BROKEN would put "fix before building
+     * anything else" on a question only a human can settle, and a sweep that cries broken over opinions is a
+     * sweep that gets skipped. It still gets its OWN drift label so it cannot hide inside the 140.
+     */
+    read: ({ code, out }) => ({
+      kind: "BROKEN",
+      bad: 0,
+      drift: code === 1 ? (out.match(/^     \w+: \d+ → \d+/gm) || []).length || 1 : 0,
+      driftWhat: "tier(s) grown past their sprawl baseline",
+      line: (/(✗ PHANH ĂN.*|ok  không tầng nào phình thêm.*)/.exec(out) || [""])[0],
+    }),
+  },
+  {
     id: "tool-catalog",
     proves:
       "the human-readable page describing every hook and script still matches the tools on disk, and every tool introduces itself",

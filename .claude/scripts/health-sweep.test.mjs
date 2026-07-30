@@ -39,6 +39,7 @@ const HEALTHY = {
     'console.log("6/6 test file(s) pass · 24/25 tools have a test · 1 exempt with a written reason");',
   "tool-catalog.mjs":
     'console.log("ok  platform/registries/tool-catalog.md khớp thực tế · 30 công cụ, tất cả đã tự giới thiệu");',
+  "sprawl-check.mjs": 'console.log("ok  không tầng nào phình thêm so với mốc 2026-07-31.");',
   "plan-audit.mjs":
     "console.log(JSON.stringify({ scanned: 60, errors: 0, warns: 0, results: [] }));",
   // memory-audit is read as --json now, not as prose: the sweep needs `wiring.loads`, which no line of the
@@ -128,6 +129,12 @@ const STUBS = [
     stub: `console.log("4/6 test file(s) pass — 2 FAILING · 5/25 tools have a test"); process.exit(1);`,
   },
   {
+    id: "sprawl-check",
+    what: "a sprawl baseline that has been exceeded (must show as DRIFT, never as BROKEN)",
+    stub: 'console.log("✗ PHANH ĂN: 1 tầng có số \\"chưa dùng\\" TĂNG so với mốc test:\\n     skill: 15 → 17 (+2)"); process.exit(1);',
+    expectBrokenZero: true,
+  },
+  {
     id: "tool-catalog",
     what: "a catalog page that has drifted from the tools on disk",
     stub: 'console.log("✗ platform/registries/tool-catalog.md đã lệch so với thực tế — chạy --write"); process.exit(1);',
@@ -163,6 +170,22 @@ for (const s of STUBS) {
   const dir = scriptsOf(root);
   writeFileSync(join(dir, `${s.id}.mjs`), s.stub);
   const { code, out } = runSweep(dir);
+
+  if (s.expectBrokenZero) {
+    /**
+     * One checker is deliberately NOT allowed to break the sweep: a tier growing past its sprawl baseline is a
+     * question for the supervisor, not a fault. This case exists so that "it reports drift, not BROKEN" is an
+     * asserted property rather than an accident of how the read function happens to be written — the same
+     * mistake in the other direction (a real failure downgraded to drift) is what this whole file guards.
+     */
+    assert.equal(code, 0, `${s.id} must NOT fail the sweep — it is a judgment call, not a fault\n${out}`);
+    assert.doesNotMatch(out, new RegExp(`BROKEN\\s+[1-9]\\d*\\s+${s.id}`), `${s.id} must not be BROKEN\n${out}`);
+    assert.match(out, /drift/, `${s.id} must still be counted as drift, not vanish\n${out}`);
+    assert.match(out, new RegExp(s.id), `${s.id} must still appear in the report\n${out}`);
+    rmSync(root, { recursive: true, force: true });
+    continue;
+  }
+
   assert.equal(
     code,
     1,
@@ -253,5 +276,7 @@ console.log("NO-SUBSTRATE is a strong signal, not a verdict.");`,
 }
 
 console.log(
-  `health-sweep.test.mjs — healthy sandbox green, ${STUBS.length} sub-checker failures each surfaced as BROKEN, the count-parsed-as-zero regression covered, drift never fails the run  ✅`,
+  `health-sweep.test.mjs — healthy sandbox green, ${STUBS.filter((s) => !s.expectBrokenZero).length} sub-checker ` +
+    `failures each surfaced as BROKEN, ${STUBS.filter((s) => s.expectBrokenZero).length} asserted to surface as DRIFT ` +
+    `instead, the count-parsed-as-zero regression covered, drift never fails the run  ✅`,
 );
