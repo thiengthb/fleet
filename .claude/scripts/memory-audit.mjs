@@ -386,18 +386,29 @@ function auditAlwaysLoaded() {
 }
 
 /** A memory directory that nothing points at is memory that never loads. */
+/**
+ * `loads` answers ONE question a consumer must not have to infer from prose: does the shared tier actually
+ * load on this machine? Everything in `problems` is worth a human's eye, but only the first three conditions
+ * mean the 32 memories are not there at all — the rest (files stranded in the old default dir) is untidiness.
+ *
+ * It exists because `health-sweep` summarised this check by exit code, and this script exits 0 by DESIGN
+ * (case 9 of its test: "a human decides"). So the sweep printed `memory-audit ok` on 2026-07-30 while
+ * `autoMemoryDirectory` was UNSET on the Windows box and not one memory had loaded for weeks. Report-only
+ * must still be machine-readable, or a summariser will read "did not fail" as "is fine".
+ */
 function auditWiring() {
   const w = effectiveAutoMemoryDir();
   const problems = [];
+  const fatal = [];
   if (w?.disabled) {
-    problems.push(`auto memory DISABLED in ${w.from} — the shared tier neither loads nor accepts writes.`);
+    fatal.push(`auto memory DISABLED in ${w.from} — the shared tier neither loads nor accepts writes.`);
   } else if (!w) {
-    problems.push(
+    fatal.push(
       "autoMemoryDirectory is UNSET on this machine — .claude/memory/ does not load. " +
         `Create .claude/settings.local.json with { "autoMemoryDirectory": "${SHARED_DIR}" }.`,
     );
   } else if (w.dir !== SHARED_DIR) {
-    problems.push(`autoMemoryDirectory points at ${w.dir} (from ${w.from}), not ${SHARED_DIR}.`);
+    fatal.push(`autoMemoryDirectory points at ${w.dir} (from ${w.from}), not ${SHARED_DIR}.`);
   }
   // Content left behind in the default location after re-pointing is invisible, not deleted.
   if (existsSync(DEFAULT_AUTO_DIR) && w?.dir && w.dir !== DEFAULT_AUTO_DIR) {
@@ -409,7 +420,8 @@ function auditWiring() {
       );
     }
   }
-  return { effective: w, problems };
+  // `problems` keeps EVERY finding, fatal first, so the text report and its existing test are unchanged.
+  return { effective: w, loads: fatal.length === 0, fatal, problems: [...fatal, ...problems] };
 }
 
 // ------------------------------------------------------------------ main ----

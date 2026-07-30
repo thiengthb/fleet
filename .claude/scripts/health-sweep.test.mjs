@@ -39,8 +39,10 @@ const HEALTHY = {
     'console.log("6/6 test file(s) pass · 24/25 tools have a test · 1 exempt with a written reason");',
   "plan-audit.mjs":
     "console.log(JSON.stringify({ scanned: 60, errors: 0, warns: 0, results: [] }));",
+  // memory-audit is read as --json now, not as prose: the sweep needs `wiring.loads`, which no line of the
+  // text report states. A healthy stub therefore has to BE json, or every case below fails on parsing.
   "memory-audit.mjs":
-    'console.log("index: 47 lines / 7.4KB (cap 200 lines / 25KB)");',
+    'console.log(JSON.stringify({ wiring: { loads: true, fatal: [], problems: [], effective: { dir: "/sandbox/.claude/memory" } }, tiers: [{ index: { lines: 47, bytes: 7577, overLineCap: false, overByteCap: false } }] }));',
   "skill-audit.mjs":
     'console.log("38 skills installed");\nconsole.log("── NO SUBSTRATE (0) ──");',
   "reuse-scan.mjs": 'console.log("22 group(s): 0 EXTRACT · 8 CANDIDATE");',
@@ -137,6 +139,15 @@ const STUBS = [
     id: "memory-audit",
     what: "an audit that exits non-zero",
     stub: `console.log("memory audit exploded"); process.exit(1);`,
+  },
+  {
+    // THE 2026-07-30 FALSE PASS. memory-audit exits 0 even when the shared tier does not load at all — by
+    // design, because a human decides (case 9 of its own suite). The sweep inferred health from that exit
+    // code, so on the Windows box it printed `ok  memory-audit` while autoMemoryDirectory was UNSET and all
+    // 32 memories had been silently absent for weeks. A checker that cannot fail here is not a checker.
+    id: "memory-audit",
+    what: "memory that DOES NOT LOAD, reported by a checker that still exits 0",
+    stub: `console.log(JSON.stringify({ wiring: { loads: false, fatal: ["autoMemoryDirectory is UNSET on this machine"], problems: ["autoMemoryDirectory is UNSET on this machine"], effective: null }, tiers: [{ index: { lines: 47, bytes: 7577 } }] })); process.exit(0);`,
   },
 ];
 

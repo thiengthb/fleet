@@ -118,13 +118,42 @@ const checkers = [
   {
     id: "memory-audit",
     proves:
-      "the memory index is inside its caps, with no orphan and no unindexed file",
-    args: [S("memory-audit.mjs")],
-    read: ({ code, out }) => ({
-      kind: "BROKEN",
-      bad: code ? 1 : 0,
-      line: (/index: .*/.exec(out) || [/\bok\b.*/.exec(out) || [""]])[0],
-    }),
+      "the shared memory tier actually LOADS on this machine, and its index is inside its caps with no orphan or unindexed file",
+    // `--json`, not the text report, and not the exit code. memory-audit exits 0 even when memory is
+    // completely unwired — deliberately, so a human decides (case 9 of its own test). This check used to
+    // infer health from that exit code and therefore printed `memory-audit  ok` on 2026-07-30 while
+    // autoMemoryDirectory was UNSET on this box and all 32 memories had been silently not loading. Read the
+    // structured `wiring.loads` flag instead: a summariser must not turn "did not fail" into "is fine".
+    args: [S("memory-audit.mjs"), "--json"],
+    read: ({ code, out }) => {
+      let j;
+      try {
+        j = JSON.parse(out);
+      } catch {
+        return {
+          kind: "BROKEN",
+          bad: 1,
+          line: `memory-audit --json did not return JSON (exit ${code})`,
+        };
+      }
+      const w = j.wiring || {};
+      const idx = j.tiers?.[0]?.index;
+      const caps = idx?.overLineCap || idx?.overByteCap ? " — OVER CAP" : "";
+      const summary = idx
+        ? `index: ${idx.lines} lines / ${(idx.bytes / 1024).toFixed(1)}KB${caps}`
+        : "no index";
+      if (w.loads === false)
+        return {
+          kind: "BROKEN",
+          bad: w.fatal?.length || 1,
+          line: `MEMORY DOES NOT LOAD HERE — ${(w.fatal || ["wiring problem"])[0]}`,
+        };
+      return {
+        kind: "BROKEN",
+        bad: code ? 1 : 0,
+        line: `${summary} · wired -> ${w.effective?.dir ?? "?"}`,
+      };
+    },
   },
   {
     id: "skill-audit",
