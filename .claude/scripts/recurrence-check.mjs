@@ -259,6 +259,64 @@ detectors.push({
     `${h.what}: filesystem says ${h.direct}, ${h.tip} says ${h.tool}`,
 });
 
+/**
+ * D4 — a mutation suite that never checks whether its mutant could RUN.
+ * LEARNED 2026-07-30, five times in one day across five different suites and three different mechanisms:
+ * `if (false)` on a branch whose successor dereferenced the null it was guarding; an unbalanced-paren patch;
+ * a temporal-dead-zone reference. Each time the mutant crashed, the probe saw "not the healthy output", and
+ * the suite reported a killed mutant. **A mutant that only crashes proves the suite notices a broken file —
+ * it says nothing about the behaviour the mutant claimed to remove.** So a green mutation run can certify
+ * nothing at all, which is the worst possible failure in the one mechanism that exists to prove a check can
+ * fail (`standards/testing.md §2.5`).
+ *
+ * WHY IT COMPARES TO A BASELINE instead of firing on every offender. Measured the day it was written: 11 of
+ * 22 mutation suites gate on this, 11 do not — all 11 predate the lesson. Firing on all 11 would put
+ * `health-sweep` into BROKEN on day one over a known backlog, and a checker that starts red is a checker
+ * people mute. So the backlog is DECLARED here with its date, and the detector fires only when the number
+ * GOES UP: a new suite written without the gate is a repeat of the mistake, while the existing 11 are work
+ * queued in the open. Close them and lower the baseline in the same commit.
+ */
+detectors.push({
+  id: "crash-only-mutants-unguarded",
+  learned: "2026-07-30",
+  what: "a mutation suite does not assert its mutant still RUNS, so a crash can be miscounted as a kill",
+  run() {
+    // Measured by this detector itself on 2026-07-30: 11 of 22 mutation suites, all predating the lesson.
+    // The first draft said 9 — an eyeballed count of a shell listing, wrong by two. The number a check
+    // gates on has to come from the check (memory: report-state-from-the-tool).
+    const BASELINE = 11;
+    const GATE =
+      /crashed instead of|did not run —|mayCrash|syntax error, not|it is a syntax error/;
+    const suites = walk(join(REPO, ".claude")).filter((f) =>
+      f.endsWith(".test.mjs"),
+    );
+    const mutating = [];
+    const unguarded = [];
+    for (const f of suites) {
+      let text = "";
+      try {
+        text = readFileSync(f, "utf8");
+      } catch {
+        continue;
+      }
+      if (!/SURVIVING MUTANT/.test(text)) continue; // not a mutation suite
+      mutating.push(f);
+      if (!GATE.test(text)) unguarded.push(relative(REPO, f));
+    }
+    const hits =
+      unguarded.length > BASELINE
+        ? unguarded.map((file) => ({ file, over: unguarded.length - BASELINE }))
+        : [];
+    if (!hits.length && unguarded.length)
+      hits.note =
+        `${unguarded.length}/${mutating.length} mutation suites do not assert the mutant still runs ` +
+        `(declared backlog, baseline ${BASELINE} on 2026-07-30) — a crash-only mutant proves nothing. ` +
+        `Fires only if this number rises; lower the baseline as they are closed.`;
+    return hits;
+  },
+  format: (h) => `${h.file} — ${h.over} suite(s) over the declared baseline`,
+});
+
 const execSyncQuiet = (cmd) =>
   execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 

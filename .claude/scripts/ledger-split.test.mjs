@@ -38,6 +38,20 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
 const SCRIPT = join(HERE, "ledger-split.mjs");
 
+/**
+ * The real ledger's git state BEFORE anything runs, compared at the bottom of the file.
+ *
+ * Snapshotted, not asserted-clean. The first version demanded the ledger be untouched full stop, and it failed
+ * the moment a `/session-wrap` wrote two entries into it — the suite reporting "THE SUITE TOUCHED THE REAL
+ * LEDGER" about a change it had not made. A test that fails because someone else did legitimate work is a test
+ * that gets skipped, and the same mistake had already been made and fixed in `memory-audit.test.mjs`.
+ */
+const LEDGER_PATHS = ["platform/registries/knowledge-ledger.md", "platform/ledger"];
+const ledgerStateBefore = spawnSync("git", ["status", "--porcelain", "--", ...LEDGER_PATHS], {
+  cwd: resolve(HERE, "..", ".."),
+  encoding: "utf8",
+}).stdout;
+
 const HEADING_A = "## A. Cross-project lessons (content here)";
 const HEADING_B = "## B. Pointers to each project's knowledge log";
 
@@ -377,17 +391,20 @@ const readMonth = (s, m) => readFileSync(join(monthDir(s), `${m}.md`), "utf8");
   rmSync(lab, { recursive: true, force: true });
 }
 
-/* ─────────── the real ledger must be untouched — it is the file this tool exists to rewrite ── */
+/* ─────────── the real ledger must be exactly as this suite found it ──
+ * It is the file this tool exists to rewrite, so the one thing the suite must never do is rewrite it.
+ * Compared against the snapshot from the top, so a concurrent `/session-wrap` writing entries is not mistaken
+ * for damage done here.
+ */
 {
-  const dirty = spawnSync(
-    "git",
-    ["status", "--porcelain", "--", "platform/registries/knowledge-ledger.md", "platform/ledger"],
-    { cwd: REPO, encoding: "utf8" },
-  ).stdout;
+  const after = spawnSync("git", ["status", "--porcelain", "--", ...LEDGER_PATHS], {
+    cwd: REPO,
+    encoding: "utf8",
+  }).stdout;
   assert.equal(
-    dirty,
-    "",
-    `THE SUITE TOUCHED THE REAL LEDGER. Every fixture must live in a temp dir:\n${dirty}`,
+    after,
+    ledgerStateBefore,
+    `THE SUITE CHANGED THE REAL LEDGER.\nbefore:\n${ledgerStateBefore}\nafter:\n${after}`,
   );
 }
 

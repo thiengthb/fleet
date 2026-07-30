@@ -39,6 +39,13 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
 const SCRIPT = join(HERE, "decisions-split.mjs");
 
+/** The real decision logs' git state before anything runs — see the closing check for why it is a snapshot. */
+const DECISION_PATHS = ["projects", "commons", "docgen", "rulebook"];
+const decisionsStateBefore = spawnSync("git", ["status", "--porcelain", "--", ...DECISION_PATHS], {
+  cwd: resolve(HERE, "..", ".."),
+  encoding: "utf8",
+}).stdout;
+
 const HEADER = ["# todo — decisions", "", "Append-only. Newest on top.", ""];
 
 /**
@@ -356,12 +363,20 @@ const detail = (s) =>
   rmSync(lab, { recursive: true, force: true });
 }
 
-/* ─────────── no real project's decision log may be touched ── */
+/* ─────────── no real project's decision log may be CHANGED BY THIS SUITE ──
+ * Compared against a snapshot rather than asserted clean: a `/session-wrap` or a parallel session writing a
+ * real decisions.md is legitimate work, and a guard that fails on it is a guard that gets skipped. The same
+ * mistake was made and fixed in `memory-audit.test.mjs` and `ledger-split.test.mjs` the same day.
+ */
 {
-  const dirty = spawnSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" }).stdout;
-  assert.ok(
-    !/docs\/decisions/.test(dirty),
-    `THE SUITE TOUCHED A REAL DECISION LOG. Every fixture must live in a temp dir:\n${dirty}`,
+  const after = spawnSync("git", ["status", "--porcelain", "--", ...DECISION_PATHS], {
+    cwd: REPO,
+    encoding: "utf8",
+  }).stdout;
+  assert.equal(
+    after,
+    decisionsStateBefore,
+    `THE SUITE CHANGED A REAL DECISION LOG.\nbefore:\n${decisionsStateBefore}\nafter:\n${after}`,
   );
 }
 

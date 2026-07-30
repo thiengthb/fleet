@@ -175,6 +175,28 @@ its pre-committed threshold. That is the honest test for a measurement whose onl
 - [x] **Close** — `tool-check`: **29/29 suites pass · 28/29 tools tested · 1 exempt · 0 untested**, measured **34s** wall (AC-6's budget was 90s). `health-sweep`: nothing broken. The `projects/` gate is open. · Files: Create `.claude/scripts/{tool-check,reuse-scan}.test.mjs`; add EXEMPT support to `tool-check.mjs`; reproduce-or-exempt `rule-classify` / `eval-ledger-rule` · Test: `AC-2, AC-6` (tool-check's own suite must prove it cannot miss a `*.test.mjs`, cannot count a tool as tested without a file, and cannot exit 0 with a failing child)
 - [ ] **Close** — run `tool-check` + `health-sweep`, record the final numbers and the full defect list in this plan, distill to `decisions.md` / the ledger, then tell the supervisor the `projects/` gate is open · Test: `AC-2, AC-7`
 
+## Closing check against the ask — 2026-07-30
+
+Judged against `## The ask, verbatim` plus `## Scope changes`, not against this plan's own restatement.
+
+| What was asked | What shipped | Verdict |
+| --- | --- | --- |
+| *"lên kế ho[ạch] cover test hết không chừa"* | a plan **and** its full execution, B1–B6 | **exceeded** — the ask was for a plan; the gate *"đến khi nào hoàn thiện rồi tôi mới vô project"* made finishing it the deliverable |
+| *"không chừa"* (leave nothing out) | **28 of 29 tested; 1 exempt** | ⚠ **PARTIAL — named, not smoothed over.** See below |
+| *"đặt đồng hồ … (lưu trong file)"* for health-sweep + platform-report | `plans/2026-07-30-standing-cadence.md` on the `checkin:` rail, with `health-sweep` stamping its own dated evidence | **met** |
+| *"trước đó hay session wrap"* | ran before the compact, as asked | **met** |
+
+**The partial, stated plainly.** A strict reading of *không chừa* is 29/29, and `eval-ledger-rule.mjs` has no test.
+The claim that this satisfies the ask rests on the exemption being **the opposite of leaving something out**: it is
+printed on every run with its reason, counted in the denominator so the ratio cannot flatter itself, refused if the
+reason is shorter than a sentence (the run fails), and flagged if it ever names a tool that no longer exists. What it
+would cost to close it: extracting the deterministic measurement half of that script so it can be tested without
+spawning two billable model calls. **That is a real remaining item, not a closed one** — if the supervisor reads
+*không chừa* as 29/29, this plan is not finished, and the next step is that extraction.
+
+**Also delivered beyond the ask** (all in _Scope changes_): six defects fixed rather than merely reported, the EXEMPT
+mechanism, and the removal of the `_`-prefix blind spot from the denominator.
+
 ## Out of scope
 
 - **The health-sweep / platform-report schedule** (the ask's second half) — built separately, on the

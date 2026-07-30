@@ -257,6 +257,9 @@
 | 2026-07-30 | A shared-code catalog is not a reuse mechanism: what is READ needs a counter, what is INSTALLED needs a registry. | [→](ledger/2026-07.md#2026-07-30-a-shared-code-catalog-is-not-a-reuse-mechanism-what-is-read) |
 | 2026-07-30 | A measurement can be confidently wrong, and there is no safe direction for the error — 5 ways, split evenly between condemning and protecting | [→](ledger/2026-07.md#2026-07-30-measurement-can-be-confidently-wrong) |
 | 2026-07-30 | An automated dead-weight list over a knowledge base is wrong nearly every time: 34 of 34 candidates kept on review | [→](ledger/2026-07.md#2026-07-30-dead-weight-lists-are-wrong) |
+| 2026-07-30 | A mutant that only CRASHES proves nothing — 5 cases in a day; third mutation lesson, so it got a detector. | [→](ledger/2026-07.md#2026-07-30-crash-only-mutants-prove-nothing) |
+| 2026-07-30 | The documented protection is often not the mechanism: 5 inert or redundant guards found by testing them. | [→](ledger/2026-07.md#2026-07-30-the-protection-is-not-always-the-mechanism) |
+| 2026-07-30 | A report that filters must say what it filtered — "nothing found" over 42 hidden groups hid a live defect. | [→](ledger/2026-07.md#2026-07-30-a-report-that-filters-must-say-what-it-filtered) |
 
 ## B. Pointers to each project's knowledge log
 
