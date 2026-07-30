@@ -79,11 +79,14 @@ const checkers = [
     args: [S("tool-check.mjs"), "--quiet"],
     read: ({ code, out }) => {
       const failing = num(out, /— (\d+) FAILING/) ?? 0;
-      const tested = /(\d+)\/(\d+) tools have a test/.exec(out);
+      // Read the UNTESTED count that tool-check prints explicitly, rather than subtracting the tested
+      // fraction. Those differ once a tool is EXEMPT with a written reason: on 2026-07-30 the derived form
+      // reported "1 tool(s) with no test" when the only gap was a declared, reasoned exemption — drift that
+      // has already been argued through, counted as drift again.
       return {
         kind: "BROKEN",
         bad: failing || (code ? 1 : 0),
-        drift: tested ? Number(tested[2]) - Number(tested[1]) : 0,
+        drift: num(out, /· (\d+) UNTESTED/) ?? 0,
         driftWhat: "tool(s) with no test",
         line: (/\d+\/\d+ test file\(s\).*/.exec(out) || [""])[0],
       };

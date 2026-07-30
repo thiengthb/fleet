@@ -307,7 +307,21 @@ const results = groups
           : "CANDIDATE";
     return { members, projectCount, verdict, inCatalog };
   })
-  .filter((g) => (focus ? g.members.some((m) => m.project === focus) : true))
+  /*
+   * Focus matches the project's NAME or the tail of its path. `projects()` yields `projects/todo` after the
+   * 2026-07-30 move, so an exact compare against `todo` matched nothing and the documented "usual mode"
+   * (`reuse-scan todo` — "I am working here, what do I share?") reported **No cross-project duplication
+   * found** while the unfocused run reported 22 groups. Found 2026-07-30 by reuse-scan.test.mjs; it is the
+   * same failure shape as the discovery regression `_layout.mjs` exists to prevent, and it was invisible
+   * until this file also started disclosing how many groups it had filtered out.
+   */
+  .filter((g) =>
+    focus
+      ? g.members.some(
+          (m) => m.project === focus || m.project.endsWith(`/${focus}`),
+        )
+      : true,
+  )
   .filter((g) => (g.verdict === "UPSTREAM" ? flags.has("--all") : true))
   .filter((g) =>
     flags.has("--new") ? !g.inCatalog && g.verdict !== "HAS CANONICAL" : true,
@@ -359,6 +373,18 @@ console.log(
 
 if (results.length === 0) {
   console.log("No cross-project duplication found above the threshold.");
+  // …but say so honestly. Found 2026-07-30 by reuse-scan.test.mjs: when EVERY group was filtered out (all
+  // vendored primitives, or a `--new`/focus filter), this branch printed a flat "nothing found" and never
+  // mentioned the groups it had hidden. That is the manufacture-calm failure this platform keeps catching —
+  // the number is right and the sentence is misleading, and it is read as "the fleet is clean".
+  const hidden = groups.length - results.length;
+  if (hidden > 0) {
+    console.log(
+      `${hidden} group(s) hidden (vendored shadcn primitives, or filtered)` +
+        `${flags.has("--all") ? "" : " — use --all to see them"}` +
+        `${focus ? ` · focus: ${focus}` : ""}${flags.has("--new") ? " · --new" : ""}`,
+    );
+  }
 } else {
   for (const g of results) {
     const tag = g.inCatalog ? "" : "  [NOT IN CATALOG]";

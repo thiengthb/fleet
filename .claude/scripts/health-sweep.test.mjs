@@ -36,7 +36,7 @@ const HEALTHY = {
   "recurrence-check.mjs":
     'console.log("recurrence-check — 3 detector(s), 0 firing");',
   "tool-check.mjs":
-    'console.log("6/6 test file(s) pass · 5/25 tools have a test");',
+    'console.log("6/6 test file(s) pass · 24/25 tools have a test · 1 exempt with a written reason");',
   "plan-audit.mjs":
     "console.log(JSON.stringify({ scanned: 60, errors: 0, warns: 0, results: [] }));",
   "memory-audit.mjs":
@@ -186,6 +186,32 @@ console.log("NO-SUBSTRATE is a strong signal, not a verdict.");`,
     out,
     /ok\s+skill-audit/,
     "skill-audit must not read as ok while reporting 14 findings",
+  );
+  rmSync(root, { recursive: true, force: true });
+}
+
+/* ─────── 3b. an EXEMPT tool is not an untested one ──
+ * The drift count used to be derived by subtracting the tested fraction, so a declared, reasoned exemption
+ * was reported as "1 tool(s) with no test" — drift that has already been argued through, counted again.
+ * `tool-check` prints the UNTESTED number explicitly; that is the one to read.
+ */
+{
+  const root = sandbox();
+  const dir = scriptsOf(root);
+  writeFileSync(
+    join(dir, "tool-check.mjs"),
+    'console.log("29/29 test file(s) pass · 28/29 tools have a test · 1 exempt with a written reason");',
+  );
+  assert.match(runSweep(dir).out, /ok\s+tool-check/, "an exemption is not a gap");
+
+  writeFileSync(
+    join(dir, "tool-check.mjs"),
+    'console.log("29/29 test file(s) pass · 26/29 tools have a test · 1 exempt with a written reason · 2 UNTESTED");',
+  );
+  assert.match(
+    runSweep(dir).out,
+    /drift\s+2\s+tool-check/,
+    "…while a real untested tool still surfaces as drift",
   );
   rmSync(root, { recursive: true, force: true });
 }

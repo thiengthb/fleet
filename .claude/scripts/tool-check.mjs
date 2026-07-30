@@ -51,23 +51,57 @@ const walk = (dir, out = []) => {
 const all = walk(CLAUDE);
 const tests = all.filter((f) => f.endsWith(".test.mjs")).sort();
 
-/** Tools that SHOULD have a test: every hook and script that is a real entry point. */
+/**
+ * Tools that SHOULD have a test: every hook and script that is a real entry point.
+ *
+ * `_`-prefixed libraries USED to be excluded here as "covered through their callers". That reasoning only
+ * holds for callers that have tests, and on 2026-07-30 it was hiding the two highest-fan-out pieces of
+ * untested code on the platform: `_layout.mjs` (imported by five discovery tools, and written *because* a
+ * folder move silenced four of them) and `_util.mjs` (imported by eleven hooks, and the sole evidence that
+ * any hook ever fires). Both have suites now, so the exclusion is gone and the denominator tells the truth.
+ */
 const tools = all
   .filter((f) =>
     /\.claude\/(hooks|scripts)\/[^/]+\.mjs$/.test(f.replace(/\\/g, "/")),
   )
   .filter((f) => !f.endsWith(".test.mjs"))
-  .filter((f) => !/[/\\]_/.test(f)) // _util.mjs / _layout.mjs are libraries, covered through their callers
   .sort();
 
+/**
+ * A tool may be exempt from needing a test — but only in the open, with a written reason, and never by
+ * silence. This list IS the mechanism: it is printed on every run, it counts in the denominator, and a
+ * reason shorter than a sentence is refused, exactly as `attic.mjs` refuses "unused" as a retirement reason.
+ * An exemption nobody can read is indistinguishable from a gap nobody noticed.
+ */
+const EXEMPT = [
+  {
+    path: ".claude/scripts/eval-ledger-rule.mjs",
+    reason:
+      "a model-in-the-loop eval: it spawns `claude -p` twice (control + treatment), so its result is " +
+      "non-deterministic AND billable, and a standing test would spend money re-deriving a number that is " +
+      "already recorded. Its deterministic half — counting rows from the files the model edited — is not " +
+      "exported and would have to be extracted before it could be tested.",
+  },
+];
+const EXEMPT_MIN_REASON = 40;
+const exemptBad = EXEMPT.filter(
+  (e) => (e.reason || "").trim().length < EXEMPT_MIN_REASON,
+);
+const exemptPaths = new Set(EXEMPT.map((e) => e.path));
+const isExempt = (tool) =>
+  exemptPaths.has(relative(REPO, tool).replace(/\\/g, "/"));
+
 const hasTest = (tool) => existsSync(tool.replace(/\.mjs$/, ".test.mjs"));
-const untested = tools.filter((t) => !hasTest(t));
+const untested = tools.filter((t) => !hasTest(t) && !isExempt(t));
+const exempt = tools.filter((t) => isExempt(t));
 
 if (LIST_ONLY) {
   console.log(`${tests.length} test file(s):`);
   for (const t of tests) console.log(`   ${relative(REPO, t)}`);
   console.log(`\n${untested.length} tool(s) with no test:`);
   for (const t of untested) console.log(`   ${relative(REPO, t)}`);
+  console.log(`\n${exempt.length} exempt tool(s):`);
+  for (const t of exempt) console.log(`   ${relative(REPO, t)}`);
   process.exit(0);
 }
 
@@ -109,8 +143,45 @@ for (const r of rows) {
 console.log(
   `\n${tests.length - failed}/${tests.length} test file(s) pass` +
     (failed ? ` — ${failed} FAILING` : "") +
-    ` · ${tools.length - untested.length}/${tools.length} tools have a test`,
+    ` · ${tools.length - untested.length - exempt.length}/${tools.length} tools have a test` +
+    (exempt.length ? ` · ${exempt.length} exempt with a written reason` : "") +
+    (untested.length ? ` · ${untested.length} UNTESTED` : ""),
 );
+
+if (exempt.length) {
+  console.log(
+    `\nEXEMPT (a declared gap is a gap you can argue with; a silent one is not):`,
+  );
+  const present = new Set(exempt.map((t) => relative(REPO, t).replace(/\\/g, "/")));
+  for (const e of EXEMPT.filter((e) => present.has(e.path))) {
+    console.log(`   ${e.path}`);
+    for (const line of e.reason.match(/.{1,96}(\s|$)/g) || [e.reason])
+      console.log(`      ${line.trim()}`);
+  }
+}
+
+/**
+ * A STALE exemption — one naming a tool that no longer exists — is drift in the direction that matters: it
+ * makes the list look considered while covering nothing, and it is how a future author concludes the
+ * mechanism is decorative. Reported, not fatal: the tool being gone is usually good news.
+ */
+const staleExempt = EXEMPT.filter(
+  (e) => !tools.some((t) => relative(REPO, t).replace(/\\/g, "/") === e.path),
+);
+if (staleExempt.length) {
+  console.log(
+    `\n?? ${staleExempt.length} exemption(s) name a tool that is not here any more — delete the entry:`,
+  );
+  for (const e of staleExempt) console.log(`   ${e.path}`);
+}
+
+if (exemptBad.length) {
+  console.log(
+    `\n!! ${exemptBad.length} exemption(s) have no real reason (< ${EXEMPT_MIN_REASON} chars). ` +
+      `"unused" is not a reason; say what makes a test impossible or worthless:`,
+  );
+  for (const e of exemptBad) console.log(`   ${e.path}`);
+}
 
 if (untested.length) {
   console.log(
@@ -126,4 +197,7 @@ if (untested.length) {
   );
 }
 
-process.exit(failed ? 1 : 0);
+// An UNTESTED tool never fails the run — that would make admitting the gap the thing people silence. An
+// exemption with no reason DOES fail it, because that is the one way this mechanism could rot into a
+// blanket opt-out.
+process.exit(failed || exemptBad.length ? 1 : 0);

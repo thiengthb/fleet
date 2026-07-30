@@ -1,7 +1,7 @@
 ---
 title: Cover every agent tool with a test that can fail — 21 suites, risk-ordered, no exceptions
 kind: system-change
-status: active
+status: done
 created: 2026-07-30
 updated: 2026-07-30
 related:
@@ -168,7 +168,11 @@ its pre-committed threshold. That is the honest test for a measurement whose onl
       **The existing `projects/sakubun/docs/decisions.md` is NOT being regenerated** — re-running the split on an already-split file is not idempotent (the old index rows would be absorbed into `header`). Every anchor there resolves and no entry is missing, so the wrong order is cosmetic; fixing it is a separate, deliberate call for the supervisor.
       Three things established that change what a reader should conclude: the `ledger-split`-has-a-git-guard / `decisions-split`-does-not asymmetry is **justified** (ledger-split rebuilds its table from parsed rows and would destroy a stray prose line; decisions-split classifies every line as header-or-body and can drop nothing); the 0-entry abort protects against a **garbage index**, not content loss; and `ledger-split`'s trailing content is carried through as part of section B, so an append at EOF is not a data-loss test. `_layout`'s first-wins on duplicate project basenames is pinned as a known limitation, and its suite also floor-checks the REAL fleet, since that module going quiet silences five tools at once. · Files: Create `.claude/scripts/{ledger-split,decisions-split,_layout}.test.mjs` + `.claude/hooks/_util.test.mjs` · Test: `AC-3, AC-4` (round-trip byte/entry preservation on a fixture; `_layout` asserts the marker set finds `platform/` via `plans` and all 9 `projects/*`; `_util` asserts payload parse, the usage-log cap, and `HOOK_USAGE_LOG=off`)
 - [x] **B5 — the four session-boundary hooks** ✅ 2026-07-30 · 19/27 → 23/27 · 22 mutants killed · **no defect in the four hooks**, and the mutants earned their keep by exposing four traps in the *suites* — each one a way a green test can mean nothing: a mutant that only **crashes** (`if (false)` on a branch whose successor dereferences the null it was guarding) proves the suite notices a broken file, not the behaviour claimed, so the finding is now dropped by redirecting the `push` instead; a probe anchored on the phrase *"sau remote"* matched the **static advice line** at the bottom of the same message and reported a kill that had not happened; a bare fixture repo created without `-b main` leaves a clone with nothing checked out, so the "another machine pushed" fixture silently produced no commits; and asserting a hook "found some repos" would have passed throughout the 2026-07-30 regression, so `git-sync-check`'s case names every repo it must see. All four hooks are exercised against real git repositories with a real file:// remote, because ahead/behind comes from `rev-list --left-right` and a faked git layer proves nothing about it. · Files: Create `.claude/hooks/{git-sync-check,memory-wiring-check,harness-drift-check,suggest-session-wrap}.test.mjs` · Test: `AC-1, AC-5` (each must stay silent when there is nothing to say — a session-start hook that always speaks is noise that gets ignored)
-- [ ] **B6 — the runner, the scanner, and the two studies** · Files: Create `.claude/scripts/{tool-check,reuse-scan}.test.mjs`; add EXEMPT support to `tool-check.mjs`; reproduce-or-exempt `rule-classify` / `eval-ledger-rule` · Test: `AC-2, AC-6` (tool-check's own suite must prove it cannot miss a `*.test.mjs`, cannot count a tool as tested without a file, and cannot exit 0 with a failing child)
+- [x] **B6 — the runner, the scanner, and the two studies** ✅ 2026-07-30 · 23/27 → **28/29 tested · 1 exempt · 0 untested** · 19 mutants killed · **two real defects fixed in `reuse-scan`, and the first one is what made the second visible:**
+      1. **When every group was filtered out, the report printed a flat "No cross-project duplication found above the threshold." and never mentioned the groups it had hidden.** The number was right and the sentence was misleading — the manufacture-calm failure this platform keeps catching. It now discloses the hidden count and which filters were active.
+      2. **`reuse-scan todo` — the mode its own docstring calls "the usual mode" — matched nothing.** `projects()` yields `projects/todo` after the folder move, and the focus filter compared it to `todo` by equality. Measured before the fix: `reuse-scan todo` reported **0 groups while the unfocused run reported 22**. Same failure shape as the 2026-07-30 discovery regression, and it stayed invisible until fix #1 started printing what was being filtered. Now tail-matched, like the `--calibrate` lookup.
+      `tool-check` gained the EXEMPT mechanism: an exemption is printed on every run **with its reason**, counts in the denominator, is refused if the reason is shorter than a sentence (the run fails), and is flagged when it names a tool that no longer exists. `rule-classify` got a **reproduction** test instead of an exemption — it is deterministic, so the suite asserts the recorded verdict still comes out (PASS, 58.9%, gate 40%, seed 20260728) and that two runs are byte-identical; a study whose number stops reproducing is a finding, not a broken test. `eval-ledger-rule` is the one exemption: it spawns `claude -p` twice, so a standing test would be non-deterministic and billable.
+- [x] **Close** — `tool-check`: **29/29 suites pass · 28/29 tools tested · 1 exempt · 0 untested**, measured **34s** wall (AC-6's budget was 90s). `health-sweep`: nothing broken. The `projects/` gate is open. · Files: Create `.claude/scripts/{tool-check,reuse-scan}.test.mjs`; add EXEMPT support to `tool-check.mjs`; reproduce-or-exempt `rule-classify` / `eval-ledger-rule` · Test: `AC-2, AC-6` (tool-check's own suite must prove it cannot miss a `*.test.mjs`, cannot count a tool as tested without a file, and cannot exit 0 with a failing child)
 - [ ] **Close** — run `tool-check` + `health-sweep`, record the final numbers and the full defect list in this plan, distill to `decisions.md` / the ledger, then tell the supervisor the `projects/` gate is open · Test: `AC-2, AC-7`
 
 ## Out of scope
@@ -184,7 +188,9 @@ its pre-committed threshold. That is the honest test for a measurement whose onl
 
 ## Scope changes
 
-- (empty — the plan still matches the ask; the ask's second half is named in _Out of scope_ and delivered separately)
+- 2026-07-30 — **defects found were FIXED, not just reported** · decided by agent · The ask was "cover test hết", and _Out of scope_ said "retiring anything" but said nothing about repairs. Six fixes were made inside the batches (`recurrence-check` off-by-one, two in `decisions-split`, two in `reuse-scan`, one in `health-sweep`'s drift parser) because leaving a known-wrong knowledge tool in place while shipping its test would be recording the defect rather than closing it. Every fix is named in its batch line with the evidence that it was latent or active.
+- 2026-07-30 — **`tool-check` gained an EXEMPT mechanism** · decided by agent · Not in the original steps; required by AC-2/AC-3 once `eval-ledger-rule` turned out to be untestable without billable model calls. Without it the only options were a silent skip or a fake test.
+- 2026-07-30 — **the `_`-prefix exclusion was removed from `tool-check`'s denominator** · decided by agent · It was hiding the two highest-fan-out untested files. The coverage ratio therefore moved from /27 to /29 mid-campaign; earlier batch lines quote the denominator in force at the time.
 
 ## Open questions / risks
 
@@ -203,5 +209,27 @@ its pre-committed threshold. That is the honest test for a measurement whose onl
   no repo mutation) — and that it came from an external source, not from taste.
 - Why coverage percentage was rejected as the metric in favour of "every tool has a suite that has been seen to
   fail".
-- Whether a one-shot study belongs in `scripts/` at all, or whether "a measurement that already answered its
-  question" is a distinct artefact class needing its own home.
+- **A mutant that only CRASHES proves nothing.** The single most repeated lesson of the campaign — hit in five
+  separate suites, three different ways: `if (false)` on a branch whose successor dereferenced the null it was
+  guarding; an unbalanced-paren patch; a temporal-dead-zone reference. Each time the suite went green and the
+  claimed behaviour was never exercised. Every mutation loop now asserts the mutant still RUNS before its probe
+  is trusted, and the fix is to redirect the finding (`[].push(…)`) rather than remove the branch.
+- **A mutation patch can silently hit the comment that explains the fix.** `--name-status -M` appears in
+  `platform-report`'s docstring before it appears in the command, so the obvious patch mutated prose and the
+  mutant "survived". Anchor a patch on code punctuation, and investigate a surviving mutant instead of
+  explaining it away — that habit is what found four of the six real defects.
+- **Five documented "protections" turned out not to be the mechanism.** The `C`/`CLAUDE.md` marker collision is
+  unreachable since the move to `--name-status`; `-M` is redundant against git's own rename default;
+  unknown-age lands in `NEW` by coercion (`null < 30`) rather than by its explicit branch; `includes('/sakubun/')`
+  is a fast path the regexes already enforce; and `skill-audit` inherits `_layout`'s marker set. None was a bug —
+  each is a place a future edit would remove a guard believing something else covers it.
+- **Two defects in the same tool where fixing the first exposed the second.** `reuse-scan` printed "no
+  duplication found" while hiding 42 groups; once it started disclosing the hidden count, the fact that
+  `reuse-scan todo` matched nothing at all became obvious. Transparency is not a cosmetic feature of a report —
+  it is how the next defect gets found.
+- A one-shot study gets a **reproduction** test, not an exemption: re-run it and the recorded verdict must still
+  come out. A study whose number no longer reproduces is a finding, because a decision is resting on it.
+- What an exemption must carry to be honest: printed on every run, with a reason longer than a phrase, counted in
+  the denominator, and flagged when it names something that no longer exists.
+- Open question deliberately not answered here: whether a finished study belongs in `scripts/` at all, or whether
+  "a measurement that already answered its question" is a distinct artefact class.
