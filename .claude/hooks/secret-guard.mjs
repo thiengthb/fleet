@@ -1,5 +1,5 @@
 // PreToolUse hook (Edit|Write) — BLOCKS hardcoding a real secret into any file that is not .env.
-// Enforces MiniServer invariant #4: secrets live ONLY in .env (chmod 600, gitignored).
+// Enforces fleet invariant A1: secrets live ONLY in .env (chmod 600, gitignored).
 import path from 'node:path';
 import { readPayload, getWriteText } from './_util.mjs';
 

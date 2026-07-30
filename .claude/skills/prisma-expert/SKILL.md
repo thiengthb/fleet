@@ -1,6 +1,6 @@
 ---
 name: prisma-expert
-description: Prisma ORM depth for a MiniServer web-app — schema & relations design, migrations (dev vs deploy), N+1 / query optimization, and transactions. Use when designing or debugging a Prisma schema, a migration, a slow/over-fetching query, or a transaction. Complements /database-design (vendor-neutral design choices) and /coding-convention; the data layer of the standard web stack (Next.js + Prisma + server actions).
+description: Prisma ORM depth for a fleet web-app — schema & relations design, migrations (dev vs deploy), N+1 / query optimization, and transactions. Use when designing or debugging a Prisma schema, a migration, a slow/over-fetching query, or a transaction. Complements /database-design (vendor-neutral design choices) and /coding-convention; the data layer of the standard web stack (Next.js + Prisma + server actions).
 ---
 
 # Prisma Expert (platform-adapted)

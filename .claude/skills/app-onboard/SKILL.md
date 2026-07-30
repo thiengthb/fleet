@@ -5,9 +5,9 @@ description: Onboard a project onto its deploy target and get it actually runnin
 
 # Skill: Bring a project onto the NUC platform
 
-You will bring a project into MiniServer's standard deploy trajectory. Work SEQUENTIALLY
+You will bring a project into fleet's standard deploy trajectory. Work SEQUENTIALLY
 through the 6 stages below; each stage has a VERIFICATION section — don't move on until it passes.
-The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law; if a user request
+The invariants in `<repo-root>/CLAUDE.md` are law; if a user request
 conflicts with an invariant, point out the conflict and ask back before proceeding.
 
 SSH NUC: `ssh thien25@thienminiserver` (key installed). App lives at `/opt/apps/<name>`.
@@ -92,7 +92,7 @@ build in stage 3 act as the check.
 ## Stage 2 — CI workflow in the repo
 
 Create `.github/workflows/deploy.yml` — the gold standard is the file of the same name in **every
-living ghcr app**: `D:\Projects\MiniServer\nuc-monitor\.github\workflows\deploy.yml` (the lean version, no
+living ghcr app**: `<repo-root>/nuc-monitor/.github/workflows/deploy.yml` (the lean version, no
 build-arg) or `todo\.github\workflows\deploy.yml`. Copy verbatim then adjust exactly 2 spots if needed:
 
 - `file:` — the Dockerfile path (omit if the Dockerfile is at root).

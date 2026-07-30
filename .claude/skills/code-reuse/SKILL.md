@@ -1,6 +1,6 @@
 ---
 name: code-reuse
-description: Before building a feature in any MiniServer project, check whether it already exists — in a sibling project, in an already-installed tool, or in the open-source world outside — and decide adopt-vs-rebuild. A piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/registries/shared-assets.md and the external verdict log commons/docs/external-patterns.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (commons owns those).
+description: Before building a feature in any fleet project, check whether it already exists — in a sibling project, in an already-installed tool, or in the open-source world outside — and decide adopt-vs-rebuild. A piece built ≥3× becomes a shared asset, not reinvented. Owns the catalog platform/registries/shared-assets.md and the external verdict log commons/docs/external-patterns.md. Use when scaffolding a feature, noticing the same thing built twice, or auditing duplication. NOT for in-repo refactors or visual UI components (commons owns those).
 ---
 
 # Code reuse across projects (DRY across independent repos)

@@ -8,7 +8,7 @@ description: Put an app behind authentication, using whatever the app's target p
 Authentik is the central IdP at `https://auth.thientnse.site` (`/opt/apps/authentik`).
 Living docs: the `projects/authentik/` repo (especially `projects/authentik/docs/auth-apps.md` — the registry of every
 provider/app, UPDATE it after each use of this skill) and `projects/authentik/README.md`.
-The invariants in `D:\Projects\MiniServer\CLAUDE.md` under the "Authentik" section are law.
+The invariants in `<repo-root>/CLAUDE.md` under the "Authentik" section are law.
 
 SSH NUC: `ssh thien25@thienminiserver`. App at `/opt/apps/<name>`.
 

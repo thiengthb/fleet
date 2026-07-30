@@ -52,7 +52,7 @@ Deploy chain (built 2026-06-07):
 
 ```
 ┌─────────────────────── DEV MACHINE (Windows) ───────────────────────┐
-│  D:\Projects\MiniServer\link-manager   (clone repo)             │
+│  <repo-root>/link-manager   (clone repo)                        │
 │                  │                                              │
 │                  │ git push origin main                         │
 └──────────────────┼──────────────────────────────────────────────┘

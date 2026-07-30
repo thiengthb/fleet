@@ -1,4 +1,4 @@
-// Shared helpers for MiniServer Claude Code hooks (Node ESM — Windows-safe, no bash).
+// Shared helpers for fleet Claude Code hooks (Node ESM — Windows-safe, no bash).
 // Each hook reads a JSON payload from stdin and decides via exit code:
 //   PreToolUse:  exit 2 = block the tool call, stderr is shown to Claude.
 //   PostToolUse: exit 2 = feedback to Claude (write already happened, cannot block).

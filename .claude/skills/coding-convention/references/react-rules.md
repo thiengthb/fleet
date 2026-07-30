@@ -6,7 +6,7 @@ load_priority: high
 
 # React rules
 
-> Living reference: `projects/todo/components/*`. Applies to every component in any MiniServer app.
+> Living reference: `projects/todo/components/*`. Applies to every component in any fleet app.
 
 ## Server vs Client (Next.js App Router)
 

@@ -1,6 +1,6 @@
 ---
 name: session-wrap
-description: Wrap up a work session on a MiniServer project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to platform/registries/knowledge-ledger.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
+description: Wrap up a work session on a fleet project — distill non-obvious knowledge (decisions + pitfalls + reasoning) into docs/decisions.md, update docs/00-map.md if the module map changed, add a line to platform/registries/knowledge-ledger.md for cross-project lessons, suggest personal memory. Use at the end of a significant editing pass or when the user says "wrap up" / "record what we learned" / "update the docs now we're done".
 ---
 
 # Skill: Wrap up the session & accumulate knowledge (session-wrap)
@@ -15,7 +15,7 @@ obvious field) → do NOT record.
 
 ## Step 1 — Determine the session scope
 
-- Which project (directory under `MiniServer/`)? Look up the `kind` in `INVENTORY §0`.
+- Which project (directory under `fleet/`)? Look up the `kind` in `INVENTORY §0`.
 - What did this session do? Based on: the pending changes (`git status`/`git diff --stat`), the session's new
   commits, and the conversation thread. Silently summarize 3–6 bullets of "what changed".
 

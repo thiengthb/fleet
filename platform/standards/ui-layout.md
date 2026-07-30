@@ -1,6 +1,6 @@
 # 12 — Platform UI layout standard
 
-The shared page-layout rules every MiniServer web-app follows so pages look like one product, not a
+The shared page-layout rules every fleet web-app follows so pages look like one product, not a
 pile of independently-built screens. Complements skill `/react-ui-craft` (composition/motion/UX) and
 `/coding-convention` `references/ui-rules.md` (stack/theme/the 5 UI rules) — this doc owns **page-level
 frame consistency**: the container, spacing rhythm, breadcrumb, and animation baseline.

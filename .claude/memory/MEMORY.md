@@ -13,7 +13,7 @@ memory directory, which would have no index and never load. Add a line whenever 
 this user is learned that `CLAUDE.md`/docs don't already record. Tier rule, write procedure, and the forgetting
 discipline: skill `/memory`. Health check: `node .claude/scripts/memory-audit.mjs`.
 
-- [User profile](user-profile.md) — who I work with: solo architect/operator of the MiniServer platform
+- [User profile](user-profile.md) — who I work with: solo architect/operator of the fleet platform
 - [Extend, don't rebuild](extend-dont-rebuild.md) — prefers extending existing infra over parallel systems (anti-drift)
 - [Concise commit messages](concise-commit-messages.md) — short Conventional Commits subject, minimal/no body
 - [Commit message Windows encoding](commit-message-windows-encoding.md) — never pipe a PowerShell here-string to git (BOM + dash mangling); use a UTF-8 file or Bash heredoc

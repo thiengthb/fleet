@@ -23,7 +23,7 @@ costs context — resist it.
 
 ## Step 0 — Locate the project
 
-Which project under `MiniServer/`? Look up its `kind` in `INVENTORY §0`. Plans live at `<project>/docs/plans/` — create
+Which project under `fleet/`? Look up its `kind` in `INVENTORY §0`. Plans live at `<project>/docs/plans/` — create
 that directory if it doesn't exist. (Plans sit under `docs/` so they stay on the standard context-loading path; they are
 NOT a top-level folder.)
 

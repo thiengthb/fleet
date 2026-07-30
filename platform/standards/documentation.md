@@ -1,6 +1,6 @@
-# 05 — MiniServer documentation standard (Knowledge OS)
+# 05 — fleet documentation standard (Knowledge OS)
 
-> **Documentation contract** applied to EVERY project in `D:\Projects\MiniServer\`. Purpose: an agent (and people)
+> **Documentation contract** applied to EVERY project in `<repo-root>/`. Purpose: an agent (and people)
 > **understand a project in one cheap read**, and non-obvious knowledge **accumulates across sessions**
 > instead of evaporating. This is the source of truth that the two skills `/project-docs` and `/session-wrap` reference.
 >

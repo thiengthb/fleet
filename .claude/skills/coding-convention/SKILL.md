@@ -1,15 +1,15 @@
 ---
 name: coding-convention
-description: Mandatory coding convention for every MiniServer project — naming, git commits (Conventional Commits, English), and the required frontend stack/UI (Next.js App Router + React 19 + TS + shadcn radix-nova + Tailwind v4 + lucide + sonner + dark/light, Prisma + server actions). Use when creating/editing code, scaffolding a frontend, reviewing before a commit, or when the user asks "is this following convention".
+description: Mandatory coding convention for every fleet project — naming, git commits (Conventional Commits, English), and the required frontend stack/UI (Next.js App Router + React 19 + TS + shadcn radix-nova + Tailwind v4 + lucide + sonner + dark/light, Prisma + server actions). Use when creating/editing code, scaffolding a frontend, reviewing before a commit, or when the user asks "is this following convention".
 ---
 
-# Skill: MiniServer Coding Convention
+# Skill: fleet Coding Convention
 
-This is the LAW for writing code in any project under `D:\Projects\MiniServer\`.
+This is the LAW for writing code in any project under `<repo-root>/`.
 It applies alongside the infrastructure invariants in `CLAUDE.md` (deploy/NUC) — this skill
 handles the **code & UI** side, not the deploy side.
 
-The living reference for every convention is the **`todo`** repo (Next.js 16 full-stack — `D:\Projects\MiniServer\todo`).
+The living reference for every convention is the **`todo`** repo (Next.js 16 full-stack — `<repo-root>/todo`).
 When unsure "how should I write this", open the corresponding file in `todo` and look — don't invent something new.
 
 If a user request conflicts with a MANDATORY rule below → point out the conflict and ask back before proceeding. Don't silently break the rules.

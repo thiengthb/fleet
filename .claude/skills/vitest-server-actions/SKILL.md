@@ -1,6 +1,6 @@
 ---
 name: vitest-server-actions
-description: Set up & write Vitest tests for the MiniServer web stack (Next.js App Router + React 19 + Prisma + server actions) — unit-test pure logic, test server actions by mocking the Prisma singleton + next/cache, optional React Testing Library, gate a CI test job before deploy.yml builds. Use when adding tests to a web-app or the user says "write tests / add testing / set up Vitest". Complements /playwright-e2e-builder (E2E).
+description: Set up & write Vitest tests for the fleet web stack (Next.js App Router + React 19 + Prisma + server actions) — unit-test pure logic, test server actions by mocking the Prisma singleton + next/cache, optional React Testing Library, gate a CI test job before deploy.yml builds. Use when adding tests to a web-app or the user says "write tests / add testing / set up Vitest". Complements /playwright-e2e-builder (E2E).
 ---
 
 # Skill: Testing the web stack with Vitest (server actions + logic)

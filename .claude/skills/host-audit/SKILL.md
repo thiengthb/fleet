@@ -132,15 +132,15 @@ A mismatch → there may be stale `known_containers`; restart nuc-monitor to res
 First reconcile the **§0 classification registry itself**: every row must carry a valid **`domain`**
 (`platform`/`product`/`automation`/`shared`) **and** a `kind` — a row missing or invalid on either (e.g. a project
 added by hand, bypassing `/app-onboard`) → ⚠️ fix the classification. Conversely every dev dir under
-`D:\Projects\MiniServer\` (and every §1 app) must have a §0 row — a missing row = §0 omission (often left by an
+`<repo-root>/` (and every §1 app) must have a §0 row — a missing row = §0 omission (often left by an
 incomplete `/app-remove`) → ⚠️.
 
 Then reconcile each project in `INVENTORY §0` against the mandatory file set per `kind`
-(`platform/standards/documentation.md §3`). Check on the dev directory `D:\Projects\MiniServer\<name>`
+(`platform/standards/documentation.md §3`). Check on the dev directory `<repo-root>/<name>`
 (NOT over SSH — the doc-set lives in the dev repo):
 
 ```bash
-for d in /d/Projects/MiniServer/*/; do
+for d in "${CLAUDE_PROJECT_DIR:-.}"/*/; do
   p=$(basename "$d"); [ -f "$d/docs/00-map.md" ] && m=ok || m=MISSING
   [ -f "$d/docs/decisions.md" ] && k=ok || k=MISSING
   echo "$p: 00-map=$m decisions=$k"

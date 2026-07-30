@@ -1,7 +1,7 @@
 # 07 — Skill candidates from the community catalog (evaluation ledger)
 
 > A persisted evaluation of community Claude Code skills (from **`davila7/claude-code-templates`**, the repo behind
-> `aitmpl.com`) against the MiniServer platform — so a future session has the verdicts as context and does **not**
+> `aitmpl.com`) against the fleet platform — so a future session has the verdicts as context and does **not**
 > re-evaluate from scratch. Reviewed 2026-06-13.
 >
 > **This is a backlog/reference, NOT an install record.** Nothing here is installed yet. "ADOPT" = worth copying into

@@ -1,6 +1,6 @@
 ---
 name: database-design
-description: Vendor-neutral database DESIGN judgment for a MiniServer app — choosing the database (SQLite-first, Postgres when warranted), schema/normalization, relationship modeling, indexing strategy, and avoiding N+1 before it's written. Use when starting a data model or deciding "what database / how to structure this". Defers Prisma mechanics (migrations/query syntax) to /prisma-expert; ORM is fixed = Prisma.
+description: Vendor-neutral database DESIGN judgment for a fleet app — choosing the database (SQLite-first, Postgres when warranted), schema/normalization, relationship modeling, indexing strategy, and avoiding N+1 before it's written. Use when starting a data model or deciding "what database / how to structure this". Defers Prisma mechanics (migrations/query syntax) to /prisma-expert; ORM is fixed = Prisma.
 ---
 
 # Database Design (platform-adapted)
@@ -14,7 +14,7 @@ description: Vendor-neutral database DESIGN judgment for a MiniServer app — ch
 
 ## 1. Choosing the database (this IS a real choice here)
 
-Default order of preference for a new MiniServer app — **start simple**:
+Default order of preference for a new fleet app — **start simple**:
 
 - **SQLite** (the platform default; `todo` + `yakudoku` use it). A file in the app's named volume. Right for a
   single-writer app, personal/low-concurrency tools, embedded data. Zero extra container, trivial backup (copy the file).

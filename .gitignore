@@ -1,4 +1,4 @@
-# Repo control-plane của MiniServer — CHỈ track tầng meta (luật + skill + tài liệu nền).
+# Repo control-plane của fleet — CHỈ track tầng meta (luật + skill + tài liệu nền).
 # Mọi app/infra trong folder này là git repo ĐỘC LẬP của riêng nó → bỏ qua hết để khỏi lồng repo.
 # Cách làm: ignore tất cả ở gốc rồi allowlist lại đúng 3 thứ meta.
 

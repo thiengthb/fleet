@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// E2E config for a MiniServer web-app (Next.js + Prisma + SQLite).
+// E2E config for a fleet web-app (Next.js + Prisma + SQLite).
 // Auth: apps are gated by Authentik forward-auth at Traefik — locally/CI there is no gate,
 // so the app runs OPEN at the app layer and most tests need no auth. There is NO in-app login form.
 // Test DB: a throwaway SQLite file; global-setup migrates + seeds it before the run.

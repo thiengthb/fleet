@@ -1,5 +1,5 @@
 // SessionStart hook — MULTI-MACHINE git-sync guard.
-// Best-effort `git fetch` + ahead/behind/dirty scan across every repo under the MiniServer root,
+// Best-effort `git fetch` + ahead/behind/dirty scan across every repo under the fleet root,
 // surfaced as a non-blocking warning to the user (`systemMessage`) AND a compact note to the model
 // (`additionalContext`) so stale-local / unpushed work is caught the moment you sit down at a machine.
 //
@@ -26,7 +26,7 @@ import { gitRepos } from '../scripts/_layout.mjs';
 const FETCH_TIMEOUT_MS = 8000; // per-repo network budget; the fetch process is killed if exceeded
 const LOCAL_TIMEOUT_MS = 5000; // local-only git calls (status / rev-list)
 
-// Root = two levels up from this file (.claude/hooks/ → MiniServer/). Derived from the script path,
+// Root = two levels up from this file (.claude/hooks/ → fleet/). Derived from the script path,
 // NOT cwd, so it is correct no matter which subdir the session was launched from.
 const HOOK_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HOOK_DIR, '..', '..');

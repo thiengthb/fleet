@@ -1,7 +1,7 @@
 #!/bin/sh
-# MiniServer — commit-msg hook: enforce Conventional Commits (English).
+# fleet — commit-msg hook: enforce Conventional Commits (English).
 # Install: copy this file to <repo>/.git/hooks/commit-msg (chmod +x on Unix).
-# Source of truth: D:\Projects\MiniServer\.claude\skills\coding-convention\hooks\commit-msg
+# Source of truth: <repo-root>/.claude/skills/coding-convention/hooks/commit-msg
 
 msg_file="$1"
 # Subject line = first non-comment line.

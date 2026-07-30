@@ -9,7 +9,7 @@ This is the REVERSE process of `/app-onboard`. Goal: cleanly remove a project **
 affecting other services** and **leaving no junk** (orphan volume, hanging Authentik provider,
 wrong registry row, nuc-monitor noise). Work SEQUENTIALLY; each stage has a VERIFICATION.
 
-The invariants in `D:\Projects\MiniServer\CLAUDE.md` are law. The source of truth about apps:
+The invariants in `<repo-root>/CLAUDE.md` are law. The source of truth about apps:
 [`platform/inventory.md`](../../../platform/inventory.md). SSH NUC: `ssh thien25@thienminiserver`.
 
 > ⚠️ **Deleting a volume = permanent data loss.** Before tearing anything down, LOOK at it
@@ -53,7 +53,7 @@ Authentik provider/app/group (if any), domain, repo} for this project.
 ## Stage 1 — Delete local code
 
 ```powershell
-Remove-Item -Recurse -Force "D:\Projects\MiniServer\<name>"
+Remove-Item -Recurse -Force "<repo-root>/<name>"
 ```
 (Delete only the project directory; do NOT touch `.claude/`, `platform/`, or another project.)
 

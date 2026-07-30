@@ -55,7 +55,7 @@ phases to run. Wait for agreement.
 ### 2.1. Standard info (re-confirm with the user if different)
 - Host: `thienminiserver` (Tailscale, was once `100.126.231.94`)
 - User: `thien25` (in the `docker` group, has sudo; sudo password = user password — the user will provide it if needed)
-- Dev machine: Windows, working in `D:\Projects\MiniServer\`
+- Dev machine: Windows, working in `<repo-root>/`
 
 ### 2.2. Bootstrap the SSH key (only when the key doesn't work yet)
 The dev machine is Windows PowerShell 5.1, **no sshpass**. The verified working method

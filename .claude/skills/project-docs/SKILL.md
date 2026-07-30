@@ -14,7 +14,7 @@ change the standard file first, then follow it.
 
 ## Step 0 — Determine the project & kind
 
-1. Which project (directory under `D:\Projects\MiniServer\<name>`)?
+1. Which project (directory under `<repo-root>/<name>`)?
 2. Look up the `kind` in `platform/inventory.md §0`. No row yet → this is a new project: ask the user for the kind
    (`web-app`/`monorepo`/`worker`/`infra`/`meta`) and **add the §0 row first** (anti-drift).
 3. The `kind` determines the mandatory file set (table §3 of standards/documentation) + **the reference app to copy from**:

@@ -1,11 +1,11 @@
 ---
 name: user-guide
-description: Build & maintain the in-app user guide for any MiniServer app with a UI — a /guide page walking through screens + actions; if the app integrates Discord and/or an MCP server, a dedicated tab documenting setup, the full command/tool list, examples, and troubleshooting. Use when building a guide page, adding a Discord/MCP integration, or when the user asks about the guide / help page.
+description: Build & maintain the in-app user guide for any fleet app with a UI — a /guide page walking through screens + actions; if the app integrates Discord and/or an MCP server, a dedicated tab documenting setup, the full command/tool list, examples, and troubleshooting. Use when building a guide page, adding a Discord/MCP integration, or when the user asks about the guide / help page.
 ---
 
 # Skill: In-app user guide (user-guide)
 
-Every MiniServer app with a UI must teach the user how to use it **inside the app** — not only in
+Every fleet app with a UI must teach the user how to use it **inside the app** — not only in
 `docs/`. This skill defines what that guide page must contain and keeps it in sync with the features.
 Living reference: `projects/todo/app/guide/page.tsx` (route `/guide`, tabs "Using the app" + "Use with AI/MCP").
 
