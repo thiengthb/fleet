@@ -272,15 +272,34 @@ function auditFile(path) {
     if (items.length === 0) {
       add('ERROR', 'the `## Steps` section has no `- [ ]` checklist items');
     } else {
-      const noFiles = items.filter((s) => !/\bFiles?:/i.test(s)).length;
-      const noTest = items.filter((s) => !/\bTest:/i.test(s)).length;
+      /**
+       * `\b` is the wrong boundary in markdown. Underscore is a WORD character, so a step that writes its label
+       * in italics — `_Test: AC-1._`, which is how the standard's own examples read — has no word boundary before
+       * `Test` and was counted as having no test at all. Found 2026-07-31 alongside the same bug in the `AC-n`
+       * pattern: both reported "missing" about text that was present and merely styled. Lookbehind on letters
+       * keeps `Latest:` out while letting `_Test:`, `*Test:`, `- Test:` and `Test:` all count.
+       */
+      const noFiles = items.filter((s) => !/(?<![A-Za-z])Files?:/i.test(s)).length;
+      const noTest = items.filter((s) => !/(?<![A-Za-z])Test:/i.test(s)).length;
       if (noFiles) add('WARN', `${noFiles}/${items.length} steps name no \`Files:\` — a fresh session must re-derive where to work`);
       if (noTest) add('WARN', `${noTest}/${items.length} steps name no \`Test:\` — "done" is unverifiable for those steps`);
     }
 
     const acBody = section(text, 'Acceptance criteria');
     if (FEATUREY.has(kind) && ['active', 'done'].includes(status) && !preStandard) {
-      const acs = (uncomment(acBody || '').match(/\*\*AC-\d+\*\*/g) || []).length;
+      /**
+       * The id only has to START the bold span, not fill it. The old pattern required exactly `**AC-1**`, so a
+       * criterion written as `**AC-1 (R1) — outside consensus, not opinion.**` counted as zero and the plan was
+       * reported as having NO acceptance criteria while carrying seven. Found 2026-07-31 on this repo's own
+       * harness-reexamination plan.
+       *
+       * That is the third time on this platform a check has answered "missing" about something present (the
+       * hard-wrapped prohibition list; the empty-set prettier check; this). The rule those share: a checker's
+       * output for "absent" must not be reachable by a formatting difference, because the reader cannot tell the
+       * two apart and will conclude the checker is noise. Substance over shape — the requirement is that each
+       * criterion is identified by a stable id a step can reference, and `**AC-1 (…)` satisfies that.
+       */
+      const acs = (uncomment(acBody || '').match(/\*\*AC-\d+\b/g) || []).length;
       if (acs === 0) {
         add('ERROR', 'feature/system-change past `draft` with no `AC-n` acceptance criteria (standards/testing §3: 1 AC → 1 test)');
       } else if (items.length && !/AC-\d+/.test(steps)) {

@@ -81,6 +81,10 @@ function goodPlan({
   created = "2026-07-30",
   priorArt = "- [Source one](https://example.org/a) — what we learn\n- [Source two](https://example.net/b) — and this\n",
   ask = "> làm cho tôi cái này\n",
+  // Overridable so a case can vary ONLY the styling of an acceptance criterion or a step label. Both defaults
+  // are the plainest form; the styled forms are what broke on 2026-07-31.
+  ac = "- **AC-1** — Given a thing, When it happens, Then it is observable.",
+  steps = "- [ ] Step 1 — do the thing · Files: Create `a/b.ts` · Test: `AC-1 (how)`",
   extra = "",
 } = {}) {
   return `---
@@ -111,16 +115,77 @@ The chosen approach, plus two options ruled out.
 
 ## Acceptance criteria (Given / When / Then)
 
-- **AC-1** — Given a thing, When it happens, Then it is observable.
+${ac}
 
 ## Steps
 
-- [ ] Step 1 — do the thing · Files: Create \`a/b.ts\` · Test: \`AC-1 (how)\`
+${steps}
 
 ## Out of scope
 
 Nothing else.
 ${extra}`;
+}
+
+/* ═══════════ 0. THE 2026-07-31 REGRESSIONS: "missing" must not be reachable by STYLING ═══════════
+ *
+ * Two checks answered "absent" about text that was present and merely formatted differently, on this repo's own
+ * harness-reexamination plan — which carried SEVEN acceptance criteria and was reported as having none.
+ *
+ *   `**AC-1 (R1) — …**`  the id STARTS the bold span instead of filling it, and the old pattern required the
+ *                        id to be the entire bold span, so it counted zero
+ *   `_Test: AC-1._`      italics put an underscore before `Test`, and underscore is a WORD character, so a
+ *                        word-boundary anchor never matched — every step read as unverifiable
+ *
+ * (Both patterns are quoted in the code below rather than here: writing a regex containing an asterisk-slash
+ *  inside a block comment ends the comment, which is how the first draft of this very comment broke the file.)
+ *
+ * This is the third instance on this platform of a checker reporting something present as missing, and the
+ * reason it matters is not politeness: a false "missing" is indistinguishable from a real finding, so it teaches
+ * the reader that the checker is noise. Both directions are pinned here — the styled forms must COUNT, and the
+ * genuinely-absent case must still be caught.
+ */
+{
+  const s = sandbox({
+    "2026-07-31-styled-ac.md": goodPlan({
+      ac: "- **AC-1 (R1) — outside consensus, not opinion.** Given a claim, When it has two sources, Then adopt it.",
+      steps: "- [ ] Step 1 — do the thing\n      _Files: `a/b.ts`._ · _Test: AC-1._",
+    }),
+  });
+  const r = findings(s, "styled-ac.md");
+  assert.ok(
+    !has(r, "ERROR", /no `AC-n` acceptance criteria/),
+    `an AC id that STARTS the bold span must count:\n${levels(r, "ERROR").join("\n")}`,
+  );
+  assert.ok(
+    !has(r, "WARN", /steps name no `Test:`/),
+    `an italicised _Test:_ label must count:\n${levels(r, "WARN").join("\n")}`,
+  );
+  assert.ok(
+    !has(r, "WARN", /steps name no `Files:`/),
+    `an italicised _Files:_ label must count:\n${levels(r, "WARN").join("\n")}`,
+  );
+}
+{
+  // The other direction, so the fix above is a relaxation of SHAPE and not of SUBSTANCE.
+  const s = sandbox({
+    "2026-07-31-really-missing.md": goodPlan({
+      ac: "We will know it works when it feels right.",
+      steps: "- [ ] Step 1 — do the thing, somewhere, somehow",
+    }),
+  });
+  const r = findings(s, "really-missing.md");
+  assert.ok(has(r, "ERROR", /no `AC-n` acceptance criteria/), "prose with no AC id must still be an ERROR");
+  assert.ok(has(r, "WARN", /steps name no `Test:`/), "a step with no Test label must still warn");
+  assert.ok(has(r, "WARN", /steps name no `Files:`/), "a step with no Files label must still warn");
+  // And the label must be a label, not a coincidence inside another word.
+  const s2 = sandbox({
+    "2026-07-31-latest.md": goodPlan({ steps: "- [ ] Step 1 — ship the Latest: build" }),
+  });
+  assert.ok(
+    has(findings(s2, "latest.md"), "WARN", /steps name no `Test:`/),
+    '"Latest:" must not be mistaken for a Test: label — the lookbehind exists for this',
+  );
 }
 
 /* ═══════════ 1. THE REGRESSION: the heading must not eat the first line of its own body ═════════
@@ -710,7 +775,8 @@ x
 }
 
 console.log(
-  "plan-audit.test.mjs — all 4 historical defects pinned (heading eats a bullet, exact anchor, synonyms, " +
+  "plan-audit.test.mjs — all 6 historical defects pinned (heading eats a bullet, exact anchor, synonyms, " +
+    "a bold-span AC id, an italicised Test label, " +
     "inventing history), the verbatim-ask rules, step blocks, commented guidance, the checkin pair, the " +
     "proposal rules, the in-loop hook + --strict, the closed-plan LEGACY split with a live-only gate, " +
     "8 mutants all killed  ✅",
