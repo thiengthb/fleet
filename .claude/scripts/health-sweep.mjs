@@ -33,6 +33,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hostname } from "node:os";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const S = (p) => join(REPO, ".claude/scripts", p);
@@ -279,23 +280,38 @@ function stampRunLog(broken, drift) {
   // LOCAL calendar day — the supervisor's week, not UTC's (same choice as plan-checkin.mjs).
   const day = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
   const file = join(REPO, "platform", "reports", "health-sweep-log.md");
+
+  /**
+   * WHICH MACHINE produced this verdict. Added 2026-07-31 after the log recorded, for the same week,
+   * `44 BROKEN` from one box and `clean` from another — two true readings, anonymous, and therefore a file that
+   * contradicted itself with no way to tell why. A sweep result is a fact about ONE working tree; a log that
+   * cannot say whose tree it was is not evidence, and this log is what the standing-cadence reminder reads.
+   *
+   * `hostname()` and not a random id: it has to mean something to a human scanning the column, and it is stable
+   * across sessions. Sanitised because it lands inside a markdown table cell.
+   */
+  const machine = (hostname() || "unknown").replace(/[|\s]+/g, "-").slice(0, 24);
+
   const HEADER = `# health-sweep — run log
 
-One row per DAY (the last run of that day wins). Written by \`.claude/scripts/health-sweep.mjs\` on every run —
-**this is the evidence the standing-cadence reminder reads, so it is never edited by hand.** Two things live
-here that a single sweep cannot tell you: *whether the weekly cadence is actually being kept*, and *which
-direction the numbers are moving.*
+One row per DAY **per MACHINE** (the last run of that day on that machine wins). Written by
+\`.claude/scripts/health-sweep.mjs\` on every run — **this is the evidence the standing-cadence reminder reads, so
+it is never edited by hand.** Three things live here that a single sweep cannot tell you: *whether the weekly
+cadence is actually being kept*, *which direction the numbers are moving*, and *whether the platform is healthy
+on every machine or only on the one you happen to be sitting at.*
 
-| date | broken | drift | verdict |
-| --- | --- | --- | --- |
+| date | machine | broken | drift | verdict |
+| --- | --- | --- | --- | --- |
 `;
-  const row = `| ${day} | ${broken} | ${drift} | ${broken ? `${broken} BROKEN` : "clean"} |`;
+  const row = `| ${day} | ${machine} | ${broken} | ${drift} | ${broken ? `${broken} BROKEN` : "clean"} |`;
 
   try {
     mkdirSync(dirname(file), { recursive: true });
     let text = existsSync(file) ? readFileSync(file, "utf8") : HEADER;
     if (!text.endsWith("\n")) text += "\n";
-    const rowRe = new RegExp(`^\\| ${day} \\|.*$`, "m");
+    // Keyed on date AND machine. Keying on date alone would let this box overwrite the other box's verdict for
+    // the same day — silently deleting the only record that the platform was broken somewhere else.
+    const rowRe = new RegExp(`^\\| ${day} \\| ${machine} \\|.*$`, "m");
     text = rowRe.test(text) ? text.replace(rowRe, row) : `${text}${row}\n`;
     writeFileSync(file, text);
   } catch {

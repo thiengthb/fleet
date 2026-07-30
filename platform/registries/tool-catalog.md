@@ -38,7 +38,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | --- | --- | --- | --- | --- |
 | [`attic.mjs`](#atticmjs) | Khi định bỏ một skill, script hay tài liệu mà chưa chắc chắn. | `node .claude/scripts/attic.mjs` | không | ✓ |
 | [`decisions-split.mjs`](#decisions-splitmjs) | Khi một file decisions.md quá lớn — health-sweep hoặc memory-audit sẽ báo trước. | `node .claude/scripts/decisions-split.mjs` | không | ✓ |
-| [`eval-ledger-rule.mjs`](#eval-ledger-rulemjs) | Hầu như không chạy lại — nó tốn tiền thật và kết quả đã được ghi lại. | `node .claude/scripts/eval-ledger-rule.mjs` | không | ✗ |
+| [`eval-ledger-rule.mjs`](#eval-ledger-rulemjs) | Hầu như không chạy lại — nó tốn tiền thật và kết quả đã được ghi lại. | `node .claude/scripts/eval-ledger-rule.mjs` | không | ✓ |
 | [`health-sweep.mjs`](#health-sweepmjs) | Mỗi tuần một lần. Chỉ cần đọc dòng VERDICT. | `node .claude/scripts/health-sweep.mjs` | không | ✓ |
 | [`ledger-split.mjs`](#ledger-splitmjs) | Khi mục lục phình ra — memory-audit sẽ báo. | `node .claude/scripts/ledger-split.mjs` | không | ✓ |
 | [`link-check.mjs`](#link-checkmjs) | Tự động trong health-sweep hằng tuần. | `node .claude/scripts/link-check.mjs` | không | ✓ |
@@ -248,7 +248,7 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 
 ### eval-ledger-rule.mjs
 
-`.claude/scripts/eval-ledger-rule.mjs` · script · test: **chưa có**
+`.claude/scripts/eval-ledger-rule.mjs` · script · test: `eval-ledger-rule.test.mjs`
 
 **Chạy tay:** `node .claude/scripts/eval-ledger-rule.mjs`
 
