@@ -18,9 +18,18 @@
 // the one thing this suite must never do is call a model. Cases 8-9 assert exactly that.
 
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+  appendFileSync,
+  rmSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildSandbox, measure, verdictOf, direction } from "./eval-ledger-rule.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -219,8 +228,12 @@ const writeCompliant = (dir, { rowChars = 90, detailFile = "2026-07.md" } = {}) 
  * mutated module rather than the real one.
  */
 {
-  const lab = join(HERE, "__eval-mutants__");
-  mkdirSync(lab, { recursive: true });
+  // OUTSIDE the repo. The first version wrote mutants into `.claude/scripts/__eval-mutants__/` and removed them
+  // at the end, which is fine alone and wrong in company: while they exist the repo is dirty, so any suite
+  // comparing `git status` before/after — `attic.test.mjs` does, by design — fails with a message about the
+  // wrong thing. Two sessions running the runner at once turned that into an intermittent, misleading failure.
+  // The module under test imports only node builtins, so a temp dir needs nothing copied beside it.
+  const lab = mkdtempSync(join(tmpdir(), "eval-ledger-mutants-"));
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
   const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
@@ -319,7 +332,7 @@ const writeCompliant = (dir, { rowChars = 90, detailFile = "2026-07.md" } = {}) 
     writeFileSync(p, mutated);
     let killed = false;
     try {
-      killed = mu.probe(await import(`./__eval-mutants__/m${n - 1}.mjs`));
+      killed = mu.probe(await import(pathToFileURL(p).href));
     } catch {
       killed = Boolean(mu.mayCrash);
     }
