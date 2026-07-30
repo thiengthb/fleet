@@ -14,7 +14,12 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { readPayload } from './_util.mjs';
+import { readPayload, declareFailMode } from './_util.mjs';
+
+// Fail-open and REPORTED. This is a documentation reminder, not an invariant: blocking a write because the
+// reminder itself broke would trade a real edit for a nudge. Exit 1 lets the write through AND shows the failure
+// in the transcript — exit 0 would hide it from the run log.
+declareFailMode(1, 'The /guide coverage check did not run, so update the guide tab by hand if this edit adds a user-facing surface.');
 
 const payload = await readPayload();
 if (!['Edit', 'Write', 'MultiEdit'].includes(payload?.tool_name || '')) process.exit(0);

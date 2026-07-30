@@ -5,7 +5,13 @@
 // PreToolUse hook (Edit|Write) — BLOCKS hardcoding a real secret into any file that is not .env.
 // Enforces fleet invariant A1: secrets live ONLY in .env (chmod 600, gitignored).
 import path from 'node:path';
-import { readPayload, getWriteText } from './_util.mjs';
+import { readPayload, getWriteText, declareFailMode } from './_util.mjs';
+
+// FAIL CLOSED. This is one of only two hooks that may: it enforces invariant A1, and the cost of being wrong is
+// asymmetric — a false block costs one retry, a false ALLOW puts a live credential in a tracked file and forces
+// a rotation. Measured 2026-07-31: with a fault injected before the check, this hook exited 1 and the write
+// would have proceeded with the token in it. Declared here so the mode is a decision, not a side effect.
+declareFailMode(2, 'The secret scan did not finish, so this write is refused rather than trusted. Inspect the content by eye, or put the value in .env.');
 
 // High-confidence patterns only — a tight set keeps false positives near zero.
 const SECRET_PATTERNS = [

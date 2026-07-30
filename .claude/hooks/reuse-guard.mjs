@@ -25,7 +25,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { readPayload } from './_util.mjs';
+import { readPayload, declareFailMode } from './_util.mjs';
+
+// Fail-open and REPORTED. It enforces a PREFERENCE (reach for commons first), not a safety invariant, so a crash
+// must not stand between me and a legitimate new file. Exit 1 allows the write and still surfaces the fault.
+declareFailMode(1, 'The commons duplication check did not run, so check platform/registries/shared-assets.md by hand before building this.');
 
 const payload = await readPayload();
 // Write only. Editing a file that already exists means the choice was made long ago; nagging then is

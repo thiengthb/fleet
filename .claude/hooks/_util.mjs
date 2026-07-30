@@ -71,6 +71,42 @@ export function recordRun() {
   });
 }
 
+/**
+ * Declare what this hook does when its OWN logic throws — and make that a written choice, not an accident.
+ *
+ * WHY THIS EXISTS. Verified by experiment 2026-07-31: an exception anywhere in a hook's logic ends the process
+ * with exit 1, and Claude Code reads any code that is neither 0 nor 2 as a *non-blocking error*. So a guard
+ * whose regex throws does not block — it allows, quietly. `secret-guard` was measured doing exactly that: fed a
+ * real token with a fault injected before its check, it exited 1 and the write would have gone through with the
+ * secret in it. External statement of the same rule: "For a protection hook, an error should mean block, not
+ * allow." (dev.to/redpa, found in the 2026-07-31 hook-practice sweep.)
+ *
+ * BUT NOT EVERY HOOK SHOULD FAIL CLOSED, and that is the part a blanket fix gets wrong. Blocking on error is
+ * right only where the hook enforces a hard invariant. For an ADVISORY hook, exit 1 is already the correct
+ * outcome — the tool call proceeds AND the failure shows in the transcript. Forcing those to exit 0 would be
+ * worse than doing nothing: `recordRun` would log a clean 0 and the crash would become invisible, and forcing
+ * them to exit 2 is the over-blocking that makes people switch guards off entirely.
+ *
+ * So this helper does not impose a policy. It makes each hook NAME its policy in one line, and replaces a raw
+ * node stack trace with a sentence that says which mode was chosen and why.
+ *
+ * @param {0|1|2} code 2 = fail CLOSED (block; hard invariants only) · 1 = fail OPEN but VISIBLE (advisory) ·
+ *                     0 = fail open and SILENT (almost never right — it hides the crash from the run log)
+ * @param {string} why one short sentence, shown to Claude, saying what could not be checked
+ */
+export function declareFailMode(code, why) {
+  const bail = (err) => {
+    const hook = basename(process.argv[1] || 'unknown');
+    const mode = code === 2 ? 'FAIL-CLOSED, blocking' : code === 1 ? 'fail-open, reported' : 'fail-open, silent';
+    process.stderr.write(`${hook}: could not complete — ${err?.message || err}. ${why} [${mode}: exit ${code}]\n`);
+    process.exit(code);
+  };
+  // Top-level `await` makes a throwing hook an unhandled REJECTION, not an uncaught exception. Handling only
+  // the latter would have left every `await readPayload()` hook — which is all of them — still failing open.
+  process.on('uncaughtException', bail);
+  process.on('unhandledRejection', bail);
+}
+
 /** Read and parse the hook JSON payload from stdin. Returns {} on any error. */
 export async function readPayload() {
   recordRun();

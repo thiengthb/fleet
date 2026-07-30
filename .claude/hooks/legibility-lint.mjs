@@ -35,7 +35,11 @@
 //                                  WARNS ONLY. It must never block; a gate that obstructs the
 //                                  conversation gets switched off, and then it protects nothing.
 
-import { readPayload } from './_util.mjs';
+import { readPayload, declareFailMode } from './_util.mjs';
+
+// Fail-open and REPORTED. It grades how I phrase things; a broken linter must never be able to block a question to
+// the user or the end of a turn. Exit 1 allows and reports.
+declareFailMode(1, 'The legibility check did not run, so verify by hand that any option list names a recommendation and that jargon carries a plain gloss.');
 
 /**
  * The seed vocabulary, taken from the terms actually used on the supervisor on 2026-07-29 without
