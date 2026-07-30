@@ -82,7 +82,11 @@ const REFUSALS = [
       "--reason",
       "pretending an actively used standard is obsolete",
     ],
-    expect: /is ACTIVE, not WATCH/,
+    // Either live verdict. Which of the two a file earns depends on data that is MACHINE-LOCAL: `ACTIVE`
+    // comes from recorded reads in this box's transcripts, `ANCHOR` from inbound links in the tree. The same
+    // standard is ACTIVE on the machine that has been reading it and ANCHOR on a fresh clone — pinning one
+    // word made the suite assert whose laptop it ran on, not that the guard fired.
+    expect: /is (ACTIVE|ANCHOR), not WATCH/,
   },
   {
     what: "a path that does not exist",

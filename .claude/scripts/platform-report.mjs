@@ -29,7 +29,7 @@
  * Exit code: always 0. A report that fails a build is a report people stop generating.
  */
 
-import { execSync, spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import {
   readFileSync,
   writeFileSync,
@@ -132,19 +132,25 @@ function census() {
  *    condemns nobody looks safe and is just as wrong, because it silently stops doing its job.
  *    `--name-status -M` emits `R<score>\told\tnew`; walking newest→oldest, an alias old→new lets the older
  *    commits keep accruing to the file's current path.
+ *
+ * 3. **No shell.** The marker used to be written as bash ANSI-C quoting (`--format=$'\x01%at'`) with
+ *    `shell: "/bin/bash"`. There is no `/bin/bash` on Windows, so the spawn threw, the `catch` returned an
+ *    empty map, and EVERY age in the repo was unknown on that machine — trap 1 all over again, arriving by a
+ *    different door and just as silent. `execFileSync` with an argument array needs no shell and no quoting:
+ *    the marker is a real \x01 byte written by JS, so it cannot be re-quoted by anyone's `sh`.
  */
 function gitHistory() {
   const map = new Map();
   const alias = new Map(); // historical path → current path
   let out = "";
   try {
-    out = execSync(
-      "git log --no-merges --format=$'\\x01%at' --name-status -M",
+    out = execFileSync(
+      "git",
+      ["log", "--no-merges", "--format=\x01%at", "--name-status", "-M"],
       {
         cwd: REPO,
         encoding: "utf8",
         maxBuffer: 1 << 28,
-        shell: "/bin/bash",
       },
     );
   } catch {
@@ -431,5 +437,7 @@ mkdirSync(dir, { recursive: true });
 const out = join(dir, `${today}-platform-report.md`);
 writeFileSync(out, text);
 console.log(
-  `written: ${relative(REPO, out)}  (${rows.length} artefacts · ${watch.length} WATCH)`,
+  // POSIX-shaped, like every other path this report emits (see usage-census.mjs) — the written-to line is
+  // quoted into plans and compared between machines, so it must not change shape with the OS.
+  `written: ${relative(REPO, out).replace(/\\/g, "/")}  (${rows.length} artefacts · ${watch.length} WATCH)`,
 );

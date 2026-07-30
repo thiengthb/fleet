@@ -60,6 +60,15 @@ const findRepos = (root) => gitRepos(root);
 
 async function scan(repo) {
   const name = path.basename(repo);
+
+  // A directory that LOOKS like a repo (it has a `.git`) but is not a usable one makes git walk UP the tree
+  // and answer for the nearest real repository instead — so a corrupt or half-cloned project would be
+  // reported with an ancestor's dirt under its own name. Measured on Windows, where the temp tree sits under
+  // a home directory that is itself a git repo. If git does not agree that this exact directory is the repo
+  // root, there is no signal here and saying nothing is the correct output.
+  const top = await git(repo, ['rev-parse', '--show-toplevel'], LOCAL_TIMEOUT_MS);
+  if (!top.ok || path.resolve(top.out) !== path.resolve(repo)) return null;
+
   // Best-effort fetch: refresh @{u}. If it fails (offline / no auth) we still report local-accurate
   // ahead + dirty, and behind against the last-known remote.
   await git(repo, ['fetch', '--quiet', '--no-tags'], FETCH_TIMEOUT_MS);

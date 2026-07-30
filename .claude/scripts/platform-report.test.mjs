@@ -113,7 +113,14 @@ function report(s, args = []) {
     encoding: "utf8",
     timeout: 180_000,
     cwd: s.root,
-    env: { ...process.env, HOME: s.home, HOOK_USAGE_LOG: s.hookLogPath },
+    // HOME redirects os.homedir() on POSIX only — on Windows it reads USERPROFILE, so without this the
+    // sandbox is ignored and every case silently measures the REAL transcript store instead of its fixtures.
+    env: {
+      ...process.env,
+      HOME: s.home,
+      USERPROFILE: s.home,
+      HOOK_USAGE_LOG: s.hookLogPath,
+    },
   });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
 }
@@ -390,7 +397,8 @@ function rows(s, args = []) {
 
 /* ───────────────────── 10. the suite must NOTICE a broken verdict engine (mutation) ── */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const mutants = [
     {
@@ -434,8 +442,11 @@ function rows(s, args = []) {
       // EXPLAINS this fix, and it appears there FIRST — so the obvious patch silently mutated a comment and
       // the mutant "survived". A mutation patch has to be anchored on code, and the only reason this was
       // caught is that a surviving mutant is investigated rather than explained away.
+      // Anchored on the ARGUMENT ARRAY, which is where the flag now lives: the git call stopped going through
+      // a shell (there is no /bin/bash on Windows, so it threw and every age read as unknown), and the old
+      // anchor was the shell string.
       apply: (s) =>
-        s.replace("%at' --name-status -M", () => "%at' --name-status --no-renames"),
+        s.replace('"--name-status", "-M"', () => '"--name-status", "--no-renames"'),
       probe: (s) => {
         const r = rows(s)["platform/standards/new-name.md"];
         return Math.round((Date.now() - r.first) / DAY) < 5;

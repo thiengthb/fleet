@@ -33,7 +33,7 @@
  * Exit code: 1 on a refused stage or a failed verify, 0 otherwise.
  */
 
-import { execFileSync, execSync, spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -43,6 +43,7 @@ import {
   statSync,
 } from "node:fs";
 import { join, resolve, dirname, basename, relative } from "node:path";
+import { posix } from "./_layout.mjs";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
@@ -98,6 +99,40 @@ const safeRead = (f) => {
   }
 };
 
+/**
+ * Every file that mentions any of `names`, as POSIX repo-relative paths.
+ *
+ * `git grep` rather than a shell `grep -rl ... 2>/dev/null || true`: that command ran through `cmd.exe` on
+ * Windows, where none of `grep`, `2>/dev/null` or `|| true` exist. The call failed, the surrounding `catch`
+ * swallowed it, and the mention guard reported **"nobody mentions this file"** on that machine — the guard
+ * that exists to stop a wrongful retirement was the thing that silently stopped working. So a failure here
+ * is fatal now, never empty: `status > 1` means git itself failed, and staging must refuse rather than
+ * proceed on a signal it did not actually collect. (`status === 1` is git's "no matches", which is real data.)
+ */
+function mentionsOf(names) {
+  const wanted = [...new Set(names)].filter(Boolean);
+  if (!wanted.length) return [];
+  const args = ["grep", "-l", "-I", "--untracked", "-F"];
+  for (const n of wanted) args.push("-e", n);
+  // Ignored paths (node_modules) are excluded by --untracked; .git is never searched. The attic itself is
+  // excluded on purpose: an already-staged file quoting this one is not a live mention.
+  args.push("--", "platform", ".claude", "CLAUDE.md", ":(exclude)platform/attic");
+  const r = spawnSync("git", args, {
+    cwd: REPO,
+    encoding: "utf8",
+    maxBuffer: 1 << 26,
+  });
+  if (r.error || r.status > 1)
+    die(
+      `attic: the mention scan failed (${r.error?.message ?? `git grep exit ${r.status}`}) — refusing to ` +
+        `stage anything on a signal that was not collected`,
+    );
+  return (r.stdout || "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+}
+
 /** Every metric the platform can produce for one path, at this instant. The snapshot is the argument. */
 function measure(path) {
   const r = spawnSync(
@@ -118,18 +153,9 @@ function measure(path) {
     );
   }
   // Signals platform-report does not carry: who mentions this file by NAME anywhere in the tree right now.
-  const name = basename(path);
-  let mentions = [];
-  try {
-    mentions = execSync(
-      `grep -rl --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=attic -F ${JSON.stringify(name)} platform .claude CLAUDE.md 2>/dev/null || true`,
-      { cwd: REPO, encoding: "utf8" },
-    )
-      .split("\n")
-      .filter((l) => l.trim() && !l.includes(path));
-  } catch {
-    /* grep found nothing */
-  }
+  const mentions = mentionsOf([basename(path)]).filter(
+    (l) => !l.includes(path),
+  );
   const split = splitMentions(mentions);
   return {
     at: new Date().toISOString(),
@@ -192,21 +218,8 @@ function measureDir(rel) {
       ...rows.map((x) => basename(x.path)).filter((n) => !GENERIC.test(n)),
     ]),
   ];
-  const mentions = new Set();
-  for (const n of names) {
-    let out = "";
-    try {
-      out = execSync(
-        `grep -rl --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=attic -F ${JSON.stringify(n)} platform .claude CLAUDE.md 2>/dev/null || true`,
-        { cwd: REPO, encoding: "utf8" },
-      );
-    } catch {
-      /* none */
-    }
-    for (const l of out.split("\n"))
-      if (l.trim() && !l.startsWith(rel)) mentions.add(l.trim());
-  }
-  const split = splitMentions([...mentions]);
+  const mentions = mentionsOf(names).filter((l) => !l.startsWith(rel));
+  const split = splitMentions([...new Set(mentions)]);
 
   return {
     at: new Date().toISOString(),
@@ -308,7 +321,10 @@ function stage() {
     die(
       'usage: attic.mjs stage <path> --reason "<why>" [--superseded-by <path>]',
     );
-  const rel = relative(REPO, resolve(REPO, target));
+  // POSIX-shaped: every inventory key, PROTECTED class pattern and manifest row in this repo uses forward
+  // slashes, so a native path silently matched none of them and a PROTECTED file was refused for the wrong
+  // reason ("not in the inventory") on Windows.
+  const rel = posix(relative(REPO, resolve(REPO, target)));
   if (!existsSync(join(REPO, rel))) die(`attic: ${rel} does not exist`);
 
   // Cheap preconditions FIRST. Measuring costs ~8s (it mines every transcript), and spending that to
@@ -355,9 +371,9 @@ function stage() {
   mkdirSync(EVIDENCE, { recursive: true });
   const dest = join(monthDir, basename(rel));
   if (existsSync(dest))
-    die(`attic: ${relative(REPO, dest)} already exists — resolve by hand`);
+    die(`attic: ${posix(relative(REPO, dest))} already exists — resolve by hand`);
 
-  execFileSync("git", ["mv", rel, relative(REPO, dest)], { cwd: REPO });
+  execFileSync("git", ["mv", rel, posix(relative(REPO, dest))], { cwd: REPO });
   writeFileSync(
     join(EVIDENCE, `${basename(rel)}.json`),
     JSON.stringify(
@@ -369,11 +385,11 @@ function stage() {
 
   const rows = readManifest();
   const forced = has("--force") ? " ⚠ OVERRIDE" : "";
-  const raw = `| ${today()} | \`${relative(REPO, dest)}\` | ${reason}${forced} | ${arg("--superseded-by") ?? "—"} | ${plusDays(WAIT_DAYS)} | staged |`;
+  const raw = `| ${today()} | \`${posix(relative(REPO, dest))}\` | ${reason}${forced} | ${arg("--superseded-by") ?? "—"} | ${plusDays(WAIT_DAYS)} | staged |`;
   rows.push({ raw });
   writeManifest(rows);
 
-  console.log(`staged: ${rel} → ${relative(REPO, dest)}`);
+  console.log(`staged: ${rel} → ${posix(relative(REPO, dest))}`);
   console.log(`  evidence: platform/attic/evidence/${basename(rel)}.json`);
   console.log(
     `  earliest delete: ${plusDays(WAIT_DAYS)} (and ≥${WAIT_SESSIONS} sessions), and only by a human`,
@@ -402,17 +418,9 @@ function verify() {
   console.log(`attic verify — ${rows.length} staged file(s)\n`);
   for (const r of rows) {
     const name = basename(r.file);
-    let mentions = [];
-    try {
-      mentions = execSync(
-        `grep -rl --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=attic -F ${JSON.stringify(name)} platform .claude CLAUDE.md 2>/dev/null || true`,
-        { cwd: REPO, encoding: "utf8" },
-      )
-        .split("\n")
-        .filter((l) => l.trim());
-    } catch {
-      /* none */
-    }
+    // The highest-stakes reader of the mention scan: an empty result here is what tells the supervisor a
+    // staged file is safe to delete. It must come from a scan that ran, not from a scan that failed quietly.
+    const mentions = mentionsOf([name]);
     const days = Math.round((Date.now() - Date.parse(r.staged)) / 86400_000);
     const sessions = sessionCount();
     let evStaged = null;
