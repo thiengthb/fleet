@@ -134,7 +134,9 @@ const checkers = [
       bad: 0,
       drift: code === 1 ? (out.match(/^     \w+: \d+ → \d+/gm) || []).length || 1 : 0,
       driftWhat: "tier(s) grown past their sprawl baseline",
-      line: (/(✗ PHANH ĂN.*|ok  không tầng nào phình thêm.*)/.exec(out) || [""])[0],
+      // Three shapes, not two: a machine with no declared baseline is neither rising nor ok — it is unratcheted,
+      // and that line has to reach the sweep or the drift count appears with nothing next to it.
+      line: (/(✗ PHANH ĂN.*|✗ CHƯA CÓ MỐC.*|ok  không tầng nào phình thêm.*)/.exec(out) || [""])[0],
     }),
   },
   {

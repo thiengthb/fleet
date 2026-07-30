@@ -20,10 +20,12 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
-import { tmpdir } from "node:os";
+import { tmpdir, hostname } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+/** The same sanitisation the script applies, so an injected baseline is keyed the way it will be read. */
+const MACHINE = (hostname() || "unknown").replace(/[|\s]+/g, "-").slice(0, 24);
 const REPO = resolve(HERE, "..", "..");
 const SCRIPT = join(HERE, "sprawl-check.mjs");
 const SOURCE = readFileSync(SCRIPT, "utf8");
@@ -40,11 +42,16 @@ const DAY = 86_400_000;
  * instead of depending on whatever the real platform's numbers happen to be today. Without this every case
  * would break the next time a skill gets used.
  */
-function withBaseline(src, baseline) {
+function withBaseline(src, baseline, machineKey = MACHINE) {
   const body = Object.entries(baseline)
     .map(([k, v]) => `  ${k}: ${typeof v === "string" ? JSON.stringify(v) : v},`)
     .join("\n");
-  const out = src.replace(/const BASELINE = \{[\s\S]*?\n\};/, `const BASELINE = {\n${body}\n};`);
+  // Baselines are keyed by MACHINE — a brake judging usage-census's machine-local numbers cannot share one line
+  // across boxes — so an injected baseline has to land under the hostname the copy will actually read.
+  const out = src.replace(
+    /const BASELINE = \{[\s\S]*?\n\};/,
+    `const BASELINE = {\n  ${JSON.stringify(machineKey)}: {\n${body}\n  },\n};`,
+  );
   assert.notEqual(out, src, "baseline patch matched nothing — the test would be measuring the wrong numbers");
   return out;
 }
@@ -55,7 +62,7 @@ function withBaseline(src, baseline) {
  * inside the fixture. The census is stubbed on purpose: this suite tests the POLICY, and running the real
  * 428-line census would make it slow, and would couple the brake's tests to the census's correctness.
  */
-function sandbox({ rows, baseline, files = {}, source = SOURCE, censusStub } = {}) {
+function sandbox({ rows, baseline, files = {}, source = SOURCE, censusStub, machineKey } = {}) {
   const root = mkdtempSync(join(lab, "repo-"));
   const scripts = join(root, ".claude", "scripts");
   mkdirSync(scripts, { recursive: true });
@@ -84,7 +91,7 @@ function sandbox({ rows, baseline, files = {}, source = SOURCE, censusStub } = {
     censusStub ?? `console.log(${JSON.stringify(JSON.stringify({ scanned: {}, rows }))});`,
   );
   const copy = join(scripts, "sprawl-check.mjs");
-  writeFileSync(copy, baseline ? withBaseline(source, baseline) : source);
+  writeFileSync(copy, baseline ? withBaseline(source, baseline, machineKey) : source);
   return { root, script: copy };
 }
 
@@ -252,6 +259,47 @@ check("a census it cannot parse yields NO verdict and exits 1", () => {
   assert.doesNotMatch(r.out, /không tầng nào phình thêm/, "must not print a comfortable verdict it cannot support");
 });
 
+/* ═══════════════════ 2b. per-MACHINE baselines, and the number the message prints ═══════════════════
+ * Both found 2026-07-31, on the second machine's first run of this tool. It judges `usage-census` numbers, and
+ * the census mines the transcripts of the box it runs on — 70 sessions on one, 9 on the other — so one shared
+ * baseline made the Windows box report three tiers RISING on day one. A brake whose first act is to cry wolf is
+ * the adoption failure this script's own header warns about.
+ */
+
+check("a machine with no declared baseline says so and fails --gate — it must not read as ok", () => {
+  const { script } = sandbox({
+    rows: [row("a/one.md", "knowledge"), row("a/two.md", "knowledge")],
+    files: { "a/one.md": 60, "a/two.md": 60 },
+    // Declared for a DIFFERENT box, which is exactly the situation a new machine starts in.
+    baseline: { measured: "test", knowledge: 0 },
+    machineKey: "some-other-box",
+  });
+  const r = run(script);
+  assert.match(r.out, /CHƯA CÓ MỐC/, "an unratcheted machine must announce itself");
+  assert.match(r.out, /usage-census chỉ đọc transcript của máy đang chạy/, "…and say why another box's number is not usable");
+  assert.doesNotMatch(r.out, /không tầng nào phình thêm/, "silence about a machine it cannot judge must not read as all-clear");
+  assert.equal(run(script, ["--gate"]).code, 1, "--gate must fail until the line is declared");
+});
+
+check("the brake line prints the number it COMPARED, so baseline + delta adds up", () => {
+  const { script } = sandbox({
+    // 3 unused, but only 2 of them mature (≥30d). The gate compares MATURE; the message used to print UNUSED.
+    rows: [row("a/old1.md", "knowledge"), row("a/old2.md", "knowledge"), row("a/fresh.md", "knowledge")],
+    files: { "a/old1.md": 60, "a/old2.md": 60, "a/fresh.md": 2 },
+    baseline: { measured: "test", knowledge: 1 },
+  });
+  const r = run(script);
+  const m = /knowledge: (\d+) → (\d+) \(\+(\d+)\)/.exec(r.out);
+  assert.ok(m, `the tier line must be printed:\n${r.out}`);
+  assert.equal(
+    Number(m[1]) + Number(m[3]),
+    Number(m[2]),
+    `baseline + delta must equal the printed count — it printed the unused count (3) beside a delta from the ` +
+      `mature count (2), so the arithmetic sent the reader after a number the gate never looked at:\n${m[0]}`,
+  );
+  assert.match(r.out, /knowledge: 1 → 2 \(\+1\)/, "and the number is the mature one");
+});
+
 /* ═══════════════════ 3. mutants — each proved to still RUN ═══════════════════ */
 
 const mutants = [
@@ -304,6 +352,28 @@ const mutants = [
       baseline: { measured: "test", skill: 0 },
     },
     probe: (out) => !/PHANH ĂN/.test(out),
+  },
+  {
+    name: "an undeclared machine falls back to green (the brake silently brakes nothing)",
+    patch: (s) => s.replace("const MINE = BASELINE[MACHINE] ?? null;", "const MINE = BASELINE[MACHINE] ?? { measured: 'x' };"),
+    fixture: {
+      rows: [row("a/one.md", "knowledge"), row("a/two.md", "knowledge")],
+      files: { "a/one.md": 60, "a/two.md": 60 },
+      baseline: { measured: "test", knowledge: 0 },
+      machineKey: "some-other-box",
+    },
+    // With the fallback in place the run stops admitting it has no line — which is the whole failure.
+    probe: (out) => !/CHƯA CÓ MỐC/.test(out),
+  },
+  {
+    name: "the brake line prints the unused count again (arithmetic that does not add up)",
+    patch: (s) => s.replace("${t.baseline} → ${t.mature} (+${t.delta})", "${t.baseline} → ${t.unused} (+${t.delta})"),
+    fixture: {
+      rows: [row("a/old1.md", "knowledge"), row("a/old2.md", "knowledge"), row("a/fresh.md", "knowledge")],
+      files: { "a/old1.md": 60, "a/old2.md": 60, "a/fresh.md": 2 },
+      baseline: { measured: "test", knowledge: 1 },
+    },
+    probe: (out) => /knowledge: 1 → 3 \(\+1\)/.test(out),
   },
 ];
 

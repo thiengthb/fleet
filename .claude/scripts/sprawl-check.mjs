@@ -56,6 +56,7 @@
 
 import { spawnSync } from "node:child_process";
 import { resolve, dirname, join } from "node:path";
+import { hostname } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -68,16 +69,44 @@ const AS_JSON = process.argv.includes("--json");
  * commit that retires something — never raise one to make a run green.
  */
 const BASELINE = {
-  measured: "2026-07-31",
-  // Read from this tool's own `--json`, not eyeballed. The first draft of these numbers used the raw unused
-  // count (66/17/9/3/0), which is 2–9x looser than reality and would have made the gate unfireable — a baseline
-  // set above the true value is a gate that is green forever, the most comfortable way for a check to be useless.
-  skill: 15,
-  knowledge: 7,
-  script: 0,
-  hook: 0,
-  other: 0,
+  // PER MACHINE, and that is not bookkeeping — it is the difference between a brake and a false alarm. The
+  // numbers come from `usage-census`, which mines the transcripts of the box it runs on: this fleet's Linux box
+  // has ~70 recorded sessions and the Windows box 9, so the same tree legitimately reads 15 idle skills on one
+  // and 22 on the other. Measured 2026-07-31, the single shared baseline made the Windows box report three
+  // tiers "RISING" on its very first run — a brake whose first act is to cry wolf is a brake that gets ignored,
+  // which is the adoption failure documented in reason 3 above.
+  //
+  // Read from this tool's own `--json` on the machine in question, not eyeballed. The first draft of the Linux
+  // numbers used the raw unused count (66/17/9/3/0), which is 2–9x looser than reality and would have made the
+  // gate unfireable — a baseline set above the true value is a gate that is green forever, the most comfortable
+  // way for a check to be useless.
+  "thien-ubuntu": {
+    measured: "2026-07-31",
+    skill: 15,
+    knowledge: 7,
+    script: 0,
+    hook: 0,
+    other: 0,
+  },
+  "TNT-Laptop": {
+    measured: "2026-07-31",
+    skill: 22,
+    knowledge: 11,
+    script: 0,
+    hook: 2,
+    other: 0,
+  },
 };
+
+/** Same shape as the health-sweep log's column, so a human reads one identity across both. */
+const MACHINE = (hostname() || "unknown").replace(/[|\s]+/g, "-").slice(0, 24);
+/**
+ * This machine's line, or null. A box with no declared baseline is NOT green: nothing is being ratcheted there,
+ * and saying "ok" would be the silent-gap failure this platform keeps catching (see `tool-check`'s EXEMPT list,
+ * whose whole point is that a declared gap can be argued with and a silent one cannot). So the run says so out
+ * loud and fails `--gate` until someone records the line.
+ */
+const MINE = BASELINE[MACHINE] ?? null;
 
 const MIN_AGE_DAYS = 30; // LaunchDarkly's age condition; a thing built last week has not had its chance yet.
 const MAX_LINKS_TO_RETIRE = 1; // the second number — one pointer is a mention, two is a dependency.
@@ -215,7 +244,7 @@ for (const r of rows) {
 
 const report = [...tiers.values()]
   .map((t) => {
-    const base = BASELINE[t.kind];
+    const base = MINE ? MINE[t.kind] : undefined;
     return {
       kind: t.kind,
       total: t.n,
@@ -235,10 +264,13 @@ const untracked = report.filter((t) => t.baseline === null);
 
 if (AS_JSON) {
   console.log(JSON.stringify({ baseline: BASELINE, minAgeDays: MIN_AGE_DAYS, tiers: report }, null, 2));
-  process.exit(rising.length && GATE ? 1 : 0);
+  process.exit((rising.length || !MINE) && GATE ? 1 : 0);
 }
 
-console.log(`\nsprawl-check — cái phanh. Mốc chốt ngày ${BASELINE.measured}; số "chưa dùng" chỉ được phép GIẢM.\n`);
+console.log(
+  `\nsprawl-check — cái phanh. Máy \`${MACHINE}\`, mốc chốt ngày ${MINE ? MINE.measured : "(chưa có)"}; ` +
+    `số "chưa dùng" chỉ được phép GIẢM.\n`,
+);
 console.log(
   `  Cột "nằm không ≥${MIN_AGE_DAYS}d" là cột được canh: một món vừa thêm hôm nay thì đương nhiên chưa ai dùng,\n` +
     `  cái đáng bắt là món đã nằm không suốt một tháng.\n`,
@@ -288,14 +320,26 @@ console.log(
 );
 
 if (rising.length) {
-  console.log(`\n✗ PHANH ĂN: ${rising.length} tầng có số "chưa dùng" TĂNG so với mốc ${BASELINE.measured}:`);
-  for (const t of rising) console.log(`     ${t.kind}: ${t.baseline} → ${t.unused} (+${t.delta})`);
+  console.log(
+    `\n✗ PHANH ĂN: ${rising.length} tầng có số "chưa dùng" TĂNG so với mốc ${MINE.measured} (máy ${MACHINE}):`,
+  );
+  // `mature`, NOT `unused`: mature (idle ≥ 30 days) is the column the gate actually compares. Printing the raw
+  // unused count beside a delta computed from mature produced arithmetic that does not add up —
+  // `skill: 15 → 30 (+7)` — which sends the reader after the wrong number.
+  for (const t of rising) console.log(`     ${t.kind}: ${t.baseline} → ${t.mature} (+${t.delta})`);
   console.log(
     `   Trước khi thêm món mới ở tầng này, cho một món cũ nghỉ hưu — hoặc dùng thứ vừa thêm rồi hạ mốc\n` +
       `   trong CÙNG commit. Nâng mốc để cho qua là cách cơ chế này chết.`,
   );
+} else if (!MINE) {
+  console.log(
+    `\n✗ CHƯA CÓ MỐC cho máy \`${MACHINE}\` — ở đây cái phanh KHÔNG canh gì cả.\n` +
+      `   Chạy \`--json\` trên máy này, lấy cột "nằm không ≥${MIN_AGE_DAYS}d" của từng tầng, rồi thêm một khối\n` +
+      `   \`"${MACHINE}": { measured: "<hôm nay>", ... }\` vào BASELINE. Số của máy khác KHÔNG dùng được ở đây:\n` +
+      `   usage-census chỉ đọc transcript của máy đang chạy, nên hai máy có hai con số đúng khác nhau.`,
+  );
 } else {
-  console.log(`\nok  không tầng nào phình thêm so với mốc ${BASELINE.measured}.`);
+  console.log(`\nok  không tầng nào phình thêm so với mốc ${MINE.measured} (máy ${MACHINE}).`);
 }
 
-process.exit(rising.length && GATE ? 1 : 0);
+process.exit((rising.length || !MINE) && GATE ? 1 : 0);
