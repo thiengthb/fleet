@@ -35,12 +35,20 @@
  *
  * Usage:  node .claude/scripts/eval-ledger-rule.mjs           # run it
  *         node .claude/scripts/eval-ledger-rule.mjs --keep    # keep the sandboxes for inspection
+ *
+ * ─ WHY THE HALVES ARE SPLIT ──────────────────────────────────────────────────────────────────────
+ * Only `runArm` spawns a model, and only it costs money and returns something different every time. The
+ * fixtures, the measurement and the verdicts are ordinary deterministic code that has already carried TWO
+ * harness defects — each of which produced a confident, wrong number rather than an error. So everything
+ * except `runArm` is exported and tested (`eval-ledger-rule.test.mjs`), and the arms only run when this file
+ * is invoked as a command. Importing it must never spend a token.
  */
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const KEEP = process.argv.includes("--keep");
 const MODEL = process.argv.includes("--haiku") ? "haiku" : "sonnet";
@@ -152,13 +160,16 @@ applies to every project on the platform, not just the one where it happened.`,
 
 // ── harness ─────────────────────────────────────────────────────────────────────────────────────
 
-function buildSandbox(arm) {
+export function buildSandbox(arm) {
   const dir = mkdtempSync(join(tmpdir(), `eval-ledger-${arm}-`));
   // HARNESS DEFECT #1 (found + fixed 2026-07-28, first run): `ledger/` used to be created for BOTH arms.
   // That leaked the structure under test into the control fixture — the control model saw an empty
   // ledger/ directory that did not exist in the pre-2026-07-28 world, and one run duly split its entry
   // into it. Control now gets exactly the world it had: no ledger/ directory at all.
-  mkdirSync(join(dir, "platform"), { recursive: true });
+  // `registries/` must be created explicitly — writeFileSync does not create parent directories, so without
+  // this every arm died with ENOENT before the model was ever asked anything. Latent until the deterministic
+  // half was extracted and could be run without paying for two model calls first.
+  mkdirSync(join(dir, "platform", "registries"), { recursive: true });
   writeFileSync(join(dir, "SESSION-WRAP-STEP-4.md"), arm === "control" ? STEP4_CONTROL : STEP4_TREATMENT);
   if (arm === "control") {
     writeFileSync(join(dir, "platform", "registries/knowledge-ledger.md"), LEDGER_CONTROL);
@@ -194,7 +205,7 @@ function runArm(dir, lesson) {
 }
 
 /** Deterministic: measure the files, never ask the model what it did. */
-function measure(dir, arm) {
+export function measure(dir, arm) {
   const idxPath = join(dir, "platform", "registries/knowledge-ledger.md");
   const rows = readFileSync(idxPath, "utf8")
     .split("\n")
@@ -219,57 +230,87 @@ function measure(dir, arm) {
   };
 }
 
+/**
+ * One arm's verdict from its measurement.
+ *
+ * The `rowsAdded === 0` branch is the important one and it is not a formality: `measure` falls back to the
+ * LAST SEEDED row when the model added nothing, and the seeded control row is deliberately fat — so without
+ * this branch "the harness did nothing" renders as "the model violated the rule", which is a fabricated
+ * result in the direction the experimenter wants. An absent measurement must never render as a real one.
+ */
+export function verdictOf(r) {
+  if (r.error) return "ERROR";
+  if (r.rowsAdded === 0) return "NO EDIT — not a result, harness/model no-op";
+  const budgetOk = r.indexRowChars <= ROW_BUDGET;
+  // The treatment arm is only compliant if the detail landed SOMEWHERE — a short index row with no detail
+  // written is not the behaviour under test, it is the lesson being lost.
+  return budgetOk && (r.arm === "control" || r.detailWritten) ? "compliant" : "VIOLATES the rule";
+}
+
+/**
+ * The pre-committed reading of the whole run. Stated as code so a null result cannot be re-narrated after
+ * the fact: treatment must be compliant everywhere AND control must actually have reproduced the failure,
+ * or the conclusion is "escalate to a gate" / "the fixture proves nothing" — never "good enough".
+ */
+export function direction(results) {
+  const t = results.filter((r) => r.arm === "treatment" && !r.error);
+  const c = results.filter((r) => r.arm === "control" && !r.error);
+  const tOk = t.filter((r) => verdictOf(r) === "compliant").length;
+  const cFat = c.filter((r) => r.rowsAdded > 0 && r.indexRowChars > ROW_BUDGET).length;
+  const verdict =
+    t.length && tOk === t.length && cFat > 0
+      ? "DIRECTION: the restated rule changes behaviour. Keep it as prose; no gate needed yet."
+      : tOk < t.length
+        ? "NULL/NEGATIVE: the restatement did not hold. Per the pre-commitment above, escalate to a PreToolUse gate."
+        : "INCONCLUSIVE: control did not reproduce the failure, so the treatment had nothing to beat. Fix the fixture.";
+  return { control: c.length, treatment: t.length, treatmentCompliant: tOk, controlFat: cFat, verdict };
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────────────────────────
 
-console.log(`eval-ledger-rule — model=${MODEL}, row budget=${ROW_BUDGET} chars\n`);
-const results = [];
-for (const [key, lesson] of Object.entries(LESSONS)) {
-  for (const arm of ["control", "treatment"]) {
-    const dir = buildSandbox(arm);
-    process.stdout.write(`  running ${arm.padEnd(9)} / ${key.padEnd(5)} … `);
-    const err = runArm(dir, lesson.text);
-    const m = err.error ? { error: err.error } : measure(dir, arm);
-    results.push({ fixture: key, arm, dir, ...m });
+/**
+ * Only when invoked as a command. Importing this file spawns nothing: `eval-ledger-rule.test.mjs` exercises
+ * the fixtures, the measurement and the verdicts, and a test that spent money on every commit would simply
+ * be deleted by the next person who noticed.
+ */
+function main() {
+  console.log(`eval-ledger-rule — model=${MODEL}, row budget=${ROW_BUDGET} chars\n`);
+  const results = [];
+  for (const [key, lesson] of Object.entries(LESSONS)) {
+    for (const arm of ["control", "treatment"]) {
+      const dir = buildSandbox(arm);
+      process.stdout.write(`  running ${arm.padEnd(9)} / ${key.padEnd(5)} … `);
+      const err = runArm(dir, lesson.text);
+      const m = err.error ? { error: err.error } : measure(dir, arm);
+      results.push({ fixture: key, arm, dir, ...m });
+      console.log(
+        err.error ? `ERROR ${err.error}` : `rowsAdded=${m.rowsAdded} row=${m.indexRowChars}ch detail=${m.detailWritten}`,
+      );
+      if (!KEEP) rmSync(dir, { recursive: true, force: true });
+      else console.log(`    sandbox kept: ${dir}`);
+    }
+  }
+
+  console.log(`\n${"fixture".padEnd(8)}${"arm".padEnd(11)}${"added".padEnd(7)}${"rowChars".padEnd(10)}${"detail?".padEnd(9)}verdict`);
+  for (const r of results) {
+    if (r.error) {
+      console.log(`${r.fixture.padEnd(8)}${r.arm.padEnd(11)}ERROR: ${r.error}`);
+      continue;
+    }
     console.log(
-      err.error ? `ERROR ${err.error}` : `rowsAdded=${m.rowsAdded} row=${m.indexRowChars}ch detail=${m.detailWritten}`,
+      `${r.fixture.padEnd(8)}${r.arm.padEnd(11)}${String(r.rowsAdded).padEnd(7)}${String(r.indexRowChars).padEnd(10)}${String(r.detailWritten).padEnd(9)}` +
+        verdictOf(r),
     );
-    if (!KEEP) rmSync(dir, { recursive: true, force: true });
-    else console.log(`    sandbox kept: ${dir}`);
   }
-}
 
-console.log(`\n${"fixture".padEnd(8)}${"arm".padEnd(11)}${"added".padEnd(7)}${"rowChars".padEnd(10)}${"detail?".padEnd(9)}verdict`);
-for (const r of results) {
-  if (r.error) {
-    console.log(`${r.fixture.padEnd(8)}${r.arm.padEnd(11)}ERROR: ${r.error}`);
-    continue;
-  }
-  // No-op guard: if the model added nothing, `measure` falls back to a SEEDED row — which in the control
-  // arm is deliberately fat, and would render "the harness did nothing" as "the model violated the rule".
-  // An absent measurement must never render as a real one.
-  const verdict =
-    r.rowsAdded === 0
-      ? "NO EDIT — not a result, harness/model no-op"
-      : r.indexRowChars <= ROW_BUDGET && (r.arm === "control" || r.detailWritten)
-        ? "compliant"
-        : "VIOLATES the rule";
+  const d = direction(results);
+  console.log(`\nn = ${results.length} runs (${d.control} control, ${d.treatment} treatment) — small; read the DIRECTION.`);
   console.log(
-    `${r.fixture.padEnd(8)}${r.arm.padEnd(11)}${String(r.rowsAdded).padEnd(7)}${String(r.indexRowChars).padEnd(10)}${String(r.detailWritten).padEnd(9)}` +
-      verdict,
+    `treatment compliant on ${d.treatmentCompliant}/${d.treatment}; control wrote an over-budget row on ` +
+      `${d.controlFat}/${d.control}.`,
   );
+  console.log(d.verdict);
 }
 
-const t = results.filter((r) => r.arm === "treatment" && !r.error);
-const c = results.filter((r) => r.arm === "control" && !r.error);
-const tOk = t.filter((r) => r.rowsAdded > 0 && r.indexRowChars <= ROW_BUDGET && r.detailWritten).length;
-const cFat = c.filter((r) => r.rowsAdded > 0 && r.indexRowChars > ROW_BUDGET).length;
-
-console.log(`\nn = ${results.length} runs (${c.length} control, ${t.length} treatment) — small; read the DIRECTION.`);
-console.log(`treatment compliant on ${tOk}/${t.length}; control wrote an over-budget row on ${cFat}/${c.length}.`);
-console.log(
-  tOk === t.length && cFat > 0
-    ? "DIRECTION: the restated rule changes behaviour. Keep it as prose; no gate needed yet."
-    : tOk < t.length
-      ? "NULL/NEGATIVE: the restatement did not hold. Per the pre-commitment above, escalate to a PreToolUse gate."
-      : "INCONCLUSIVE: control did not reproduce the failure, so the treatment had nothing to beat. Fix the fixture.",
-);
+// `process.argv[1]` is the invoked path; an import leaves it pointing at the importer instead.
+if (existsSync(process.argv[1] ?? "") && import.meta.url === pathToFileURL(process.argv[1]).href) main();

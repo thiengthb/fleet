@@ -32,6 +32,13 @@ import { spawnSync } from "node:child_process";
 import { join, resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
+/**
+ * Repo-relative paths leave this runner POSIX-shaped on every OS (`_layout.mjs` explains why in full, and
+ * `usage-census.mjs` does the same). Kept local rather than imported: the runner reports on every module in
+ * this folder, so it must not stop running because one of them is mid-edit.
+ */
+const posix = (p) => String(p).replace(/\\/g, "/");
+
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CLAUDE = join(REPO, ".claude");
 const QUIET = process.argv.includes("--quiet");
@@ -72,24 +79,22 @@ const tools = all
  * silence. This list IS the mechanism: it is printed on every run, it counts in the denominator, and a
  * reason shorter than a sentence is refused, exactly as `attic.mjs` refuses "unused" as a retirement reason.
  * An exemption nobody can read is indistinguishable from a gap nobody noticed.
+ *
+ * EMPTY as of 2026-07-30, and that is the interesting part. The one entry here was `eval-ledger-rule.mjs`,
+ * exempt because it spawns `claude -p` twice. The exemption was honest and still wrong in scope: only
+ * `runArm` needs a model, and extracting the rest behind a main-guard made it testable for free — the suite
+ * that followed immediately found a defect (`platform/registries/` was never created, so every arm of the
+ * eval died before the model was asked anything). The lesson for the next entry: an exemption should name the
+ * smallest untestable PART, because "this file calls a model" hid a file that could not run at all.
  */
-const EXEMPT = [
-  {
-    path: ".claude/scripts/eval-ledger-rule.mjs",
-    reason:
-      "a model-in-the-loop eval: it spawns `claude -p` twice (control + treatment), so its result is " +
-      "non-deterministic AND billable, and a standing test would spend money re-deriving a number that is " +
-      "already recorded. Its deterministic half — counting rows from the files the model edited — is not " +
-      "exported and would have to be extracted before it could be tested.",
-  },
-];
+const EXEMPT = [];
 const EXEMPT_MIN_REASON = 40;
 const exemptBad = EXEMPT.filter(
   (e) => (e.reason || "").trim().length < EXEMPT_MIN_REASON,
 );
 const exemptPaths = new Set(EXEMPT.map((e) => e.path));
 const isExempt = (tool) =>
-  exemptPaths.has(relative(REPO, tool).replace(/\\/g, "/"));
+  exemptPaths.has(posix(relative(REPO, tool)));
 
 const hasTest = (tool) => existsSync(tool.replace(/\.mjs$/, ".test.mjs"));
 const untested = tools.filter((t) => !hasTest(t) && !isExempt(t));
@@ -97,11 +102,11 @@ const exempt = tools.filter((t) => isExempt(t));
 
 if (LIST_ONLY) {
   console.log(`${tests.length} test file(s):`);
-  for (const t of tests) console.log(`   ${relative(REPO, t)}`);
+  for (const t of tests) console.log(`   ${posix(relative(REPO, t))}`);
   console.log(`\n${untested.length} tool(s) with no test:`);
-  for (const t of untested) console.log(`   ${relative(REPO, t)}`);
+  for (const t of untested) console.log(`   ${posix(relative(REPO, t))}`);
   console.log(`\n${exempt.length} exempt tool(s):`);
-  for (const t of exempt) console.log(`   ${relative(REPO, t)}`);
+  for (const t of exempt) console.log(`   ${posix(relative(REPO, t))}`);
   process.exit(0);
 }
 
@@ -117,7 +122,7 @@ for (const t of tests) {
   const ok = r.status === 0;
   if (!ok) failed++;
   rows.push({
-    file: relative(REPO, t),
+    file: posix(relative(REPO, t)),
     ok,
     ms,
     out: (r.stdout || "").trim(),
@@ -152,7 +157,7 @@ if (exempt.length) {
   console.log(
     `\nEXEMPT (a declared gap is a gap you can argue with; a silent one is not):`,
   );
-  const present = new Set(exempt.map((t) => relative(REPO, t).replace(/\\/g, "/")));
+  const present = new Set(exempt.map((t) => posix(relative(REPO, t))));
   for (const e of EXEMPT.filter((e) => present.has(e.path))) {
     console.log(`   ${e.path}`);
     for (const line of e.reason.match(/.{1,96}(\s|$)/g) || [e.reason])
@@ -166,7 +171,7 @@ if (exempt.length) {
  * mechanism is decorative. Reported, not fatal: the tool being gone is usually good news.
  */
 const staleExempt = EXEMPT.filter(
-  (e) => !tools.some((t) => relative(REPO, t).replace(/\\/g, "/") === e.path),
+  (e) => !tools.some((t) => posix(relative(REPO, t)) === e.path),
 );
 if (staleExempt.length) {
   console.log(
@@ -189,7 +194,7 @@ if (untested.length) {
   );
   for (const t of untested) {
     const kind = t.includes(`${"hooks"}`) ? "hook  " : "script";
-    console.log(`   ${kind}  ${relative(REPO, t)}`);
+    console.log(`   ${kind}  ${posix(relative(REPO, t))}`);
   }
   console.log(
     `\n   Priority order is not file order: test the ones that BLOCK something first (a gate that fails\n` +

@@ -144,10 +144,13 @@ function run(s, args = []) {
 
 /* ═══════════ 4. EXEMPT — a declared gap you can argue with, never a silent one ═══════════ */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
   const exemptFor = (path, reason) =>
     src.replace(
-      /const EXEMPT = \[[\s\S]*?\n\];/,
+      // Matches both the populated form and the empty `const EXEMPT = [];` the real file carries now that the
+      // last exemption was closed — anchoring on `\n];` silently stopped injecting anything.
+      /const EXEMPT = \[[\s\S]*?\];/,
       `const EXEMPT = [{ path: ${JSON.stringify(path)}, reason: ${JSON.stringify(reason)} }];`,
     );
 
@@ -278,7 +281,8 @@ function run(s, args = []) {
 
 /* ═══════════ 8. the suite must NOTICE a broken runner (mutation) ═══════════ */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const BASE = {
     ".claude/scripts/tested.mjs": "// x\n",
@@ -326,7 +330,9 @@ function run(s, args = []) {
       apply: (s) =>
         s
           .replace(
-            /const EXEMPT = \[[\s\S]*?\n\];/,
+            // Matches both the populated form and the empty `const EXEMPT = [];` the real file carries now that the
+      // last exemption was closed — anchoring on `\n];` silently stopped injecting anything.
+      /const EXEMPT = \[[\s\S]*?\];/,
             'const EXEMPT = [{ path: ".claude/scripts/costly.mjs", reason: "meh" }];',
           )
           .replace("process.exit(failed || exemptBad.length ? 1 : 0);", "process.exit(failed ? 1 : 0);"),
@@ -338,7 +344,9 @@ function run(s, args = []) {
       apply: (s) =>
         s
           .replace(
-            /const EXEMPT = \[[\s\S]*?\n\];/,
+            // Matches both the populated form and the empty `const EXEMPT = [];` the real file carries now that the
+      // last exemption was closed — anchoring on `\n];` silently stopped injecting anything.
+      /const EXEMPT = \[[\s\S]*?\];/,
             'const EXEMPT = [{ path: ".claude/scripts/costly.mjs", reason: "it spawns a billable model call, so a standing test would spend money." }];',
           )
           // Inline, not via a helper: a helper declared after the `tools` list is a temporal-dead-zone
