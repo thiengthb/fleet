@@ -1,4 +1,4 @@
-# Danh mục công cụ của agent — 30 công cụ
+# Danh mục công cụ của agent — 32 công cụ
 
 > **SINH TỰ ĐỘNG** bởi `node .claude/scripts/tool-catalog.mjs --write`. **Đừng sửa tay** — lần sinh sau ghi đè.
 > Muốn đổi phần chữ tiếng Việt: sửa dòng `@vi WHAT/WHEN/WHY` **ngay trong file công cụ đó**, rồi sinh lại.
@@ -10,8 +10,8 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 
 | Loại | Số lượng | Ai gọi |
 | --- | --- | --- |
-| Hook | 12 | tự động, theo sự kiện |
-| Script | 16 | anh tự gọi khi cần |
+| Hook | 13 | tự động, theo sự kiện |
+| Script | 17 | anh tự gọi khi cần |
 | Thư viện | 2 | các file khác import |
 
 ## 1. Hook — tự chạy, anh không phải gọi
@@ -19,6 +19,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | Công cụ | Nổ khi nào | Nó làm gì | Quyền | Test |
 | --- | --- | --- | --- | --- |
 | [`autonomy-gate.mjs`](#autonomy-gatemjs) | TRƯỚC mỗi lệnh Bash hoặc mỗi lần ghi file | Khi phiên chạy mà không có người ngồi trước máy, nó CHẶN mọi hành động khó thu hồi: push lên main, deploy, xoá dữ liệu, cài thêm thư viện, mở PR, ssh — và chặn cả việc agent tự sửa luật của chính nó. | **CHẶN được** | ✓ |
+| [`compact-recap.mjs`](#compact-recapmjs) | đầu mỗi phiên làm việc | Ngay sau mỗi lần nén ngữ cảnh (compact), nó nói lại cho tôi trạng thái thật của cây làm việc: đang ở nhánh nào, còn bao nhiêu file sửa chưa commit, kế hoạch nào đang mở, và phiên này đã ghi lại tri thức chưa. | chỉ nhắc | ✓ |
 | [`git-sync-check.mjs`](#git-sync-checkmjs) | đầu mỗi phiên làm việc | Đầu phiên, nó tự fetch mọi repo trong fleet rồi báo: repo nào đang cũ hơn bản trên mạng, repo nào có việc chưa push, repo nào đang dở dang. | chỉ nhắc | ✓ |
 | [`guide-coverage-reminder.mjs`](#guide-coverage-remindermjs) | TRƯỚC mỗi lần ghi/sửa file | Lần đầu trong phiên mà tôi sửa một trang giao diện hoặc danh mục MCP của sakubun, nó chặn lại một nhịp để nhắc: thêm màn hình mới thì phải cập nhật trang /guide trong cùng lần sửa đó. | **CHẶN được** | ✓ |
 | [`harness-drift-check.mjs`](#harness-drift-checkmjs) | đầu mỗi phiên làm việc | Khi Claude Code lên phiên bản mới, nó hỏi MỘT câu duy nhất: bản mới có vừa ra tính năng nào mà mình đã tự làm tay không? | chỉ nhắc | ✓ |
@@ -48,6 +49,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | [`reuse-scan.mjs`](#reuse-scanmjs) | Trước khi xây một tính năng mới; và tự động trong health-sweep. | `node .claude/scripts/reuse-scan.mjs` | không | ✓ |
 | [`rule-classify.mjs`](#rule-classifymjs) | Nó đã trả lời xong câu hỏi của nó. Chạy lại chỉ để xác nhận con số cũ còn đúng. | `node .claude/scripts/rule-classify.mjs` | không | ✓ |
 | [`skill-audit.mjs`](#skill-auditmjs) | Khi số skill phình lên, hoặc khi nghi có skill đã chết. | `node .claude/scripts/skill-audit.mjs` | không | ✓ |
+| [`sprawl-check.mjs`](#sprawl-checkmjs) | Trước khi định thêm một skill/script/hook/tài liệu mới. Và tự động hằng tuần trong health-sweep. | `node .claude/scripts/sprawl-check.mjs` | không | ✓ |
 | [`tool-catalog.mjs`](#tool-catalogmjs) | Sau khi thêm/xoá/sửa một hook hay script, chạy `--write` để cập nhật trang. Muốn kiểm trang còn khớp với thực tế không thì `--check` (health-sweep gọi cái này). | `node .claude/scripts/tool-catalog.mjs` | không | ✓ |
 | [`tool-check.mjs`](#tool-checkmjs) | Sau khi thêm hoặc sửa một hook/script. | `node .claude/scripts/tool-check.mjs` | không | ✓ |
 | [`usage-census.mjs`](#usage-censusmjs) | Trước khi quyết định bỏ bất cứ thứ gì. | `node .claude/scripts/usage-census.mjs` | không | ✓ |
@@ -75,6 +77,18 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Khi phiên chạy mà không có người ngồi trước máy, nó CHẶN mọi hành động khó thu hồi: push lên main, deploy, xoá dữ liệu, cài thêm thư viện, mở PR, ssh — và chặn cả việc agent tự sửa luật của chính nó.
 
 **Vì sao có nó:** Đây là cái gác DUY NHẤT cho phiên tự chạy. Riêng khoản "không cho agent sửa luật của chính nó" là bài học từ lỗ bảo mật CVE-2025-53773: một agent sửa được file luật của nó thì mọi luật còn lại thành vô nghĩa. Nó fail-closed — không đọc được dữ liệu vào thì coi như chặn, vì một cái gác không đọc được thì cũng không kiểm được.
+
+### compact-recap.mjs
+
+`.claude/hooks/compact-recap.mjs` · hook · test: `compact-recap.test.mjs`
+
+**Nổ khi nào:** đầu mỗi phiên làm việc
+
+**Quyền:** chỉ nhắc
+
+**Nó làm gì:** Ngay sau mỗi lần nén ngữ cảnh (compact), nó nói lại cho tôi trạng thái thật của cây làm việc: đang ở nhánh nào, còn bao nhiêu file sửa chưa commit, kế hoạch nào đang mở, và phiên này đã ghi lại tri thức chưa.
+
+**Vì sao có nó:** Nén ngữ cảnh là lúc tôi mất chi tiết và chỉ còn bản tóm tắt — đúng lúc dễ quên rằng còn việc chưa commit hoặc đang làm dở theo một kế hoạch nào. Bốn hook đầu-phiên hiện có đều CỐ Ý bỏ qua lần khởi động do nén, nên trước đây khoảnh khắc đó hoàn toàn im lặng. Nó không mang thông tin mới — mọi thứ đều tra lại được — nó mang thông tin ĐÚNG LÚC, và chỉ lên tiếng với anh khi có việc chưa được ghi lại.
 
 ### git-sync-check.mjs
 
@@ -363,6 +377,18 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Xem từng skill đã cài có còn đáng chỗ của nó không.
 
 **Vì sao có nó:** Tên và mô tả của MỌI skill đã cài được nhồi vào đầu mỗi phiên dù có gọi hay không — phần thân mới nạp theo yêu cầu, phần danh mục thì không. CHỈ báo cáo: gỡ một skill là thay đổi luật, và đó là việc của người.
+
+### sprawl-check.mjs
+
+`.claude/scripts/sprawl-check.mjs` · script · test: `sprawl-check.test.mjs`
+
+**Chạy tay:** `node .claude/scripts/sprawl-check.mjs`
+
+**Khi nào cần:** Trước khi định thêm một skill/script/hook/tài liệu mới. Và tự động hằng tuần trong health-sweep.
+
+**Nó làm gì:** Cái phanh chống phình. Nó KHÔNG đo lại gì — nó đọc số của `usage-census` rồi áp một luật có ngưỡng: số món "chưa ai dùng" trong mỗi tầng CHỈ được phép giảm, không được tăng. Và nó liệt kê món nào đã đủ điều kiện nghỉ hưu theo hai con số (không ai dùng VÀ gần như không file nào trỏ tới).
+
+**Vì sao có nó:** Đo 2026-07-31: 17/38 skill và 66/134 file tri thức chưa ai dùng lần nào, `commons` có 27 món và 0 lần được cài. Thêm máy móc vào lúc một nửa máy móc đang nằm không chính là định nghĩa của over-engineering. Nhưng một cổng đỏ ngay ngày đầu thì sẽ bị tắt — nên nó chốt mức HÔM NAY làm mốc và chỉ nổ khi con số TĂNG. Nó không bao giờ tự xoá: xoá là việc của người, qua `attic.mjs`.
 
 ### tool-catalog.mjs
 

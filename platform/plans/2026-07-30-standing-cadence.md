@@ -65,6 +65,24 @@ this repo — there is no host to schedule on; the NUC has been down since 2026-
 **Ruled out — a `last_run:` field in this file.** See the Vietnamese note: a hand-edited clock reports "on
 schedule" precisely when it has been forgotten. Evidence beats self-report.
 
+**Ruled out — the harness's OWN scheduling, and this reason was missing from the first draft (added 2026-07-31).**
+The paragraph above ruled out "cron" meaning the *operating system's* cron, which is a different question from
+"does Claude Code schedule anything itself?" — and it does, three ways. Not asking that was the gap:
+`harness-baseline.json` had recorded native `/schedule` as the replacement for the deleted auto-pilot wrapper
+**three days earlier**, so the answer was two files away. The design survives the check, but for a reason that
+had to be looked up rather than assumed:
+
+| Native mechanism | Why it cannot hold this cadence |
+| --- | --- |
+| `CronCreate` / `CronList` | **Session-scoped.** Dies with the conversation, 7-day auto-expiry, fires only while Claude Code is running and idle, and does not catch up a missed fire. A weekly/monthly cadence has to outlive every session. |
+| `ScheduleWakeup` | Same lifetime problem — it paces work *inside* a run, it is not a standing clock. |
+| `/schedule` → cloud Routines | Runs on Anthropic-managed infra **with no access to local files**, from a fresh clone. `health-sweep` and `platform-report` exist to read *this working tree*, so a runner that cannot see it cannot run them. |
+
+So the plan-checkin rail stays — not because nothing native exists, but because the native mechanisms are
+session-scoped or file-blind and this cadence is neither. Sources: `code.claude.com/docs/en/scheduled-tasks`,
+`.../routines`. **The general lesson, now in the ledger:** ruling out "cron" is not the same as ruling out
+"scheduling", and the harness is the first place to look, not the last.
+
 ## Steps
 
 - [x] Step 1 — `health-sweep` leaves dated evidence · Files: Modify `.claude/scripts/health-sweep.mjs` (`stampRunLog`) → one row per day in `platform/reports/health-sweep-log.md`, `--no-log` / `HEALTH_SWEEP_LOG=off` to suppress · Test: run it twice in one day, assert one row not two

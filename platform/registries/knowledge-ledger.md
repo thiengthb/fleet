@@ -268,6 +268,9 @@
 | 2026-07-30 | An exemption must name the smallest untestable PART — a file-level one hid a script that could not run | [→](ledger/2026-07.md#2026-07-30-an-exemption-must-name-the-smallest-untestable-part) |
 | 2026-07-30 | After a move, a count that IMPROVED deserves the same scrutiny as one that degraded | [→](ledger/2026-07.md#2026-07-30-a-count-that-improved-deserves-the-same-scrutiny) |
 | 2026-07-30 | Where a rule is DELIVERED decides what it can be: a prohibition cannot live in a lazily-loaded file. | [→](ledger/2026-07.md#2026-07-30-delivery-timing-decides-what-a-rule-can-be) |
+| 2026-07-31 | A hook's fail mode is a DECISION; undeclared it is "allow" — a guard that throws exits 1 and the write proceeds. | [→](ledger/2026-07.md#2026-07-31-a-hooks-fail-mode-is-a-decision) |
+| 2026-07-31 | Verify a platform claim against YOUR version: a credible external report voided the safety gate, measurement disproved it. | [→](ledger/2026-07.md#2026-07-31-verify-a-platform-claim-against-your-version) |
+| 2026-07-31 | Audit a deletion tool by READING its first suggestions — mine exited 0 while proposing to delete live safety rules. | [→](ledger/2026-07.md#2026-07-31-audit-a-deletion-tool-by-reading-its-suggestions) |
 
 ## B. Pointers to each project's knowledge log
 
