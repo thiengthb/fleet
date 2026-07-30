@@ -16,7 +16,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, cpSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, cpSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -272,6 +272,55 @@ console.log("NO-SUBSTRATE is a strong signal, not a verdict.");`,
     `drift alone must exit 0 — a sweep that fails on decay is a sweep people stop running:\n${out}`,
   );
   assert.match(out, /VERDICT: nothing broken/, "drift is not brokenness");
+  rmSync(root, { recursive: true, force: true });
+}
+
+/* ═══════════ the evidence row: ONE date per run, and it names the machine ═══════════
+ * The `machine` column landed on 2026-07-31 with no standing test, and the same file carried a second defect
+ * that only shows when two boxes are compared: the printed header used `toISOString()` while the row used the
+ * LOCAL day, so in UTC+7 every run between 17:00 and midnight reported one date and stamped another. Both are
+ * defects in the EVIDENCE — this log is what the standing-cadence gate reads — so both are pinned here rather
+ * than left to be noticed again.
+ */
+{
+  const root = sandbox();
+  const logFile = join(root, "platform", "reports", "health-sweep-log.md");
+  // The log is ON for these cases, which is the point; it resolves inside the sandbox, never the real repo.
+  const runWithLog = () =>
+    spawnSync(
+      process.execPath,
+      [join(scriptsOf(root), "health-sweep.mjs"), "--quiet"],
+      { encoding: "utf8", cwd: root, timeout: 180_000, env: { ...process.env } },
+    );
+
+  const first = runWithLog();
+  const header = /health-sweep — (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}\s+(\S+)/.exec(
+    (first.stdout || "") + (first.stderr || ""),
+  );
+  assert.ok(header, `the header must state the day and the machine:\n${first.stdout}`);
+  const rowRe = new RegExp(`^\\| ${header[1]} \\| ${header[2]} \\|`, "m");
+  assert.match(
+    readFileSync(logFile, "utf8"),
+    rowRe,
+    `the row must carry the SAME day the header printed, and name the same machine:\n${readFileSync(logFile, "utf8")}`,
+  );
+
+  // Re-running on the same day, on the same machine, replaces its own row — never appends a second one.
+  runWithLog();
+  const own = readFileSync(logFile, "utf8")
+    .split("\n")
+    .filter((l) => rowRe.test(l));
+  assert.equal(own.length, 1, `one row per day per machine, got ${own.length}`);
+
+  // …and a row from ANOTHER machine on the same day must survive untouched. That is the case the date-only key
+  // got wrong: it deleted the only record that the platform was broken somewhere else.
+  const other = `| ${header[1]} | some-other-box | 7 | 7 | 7 BROKEN |`;
+  writeFileSync(logFile, readFileSync(logFile, "utf8") + other + "\n");
+  runWithLog();
+  assert.ok(
+    readFileSync(logFile, "utf8").includes(other),
+    "another machine's row for the same day must not be overwritten",
+  );
   rmSync(root, { recursive: true, force: true });
 }
 

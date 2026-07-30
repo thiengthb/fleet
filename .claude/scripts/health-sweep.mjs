@@ -40,6 +40,24 @@ const S = (p) => join(REPO, ".claude/scripts", p);
 const JSON_OUT = process.argv.includes("--json");
 const QUIET = process.argv.includes("--quiet");
 
+/**
+ * ONE clock reading and ONE identity for the whole run, computed here so the report and its evidence row cannot
+ * disagree.
+ *
+ * They did. The row used the LOCAL calendar day (the supervisor's week, as `plan-checkin.mjs` also chooses)
+ * while the printed header used `toISOString()`, so in UTC+7 every run between 17:00 and midnight **printed one
+ * date and stamped another** — the run that found this printed `2026-07-30` above a row dated `2026-07-31`. A
+ * report that contradicts its own log is how a trend gets read off by a day, and the trend is the whole point of
+ * keeping the log.
+ *
+ * `hostname()` rather than a random id: the column is read by a human scanning for their own box, and it is
+ * stable across sessions. Sanitised because it lands inside a markdown table cell.
+ */
+const NOW = new Date();
+const pad = (n) => String(n).padStart(2, "0");
+const day = `${NOW.getFullYear()}-${pad(NOW.getMonth() + 1)}-${pad(NOW.getDate())}`;
+const machine = (hostname() || "unknown").replace(/[|\s]+/g, "-").slice(0, 24);
+
 const run = (args) => {
   const r = spawnSync(process.execPath, args, {
     encoding: "utf8",
@@ -275,22 +293,7 @@ function stampRunLog(broken, drift) {
   if (/^(0|off|false|no)$/i.test((process.env.HEALTH_SWEEP_LOG || "").trim()))
     return;
 
-  const d = new Date();
-  const p = (n) => String(n).padStart(2, "0");
-  // LOCAL calendar day — the supervisor's week, not UTC's (same choice as plan-checkin.mjs).
-  const day = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
   const file = join(REPO, "platform", "reports", "health-sweep-log.md");
-
-  /**
-   * WHICH MACHINE produced this verdict. Added 2026-07-31 after the log recorded, for the same week,
-   * `44 BROKEN` from one box and `clean` from another — two true readings, anonymous, and therefore a file that
-   * contradicted itself with no way to tell why. A sweep result is a fact about ONE working tree; a log that
-   * cannot say whose tree it was is not evidence, and this log is what the standing-cadence reminder reads.
-   *
-   * `hostname()` and not a random id: it has to mean something to a human scanning the column, and it is stable
-   * across sessions. Sanitised because it lands inside a markdown table cell.
-   */
-  const machine = (hostname() || "unknown").replace(/[|\s]+/g, "-").slice(0, 24);
 
   const HEADER = `# health-sweep — run log
 
@@ -333,8 +336,10 @@ if (JSON_OUT) {
   process.exit(broken ? 1 : 0);
 }
 
-const when = new Date().toISOString().slice(0, 16).replace("T", " ");
-console.log(`health-sweep — ${when}\n`);
+// Same `day` and same `machine` the evidence row will carry — see their declaration for why that matters.
+console.log(
+  `health-sweep — ${day} ${pad(NOW.getHours())}:${pad(NOW.getMinutes())}  ${machine}\n`,
+);
 for (const r of results) {
   const tag = r.bad ? `BROKEN ${r.bad}` : r.drift ? `drift ${r.drift}` : "ok";
   console.log(`  ${tag.padEnd(10)} ${r.id.padEnd(18)} ${r.line || ""}`);
