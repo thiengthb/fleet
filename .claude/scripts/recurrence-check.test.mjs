@@ -297,6 +297,57 @@ const d1 = (s) => detectors(s)["stale-tool-citation"].hits;
   rmSync(s.root, { recursive: true, force: true });
 }
 
+/* ═══════════════════ 7b. D6 — "I could not look" returned as "there is nothing there" ══════════
+ * Added 2026-07-31 after the third instance in one day (platform-report's git history, attic's mention scan,
+ * reuse-scan's canonical registry). The detector found ZERO on the live repo the day it was written, which is
+ * the right outcome only if it can be shown to fire at all — so both directions are pinned here. The
+ * must-not-fire half matters more than the true positive: 44 of the tool tree's catches are silent and almost
+ * all of them are legitimately so, and a detector that flagged those would be deleted within a week.
+ */
+{
+  const s = sandbox({});
+  const put = (name, body) => write(join(s.scripts, name), body);
+
+  put(
+    "silent-tool.mjs",
+    "export function look() {\n  const found = [];\n  try {\n    return dig();\n  } catch {\n    return found;\n  }\n}\n",
+  );
+  const d6 = () => detectors(s)["silent-empty-on-failure"].hits;
+  const hit = d6().find((h) => h.file.endsWith("silent-tool.mjs"));
+  assert.ok(hit, `an empty collection returned from a catch must be found:\n${JSON.stringify(d6())}`);
+  assert.equal(hit.returns, "found", "…and it must name what is being returned");
+  assert.equal(run(s).code, 1, "a firing detector must exit 1 so it can gate");
+
+  // Now the three shapes that must stay silent, or the detector is noise.
+  put(
+    "speaks-tool.mjs",
+    "export function look() {\n  const found = [];\n  try {\n    return dig();\n  } catch (e) {\n" +
+      '    console.error("!! could not dig: " + e.message);\n    return found;\n  }\n}\n',
+  );
+  put(
+    "sentinel-tool.mjs",
+    "export function read() {\n  try {\n    return load();\n  } catch {\n    return null;\n  }\n}\n",
+  );
+  put(
+    "cached-tool.mjs",
+    "export function get(cached) {\n  try {\n    return fresh();\n  } catch {\n    return cached;\n  }\n}\n",
+  );
+  const after = d6().map((h) => h.file);
+  assert.ok(
+    !after.some((f) => f.endsWith("speaks-tool.mjs")),
+    "a catch that PRINTS the reason is the fix, not the defect",
+  );
+  assert.ok(
+    !after.some((f) => f.endsWith("sentinel-tool.mjs")),
+    "`null` is a sentinel the caller must handle — only an empty COLLECTION is indistinguishable from data",
+  );
+  assert.ok(
+    !after.some((f) => f.endsWith("cached-tool.mjs")),
+    "a bare identifier that was never an empty collection must not be flagged",
+  );
+  rmSync(s.root, { recursive: true, force: true });
+}
+
 /* ═══════════════════ 8. the suite must NOTICE a broken detector (mutation) ══════════════════ */
 {
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
@@ -321,6 +372,23 @@ const d1 = (s) => detectors(s)["stale-tool-citation"].hits;
   };
 
   const mutants = [
+    {
+      // D6's filter is the subtle half: a catch that PRINTS the reason is the fix, and flagging it would make
+      // the detector fire on ~40 legitimate catches — the fastest route to being switched off.
+      name: "D6 stops treating a spoken reason as the fix (it flags the corrected shape too)",
+      files: {
+        ".claude/scripts/speaks-tool.mjs":
+          "export function look() {\n  const found = [];\n  try {\n    return dig();\n  } catch (e) {\n" +
+          '    console.error("!! could not dig: " + e.message);\n    return found;\n  }\n}\n',
+      },
+      apply: (s) =>
+        s.replace(
+          "if (/die\\(|throw |process\\.exit|console\\./.test(body)) continue;",
+          "if (/die\\(|throw |process\\.exit/.test(body)) continue;",
+        ),
+      probe: (s) =>
+        detectors(s)["silent-empty-on-failure"].hits.some((h) => h.file.endsWith("speaks-tool.mjs")),
+    },
     {
       name: "the ledger/log exemption dropped (records flagged as rot)",
       files: RECORD,
@@ -426,5 +494,6 @@ const d1 = (s) => detectors(s)["stale-tool-citation"].hits;
 console.log(
   "recurrence-check.test.mjs — D1 both citation shapes + 10 exemptions each from a real false positive, " +
     "the ticked-step inversion, dedup, D2's three bands and its rule-vs-reality note, D3 agreement / " +
-    "under-report / broken-crosschecker, the covered-elsewhere list, 8 mutants all killed  ✅",
+    "under-report / broken-crosschecker, D6 both directions (an empty collection from a catch found, a " +
+    "spoken reason and a null sentinel left alone), the covered-elsewhere list, 9 mutants all killed  ✅",
 );

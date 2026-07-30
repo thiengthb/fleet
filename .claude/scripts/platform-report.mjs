@@ -159,7 +159,15 @@ function gitHistory() {
         maxBuffer: 1 << 28,
       },
     );
-  } catch {
+  } catch (e) {
+    // NOT a silent empty map. Every age, first-seen and commit count in this report comes from this one call, so
+    // an empty history means the whole age axis is unknown — and unknown age drifts a file toward WATCH, which is
+    // the input to a retirement decision. The shell-quoting version of this failure did exactly that on Windows
+    // for a day, reporting confident verdicts derived from nothing. Whoever reads the report has to be told.
+    console.error(
+      `!! git history unavailable (${String(e.message || e).split("\n")[0]}) — every age in this report is ` +
+        `UNKNOWN, so no WATCH verdict below is evidence of anything. Fix this before acting on the report.`,
+    );
     return map;
   }
   const current = (p) => {

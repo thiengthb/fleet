@@ -380,6 +380,80 @@ detectors.push({
     `${h.file} — ${h.open} unticked step(s) in a plan marked done (${h.over} over the declared baseline)`,
 });
 
+/* ───────────────────────────────────────────────────────────────────────────────────────── D6 ──
+ * "I could not look" must never be returned as "there is nothing there."
+ *
+ * THREE instances in one day (2026-07-31), in three different tools, each producing a confident wrong answer
+ * rather than an error:
+ *   · `platform-report` — a git-log spawn that threw on Windows, caught, returning an empty history map, so
+ *     EVERY age in the repo read as unknown and unknown age drifts a file toward WATCH.
+ *   · `attic` — a shell `grep` that cannot run under cmd.exe, caught, returning no mentions, so the guard
+ *     against a wrongful retirement answered "nobody references this file" every single time.
+ *   · `reuse-scan` — a canonical registry read from a path that did not exist, returning an empty Set, so
+ *     eleven artifacts that already live in `commons` were reported as EXTRACT.
+ * Third instance ⇒ this stops being a lesson and becomes a check (skill `/session-wrap` Step 4b).
+ *
+ * WHAT IS FLAGGED, deliberately narrow. Only a `catch` that returns an **empty COLLECTION** and says nothing:
+ * an empty array / Set / Map / object, or a variable initialised as one. That is the shape a caller cannot
+ * distinguish from real data. NOT flagged: a catch that returns `null` or `""` (a sentinel the caller has to
+ * handle), and not one that speaks — `die`, `throw`, `process.exit` or a `console` line. Measured against all
+ * 44 silent catches in the tool tree, that narrowing leaves exactly the dangerous ones: 4 candidates, of which
+ * 3 were sentinels or already disclosing, and the 1 real hit was the `platform-report` history map, fixed in
+ * the same commit as this detector. Hence a baseline of ZERO — a new one is a finding, not a backlog item.
+ */
+detectors.push({
+  id: "silent-empty-on-failure",
+  learned: "2026-07-31",
+  what: "a catch that returns an empty collection, so 'I could not look' is read downstream as 'nothing is there'",
+  run() {
+    const hits = [];
+    for (const dir of ["scripts", "hooks"]) {
+      const base = join(REPO, ".claude", dir);
+      if (!existsSync(base)) continue;
+      for (const name of readdirSync(base)) {
+        if (!name.endsWith(".mjs") || name.endsWith(".test.mjs")) continue;
+        const file = join(base, name);
+        let src = "";
+        try {
+          src = readFileSync(file, "utf8");
+        } catch {
+          continue;
+        }
+        const re = /catch\s*(?:\([^)]*\))?\s*\{([\s\S]*?)\}/g;
+        let m;
+        while ((m = re.exec(src))) {
+          const body = m[1];
+          // Anything that SPEAKS is fine — the caller is told the difference.
+          if (/die\(|throw |process\.exit|console\./.test(body)) continue;
+          const ret =
+            /return\s*(\[\s*\]|new Set\(\s*\)|new Map\(\s*\)|\{\s*\}|[A-Za-z_$][\w$]*)\s*;/.exec(
+              body,
+            );
+          if (!ret) continue;
+          const what = ret[1];
+          // A bare identifier only counts when it was declared as an empty collection nearby — otherwise this
+          // would flag every `return cached;`.
+          if (/^[A-Za-z_$][\w$]*$/.test(what)) {
+            const decl = new RegExp(
+              `(?:const|let)\\s+${what}\\s*=\\s*(?:\\[\\s*\\]|new Set\\(\\s*\\)|new Map\\(\\s*\\)|\\{\\s*\\})`,
+            );
+            if (!decl.test(src.slice(0, m.index))) continue;
+          }
+          hits.push({
+            file: posix(relative(REPO, file)),
+            line: src.slice(0, m.index).split(/\r?\n/).length,
+            returns: what,
+          });
+        }
+      }
+    }
+    return hits;
+  },
+  format: (h) =>
+    `${h.file}:${h.line} — a caught failure returns the empty \`${h.returns}\` and says nothing; the caller ` +
+    `cannot tell "nothing found" from "the check did not run". Print the reason (or die), then return.`,
+});
+
 const execSyncQuiet = (cmd) =>
   execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 
