@@ -65,6 +65,16 @@ export function projectRoots(root, { depth = 2 } = {}) {
   return [...found.values()];
 }
 
+/**
+ * A repo-relative path as every artefact in this repo spells it: forward slashes, on every OS.
+ *
+ * `path.relative()` yields backslashes on Windows, so the same tool printed `platform\plans\x.md` on one
+ * machine and `platform/plans/x.md` on another. Reports are compared across machines and quoted into plans
+ * and catalogs, so a path that changes shape per OS makes two identical runs look like a difference — and it
+ * broke six suites that assert on reported paths. Emit through this whenever a path leaves a tool.
+ */
+export const posix = (p) => p.split(path.sep).join("/");
+
 /** Every git repo to report on: the root repo itself (if it is one) + every project root that has `.git`. */
 export function gitRepos(root) {
   const repos = [];

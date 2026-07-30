@@ -18,10 +18,10 @@
 
 import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
-import { join, dirname, resolve, basename } from "node:path";
+import { join, dirname, resolve, basename, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { looksLikeProject, projectRoots, gitRepos } from "./_layout.mjs";
+import { looksLikeProject, projectRoots, gitRepos, posix } from "./_layout.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MODULE = join(HERE, "_layout.mjs");
@@ -171,9 +171,20 @@ const names = (opts) => projectRoots(root, opts).map((p) => p.name).sort();
   assert.equal(new Set(withRoot).size, withRoot.length, "no duplicates");
 }
 
+/* ─────────── 7b. a path that leaves a tool has ONE shape, whichever OS produced it ──
+ * The same report was written `platform\plans\x.md` on Windows and `platform/plans/x.md` on Linux, so two
+ * identical runs read as a difference and six suites asserting on reported paths failed on one box only.
+ */
+{
+  assert.equal(posix(join("platform", "plans", "x.md")), "platform/plans/x.md", "the host separator must be normalized away");
+  assert.equal(posix("already/posix.md"), "already/posix.md", "…and a POSIX path must survive untouched");
+  assert.equal(posix(""), "", "an empty path must not become a slash");
+}
+
 /* ═══════════════════ 8. the suite must NOTICE a broken layout (mutation) ═══════════════════ */
 {
-  const src = readFileSync(MODULE, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(MODULE, "utf8").replace(/\r\n/g, "\n");
   const lab = mkdtempSync(join(tmpdir(), "layout-mutants-"));
 
   const load = async (mutated) => {
@@ -224,8 +235,22 @@ const names = (opts) => projectRoots(root, opts).map((p) => p.name).sort();
     {
       name: "the bare name replaced by a path (every name-keyed join breaks)",
       apply: (s) => s.replace("{ name: e.name, dir: full }", "{ name: full, dir: full }"),
-      probe: (m) => m.projectRoots(root).some((p) => p.name.includes("/")),
+      // Either separator: `path.join` yields `\` on Windows, and a probe that only knows `/` reported this
+      // mutant as surviving on one machine and killed on the other.
+      probe: (m) => m.projectRoots(root).some((p) => /[\\/]/.test(p.name)),
     },
+    ...(sep === "\\"
+      ? [
+          // Only observable where the host separator is not already `/`. On a POSIX box this mutation is an
+          // EQUIVALENT mutant — it changes nothing at all — so asserting it there would fail for the wrong
+          // reason, which is the trap this suite's own §8 was written to avoid.
+          {
+            name: "posix() stops rewriting the separator (reports differ per OS)",
+            apply: (s) => s.replace('p.split(path.sep).join("/")', "p"),
+            probe: (m) => m.posix(join("a", "b")) !== "a/b",
+          },
+        ]
+      : []),
   ];
 
   for (const mu of mutants) {

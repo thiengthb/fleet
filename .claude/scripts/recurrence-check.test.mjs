@@ -299,7 +299,8 @@ const d1 = (s) => detectors(s)["stale-tool-citation"].hits;
 
 /* ═══════════════════ 8. the suite must NOTICE a broken detector (mutation) ══════════════════ */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const RECORD = {
     "platform/ledger/2026-06.md": "We used to run `auto-pilot.mjs` every night.\n",

@@ -32,7 +32,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { projectRoots } from "./_layout.mjs";
+import { projectRoots, posix } from "./_layout.mjs";
 
 const FLEET = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CATALOG = join(FLEET, "platform", "registries", "shared-assets.md");
@@ -89,7 +89,9 @@ function projects() {
   const skip = new Set(["platform", "commons", "docgen", "n8n"]);
   return projectRoots(FLEET)
     .filter((p) => !skip.has(p.name))
-    .map((p) => relative(FLEET, p.dir));
+    // POSIX-shaped: the focus filter and every reported project key tail-match on `/`, so a native path
+    // made `reuse-scan todo` match nothing on Windows — the same shape as the 2026-07-30 discovery regression.
+    .map((p) => posix(relative(FLEET, p.dir)));
 }
 
 const isGenerated = (path) =>

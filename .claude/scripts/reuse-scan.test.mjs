@@ -338,7 +338,8 @@ const groups = (s, args = []) => {
 
 /* ═══════════ 10. the suite must NOTICE a broken scan (mutation) ═══════════ */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const PAIR = {
     ...project("todo", { "components/theme-toggle.tsx": THEME_TOGGLE }),

@@ -30,7 +30,7 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { join, resolve, dirname, relative, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { projectRoots, gitRepos } from "./_layout.mjs";
+import { projectRoots, gitRepos, posix } from "./_layout.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const JSON_OUT = process.argv.includes("--json");
@@ -73,7 +73,7 @@ detectors.push({
       /[`(]([a-z0-9][a-z0-9._-]*\.(?:mjs|sh|ps1))[`)]|((?:\.claude|platform)\/[\w./-]+\.(?:mjs|sh|ps1))/g;
     const hits = [];
     for (const f of docs()) {
-      const rel = relative(REPO, f);
+      const rel = posix(relative(REPO, f));
       // A record of the past is not an instruction, and neither is a proposal for something not built yet.
       // First cut of this detector reported 38 hits, of which 34 were closed plans faithfully describing the
       // auto-pilot control plane that was DELETED on 2026-07-28 — correct documents, flagged as rot. The
@@ -301,7 +301,7 @@ detectors.push({
       }
       if (!/SURVIVING MUTANT/.test(text)) continue; // not a mutation suite
       mutating.push(f);
-      if (!GATE.test(text)) unguarded.push(relative(REPO, f));
+      if (!GATE.test(text)) unguarded.push(posix(relative(REPO, f)));
     }
     const hits =
       unguarded.length > BASELINE
@@ -356,7 +356,7 @@ detectors.push({
       plans++;
       if (status !== "done") continue;
       const open = (text.match(/^- \[ \]/gm) || []).length;
-      if (open) offenders.push({ file: relative(REPO, f), open });
+      if (open) offenders.push({ file: posix(relative(REPO, f)), open });
     }
     const hits =
       offenders.length > BASELINE
