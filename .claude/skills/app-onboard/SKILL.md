@@ -1,6 +1,6 @@
 ---
 name: app-onboard
-description: Onboard a project onto its deploy target and get it actually running — reads `target` from INVENTORY §0 first. On `nuc`: GitHub Actions → ghcr → Watchtower → Traefik → Cloudflare. On `local`: Dockerfile + named volume + a host port + rebuild-and-verify. Use when the user wants to create a new project, deploy an app, add a subdomain, promote a local app to the server, or "get this app running".
+description: "Onboard a project onto its deploy target and get it actually running — reads `target` from INVENTORY §0 first. On `nuc`: GitHub Actions → ghcr → Watchtower → Traefik → Cloudflare. On `local`: Dockerfile + named volume + a host port + rebuild-and-verify. Use when the user wants to create a new project, deploy an app, add a subdomain, promote a local app to the server, or \"get this app running\"."
 ---
 
 # Skill: Bring a project onto the NUC platform

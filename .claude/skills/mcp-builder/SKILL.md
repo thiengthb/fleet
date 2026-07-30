@@ -1,6 +1,6 @@
 ---
 name: mcp-builder
-description: Build a high-quality MCP (Model Context Protocol) server so an LLM can use a service's tools — design discoverable tools with typed input/output schemas + annotations, implement in TypeScript (mcp-handler/SDK) or Python (FastMCP), test with MCP Inspector, and write evaluations. Use when adding an MCP server to an app. On this platform: a Next.js Route Handler at /api/mcp, behind a forward-auth-EXEMPT Traefik router.
+description: "Build a high-quality MCP (Model Context Protocol) server so an LLM can use a service's tools — design discoverable tools with typed input/output schemas + annotations, implement in TypeScript (mcp-handler/SDK) or Python (FastMCP), test with MCP Inspector, and write evaluations. Use when adding an MCP server to an app. On this platform: a Next.js Route Handler at /api/mcp, behind a forward-auth-EXEMPT Traefik router."
 ---
 
 # MCP Server Builder (platform-adapted)

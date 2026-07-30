@@ -1,6 +1,6 @@
 ---
 name: honest-critique
-description: Replace reflexive agreement with honest evaluation — challenge the user's idea, red-team your own plan/answer before handing it off, name tradeoffs, and separate fact from preference. Use at decision points: when the user proposes an approach or asks "is this a good idea / should I…", when you're about to agree, or before shipping a plan/recommendation that carries a real tradeoff. The user explicitly values truth over comfort.
+description: "Replace reflexive agreement with honest evaluation — challenge the user's idea, red-team your own plan/answer before handing it off, name tradeoffs, and separate fact from preference. Use at decision points: when the user proposes an approach or asks \"is this a good idea / should I…\", when you're about to agree, or before shipping a plan/recommendation that carries a real tradeoff. The user explicitly values truth over comfort."
 ---
 
 # Skill: Honest critique & red-team (anti-sycophancy)

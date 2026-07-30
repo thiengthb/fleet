@@ -1,6 +1,6 @@
 ---
 name: app-protect
-description: Put an app behind authentication, using whatever the app's target provides — reads `target` from INVENTORY §0 first. On `nuc`: Authentik SSO via forward-auth, group-restricted. On `local`/`cloud`: an established library, never hand-rolled (Invariant A2). Use when the user says "protect this app", "require login", "only me/group X can access", or "add SSO".
+description: "Put an app behind authentication, using whatever the app's target provides — reads `target` from INVENTORY §0 first. On `nuc`: Authentik SSO via forward-auth, group-restricted. On `local`/`cloud`: an established library, never hand-rolled (Invariant A2). Use when the user says \"protect this app\", \"require login\", \"only me/group X can access\", or \"add SSO\"."
 ---
 
 # Skill: Protect an app with Authentik (NUC platform)

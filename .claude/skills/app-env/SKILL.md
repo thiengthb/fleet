@@ -1,6 +1,6 @@
 ---
 name: app-env
-description: Set an app's env vars / secrets without ever exposing the values to the agent — reads `target` from INVENTORY §0 first. On `nuc`: idempotent upsert into `/opt/apps/<app>/.env` over SSH from a LOCAL mirror. On `local`: the project's own gitignored `.env` at chmod 600. Use whenever an app needs env/secret values set, changed or rotated.
+description: "Set an app's env vars / secrets without ever exposing the values to the agent — reads `target` from INVENTORY §0 first. On `nuc`: idempotent upsert into `/opt/apps/<app>/.env` over SSH from a LOCAL mirror. On `local`: the project's own gitignored `.env` at chmod 600. Use whenever an app needs env/secret values set, changed or rotated."
 ---
 
 # Skill: set NUC app env/secrets without leaking them (app-env)

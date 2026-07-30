@@ -1,6 +1,6 @@
 ---
 name: skill-proposer
-description: Induce a DRAFT skill from a process the agent has repeated ≥3× and PROPOSE it for human review — never install it. Use after a session where a multi-step procedure recurred, at /session-wrap cadence, or when the user says "should this be a skill / turn this into a skill / what skills are we missing". Propose-don't-install: the agent NEVER writes to .claude/skills/; a human security-reviews and installs.
+description: "Induce a DRAFT skill from a process the agent has repeated ≥3× and PROPOSE it for human review — never install it. Use after a session where a multi-step procedure recurred, at /session-wrap cadence, or when the user says \"should this be a skill / turn this into a skill / what skills are we missing\". Propose-don't-install: the agent NEVER writes to .claude/skills/; a human security-reviews and installs."
 ---
 
 # Skill: Skill proposer (induce → propose, never install)
