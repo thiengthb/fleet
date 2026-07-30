@@ -1,3 +1,8 @@
+// @vi WHAT: Đầu phiên, nó tự fetch mọi repo trong fleet rồi báo: repo nào đang cũ hơn bản trên mạng, repo nào có việc chưa
+//   push, repo nào đang dở dang.
+// @vi WHY: Anh làm trên nhiều máy. Không có nó thì rất dễ sửa lại một thứ đã sửa xong ở máy khác, hoặc để quên việc chưa
+//   push ở máy này. Im lặng hoàn toàn khi mọi thứ đã đồng bộ và sạch.
+//
 // SessionStart hook — MULTI-MACHINE git-sync guard.
 // Best-effort `git fetch` + ahead/behind/dirty scan across every repo under the fleet root,
 // surfaced as a non-blocking warning to the user (`systemMessage`) AND a compact note to the model

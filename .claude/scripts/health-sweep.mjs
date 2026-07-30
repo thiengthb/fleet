@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// @vi WHAT: MỘT lệnh gọi hết mọi công cụ kiểm và trả về một dòng kết luận duy nhất: có gì vỡ không.
+// @vi WHEN: Mỗi tuần một lần. Chỉ cần đọc dòng VERDICT.
+// @vi WHY: Platform có 8 công cụ kiểm mà không có cách hỏi tất cả một lượt, nên thực tế chúng chỉ được chạy khi người ta đã
+//   nghi ngờ — đúng lúc một kết quả xanh nói được ít nhất. Phần "drift" là danh sách ứng viên để xem, KHÔNG phải danh
+//   sách việc phải làm.
+//
 /**
  * health-sweep.mjs — ONE command that asks every checker whether the second brain is working. Report-only.
  *
@@ -91,6 +97,20 @@ const checkers = [
         line: (/\d+\/\d+ test file\(s\).*/.exec(out) || [""])[0],
       };
     },
+  },
+  {
+    id: "tool-catalog",
+    proves:
+      "the human-readable page describing every hook and script still matches the tools on disk, and every tool introduces itself",
+    args: [S("tool-catalog.mjs"), "--check"],
+    // BROKEN, not drift: the page is the supervisor's only entry point into the executable layer, and a page
+    // that has silently stopped matching reality is worse than no page — it is read and believed. The
+    // hand-written table it replaced drifted 3 of 13 hooks in one day, two of them able to block a write.
+    read: ({ code, out }) => ({
+      kind: "BROKEN",
+      bad: code ? 1 : 0,
+      line: (/(ok  platform\/registries\/tool-catalog\.md.*|✗ .*)/.exec(out) || [""])[0],
+    }),
   },
   {
     id: "plan-audit",

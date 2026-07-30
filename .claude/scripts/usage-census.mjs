@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+// @vi WHAT: Đo từng phần của agent OS thực sự được dùng bao nhiêu, bằng HAI con số: số lần được mở/chạy, và số file khác trỏ
+//   tới nó.
+// @vi WHEN: Trước khi quyết định bỏ bất cứ thứ gì.
+// @vi WHY: Hai con số, vì một con số đã sai hai lần trong cùng một ngày: tầng day-log trông như chết với grep (không script
+//   nào đọc nó) mà thực tế được đọc 93 lần; 30 file kế hoạch đã đóng trông như rác mà được 63 file khác gọi tên. Con
+//   số nó đưa ra là SÀN, không phải trần.
+//
 /**
  * usage-census.mjs — how much is each part of the agent OS actually USED? Report-only.
  *

@@ -99,6 +99,10 @@ across sessions instead of evaporating.
 - **Is the second brain still working? ONE command, weekly: `node .claude/scripts/health-sweep.mjs`** — read the VERDICT
   line; `drift` is a candidate list and is **never** auto-acted on. The other audit tools, `attic`'s stage→verify→*human*-
   deletes rule, and "after any move, re-run every discovery tool and compare COUNTS" → `documentation.md §7.4`.
+- **What every hook and script IS: `platform/registries/tool-catalog.md`** — one generated page, in Vietnamese, for the
+  supervisor. Trigger + blocking power are read from `settings.json` + source, so they cannot lie; the prose lives as
+  `@vi WHAT/WHEN/WHY` in each tool's own header. **A new tool must add those tags** or `tool-catalog.mjs --check` (in
+  the weekly sweep) fails. Never hand-edit the page.
 
 ## Agent memory — two tiers, both on native rails (skill `/memory`)
 

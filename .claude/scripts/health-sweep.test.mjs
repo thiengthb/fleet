@@ -37,6 +37,8 @@ const HEALTHY = {
     'console.log("recurrence-check — 3 detector(s), 0 firing");',
   "tool-check.mjs":
     'console.log("6/6 test file(s) pass · 24/25 tools have a test · 1 exempt with a written reason");',
+  "tool-catalog.mjs":
+    'console.log("ok  platform/registries/tool-catalog.md khớp thực tế · 30 công cụ, tất cả đã tự giới thiệu");',
   "plan-audit.mjs":
     "console.log(JSON.stringify({ scanned: 60, errors: 0, warns: 0, results: [] }));",
   // memory-audit is read as --json now, not as prose: the sweep needs `wiring.loads`, which no line of the
@@ -124,6 +126,11 @@ const STUBS = [
     id: "tool-check",
     what: "a test runner with failing tests",
     stub: `console.log("4/6 test file(s) pass — 2 FAILING · 5/25 tools have a test"); process.exit(1);`,
+  },
+  {
+    id: "tool-catalog",
+    what: "a catalog page that has drifted from the tools on disk",
+    stub: 'console.log("✗ platform/registries/tool-catalog.md đã lệch so với thực tế — chạy --write"); process.exit(1);',
   },
   {
     id: "plan-audit",

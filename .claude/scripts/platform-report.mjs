@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// @vi WHAT: Xuất MỌI số đo của platform theo từng file ra một báo cáo markdown, để anh mở, sắp xếp và phản đối được.
+// @vi WHEN: Mỗi tháng một lần — kế hoạch standing-cadence sẽ nhắc đúng ngày.
+// @vi WHY: Anh phải kiểm được phán đoán của tôi, không chỉ nhận kết luận. Muốn vậy thì cần số thô trong một file anh mở
+//   được, không phải một đoạn tóm tắt trong chat rồi trôi mất. Sáu trong mười lăm lỗi đã biết của đợt test nằm ở
+//   chính file này.
+//
 /**
  * platform-report.mjs — every metric the platform can produce, per file, written to a markdown report.
  *

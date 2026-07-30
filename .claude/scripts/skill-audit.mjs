@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @vi WHAT: Xem từng skill đã cài có còn đáng chỗ của nó không.
+// @vi WHEN: Khi số skill phình lên, hoặc khi nghi có skill đã chết.
+// @vi WHY: Tên và mô tả của MỌI skill đã cài được nhồi vào đầu mỗi phiên dù có gọi hay không — phần thân mới nạp theo yêu
+//   cầu, phần danh mục thì không. CHỈ báo cáo: gỡ một skill là thay đổi luật, và đó là việc của người.
+//
 /**
  * skill-audit.mjs — is every installed skill still earning its keep?
  *

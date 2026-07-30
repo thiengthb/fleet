@@ -1,3 +1,9 @@
+// @vi WHAT: Đầu phiên, nó xem mọi kế hoạch trong repo và nhắc: cái nào đã đến ngày hẹn xem lại, cái nào đang mở mà 10 ngày
+//   không ai chạm, cái nào ghi ngày hẹn nhưng thiếu phần việc-cần-làm-hôm-đó.
+// @vi WHY: Có loại việc chỉ trả lời được bằng cách để thời gian đi qua. Trước khi có nó, ngày hẹn nằm giữa một file kế hoạch
+//   — anh phải tự nhớ ngày VÀ tự hỏi lại các bước. Đây cũng là đường ray mà cái đồng hồ health-sweep/platform-report
+//   đang chạy trên đó.
+//
 // SessionStart hook — PLAN CHECK-IN reminder (the clock the human does not have to keep).
 //
 // Some plans cannot be finished by writing code: they contain a gate that can only be answered by

@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+// @vi WHAT: MỘT lệnh chạy hết test của mọi hook và script, rồi gọi tên công cụ nào chưa có test.
+// @vi WHEN: Sau khi thêm hoặc sửa một hook/script.
+// @vi WHY: Chủ trương của platform là "dùng công cụ để chính xác, nhưng đừng tin một công cụ mình chưa kiểm". Nửa sau đó
+//   không làm được cho đến 2026-07-30. Một công cụ muốn được miễn test thì phải khai báo công khai kèm lý do, và một
+//   lý do ngắn hơn một câu sẽ làm lệnh này thất bại — vì một ngoại lệ không ai đọc được thì không khác gì một lỗ hổng
+//   không ai thấy.
+//
 /**
  * tool-check.mjs — ONE command that runs every test the agent's own tools have, and names the ones that
  * have none. Run: `node .claude/scripts/tool-check.mjs`

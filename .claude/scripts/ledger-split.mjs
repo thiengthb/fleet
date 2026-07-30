@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @vi WHAT: Biến sổ tri thức chung trở lại thành mục lục + các file theo tháng.
+// @vi WHEN: Khi mục lục phình ra — memory-audit sẽ báo.
+// @vi WHY: Luật của sổ ghi từ ngày đầu là "mục lục chỉ một dòng mỗi bài học". Qua khoảng 200 bài thì luật đó bị bào mòn: có
+//   dòng dài hơn 2500 ký tự và file đạt 421KB (~105 nghìn token) — mục lục chỉ có ích khi còn quét mắt được.
+//
 /**
  * ledger-split.mjs — turn registries/knowledge-ledger.md back into an INDEX.
  *

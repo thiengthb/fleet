@@ -1,3 +1,8 @@
+// @vi WHAT: Nó kiểm chính cách tôi nói với anh: danh sách lựa chọn phải có cái được khuyến nghị, và thuật ngữ phải có một câu
+//   giải thích thường ngày đi kèm.
+// @vi WHY: Luật này đã tồn tại ở hai chỗ (CLAUDE.md và một file ký ức) mà vẫn bị vi phạm — vì anh không phản đối, anh chỉ
+//   lặng lẽ ngừng đọc theo. Nên nó thành cái gác, thay vì thành một lời nhắc thứ ba.
+//
 // Legibility lint — the durable half of idea-0025.
 // Proposal: platform/plans/2026-07-29-idea-0025-legible-reporting-proposal.md (accepted 2026-07-29, Option A).
 //

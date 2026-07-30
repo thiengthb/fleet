@@ -1,3 +1,9 @@
+// @vi WHAT: Khi tôi tạo một file mới mà tên trùng với thứ commons đã có sẵn, nó chặn lần đầu và nói nên `shadcn add` cái nào.
+//   Lần thứ hai thì cho qua.
+// @vi WHY: /code-reuse đã dặn "xem trước khi xây" từ tháng 6 mà bốn app vẫn mọc ra bốn cái theme toggle khác nhau. Một công
+//   cụ chỉ chạy khi tôi chọn gọi nó thì không đáng tin; hook thì luôn chạy. Nó chỉ đọc một bảng có sẵn nên nhanh —
+//   bản quét đầy đủ mất ~1.9 giây, quá chậm để đứng trước mỗi lần ghi file.
+//
 // PreToolUse hook (Write) — "commons already ships this."
 //
 // WHAT IT DOES. When a new file is written into a project and its name matches something the commons

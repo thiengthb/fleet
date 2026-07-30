@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @vi WHAT: Biến file decisions.md đã phình to của một project trở lại thành mục lục + các file theo tháng.
+// @vi WHEN: Khi một file decisions.md quá lớn — health-sweep hoặc memory-audit sẽ báo trước.
+// @vi WHY: Cùng bệnh cùng thuốc với ledger-split. Bản sửa cho sổ chung áp dụng 2026-07-28 nhưng không ai đi kiểm các sổ theo
+//   từng project; đo lại 2026-07-29 thì chúng phình đúng như vậy.
+//
 /**
  * decisions-split.mjs — turn a project's `docs/decisions.md` back into an INDEX.
  *

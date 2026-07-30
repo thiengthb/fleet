@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+// @vi WHAT: Kiểm một file kế hoạch có đúng chuẩn không: thiếu kind, kế hoạch tính năng mà không có 2 nguồn tham khảo bên
+//   ngoài, không có tiêu chí chấp nhận, còn chỗ trống của template, thiếu khối "yêu cầu nguyên văn của anh".
+// @vi WHEN: Nó vừa TỰ CHẠY mỗi lần ghi một file kế hoạch, vừa chạy tay được để soát cả repo một lượt.
+// @vi WHY: Platform có ba nơi dạy cách viết kế hoạch nhưng chỉ có một cách kiểm kết quả. Nó thay thế prior-art-check.mjs từ
+//   tháng 6 — và 5 tài liệu vẫn gọi tên cũ cho đến khi bị phát hiện 2026-07-30, nên nó cũng là ví dụ cho chính bài
+//   học đó.
+//
 /**
  * plan-audit.mjs — does a plan/proposal file actually follow the standard? Report-only.
  *

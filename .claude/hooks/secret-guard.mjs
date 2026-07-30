@@ -1,3 +1,7 @@
+// @vi WHAT: Nó CHẶN việc viết một khoá hay token thật vào bất cứ file nào không phải .env.
+// @vi WHY: Bất biến số 1 của platform. Nó dùng bộ mẫu hẹp, có danh sách tha cho các giá trị mẫu, và luôn tha .env — để gần
+//   như không báo oan, vì một cái gác báo oan nhiều thì sẽ bị tắt và khi đó nó không gác gì cả.
+//
 // PreToolUse hook (Edit|Write) — BLOCKS hardcoding a real secret into any file that is not .env.
 // Enforces fleet invariant A1: secrets live ONLY in .env (chmod 600, gitignored).
 import path from 'node:path';

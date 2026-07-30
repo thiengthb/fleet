@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+// @vi WHAT: Cơ chế cho một thứ nghỉ hưu có bằng chứng: nó chuyển thứ định bỏ vào phòng chờ và KHÔNG BAO GIỜ tự xoá — người
+//   mới được xoá.
+// @vi WHEN: Khi định bỏ một skill, script hay tài liệu mà chưa chắc chắn.
+// @vi WHY: Xoá sai file trong repo này là mất việc không dựng lại được từ đâu cả. Và nguy hiểm không phải sự bất cẩn mà là
+//   sự TỰ TIN: ngày 2026-07-30 một công cụ tuyên bố 14 skill đang sống là đã chết. Nó cũng từ chối lý do "không dùng
+//   nữa" — phải viết được lý do thật.
+//
 /**
  * attic.mjs — the staged, evidence-bearing retirement mechanism. It never deletes anything.
  *

@@ -1,3 +1,9 @@
+// @vi WHAT: Sau mỗi lần ghi file, nó chạy prettier CỦA CHÍNH project đó để định dạng lại file vừa ghi. Không tìm thấy
+//   prettier gần đó thì im lặng bỏ qua.
+// @vi WHY: Định dạng là tiện lợi, không phải cổng — nên nó không bao giờ chặn và luôn thoát 0. Lưu ý đo được 2026-07-30: gốc
+//   fleet KHÔNG có file cấu hình prettier, nên các file .md trong platform/ không thuộc phạm vi nó — chạy prettier
+//   tay lên đó là tạo nhiễu, không phải chuẩn hoá.
+//
 // PostToolUse hook (Edit|Write) — best-effort auto-format with the project's LOCAL prettier.
 // Silent no-op when prettier is not installed nearby or the file type is unsupported.
 // Never blocks (always exits 0): formatting is a convenience, not a gate.

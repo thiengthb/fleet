@@ -1,3 +1,9 @@
+// @vi WHAT: Khi phiên chạy mà không có người ngồi trước máy, nó CHẶN mọi hành động khó thu hồi: push lên main, deploy, xoá dữ
+//   liệu, cài thêm thư viện, mở PR, ssh — và chặn cả việc agent tự sửa luật của chính nó.
+// @vi WHY: Đây là cái gác DUY NHẤT cho phiên tự chạy. Riêng khoản "không cho agent sửa luật của chính nó" là bài học từ lỗ
+//   bảo mật CVE-2025-53773: một agent sửa được file luật của nó thì mọi luật còn lại thành vô nghĩa. Nó fail-closed —
+//   không đọc được dữ liệu vào thì coi như chặn, vì một cái gác không đọc được thì cũng không kiểm được.
+//
 // PreToolUse hook (Bash|Write|Edit|MultiEdit) — THE AUTONOMY GATE.
 //
 // The SOLE deterministic safety gate for unattended (headless) runs. When CLAUDE_AUTONOMOUS=1 it

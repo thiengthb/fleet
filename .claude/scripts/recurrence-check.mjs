@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+// @vi WHAT: Hỏi một câu: một lỗi đã học rồi có đang xảy ra LẠI không? Hiện có 5 phép dò tự động, mỗi phép dò gắn với một bài
+//   học có thật.
+// @vi WHEN: Tự động trong health-sweep; và trước khi đóng một phiên vừa ghi thêm bài học mới.
+// @vi WHY: Đo 2026-07-30: sổ có 224 bài học và chỉ 29 (13%) nêu được một cách kiểm tự động; known-traps có 41 bài và không
+//   nêu cái nào. Nghĩa là câu trả lời cho "làm sao đừng lặp lại" gần như luôn là "ghi xuống và nhớ kỹ hơn" — trong
+//   khi chính 224 bài đó là bằng chứng cách ấy không đủ.
+//
 /**
  * recurrence-check.mjs — is a mistake we already learned from happening AGAIN? Report-only.
  *

@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// @vi WHAT: Một phép thử có model tham gia: nó gọi Claude thật hai lần để xem một phiên mới có ghi sổ tri thức đúng luật hay
+//   không (một dòng mục lục ngắn + một entry chi tiết ở file riêng).
+// @vi WHEN: Hầu như không chạy lại — nó tốn tiền thật và kết quả đã được ghi lại.
+// @vi WHY: Đây là công cụ DUY NHẤT được miễn test, và lý do đó được in ra mỗi lần tool-check chạy: kết quả của nó không tất
+//   định VÀ có phí. Nửa tất định của nó (đếm dòng trong file mà model đã sửa) chưa được tách ra nên chưa test được.
+//
 /**
  * eval-ledger-rule.mjs — a model-in-the-loop eval, per `/behavioural-eval`.
  *

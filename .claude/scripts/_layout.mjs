@@ -1,3 +1,8 @@
+// @vi WHAT: Nơi DUY NHẤT biết các project nằm ở đâu trong repo này. Các hook và script khác hỏi nó thay vì tự đoán.
+// @vi WHY: Trước 2026-07-30 mỗi công cụ tự đoán chỗ. Rồi chín repo app dồn vào folder projects/ và bốn công cụ hỏng IM LẶNG
+//   theo cùng một kiểu — chúng vẫn chạy, vẫn báo xanh, chỉ là không còn thấy project nào. File này sinh ra từ đúng vụ
+//   đó, và nó cũng là lý do một lần dồn folder nữa phải sửa chỗ tìm kiếm TRƯỚC khi di chuyển file.
+//
 /**
  * _layout.mjs — the ONE place that knows where projects live in this repo. Imported by hooks and scripts.
  *

@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @vi WHAT: Đầu phiên, nó kiểm tôi có thật sự nạp được ký ức về anh không: đường dẫn ký ức có trỏ đúng, MEMORY.md có nằm
+//   trong giới hạn nạp, có file ký ức nào chưa được ghi vào mục lục.
+// @vi WHY: Kiểu hỏng này vô hình. Một ký ức viết ngày 2026-07-24 đến 2026-07-28 mới phát hiện là chưa bao giờ được nạp.
+//   Không có nó thì tôi vào phiên mà không nhớ gì về anh, và cũng không biết là mình đang không nhớ.
+//
 /**
  * memory-wiring-check.mjs — SessionStart. Advisory, non-blocking. Silent when correct.
  *

@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// @vi WHAT: Một phép đo một lần: bao nhiêu phần của rulebook chỉ KIỂM một thứ đã tồn tại, thay vì phải gửi luật đi cho model
+//   đọc.
+// @vi WHEN: Nó đã trả lời xong câu hỏi của nó. Chạy lại chỉ để xác nhận con số cũ còn đúng.
+// @vi WHY: Nó được viết kèm một hậu quả cam kết TRƯỚC khi có code: nếu dưới 40% thì phương án A của đề xuất MCP bị BỎ, không
+//   phải thu nhỏ lại. Đó là cách làm một phép đo mà kết quả không thể bị uốn theo điều mình mong.
+//
 /**
  * rule-classify.mjs — Step 0 of idea-0023: how much of the rulebook could stay ON the server?
  *

@@ -1,3 +1,8 @@
+// @vi WHAT: Lần đầu trong phiên mà tôi sửa một trang giao diện hoặc danh mục MCP của sakubun, nó chặn lại một nhịp để nhắc:
+//   thêm màn hình mới thì phải cập nhật trang /guide trong cùng lần sửa đó.
+// @vi WHY: Anh chọn phương án nghiêm nhất (2026-07-23). Lần thử thứ hai thì cho qua — nên nó tốn một nhịp, không phải một
+//   cuộc chiến. Phần cưỡng chế thật nằm ở test của sakubun; đây là lời nhắc ngay trong lúc làm.
+//
 // PreToolUse hook (Edit|Write|MultiEdit) — sakubun /guide coverage reminder (invariant #10).
 // Fires ONCE per session, the first time a sakubun ROUTE page (app/.../page.tsx) or the MCP catalog/server
 // is edited, to remind that a new user-facing surface MUST be reflected in the in-app /guide in the same

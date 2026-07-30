@@ -1,3 +1,8 @@
+// @vi WHAT: Sau mỗi lần ghi file, nó đọc lại file và nhắc (không chặn) nếu thấy chạm vào ba bất biến của NUC: tự xin chứng
+//   chỉ SSL, dùng runner tự dựng trong CI, hoặc mở cổng ra host trong compose của một app.
+// @vi WHY: Ba thứ này đều có trường hợp ngoại lệ hợp lệ, nên chặn cứng sẽ chặn oan việc đúng. Nhắc thì đúng liều: lỗi vẫn
+//   được thấy ngay trong lúc làm.
+//
 // PostToolUse hook (Edit|Write) — ADVISORY (never blocks; the write already happened).
 // Reads the final file and surfaces platform-invariant leaks back to Claude as feedback (exit 2).
 // Soft net so a violation is caught in-loop without false-blocking legitimate work.

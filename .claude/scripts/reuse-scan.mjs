@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @vi WHAT: Tìm cùng một thứ được xây ở nhiều project khác nhau, rồi áp luật-ba-lần.
+// @vi WHEN: Trước khi xây một tính năng mới; và tự động trong health-sweep.
+// @vi WHY: /code-reuse đã dặn grep các project bên cạnh, nhưng tôi phải tự nghĩ ra từ khoá nên chẳng lần nào đếm được thật.
+//   Kết quả đo được: sáu dòng trong shared-assets nằm ở trạng thái "đã lặp 2 lần, lần thứ 3 không bao giờ tới".
+//
 /**
  * Finds the same artifact built in more than one project, and applies the rule of three.
  *

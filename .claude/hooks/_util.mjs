@@ -1,3 +1,8 @@
+// @vi WHAT: Bộ hàm dùng chung của các hook: đọc dữ liệu Claude Code gửi vào, và ghi lại mỗi lần một hook chạy.
+// @vi WHY: Việc ghi log đó là bằng chứng DUY NHẤT cho biết hook có chạy hay không — hook không phải một lệnh gọi công cụ nên
+//   nó không xuất hiện trong bản ghi phiên. Nguyên tắc bất di bất dịch của file này: việc ghi chép không bao giờ được
+//   làm thay đổi kết quả của hook, vì kết quả đó là toàn bộ hợp đồng giữa hook và Claude Code.
+//
 // Shared helpers for fleet Claude Code hooks (Node ESM — Windows-safe, no bash).
 // Each hook reads a JSON payload from stdin and decides via exit code:
 //   PreToolUse:  exit 2 = block the tool call, stderr is shown to Claude.

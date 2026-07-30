@@ -1,3 +1,8 @@
+// @vi WHAT: Khi tôi kết thúc một lượt trả lời, nếu phiên này đã làm nhiều việc mà chưa ghi lại gì, nó nhắc một lần duy nhất:
+//   nên chạy /session-wrap.
+// @vi WHY: Tối đa một lần mỗi phiên, và chỉ khi có bằng chứng đã làm thật (từ 3 file hoặc 5 lần sửa trở lên) mà chưa có file
+//   tri thức nào được cập nhật. Không bao giờ chặn việc kết thúc.
+//
 // Stop hook — SMART, non-blocking nudge to run /session-wrap when the session did substantial,
 // un-recorded work. Fires AT MOST once per session, never blocks, never nags.
 //

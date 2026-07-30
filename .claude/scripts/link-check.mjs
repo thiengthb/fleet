@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @vi WHAT: Kiểm các ĐƯỜNG NỐI giữa các file tri thức còn đúng không: file A trỏ sang file B thì B có thật tồn tại không.
+// @vi WHEN: Tự động trong health-sweep hằng tuần.
+// @vi WHY: Mọi công cụ kiểm khác chấm điểm một file. Không cái nào kiểm dây nối giữa các file — mà repo này vỡ đúng ở đó: im
+//   lặng, và vẫn được tuân theo vì một chỉ dẫn sai vẫn đọc như một chỉ dẫn.
+//
 /**
  * link-check.mjs — do the CONNECTIONS in the second brain still hold? Report-only.
  *

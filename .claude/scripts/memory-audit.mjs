@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// @vi WHAT: Báo cáo sức khoẻ ký ức của tôi: có vượt giới hạn nạp không, có file mồ côi nằm ngoài mục lục không, có hai ký ức
+//   trùng nội dung không.
+// @vi WHEN: Khi nghi ký ức đang phình hoặc trùng lặp; và tự động trong health-sweep.
+// @vi WHY: CHỈ báo cáo — không bao giờ tự sửa, tự chuyển hay tự xoá. Đo kích thước và tìm trùng lặp là việc của máy; quyết
+//   định bỏ cái nào là việc của người.
+//
 /**
  * memory-audit.mjs — deterministic hygiene report for the agent's memory tiers.
  *

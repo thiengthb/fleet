@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// @vi WHAT: Khi Claude Code lên phiên bản mới, nó hỏi MỘT câu duy nhất: bản mới có vừa ra tính năng nào mà mình đã tự làm tay
+//   không?
+// @vi WHY: Tháng 6 platform này bỏ khoảng 6 phiên xây "auto-pilot", rồi Claude Code ra sẵn tính năng chạy hẹn giờ và toàn bộ
+//   phần đó bị xoá ngày 2026-07-28. Không có bước nào trong quy trình cũ đi kiểm lại tiền đề — hook này chính là bước
+//   đó.
+//
 /**
  * harness-drift-check.mjs — SessionStart. Advisory, non-blocking. Silent unless the harness changed.
  *
