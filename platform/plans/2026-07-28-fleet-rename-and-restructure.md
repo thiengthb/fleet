@@ -198,9 +198,19 @@ proves what it was written to look for**, and this one was written before the na
   does not travel through this repo's git** — on Windows they still sit flat at the root and `projects/` is an
   empty directory. That is what all **44 remaining `link-check` BROKEN** wires are: 11 INVENTORY `Dev path`s and
   17 catalog rows that describe the `projects/<app>` layout, plus 16 rows under `commons/`, a repo never cloned
-  here at all. Nothing in the repo is wrong; the machine is. **Awaiting the supervisor's call** — moving 11
-  working trees is his move, not a mid-session one · Files: the 11 project folders on this box · Test:
-  `link-check` 44 → the commons rows only
+  here at all. Nothing in the repo is wrong; the machine is.
+  **Two findings that shrink the job:** `ui-kit` on this box IS the `commons` repo (`origin` =
+  `thiengthb/commons`) under its pre-rename folder name, so a rename fixes all 16 of those rows without cloning
+  anything; and `docgen` has **no remote at all** (verified absent on GitHub) so it exists on the Linux box only
+  — its Dev path can never resolve here, and that is a backup problem, not a layout one.
+  **Blocked from inside a session, measured not assumed:** every directory containing a `.git` under this root
+  refuses to move (`Access is denied`) while a non-repo directory beside it moves fine, a git repo created
+  minutes earlier moves fine, the ACLs are identical and no child file is locked — something enumerates git
+  repos here and holds a directory handle on each, which blocks a rename while leaving the contents free.
+  Likeliest the editor's git integration (20 `Code.exe` running); possibly the live session itself. Script
+  prepared at `platform/proposals/finish-projects-restructure-windows.ps1` (`-DryRun` verified): it moves the
+  nine, renames `ui-kit` → `commons` only after checking the remote, prints the BROKEN count before and after,
+  and stops rather than half-moving anything · Files: 10 folders on this box · Test: `link-check` 44 → docgen only
 
 ## Out of scope
 

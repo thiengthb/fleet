@@ -32,8 +32,15 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 
 ## 0. Project map (domain + kind + path) — classification registry
 
-> **Two orthogonal axes, both metadata on this flat table — NOT nested directories.** Every project sits flat at
-> `<repo-root>/<name>` (this repo, `fleet/` on the current box — the folder name is machine-local, the layout is not); this table is the index (better than `ls` — it carries description + repo + path + auth).
+> **Two orthogonal axes, both metadata on this flat table — NOT nested directories.** The TABLE is flat; the
+> folders are not. Since 2026-07-30 the app repos live under `<repo-root>/projects/<name>` and the shared/meta
+> ones stay at the root — read the **`Dev path`** column, never assume either shape (the sentence this replaces
+> still claimed everything sat flat at `<repo-root>/<name>`, while the paths beside it already said `projects/`).
+> Each project is its own git repo, so a re-layout on one machine does **not** arrive on another through a pull:
+> as of 2026-07-30 the Windows box is still flat, tracked as Batch E9 in
+> `plans/2026-07-28-fleet-rename-and-restructure.md`. Tools must discover projects via `.claude/scripts/_layout.mjs`,
+> which looks for what a project LOOKS like rather than for a folder called `projects`. This table is the index
+> (better than `ls` — it carries description + repo + path + auth).
 > - **`domain`** = *what it's for* (browse-by-purpose): `platform` · `product` · `automation` · `shared`. Rows are grouped by it.
 > - **`kind`** = *how it's built/deployed* (the operational axis): drives the archetype in `/app-onboard` ("Choose
 >   archetype") + which invariants apply.
@@ -72,10 +79,10 @@ Latest (2026-06-13): **yakudoku went MULTI-USER** (migration `b2e7a1c4d9f0`, pro
 | `product` | **todo** | `web-app` (Next) | `nuc` | Smart todo + MCP — the **reference implementation** for web-app | `thiengthb/todo` | `fleet/projects/todo` | `/opt/apps/todo` |
 | `product` | **journal** | `web-app` (Next) | `nuc` | Journal + reflection (Postgres/pgvector) | `thiengthb/journal` | `fleet/projects/journal` | `/opt/apps/journal` |
 | `product` | **yakudoku** | `monorepo` (→3 images) | `nuc` | JP↔VI translation trainer (web+core+bot) — monorepo reference | `thiengthb/yakudoku` | `fleet/projects/yakudoku` | `/opt/apps/yakudoku` |
-| `product` | **sakubun** | `web-app` (Next) | `local` | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | (no remote yet) | `fleet/projects/sakubun` | — |
+| `product` | **sakubun** | `web-app` (Next) | `local` | **LOCAL-only** JA↔VI **grammar-driven** translation trainer (FSRS schedules grammar patterns only — vocab dropped 2026-07-07, learn in Anki) — Claude Desktop as tutor via MCP (port 3789, no auth); NUC onboarding deferred (server down 2026-07) | `thiengthb/sakubun` (**private**; verified on GitHub 2026-07-30 — this cell said "no remote yet", the remote exists and was last pushed 2026-07-29) | `fleet/projects/sakubun` | — |
 | `automation` | **n8n** | `infra` (third party) | `nuc` | Workflow automation (pinned image) | `thiengthb/n8n` (workflow) | `fleet/projects/n8n` | `/opt/apps/n8n` |
 | `automation` | **jobhunter-bot** | `node-bot` (worker) | `nuc` | Discord gateway job-hunting bot — node-bot reference | `thiengthb/jobhunter-bot` | `fleet/projects/jobhunter-bot` | `/opt/apps/jobhunter-bot` |
-| `shared` | **docgen** | `node-service` (CLI) | `none` | Generates human-readable documents (PDF/DOCX/XLSX + C4/ERD diagrams) from artifacts fleet already maintains — READ-ONLY, for the supervisor's graduation thesis. Added 2026-07-29. **Expected to be discarded after the thesis** (`idea-0024`), so it is deliberately deletable with one `rm` and never writes into fleet | (no remote yet) | `fleet/docgen` | — |
+| `shared` | **docgen** | `node-service` (CLI) | `none` | Generates human-readable documents (PDF/DOCX/XLSX + C4/ERD diagrams) from artifacts fleet already maintains — READ-ONLY, for the supervisor's graduation thesis. Added 2026-07-29. **Expected to be discarded after the thesis** (`idea-0024`), so it is deliberately deletable with one `rm` and never writes into fleet | **no remote — verified absent on GitHub 2026-07-30**, and the working tree exists on the Linux box ONLY (not cloned on the Windows box, because there is nothing to clone). One machine, one copy, no backup | `fleet/docgen` | — |
 | `shared` | **commons** | `meta` (not deployed) | `none` | Shared frontend shadcn registry (copy-in) | `thiengthb/commons` | `fleet/commons` | — |
 | `shared` | **platform** | `meta` (control plane) | `none` | Foundational docs + **this INVENTORY** + `.claude/skills` | `thiengthb/fleet` (renamed on GitHub 2026-07-29; the old `miniserver-platform` URL now only redirects) | `fleet/` (root) | — |
 
