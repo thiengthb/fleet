@@ -237,6 +237,9 @@
 | 2026-07-28 | An alarm that fires on a compliant file trains everyone to ignore it — including the one true firing. **2nd instance 2026-07-29.** | [→](ledger/2026-07.md#2026-07-28-an-alarm-that-fires-on-a-compliant-file-trains-everyone-to) |
 | 2026-07-30 | A rule enforced at the wrong trigger reads as coverage: prior-art was required of plan files, not of code. | [→](ledger/2026-07.md#2026-07-30-a-rule-enforced-at-the-wrong-trigger-reads-as-coverage) |
 | 2026-07-30 | Before building a way to import something, check whether the tool already resolves it with zero config. | [→](ledger/2026-07.md#2026-07-30-before-building-an-import-check-whether-the-tool-already-resolves-it) |
+| 2026-07-30 | An acceptance test only proves what it was written to look for: a rename passed its AC for two months while 52 names rotted. | [→](ledger/2026-07.md#2026-07-30-an-acceptance-test-only-proves-what-it-was-written-to-look-for) |
+| 2026-07-30 | Report-only must still be machine-readable, or a summariser reads "did not fail" as "is fine". | [→](ledger/2026-07.md#2026-07-30-report-only-must-still-be-machine-readable) |
+| 2026-07-30 | An unticked box in a closed plan is an assertion, and it keeps asserting. **Check: recurrence-check D5.** | [→](ledger/2026-07.md#2026-07-30-an-unticked-box-in-a-closed-plan-is-an-assertion) |
 | 2026-07-29 | A gate that has never failed is not evidence: mutation-test the check, not only the code. | [→](ledger/2026-07.md#2026-07-29-a-gate-that-has-never-failed-is-not-evidence-mutation-test) |
 | 2026-07-29 | A design document cannot notice that it disagrees with the repo; ten minutes of thin slice can. | [→](ledger/2026-07.md#2026-07-29-a-design-document-cannot-notice-that-it-disagrees-with-the) |
 | 2026-07-29 | A handoff whose missed half is self-healing-shaped will not fail loudly — give it a machine check. | [→](ledger/2026-07.md#2026-07-29-a-handoff-whose-missed-half-is-self-healing-shaped-will-not) |

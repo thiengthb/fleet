@@ -440,7 +440,7 @@ Passing ⑥ too = the automatic system is fully self-contained. **STOP. DONE.**
 docker run --rm -v link-manager_data:/data -v $HOME:/backup alpine \
   sh -c "tar czf /backup/link-manager_data.tar.gz -C /data ."
 # Pull the file back to the dev machine for safekeeping (run from the dev machine):
-scp thien25@thienminiserver:~/link-manager_data.tar.gz D:\Backups\
+scp thien25@thienminiserver:~/link-manager_data.tar.gz <your-backup-dir>/
 ```
 Things to back up besides the volume: `/opt/infra/.env` (the tunnel token),
 `/opt/apps/*/.env` (app secrets). That's all — everything else can be rebuilt

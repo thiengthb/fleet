@@ -25,6 +25,15 @@ whose exit code I intend to trust; capture output to a file, or check `${PIPESTA
 bare.** This is the pipe-shaped version of the same mistake: reading a green that was never measuring
 the thing.
 
+**Third instance, and it was not a number (2026-07-30):** an unticked step in a plan marked `status: done`
+said *"the GitHub repo is still `thiengthb/miniserver-platform`"*. I repeated that to the user as current
+state and built it into the options I asked them to choose from. `gh repo view` said `fleet` — renamed the
+day before, already recorded in INVENTORY with its date, with `origin` already pointing at the new URL. **A
+document's claim about the world is a remembered number wearing prose**, and a closed plan is the most
+convincing form of it, because "done" reads as settled. Widen the litmus from *numbers* to *any assertion
+about present state that a one-line command could check*: repo/remote names, whether a file exists, whether
+a service is up, whether a step was really taken. Now also caught mechanically by `recurrence-check` D5.
+
 **How to apply:** before writing any state-number into a summary, run the one cheap command that
 produces it (`git log origin/main..HEAD | wc -l`, a `count(*)`), and quote THAT. If I catch myself
 about to type a figure without having just observed it, that is the tell — stop and check. Narrower

@@ -317,6 +317,62 @@ detectors.push({
   format: (h) => `${h.file} — ${h.over} suite(s) over the declared baseline`,
 });
 
+/**
+ * D5 — a plan says `status: done` while still carrying unticked steps.
+ * LEARNED 2026-07-30. The fleet-rename plan was `status: done` with `D3c` unticked, and its text — "the
+ * GitHub repo is still `thiengthb/miniserver-platform`" — was read by a later session, repeated to the user
+ * as current state, and used to offer them work. One `gh repo view` disproved it: the repo had been renamed
+ * the day before. **An unticked box in a closed plan is not a to-do, it is an assertion about the world,
+ * and it keeps asserting long after it stops being true.** The same shape as
+ * `#2026-07-29-a-handoff-whose-missed-half-is-self-healing-shaped` (a half-done handoff that fails quietly)
+ * and a second instance of the memory `report-state-from-the-tool` — which is why this is a detector rather
+ * than a fourth restatement of "measure, don't recite".
+ *
+ * BASELINE, for the same reason as D4: 4 of 66 plans trip it today, all predating the lesson, and one of
+ * them (`2026-07-30-tool-test-coverage`) is a *deliberately named* partial. Firing on all four would start
+ * the checker red. It fires when the number RISES; close them and lower the baseline in the same commit.
+ * The fix for an offender is one of: tick it, delete it, or move it to `## Open questions` where an open
+ * item belongs and cannot read as a closed plan's leftover.
+ */
+detectors.push({
+  id: "done-plan-with-unticked-steps",
+  learned: "2026-07-30",
+  what: "a plan marked done still carries unticked steps, whose text then gets quoted as current state",
+  run() {
+    const BASELINE = 4; // measured by this detector on 2026-07-30: 4 of 66 plans
+    const offenders = [];
+    let plans = 0;
+    for (const f of walk(join(REPO, "platform", "plans")).filter((f) =>
+      f.endsWith(".md"),
+    )) {
+      let text = "";
+      try {
+        text = readFileSync(f, "utf8");
+      } catch {
+        continue;
+      }
+      const status = /^status:\s*([^\s#]+)/m.exec(text)?.[1];
+      if (!status) continue;
+      plans++;
+      if (status !== "done") continue;
+      const open = (text.match(/^- \[ \]/gm) || []).length;
+      if (open) offenders.push({ file: relative(REPO, f), open });
+    }
+    const hits =
+      offenders.length > BASELINE
+        ? offenders.map((o) => ({ ...o, over: offenders.length - BASELINE }))
+        : [];
+    if (!hits.length && offenders.length)
+      hits.note =
+        `${offenders.length}/${plans} plans are marked done with unticked steps (declared backlog, ` +
+        `baseline ${BASELINE} on 2026-07-30) — an unticked box in a closed plan asserts a state nobody ` +
+        `re-measures. Fires only if this number rises; lower the baseline as they are closed.`;
+    return hits;
+  },
+  format: (h) =>
+    `${h.file} — ${h.open} unticked step(s) in a plan marked done (${h.over} over the declared baseline)`,
+});
+
 const execSyncQuiet = (cmd) =>
   execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 

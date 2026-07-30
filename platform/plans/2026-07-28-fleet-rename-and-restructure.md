@@ -127,9 +127,13 @@ and it had one.**
   outlived the move to Linux. Rewritten machine-agnostically (`<repo-root>/<name>`), matching the layer
   split: the folder name is machine-local, the layout is not · Files: `CLAUDE.local.md`,
   `platform/inventory.md` · Test: 0 non-artifact `miniserver-platform` hits outside `log/`+`ledger/` ✅
-- [ ] D3c — **The GitHub repo is still `thiengthb/miniserver-platform`** (`git remote -v`), so INVENTORY's
-  `GitHub repo` column is correct as written, not drift. Renaming it is the user's call and costs one
-  `git remote set-url` on every machine · Files: — · Test: manual
+- [x] D3c — **DONE, and this checkbox was the last thing still claiming otherwise.** Measured 2026-07-30:
+  `gh repo view` returns `thiengthb/fleet`, and this box's `git remote -v` already points at
+  `https://github.com/thiengthb/fleet.git` — the rename happened on 2026-07-29 and `platform/inventory.md`
+  records it with that date. The old URL only redirects. **The lesson is the checkbox, not the rename:** an
+  open item in a plan was read (by a later session, out loud, to the user) as current state and repeated as
+  fact, when one `gh repo view` disproved it. A stale unticked box is an assertion — tick it or measure it,
+  never quote it · Files: — · Test: `gh repo view thiengthb/miniserver-platform --json name` → `fleet`
 
 **Batch E — the second machine, and the platform's own NAME** (2026-07-30, on the Windows box `TNT-Laptop`)
 
@@ -180,7 +184,8 @@ proves what it was written to look for**, and this one was written before the na
   *protected* 25 files from the list. Its test suite was **already red here** and now passes (8/8 mutants killed);
   one mutation patch had gone stale against the new source and the suite said so, which is the mechanism working
   · Test: `tool-check` 15 FAILING → 14; `usage-census.test.mjs` ✅
-- [ ] E8 — **The folder rename on this box + the GitHub repo (D3c) are the user's, at a session boundary.** Script
+- [ ] E8 — **The folder rename on this box is the user's, at a session boundary** (the GitHub half turned out to be
+  already done — see D3c). Script
   prepared at `platform/proposals/finish-fleet-rename-windows.ps1`: it renames `C:\project\miniserver-platform` →
   `C:\project\fleet` and rewrites the 10 absolute paths inside the gitignored `.claude/settings.local.json`
   (`autoMemoryDirectory` + 9 permission entries) in the same run, because splitting those two is what left the

@@ -7,4 +7,4 @@ direction the numbers are moving.*
 
 | date | broken | drift | verdict |
 | --- | --- | --- | --- |
-| 2026-07-30 | 59 | 179 | 59 BROKEN |
+| 2026-07-30 | 59 | 178 | 59 BROKEN |

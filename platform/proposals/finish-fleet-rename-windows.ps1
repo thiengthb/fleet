@@ -99,13 +99,11 @@ try {
 } finally { Pop-Location }
 
 Write-Host ""
-Write-Host "REMAINING, and deliberately not automated (D3c -- your call):" -ForegroundColor Yellow
-Write-Host "  The GitHub repo is still 'thiengthb/miniserver-platform'. To rename it:"
-Write-Host "    gh repo rename fleet --repo thiengthb/miniserver-platform"
-Write-Host "  then, in EVERY clone on EVERY machine:"
+Write-Host "ALREADY DONE, so do not redo it (verified 2026-07-30):" -ForegroundColor Yellow
+Write-Host "  The GitHub repo was renamed to 'thiengthb/fleet' on 2026-07-29 and this clone's origin already"
+Write-Host "  points at it. The old URL only redirects, which is why a stale clone keeps working and nobody"
+Write-Host "  notices. If a clone on another machine still shows the old URL:"
 Write-Host "    git remote set-url origin https://github.com/thiengthb/fleet.git"
-Write-Host "  and update the 'GitHub repo' column in platform/inventory.md in the same change."
-Write-Host "  GitHub keeps redirecting the old name, so an un-updated clone keeps working -- which is exactly"
-Write-Host "  how this drifts unnoticed. Until it is done, INVENTORY naming the old repo is CORRECT, not stale."
+Write-Host "  Check, do not assume:  gh repo view thiengthb/miniserver-platform --json name   # -> fleet"
 Write-Host ""
 Write-Host "The memory tier reads settings at STARTUP, so start a new session for it to take effect." -ForegroundColor Yellow
