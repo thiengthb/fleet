@@ -245,6 +245,16 @@ mechanism, and the removal of the `_`-prefix blind spot from the denominator.
 
 ## Decisions to distill
 
+> **Distilled 2026-07-30 → `platform/standards/testing.md §2.7`** ("Testing a repo guard: the four-part shape"), on the
+> supervisor's call, after `/session-wrap` Step 5.5 judged the recurrence (21×) a genuine rule of three but the right
+> home a *standard* rather than a 54th skill — it is a contract plus a recipe, not an interactive procedure. §2.7
+> carries: the four-part shape, the sandbox recipe (5 techniques keyed to how a tool finds its root), the crash-only
+> mutant law + safe-mutation shapes, equivalent mutants, the `git status` snapshot rule, and the two devices for
+> declaring what is NOT covered (exemption with an enforced reason · backlog with a baseline). §7 gained the one
+> exception to "no backfill sweeps": a **guard** is backfilled, because an untested guard is not neutral — it reports
+> green while guarding nothing. The three cross-project lessons live in `ledger/2026-07.md` (2026-07-30 ×3); the
+> remaining bullets below are the campaign's own record and stay here.
+
 - The four-part test-shape contract for a guard (silent path · acting path asserted by message · a killed mutant ·
   no repo mutation) — and that it came from an external source, not from taste.
 - Why coverage percentage was rejected as the metric in favour of "every tool has a suite that has been seen to

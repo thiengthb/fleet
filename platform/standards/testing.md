@@ -84,6 +84,9 @@ had a hole, and it is what tells the next reader which part of the check was nev
 > Do **not** turn this into a coverage ritual or install a mutation-testing framework. It is a targeted question asked
 > at the moment of trusting a green, on the mechanism that green is standing in for. Anti-ceremony (§7) still applies.
 
+**Writing the suite for a hook or an audit script → §2.7**, which carries the required test shape, the sandbox recipe,
+and the mutation traps (chief among them: a mutant that only *crashes* proves nothing).
+
 **And point the same suspicion at the INSTRUMENT.** Added 2026-07-29 after four instances in a single session. §2.5 asks
 whether the CHECK can fail; this asks whether the check RAN at all — a distinct failure, and the more common one:
 
@@ -123,6 +126,85 @@ happens to be append-only.
 a short-lived record trades away no standing credential ([shape](https://microsoft.github.io/code-with-engineering-playbook/automated-testing/synthetic-monitoring-tests/) ·
 [cleanup mechanics](https://www.thegreenreport.blog/articles/techniques-for-effective-test-data-cleanup-in-cicd/techniques-for-effective-test-data-cleanup-in-cicd.html)).
 Prose, not a gate: *"this row belongs to a real user"* is in the intent, never in the artifact.
+
+## 2.7 — Testing a repo guard (a hook or an audit script): the four-part shape
+
+Added 2026-07-30 after writing **21 suites in one pass** (`plans/2026-07-30-tool-test-coverage.md`: 8/27 → 28/29 tools
+tested). §2.5 says *mutation-test a gate you are going to trust*; this says **what a guard's suite has to contain** so
+that mutation has something to bite on. It is here and not a skill because it is a contract plus a recipe, not an
+interactive procedure — a guard's suite is written once per guard and read every time one is changed.
+
+A guard is different from a function: its output is not a return value but a **triple — stdout, stderr, exit code** —
+and it runs against *the real repo*. That makes four things testable, and all four are required:
+
+| Part | What it asserts | Why it is not optional |
+| --- | --- | --- |
+| **① the silent path** | on input it must ignore: **exit 0 and NO output** | a guard that comments on everything gets muted, and then guards nothing. The quiet case is the one users experience |
+| **② the acting path, asserted by MESSAGE** | the specific text/route it emits — never merely `exit !== 0` | exit codes are a 3-value alphabet; a crash and a correct block share one. Assert the sentence, and a crash can no longer pass for a catch |
+| **③ ≥1 killed mutant** | break the mechanism, watch the suite go red (§2.5) | otherwise the suite's own value is unmeasured |
+| **④ no repo mutation** | the guard left the working tree as it found it | a suite that writes into the repo it audits corrupts the thing under test and pollutes the operator's `git status` |
+
+For ④ specifically: hooks in this repo honour **`HOOK_USAGE_LOG: "off"`** and reporters honour their own opt-out
+(`--no-log`, `HEALTH_SWEEP_LOG=off`), so a suite sets those and then proves the tree is unchanged.
+
+### Getting a guard under test at all (the sandbox recipe)
+
+A guard reads the repo, so it must be pointed at a fake one. Which technique works is a property of **how the script
+finds its root** — read that first, then pick the row. All five are in use (27 of 29 suites build a sandbox):
+
+| How the tool locates the repo | The technique |
+| --- | --- |
+| `resolve(dirname(fileURLToPath(import.meta.url)), "..", "..")` | copy the script into `<tmp>/.claude/scripts/` (or `/hooks/`) so its *own* path lands inside the fixture |
+| `resolve(".")` / relative paths | leave the script where it is and just set `cwd` |
+| `argv[2]` as a root | pass the fixture path |
+| `os.homedir()` (transcripts, `~/.claude/settings.json`) | redirect **`HOME`** in the child env — 4 suites do |
+| real git state (ahead/behind, rename detection) | a real `git init` + backdated commits + a **bare** remote + a second clone as "another machine" (`git init -b main` — a bare repo without it leaves the clone with nothing checked out) |
+
+### The law that cost the most: a mutant that only CRASHES proves nothing
+
+Hit **5 times in that one pass, in 3 different mechanisms.** The failure is silent and self-congratulatory: the patch
+unbalances a paren or hits a TDZ, the mutant dies on load, the probe sees "not the normal output" and records
+**"mutant killed"** — and the suite is green having tested nothing. It is the worst available failure in the one
+mechanism whose entire job is proving a check *can* be wrong.
+
+> **Every mutation must assert the mutant still RUNS before its probe is believed** — an explicit exit-0 (or
+> expected-code) sanity gate, per §2.5's "point the same suspicion at the instrument".
+
+And mutate in the shape least likely to crash:
+
+- **Redirect a side-effect instead of falsifying a condition** — `findings.push(…)` → `[].push(…)` keeps every
+  binding live; `if (false)` falls through to code that then dereferences a null.
+- **Replace a whole balanced expression / whole `new Set([...])`,** never a fragment — a fragment edit is how parens
+  end up unbalanced.
+- **Anchor the patch on code, not on the comment that explains it** — a docstring often contains the flag verbatim and
+  gets patched instead (happened with `--name-status -M`).
+- Then re-run: **the mutant must still produce a normal-looking run**, only a wrong one.
+
+### Two more findings worth the same suspicion
+
+- **The equivalent mutant.** A "protection" that cannot be observed: a fast path, a redundant flag, a coercion that
+  already does the job (`null < 30` is `true`, so a null-age guard is unobservable unless *both* layers are mutated;
+  `-M` is a no-op because git ≥2.9 detects renames by default). Five such were documented. The comment claiming the
+  protection is not evidence the protection exists — **only a killed mutant is.**
+- **"Assert the repo is clean" is the wrong guard for ④.** It failed **three times on other people's legitimate work**
+  (a parallel session writing a memory; this very wrap writing ledger entries). Take a `git status --porcelain`
+  **snapshot before and after** and compare — that asserts *the guard changed nothing* without asserting *nobody else
+  is working*. A guard that fails on legitimate work is a guard that gets skipped.
+
+### Declaring what is NOT covered (so a gap can be argued with)
+
+Full coverage is not the goal (§7: no coverage-percentage target) — **a silent gap** is what is forbidden. Two devices,
+both in `tool-check.mjs`:
+
+- **A declared exemption** carries a written reason with an enforced minimum length (`EXEMPT_MIN_REASON = 40`, exit 1
+  if shorter) and a **stale-exemption check** (an exemption naming a file that no longer exists is a warning). One
+  exemption stands today: `eval-ledger-rule.mjs` — a model-in-the-loop eval whose result is non-deterministic *and*
+  billable. *A declared gap is a gap you can argue with; a silent one is not.*
+- **A declared backlog with a baseline.** A new detector that would fire on known debt reports a note and fires only
+  when the number **RISES** (`recurrence-check.mjs` D4: `BASELINE = 11` unguarded mutation loops, dated in the code).
+  A checker that is red on day one is a checker someone turns off; the baseline exposes the debt for subtraction while
+  still catching the next violation. Lower the baseline as each is fixed. **Set that number from the tool, never by
+  eyeballing output** — mine was off by two.
 
 ## 3 — Acceptance criteria: the spec→test bridge (SDD-lite)
 
@@ -172,7 +254,12 @@ two sides still agree — only a human notices a break. As repos/teams multiply 
 - No test-first outside pure logic.
 - No coverage-percentage target.
 - No Pact Broker / heavy contract infra under one team.
-- No backfill sweeps (retrofit on next touch).
+- No backfill sweeps (retrofit on next touch) — **except** the one class §2.7 covers: a **repo guard** is backfilled,
+  because an untested guard is not neutral like untested app code. It is actively misleading — it reports green while
+  guarding nothing, and everything downstream trusts that green.
+- §2.7's four-part shape applies to a **guard** (a hook / an audit script that gates or reports on the repo), not to
+  every script. A one-shot generator or a throwaway is out of scope; declare it exempt with a reason (§2.7) rather than
+  writing ceremony for it.
 
 > The litmus: this standard should make a multi-person/multi-repo platform *safer to change*, never make a solo change
 > *slower for ceremony's sake*. If a rule here is costing more than it protects at the current scale, flag it (the same
