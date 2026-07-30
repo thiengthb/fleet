@@ -148,14 +148,51 @@ is **process-pipeline enforcement**: `agent-handoff`, `agentsatlas`, `agentic-sw
 pipeline is deliberately *lighter*. **This is confirmation, not a gap**, and it is stronger evidence than any blog
 because these are things people actually shipped and Anthropic actually accepted.
 
-**C9 — the first clear REFUSE, and it is the archetype of the risk in his ask. AGREEMENT: n/a (a conflict, not a
-consensus).**
-Superpowers `subagent-driven-development` instructs: *"Do not pause to check in with your human partner between
-tasks. Execute all tasks from the plan without stopping."* That is **directly opposed** to fleet's design, where
-the supervisor is the oracle and `/idea`, `/brainstorming`, plan approval and the autonomy T3 gate all exist to
-create pause points. The framework optimises **unattended throughput**; fleet optimises **supervisability**.
-Adopting it would silently delete the thing fleet is for. **REFUSE, and record the reasoning** — this is exactly
-the "their thinking flattening yours" case.
+**C9 — RETRACTED IN FULL, 2026-07-31. The refusal was wrong, and it was wrong in fleet's favour.**
+
+The original row read: Superpowers `subagent-driven-development` says *"Do not pause to check in with your human
+partner between tasks"*, therefore it is **"directly opposed"** to fleet's supervisor-as-oracle design, therefore
+**REFUSE** — "the archetype of the risk in his ask".
+
+Then the supervisor said he had watched me dismiss something, and asked for `kĩ lưỡng`. So the actual files were
+read instead of one line lifted from a summary. **Superpowers is more gate-heavy than fleet, not less.** Verbatim:
+
+- [`brainstorming`](https://raw.githubusercontent.com/obra/superpowers/main/skills/brainstorming/SKILL.md):
+  *"Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action
+  until you have presented a design and the user has approved it"* — universal, with no exception for simple work ·
+  *"Ask clarifying questions — one at a time… Only one question per message"* · *"Ask after each section whether it
+  looks right so far"* · *"Wait for the user's response… Only proceed once the user approves."*
+- [`executing-plans`](https://raw.githubusercontent.com/obra/superpowers/main/skills/executing-plans/SKILL.md):
+  *"If concerns: Raise them with your human partner before starting"* · *"STOP executing immediately when: Hit a
+  blocker… Ask for clarification rather than guessing"* · *"Never start implementation on main/master branch
+  without explicit user consent."*
+
+So the quoted line is scoped to the **task loop inside an already-approved plan, after four human gates**. It does
+not say "no supervisor"; it says **"do not re-litigate an approved plan mid-execution"** — which is good practice,
+and which fleet **does not have**, because fleet has no execute-skill at all (C2). The conflict was manufactured.
+
+**Three things this costs, recorded rather than smoothed over:**
+
+1. **The method rule this plan was created to enforce was broken by this plan.** AC-1 says a finding may only cite a
+   file actually fetched. C9 cited a *summarising model's paraphrase of one line* and drew a design conclusion from
+   it. Reading two files reversed the verdict completely.
+2. **The error had a direction: it protected the home team.** Of the fourteen C-findings, the one that turned out
+   wrong is the one that concluded *fleet is right and the outsider is dangerous*. That is not coincidence, it is
+   bias with a shape, and it is the thing to watch for in Batch 1 — not "am I being too credulous about outsiders",
+   but **"am I refusing whatever would cost fleet something".**
+3. **It nearly became doctrine.** C9 was written as the plan's flagship refusal and quoted back to the supervisor
+   as evidence the process was working. A wrong refusal presented as proof of rigour is worse than a wrong
+   adoption, because nothing downstream ever re-tests it.
+
+**Replacement verdict: CONFIRMS-FLEET, and one gap.** Superpowers independently reached fleet's gate philosophy
+from scratch — the strongest external validation of it found so far. The gap is that its gates are **enforced
+inside the skill** (`Do NOT`, `Wait for`, `Only proceed once`), while several of fleet's live in `CLAUDE.md` prose
+where `F3`/`enforce-rules-with-gates` say they will erode.
+
+**And one uncomfortable observation from the same file:** *"Never start implementation on main/master branch without
+explicit user consent."* This session committed five times directly to `main`. fleet's convention permits it and
+the supervisor asked for the commits, so it was not a violation — but the outside practice is stricter than
+fleet's, and this is logged rather than waved through on the grounds that fleet has a convention.
 
 **C10 — "always specify the model explicitly when dispatching a subagent". AGREEMENT: 2.**
 Superpowers `subagent-driven-development` states it as a rule; Anthropic's sub-agents doc provides the `model:`
@@ -223,13 +260,38 @@ it displaces one of the three or it waits.
 > Symmetrically: if this plan ends with **fewer than 3 REFUSE rows**, the pass was not critical enough and Batch 1
 > is re-read against the question *"what here would quietly overwrite a decision fleet made on purpose?"*
 
+**AMENDED 2026-07-31, after C9 was retracted — the refusal quota is withdrawn.**
+
+The "≥3 REFUSE or re-read" rule was written to guard against credulity toward outsiders. C9 shows the live bias runs
+the other way: the single finding that proved wrong was the one concluding fleet was right and the outsider was
+dangerous, and it was *manufactured* to fill this very quota. **A quota on refusals produces refusals.** That is the
+same defect as a reviewer prompted to find gaps reporting gaps whether or not they exist — which this repo already
+recorded as a warning (sibling plan F10) and then walked into anyway.
+
+Replaced by a **symmetry rule with no target number**, which is what the supervisor actually asked for on
+2026-07-31 (*"lấy 2 tư duy từ 2 phía và so sánh chứ không đặt nặng cho một bên nào hơn"*):
+
+> **Equal burden of proof, both directions.** Keeping a fleet practice over an outside one requires the same
+> evidence as replacing it: a named fleet incident, a measurement, or a source. **"It is how fleet already does it"
+> is not evidence** — it is the thing under examination. Every verdict states what would change it.
+>
+> **A refusal must quote the artefact it refuses, in full context**, never a paraphrase and never one line lifted
+> from a workflow. C9 is the worked example of why.
+>
+> There is **no minimum and no maximum** number of refusals or adoptions. The adoption cap of 3 stays, because it
+> guards against a different failure (accumulation, evidenced by `commons`' 27 items / 0 installs) rather than
+> against outside ideas as such.
+
 ## Acceptance criteria
 
 - **AC-1 — artefacts, not descriptions.** Every `C`-finding cites a file or catalogue that was actually fetched;
   no finding rests only on a blog describing a repo. _Test: every C-row carries a `raw.githubusercontent.com`,
   `github.com/…/tree|blob`, or official-docs URL._
-- **AC-2 — the refusal column is real.** ≥3 REFUSE rows, each naming (a) the item, (b) the fleet decision it would
-  have overwritten, (c) why that decision stands. _Test: no REFUSE row with an empty (b)._
+- **AC-2 — REPLACED 2026-07-31 (see the amendment in *Approach*): symmetric burden of proof, no refusal quota.**
+  Every verdict — ADOPT, REFUSE or CONFIRMS-FLEET — names its evidence, and a REFUSE additionally **quotes the
+  artefact in full context** plus the named fleet incident or measurement that outweighs it. "fleet already does it
+  this way" is not admissible as evidence. _Test: no verdict row citing a paraphrase; no REFUSE row whose only
+  argument is existing fleet practice; every row states what would change it._
 - **AC-3 — the cap held.** ≤3 items adopted. _Test: count them; if a fourth was added, the displaced one is named._
 - **AC-4 — the external validator is evaluated, not admired.** `agnix` is actually run against fleet, its findings
   triaged into real/noise with counts, and a keep-or-drop verdict written. _Test: a findings count from a real run,
