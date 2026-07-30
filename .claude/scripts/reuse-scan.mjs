@@ -156,7 +156,21 @@ function jaccard(a, b) {
 }
 
 // ---------------------------------------------------------------- what is already known
-/** Item names + install targets the registry already publishes: these have a canonical home already. */
+/**
+ * Item names + install targets the registry already publishes: these have a canonical home already.
+ *
+ * WHEN THIS DIRECTORY IS ABSENT the set is empty, and an empty set does not mean "nothing has a canonical
+ * home" — it means "I could not look". The difference is not academic: measured on the Windows box
+ * 2026-07-30, where the commons repo was cloned under its pre-rename folder name `ui-kit`, so
+ * `commons/public/r` did not exist. Every one of the 28 published items became invisible and **11 artifacts
+ * that already live in commons were reported as `EXTRACT` — "go build this shared thing" advice for things
+ * already built**. The scan looked healthy: right shape, plausible number, wrong instruction.
+ *
+ * So the absence is now DISCLOSED rather than absorbed (`registryMissing`). Third instance of this seam in
+ * one day — a swallowed "I could not look" consumed as "there is nothing there" — after `platform-report`'s
+ * ages and `attic`'s mention scan, which is why it gets a loud line in the report and a machine-readable flag
+ * on every group rather than another paragraph in a comment.
+ */
 function registryTargets() {
   const targets = new Set();
   if (!existsSync(REGISTRY_BUILT)) return targets;
@@ -178,6 +192,8 @@ function catalogText() {
 // ---------------------------------------------------------------- scan
 const known = catalogText();
 const canonical = registryTargets();
+/** True when the published registry could not be read at all — every HAS CANONICAL check is blind. */
+const registryMissing = !existsSync(REGISTRY_BUILT);
 
 const files = [];
 for (const project of projects()) {
@@ -341,6 +357,9 @@ if (flags.has("--json")) {
         verdict: g.verdict,
         projects: g.projectCount,
         inCatalog: g.inCatalog,
+        // False ⇒ the canonical registry could not be read, so HAS CANONICAL was never testable and an
+        // EXTRACT verdict on this group is advice, not a finding. A consumer must be able to grade that.
+        canonicalKnown: !registryMissing,
         files: g.members.map((m) => ({
           project: m.project,
           path: m.path,
@@ -403,8 +422,19 @@ if (results.length === 0) {
   const candidate = results.filter((r) => r.verdict === "CANDIDATE").length;
   const uncatalogued = results.filter((r) => !r.inCatalog).length;
   const upstreamHidden = groups.length - results.length;
+  if (registryMissing) {
+    console.log(
+      `!! CANONICAL REGISTRY NOT FOUND at ${posix(relative(FLEET, REGISTRY_BUILT))}\n` +
+        `   Nothing could be checked against what commons already publishes, so HAS CANONICAL never fired and\n` +
+        `   every EXTRACT below may name something that is ALREADY extracted. Measured on 2026-07-30: with the\n` +
+        `   commons repo cloned under its old folder name, this printed 11 EXTRACT verdicts, all of them wrong.\n` +
+        `   Fix the clone (or its folder name) before acting on an EXTRACT — an empty registry is "I could not\n` +
+        `   look", not "nothing has a home".\n`,
+    );
+  }
   console.log(
     `${results.length} group(s): ${extract} EXTRACT · ${candidate} CANDIDATE · ${uncatalogued} not in the catalog` +
+      (registryMissing ? " · ⚠ registry NOT FOUND, EXTRACT unverified" : "") +
       (upstreamHidden > 0 && !flags.has("--all")
         ? `\n${upstreamHidden} group(s) hidden (vendored shadcn primitives, or filtered) — use --all to see them`
         : ""),

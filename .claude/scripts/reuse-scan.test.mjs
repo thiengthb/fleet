@@ -237,6 +237,57 @@ const groups = (s, args = []) => {
   rmSync(s.root, { recursive: true, force: true });
 }
 
+/* ═══════════ 5b. NO registry to check against ⇒ say so; an empty set is not an answer ═══════════
+ * The same three copies as case 5, minus the registry directory. Measured on the Windows box 2026-07-30: the
+ * commons repo was cloned under its pre-rename folder name, `commons/public/r` did not exist, and the scan
+ * turned all 28 published items invisible — printing 11 EXTRACT verdicts for artifacts that were ALREADY in
+ * commons. Right shape, plausible count, wrong instruction. The absence must be disclosed at the point of
+ * reading, because the advice is what someone acts on.
+ */
+{
+  const s = sandbox({
+    files: {
+      ...project("todo", { "components/theme-toggle.tsx": THEME_TOGGLE }),
+      ...project("journal", { "components/theme-toggle.tsx": THEME_TOGGLE }),
+      ...project("yakudoku", { "web/components/theme-toggle.tsx": THEME_TOGGLE }),
+    },
+    // no `registry:` — nothing at commons/public/r
+  });
+  const g = groups(s);
+  assert.equal(g[0].verdict, "EXTRACT", "without a registry the rule of three is all it has left to go on");
+  assert.equal(
+    g[0].canonicalKnown,
+    false,
+    "…and the JSON must let a consumer grade that verdict as unverified, not just read it",
+  );
+
+  const text = run(s).out;
+  assert.match(text, /CANONICAL REGISTRY NOT FOUND/, "the report must say it could not look");
+  assert.match(text, /commons\/public\/r/, "…and name the path it looked at, so the fix is obvious");
+  assert.match(text, /ALREADY extracted/, "…and state the consequence: the EXTRACT advice may be wrong");
+  assert.match(
+    text,
+    /registry NOT FOUND, EXTRACT unverified/,
+    "the summary line carries it too — health-sweep reads that line and nothing else",
+  );
+
+  // And with the registry present the notice must be ABSENT, or it is noise that gets ignored.
+  const ok = sandbox({
+    files: {
+      ...project("todo", { "components/theme-toggle.tsx": THEME_TOGGLE }),
+      ...project("journal", { "components/theme-toggle.tsx": THEME_TOGGLE }),
+      ...project("yakudoku", { "web/components/theme-toggle.tsx": THEME_TOGGLE }),
+    },
+    registry: {
+      "theme-toggle": { name: "theme-toggle", files: [{ target: "~/components/theme-toggle.tsx" }] },
+    },
+  });
+  assert.doesNotMatch(run(ok).out, /NOT FOUND/, "a present registry must produce no warning at all");
+  assert.equal(groups(ok)[0].canonicalKnown, true);
+  rmSync(s.root, { recursive: true, force: true });
+  rmSync(ok.root, { recursive: true, force: true });
+}
+
 /* ═══════════ 6. --new hides what the catalog already records ═══════════ */
 {
   const files = {
@@ -414,6 +465,12 @@ const groups = (s, args = []) => {
       apply: (s) => s.replace("const hasCanonical = members.some((m) => canonical.has(m.path));", "const hasCanonical = false;"),
       probe: (s) => groups(s)[0]?.verdict === "EXTRACT",
     },
+    {
+      name: "a missing registry stops disclosing itself (11 wrong EXTRACT verdicts, printed as findings)",
+      files: TRIO, // deliberately NO registry, which is the condition being disclosed
+      apply: (s) => s.replace("const registryMissing = !existsSync(REGISTRY_BUILT);", "const registryMissing = false;"),
+      probe: (s) => !/NOT FOUND/.test(run(s).out) && groups(s)[0]?.canonicalKnown === true,
+    },
   ];
 
   for (const m of mutants) {
@@ -447,6 +504,6 @@ const groups = (s, args = []) => {
 console.log(
   "reuse-scan.test.mjs — the rule of three in both directions with its advice text, in-repo duplication " +
     "excluded, shape-not-text matching (and same-name/different-shape rejected), UPSTREAM + HAS CANONICAL + " +
-    "--new + focus, three scan boundaries, --calibrate still calibrating in the real repo, 7 mutants all " +
-    "killed  ✅",
+    "--new + focus, an ABSENT registry disclosed rather than absorbed, three scan boundaries, --calibrate " +
+    "still calibrating in the real repo, 8 mutants all killed  ✅",
 );
