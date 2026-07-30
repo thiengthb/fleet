@@ -265,7 +265,9 @@ process.exit(2);
 
 /* ═══════════════════ 7. the suite must NOTICE a broken counter (mutation) ═══════════════════ */
 {
-  const src = readFileSync(MODULE, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows, core.autocrlf) every multi-line mutation patch below
+  // would match nothing, and a stale patch reports itself as a broken test rather than as a platform gap.
+  const src = readFileSync(MODULE, "utf8").replace(/\r\n/g, "\n");
   const payloadBody = `
 import { readPayload, recordRun } from './_util.mjs';
 const p = await readPayload();

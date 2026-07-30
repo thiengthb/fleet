@@ -221,7 +221,8 @@ function replay(hookPath) {
 // Each mutant is a plausible way this hook could rot. If a mutant survives, the case list above is
 // too weak — the fix is a new case, never a weaker assertion.
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
   const mutants = [
     {
       name: 'placeholder escape removed (every stub becomes a "secret")',

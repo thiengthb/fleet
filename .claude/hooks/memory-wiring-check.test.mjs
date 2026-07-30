@@ -79,7 +79,14 @@ function sandbox({ memory = {}, wiring = "correct", homeSettings = null, src = n
 }
 
 function fire(s) {
-  const env = { ...process.env, HOME: s.home, HOOK_USAGE_LOG: "off" };
+  // USERPROFILE too: os.homedir() ignores HOME on Windows, and a sandbox that silently falls back to the
+  // real home measures the developer's own wiring instead of the fixture's.
+  const env = {
+    ...process.env,
+    HOME: s.home,
+    USERPROFILE: s.home,
+    HOOK_USAGE_LOG: "off",
+  };
   try {
     const out = execFileSync(process.execPath, [s.hook], {
       input: "{}",
@@ -228,7 +235,8 @@ const HEALTHY = {
 
 /* ═══════════════════ 6. the suite must NOTICE a broken check (mutation) ═══════════════ */
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
 
   const mutants = [
     {

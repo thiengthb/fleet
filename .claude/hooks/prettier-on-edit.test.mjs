@@ -51,6 +51,24 @@ const LOG = join(root, "invocations.log");
 function fakePrettier(dir, tag, exitCode = 0) {
   const bin = join(dir, "node_modules", ".bin");
   mkdirSync(bin, { recursive: true });
+  // The shim has to be the SAME artefact the hook looks for, per platform: `prettier.cmd` on Windows (a
+  // `#!/bin/sh` file with no extension is not executable there, so every case measured a formatter that
+  // never ran), `prettier` elsewhere. The .cmd defers to node rather than fighting batch quoting.
+  if (process.platform === "win32") {
+    const runner = join(bin, "fake-prettier.mjs");
+    writeFileSync(
+      runner,
+      `import { appendFileSync } from "node:fs";\n` +
+        `appendFileSync(${JSON.stringify(LOG)}, ${JSON.stringify(tag)} + "|" + process.argv.slice(2).join(" ") + "\\n");\n` +
+        `process.exit(${exitCode});\n`,
+    );
+    const p = join(bin, "prettier.cmd");
+    writeFileSync(
+      p,
+      `@echo off\r\n"${process.execPath}" "${runner}" %*\r\nexit /b %errorlevel%\r\n`,
+    );
+    return p;
+  }
   const p = join(bin, "prettier");
   writeFileSync(p, `#!/bin/sh\nprintf '%s|%s\\n' '${tag}' "$*" >> '${LOG}'\nexit ${exitCode}\n`);
   chmodSync(p, 0o755);
@@ -223,7 +241,8 @@ function fixture(name, body = "const  x   =  1\n") {
 
 /* ───────────────────────────────── 7. the suite must NOTICE a broken hook (mutation) ── */
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
   const lab = join(root, "mutants");
   mkdirSync(lab, { recursive: true });
   copyFileSync(join(HERE, "_util.mjs"), join(lab, "_util.mjs"));

@@ -184,7 +184,8 @@ function fire(s, { version = "2.1.220", source = "startup", execpath } = {}) {
 
 /* ═══════════════════ 4. the suite must NOTICE a broken check (mutation) ═══════════════ */
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
 
   const mutants = [
     {

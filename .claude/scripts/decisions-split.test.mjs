@@ -277,7 +277,8 @@ const detail = (s) =>
 
 /* ═══════════ 8. the suite must NOTICE a data-losing rewrite (mutation) ═══════════ */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
   const lab = mkdtempSync(join(tmpdir(), "decisions-split-mutants-"));
 
   const mutants = [

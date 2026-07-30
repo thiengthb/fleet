@@ -255,7 +255,8 @@ for (const c of FIRES) {
  * itself. Writing them into .claude/hooks/ would dirty the real repo for the length of the run.
  */
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
   const lab = join(root, "mutants");
   mkdirSync(lab, { recursive: true });
   copyFileSync(join(HERE, "_util.mjs"), join(lab, "_util.mjs"));

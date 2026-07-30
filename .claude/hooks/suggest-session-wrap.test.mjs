@@ -255,7 +255,8 @@ const parse = (out) => {
 
 /* ═══════════════════ 7. the suite must NOTICE a broken nudge (mutation) ═══════════════ */
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
   const mutLab = join(lab, "mutants");
   mkdirSync(mutLab, { recursive: true });
   copyFileSync(join(HERE, "_util.mjs"), join(mutLab, "_util.mjs"));

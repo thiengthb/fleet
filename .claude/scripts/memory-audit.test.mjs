@@ -88,7 +88,9 @@ function audit(s, args = []) {
     encoding: "utf8",
     timeout: 60_000,
     cwd: s.root,
-    env: { ...process.env, HOME: s.home },
+    // USERPROFILE too: os.homedir() ignores HOME on Windows, and a sandbox that silently falls back to the
+    // real home measures the developer's own files instead of the fixtures.
+    env: { ...process.env, HOME: s.home, USERPROFILE: s.home },
   });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
 }

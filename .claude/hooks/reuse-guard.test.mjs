@@ -305,7 +305,8 @@ for (const c of FIRES) {
 
 /* ───────────────────────────────── 6. the suite must NOTICE a broken guard (mutation) ── */
 {
-  const src = readFileSync(HOOK, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(HOOK, "utf8").replace(/\r\n/g, "\n");
   const lab = join(root, "mutants");
   mkdirSync(lab, { recursive: true });
   copyFileSync(join(HERE, "_util.mjs"), join(lab, "_util.mjs"));
