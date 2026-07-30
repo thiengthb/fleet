@@ -27,12 +27,30 @@
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { writeFileSync, unlinkSync, readFileSync } from "node:fs";
+import { writeFileSync, readFileSync, copyFileSync, mkdtempSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "secret-guard.mjs");
+
+/**
+ * Mutants live OUTSIDE the repo. They used to be written into `.claude/hooks/` itself, because a mutant
+ * `import`s `./_util.mjs` and the import has to resolve — with cleanup in a `finally`. Two things went wrong
+ * with that, both observed on 2026-07-31:
+ *
+ *   • a run killed by a timeout never reaches `finally`, so it LEAVES a `.secret-guard.mutant-<pid>-*.mjs`
+ *     behind in the repo (one from pid 17748 was found sitting in the tree), and the file is not gitignored
+ *   • even when cleanup works, the file is transiently visible to anything else reading the repo's git
+ *     status — which is how this suite kept failing `sprawl-check.test.mjs` instead of itself
+ *
+ * `_util.mjs` imports only node builtins, so copying it next to the mutant makes the import resolve with no
+ * write into the repo at all. That is what `platform/standards/testing.md §2.7` ("no mutation of the real
+ * repo") actually asks for; the old version obeyed the letter of it and not the point.
+ */
+const LAB = mkdtempSync(join(tmpdir(), "secret-guard-"));
+copyFileSync(join(HERE, "_util.mjs"), join(LAB, "_util.mjs"));
 
 /**
  * Fire a hook as a subprocess with a PreToolUse payload; return its exit code.
@@ -257,22 +275,15 @@ function replay(hookPath) {
       src,
       `mutation "${m.name}" did not change the source — the patch is stale`,
     );
-    // A mutant imports './_util.mjs', so it must live in the hooks dir for the import to resolve.
+    // A mutant imports './_util.mjs', which was copied into LAB — so the import resolves without the mutant
+    // ever existing inside the repo. No `finally` cleanup is needed per mutant: LAB is a temp dir, and a run
+    // killed mid-flight leaks it into the OS temp dir instead of into `.claude/hooks/`.
     const p = join(
-      HERE,
-      `.secret-guard.mutant-${process.pid}-${Math.random().toString(36).slice(2)}.mjs`,
+      LAB,
+      `mutant-${process.pid}-${Math.random().toString(36).slice(2)}.mjs`,
     );
     writeFileSync(p, mutated);
-    let killed;
-    try {
-      killed = replay(p);
-    } finally {
-      try {
-        unlinkSync(p);
-      } catch {
-        /* nothing to clean up */
-      }
-    }
+    const killed = replay(p);
     assert.ok(
       killed.length > 0,
       `SURVIVING MUTANT — "${m.name}" broke the guard and every case still passed`,
@@ -280,6 +291,14 @@ function replay(hookPath) {
   }
 }
 
+rmSync(LAB, { recursive: true, force: true });
+
+// The point of the move, asserted rather than trusted: nothing this suite wrote is inside the repo.
+assert.ok(
+  !LAB.startsWith(HERE),
+  "the mutant lab must live outside the repo — that is the whole fix",
+);
+
 console.log(
-  `secret-guard.test.mjs — ${CASES.length} cases, 5 mutants all killed  ✅`,
+  `secret-guard.test.mjs — ${CASES.length} cases, 5 mutants all killed, mutant lab outside the repo  ✅`,
 );

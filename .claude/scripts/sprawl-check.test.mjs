@@ -397,11 +397,46 @@ for (const m of mutants) {
 
 /* ═══════════════════ 4. no repo mutation ═══════════════════ */
 
-check("the suite left the real repo exactly as it found it", () => {
-  const after = spawnSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" }).stdout;
-  assert.equal(after, gitBefore, "this suite wrote into the repo it only meant to read");
-  assert.ok(existsSync(SCRIPT));
+/**
+ * What this check is FOR: this suite mutates `sprawl-check.mjs` seven times, and a bug that applied a patch to
+ * the real file instead of a sandbox copy would hand the platform a silently wrong brake. So the thing to
+ * assert is that the script it mutates is byte-identical afterwards.
+ *
+ * What it must NOT do — and did, until 2026-07-31: compare whole-repo `git status --porcelain` before/after.
+ * That measures the ENVIRONMENT, not this code. Anything else touching the tree inside this suite's ~11s
+ * window failed it: a concurrent editor, a hook, or — the case actually caught — `secret-guard.test.mjs`
+ * writing its mutants into `.claude/hooks/` and cleaning them up again. The suite then blamed itself with a
+ * message that was false ("this suite wrote into the repo"), which sent the first investigation at the wrong
+ * file. Three runs in isolation passed 21/21 while `tool-check` reported it FAILING, and that gap was the
+ * whole tell.
+ *
+ * So: assert precisely what this suite could have broken, and report unrelated tree movement as a NOTE.
+ */
+check("the suite did not mutate the script it reads", () => {
+  assert.ok(existsSync(SCRIPT), "the script under test must still exist");
+  assert.equal(
+    readFileSync(SCRIPT, "utf8"),
+    SOURCE,
+    "sprawl-check.mjs changed on disk during this run — a mutant patch escaped its sandbox",
+  );
+  assert.ok(!lab.startsWith(REPO), "sandboxes must live outside the repo");
 });
+
+// Not an assertion. Unrelated tree movement is worth SEEING (it means something else is writing while tests
+// run) but it is not this suite's failure, and making it one is what produced the flake.
+{
+  const after = spawnSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" }).stdout;
+  if (after !== gitBefore) {
+    const before = new Set(gitBefore.split("\n"));
+    const moved = after.split("\n").filter((l) => l.trim() && !before.has(l));
+    const gone = gitBefore.split("\n").filter((l) => l.trim() && !new Set(after.split("\n")).has(l));
+    console.log(
+      `  note the working tree moved while this suite ran — not a failure of this suite.` +
+        `${moved.length ? `\n         appeared: ${moved.join(" | ")}` : ""}` +
+        `${gone.length ? `\n         vanished: ${gone.join(" | ")}` : ""}`,
+    );
+  }
+}
 
 rmSync(lab, { recursive: true, force: true });
 
