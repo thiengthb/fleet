@@ -598,11 +598,18 @@ that only works here cannot carry a rulebook anywhere. Cross-machine health is B
       **Verified by breaking it:** with the fix in place the suite survives the exact race that used to fail it
       (`exit=0`, note printed), and **still exits 1** when `sprawl-check.mjs` is genuinely modified mid-run
       (message: *"a mutant patch escaped its sandbox"*), with the file restored byte-identical afterwards.
-      **This retires "flaky" as an explanation and closes the Batch 5 precondition.** It also resolves the
-      session's other loose end: the unexplained ` M .claude/scripts/sprawl-check.mjs` at session start is now
-      **explained in kind if not in instance** — a test suite was writing into `.claude/` and leaving debris when
-      killed. And it is live evidence for **A7**: this defect was invisible to 33 green suites and surfaced only
-      because something else moved the tree.
+      **This retires "flaky" as an explanation and closes the Batch 5 precondition.** It is also live evidence for
+      **A7**: the defect was invisible to 33 green suites and surfaced only because something else moved the tree.
+      **The other loose end has a different cause, and an earlier draft of this line guessed wrong.** It read that
+      the ` M .claude/scripts/sprawl-check.mjs` seen at session start was "explained in kind" by the test-suite
+      debris above. It was not. Traced from git: this working tree **fast-forwarded from `33d8e96` to `d4cbd91`
+      mid-session**, picking up `1fbbcf0 fix(sprawl-check): the baseline is per MACHINE` (01:36) and
+      `d4cbd91 docs(ledger)` (01:37) from `origin` while this session was researching. So that ` M` was a
+      **parallel session's in-flight edit on the same tree**, not test debris — two unrelated causes that produced
+      the same symptom, which is exactly why "explained in kind" was the wrong standard of proof.
+      **Consequence worth stating:** the two commits from this session are stacked on two commits this session
+      never reviewed. That is the ordinary cost of `memory: user-edits-files-concurrently`, and it is the second
+      independent argument for **A6** in one day.
       **Retracted in the same session — a second "fail-open" claim was made here and was wrong.** Run 1 appeared to
       exit 0 while reporting a failure, which was written up as `tool-check` reporting green over a red body. It
       does not: `tool-check.mjs:215` is `process.exit(failed || exemptBad.length ? 1 : 0)`, and it fails closed
