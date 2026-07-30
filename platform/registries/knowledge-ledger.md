@@ -267,6 +267,7 @@
 | 2026-07-30 | A test sandbox must redirect EVERY name the runtime reads for "home", or it measures the developer | [→](ledger/2026-07.md#2026-07-30-a-sandbox-must-redirect-every-name-for-home) |
 | 2026-07-30 | An exemption must name the smallest untestable PART — a file-level one hid a script that could not run | [→](ledger/2026-07.md#2026-07-30-an-exemption-must-name-the-smallest-untestable-part) |
 | 2026-07-30 | After a move, a count that IMPROVED deserves the same scrutiny as one that degraded | [→](ledger/2026-07.md#2026-07-30-a-count-that-improved-deserves-the-same-scrutiny) |
+| 2026-07-30 | Where a rule is DELIVERED decides what it can be: a prohibition cannot live in a lazily-loaded file. | [→](ledger/2026-07.md#2026-07-30-delivery-timing-decides-what-a-rule-can-be) |
 
 ## B. Pointers to each project's knowledge log
 
