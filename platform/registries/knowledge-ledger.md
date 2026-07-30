@@ -21,7 +21,7 @@
 
 ## A. Cross-project lessons (content here)
 
-> **Index only.** 206 lessons, full text in `ledger/YYYY-MM.md`. One row = one lesson:
+> **Index only.** 207 lessons, full text in `ledger/YYYY-MM.md`. One row = one lesson:
 > the headline plus a link. **Do not paste detail back into this table** — that is exactly how this
 > file grew to 421KB and stopped being readable. New lesson → append the full text to the current
 > month's file, then add one row here.
@@ -266,6 +266,7 @@
 | 2026-07-30 | A tool that shells out has assumed a shell; the `catch` then turns that into a clean wrong answer | [→](ledger/2026-07.md#2026-07-30-a-tool-that-shells-out-has-assumed-a-shell) |
 | 2026-07-30 | A test sandbox must redirect EVERY name the runtime reads for "home", or it measures the developer | [→](ledger/2026-07.md#2026-07-30-a-sandbox-must-redirect-every-name-for-home) |
 | 2026-07-30 | An exemption must name the smallest untestable PART — a file-level one hid a script that could not run | [→](ledger/2026-07.md#2026-07-30-an-exemption-must-name-the-smallest-untestable-part) |
+| 2026-07-30 | After a move, a count that IMPROVED deserves the same scrutiny as one that degraded | [→](ledger/2026-07.md#2026-07-30-a-count-that-improved-deserves-the-same-scrutiny) |
 
 ## B. Pointers to each project's knowledge log
 

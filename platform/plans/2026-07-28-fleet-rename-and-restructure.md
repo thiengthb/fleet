@@ -1,7 +1,7 @@
 ---
 title: Rename the platform to `fleet` and split machine-agnostic docs from per-target deployment law
 kind: refactor
-status: active # reopened 2026-07-30 — "done" was measured on ONE machine. Batch E finishes the Windows box + the platform's own NAME; D3c (the GitHub repo) is still the user's call
+status: done # closed 2026-07-30 (second close). The first "done" was measured on ONE machine; Batch E finished the Windows box, E8 the folder rename, E9 the projects/ move (link-check 44 -> 1, and the 1 is docgen, which has no remote to clone). D3c resolved: the GitHub repo is already thiengthb/fleet
 created: 2026-07-28
 updated: 2026-07-30
 related: [CLAUDE.md, platform/INVENTORY.md, .claude/skills/nuc-*, platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md]
@@ -193,7 +193,7 @@ proves what it was written to look for**, and this one was written before the na
   ✅ **done by the user between sessions, verified 2026-07-30 from the tools, not from the plan:** cwd is
   `C:\project\fleet` and `memory-audit` reports `wired -> C:\project\fleet\.claude\memory` with no findings. The
   script's backup `.claude/settings.local.json.bak` is still on disk carrying the OLD paths — the only residue.
-- [ ] E9 — **The RESTRUCTURE half is still not done on this box** (found 2026-07-30 while clearing the sweep).
+- [x] E9 — **The RESTRUCTURE half is still not done on this box** (found 2026-07-30 while clearing the sweep).
   The nine app repos moved into `projects/` on the Linux box, but they are **git repos of their own, so the move
   does not travel through this repo's git** — on Windows they still sit flat at the root and `projects/` is an
   empty directory. That is what all **44 remaining `link-check` BROKEN** wires are: 11 INVENTORY `Dev path`s and
@@ -211,6 +211,33 @@ proves what it was written to look for**, and this one was written before the na
   prepared at `platform/proposals/finish-projects-restructure-windows.ps1` (`-DryRun` verified): it moves the
   nine, renames `ui-kit` → `commons` only after checking the remote, prints the BROKEN count before and after,
   and stops rather than half-moving anything · Files: 10 folders on this box · Test: `link-check` 44 → docgen only
+  ✅ **done 2026-07-30**, the supervisor closed the editor and the script ran clean: nine moved, `ui-kit` →
+  `commons`, **`link-check` 44 → 1** and the 1 is `docgen`, which has no remote and cannot resolve here.
+  The handle theory held — with the editor closed every folder moved on the first try, which also confirms the
+  holder was the editor's git integration and not the agent session.
+
+  **The counts were re-measured against the pre-move baseline, per the CLAUDE.md rule, and two of them MOVED —
+  both explained, neither a regression:**
+
+  | Tool | Before | After | Why |
+  |---|---|---|---|
+  | `link-check` | 44 BROKEN | **1** | the move; the remainder is `docgen` |
+  | `_layout` discovery | 12 roots / 12 repos | **12 / 12** | intact, with `ui-kit` now correctly named `commons` |
+  | `plan-audit` | 66 · 25 · 92 · 80 | **identical** | intact |
+  | `skill-audit` | 1 NO-SUBSTRATE | **0** | `app-protect`'s substrate is the hardcoded `projects/authentik/docs/auth-apps.md`, which now exists |
+  | `reuse-scan` | 30 groups · **11 EXTRACT** | **22 · 0 EXTRACT** | see below — the interesting one |
+  | `usage-census` | 239 artefacts | **240** | the E9 script itself |
+
+  **`reuse-scan` was giving 11 wrong instructions, and that is the fifth silent defect of the day.** It reads
+  the canonical registry from the hardcoded `commons/public/r`; while the repo sat at `ui-kit/`, that path did
+  not exist, `registryTargets()` returned an EMPTY set, and all 28 published items became invisible — so
+  **eleven artifacts that already live in commons were reported as `EXTRACT`, i.e. "go build this shared thing"
+  advice for things already built**. The group count fell 30 → 22 for a second, benign reason: `commons` is in
+  the skip list, so its files stopped being scanned as if it were a consumer project. Fixed by disclosure
+  rather than by a path guess: the report now prints a loud `CANONICAL REGISTRY NOT FOUND` block naming the
+  path and the consequence, the summary line (the only line `health-sweep` reads) carries `⚠ registry NOT
+  FOUND, EXTRACT unverified`, and every `--json` group carries `canonicalKnown` so a machine can grade the
+  verdict. One case + one mutant pin it.
 
 ## Out of scope
 
@@ -237,6 +264,20 @@ proves what it was written to look for**, and this one was written before the na
 
 ## Decisions to distill
 
+- **Two machines are two measurements, and "done" on one of them is a claim about one of them.** This plan was
+  closed once already; reopening it found 15 red test suites, five silent tool defects and a layout that had never
+  arrived here. The general rule: a structural change is finished when the LAST machine agrees, and the cheap way to
+  know is to run the sweep there rather than to reason about it.
+- **A folder holding a `.git` cannot be moved while an editor with git integration is open**, and the symptom is
+  `Access is denied` with identical ACLs and no locked child file — a per-repo directory handle. Diagnosis that
+  worked: a non-repo folder beside it moves, and a repo created minutes ago moves. So a re-layout is a
+  session-boundary job with the editor closed, like the rename before it, and the deliverable from inside a session
+  is a dry-runnable script that measures before and after.
+- **After a move, compare COUNTS to a pre-move baseline and explain every one that changed.** Two moved here and
+  neither was a regression — but one of them (`reuse-scan` 11 EXTRACT -> 0) was the tool having been WRONG before
+  the move, not after: it reads the canonical registry from a hardcoded `commons/` path that did not exist while the
+  repo sat under its old folder name, so it had been advising extraction of eleven things already extracted. A count
+  that improves after a move deserves the same scrutiny as one that degrades.
 - Naming after a specific machine (`nuc`) rotted in ~6 weeks; naming after a *role* (`app`/`host`/`target`)
   survives a hardware change. The general rule: **name the job, not the box.**
 - A rename is safe to automate only after measuring the blast radius; the measurement (99 files / 306 refs /
