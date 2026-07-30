@@ -23,7 +23,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { projectRoots } from './_layout.mjs';
+import { projectRoots, posix } from './_layout.mjs';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const JSON_OUT = process.argv.includes('--json');
@@ -135,6 +135,8 @@ const countExternalUrls = (s) => {
 /* ── the checks ─────────────────────────────────────────────────────────────────────────────── */
 
 const FEATUREY = new Set(['feature', 'system-change']);
+/** A plan nobody can act on any more: its shape is a record, not a task (Batch D2, see auditFile). */
+const CLOSED = new Set(['done', 'superseded', 'abandoned', 'rejected']);
 const PLAN_SECTIONS = ['Goal', 'Context', 'Approach & tradeoffs', 'Steps', 'Out of scope'];
 const PROPOSAL_SECTIONS = ['Problem', 'Options considered', 'Recommendation', 'Pre-mortem', 'Counter-case'];
 
@@ -149,7 +151,8 @@ const PLACEHOLDERS = [
 
 function auditFile(path) {
   const text = readFileSync(path, 'utf8');
-  const rel = relative(REPO, path);
+  // POSIX-shaped so the report reads the same on every machine (see _layout.mjs).
+  const rel = posix(relative(REPO, path));
   const findings = [];
   const add = (level, msg) => findings.push({ level, msg });
 
@@ -302,6 +305,24 @@ function auditFile(path) {
     if (re.test(uncomment(text))) add('WARN', `template not fully filled in: ${label}`);
   }
 
+  /**
+   * BATCH D2 (plan `2026-07-30-second-brain-audit.md`). All 105 shape ERRORs in the repo were on plans that
+   * are already CLOSED, so the headline number measured the repo's history rather than anything anyone could
+   * act on — and a count nobody can act on is a count that gets skimmed, which is how the ~20 real ones hid.
+   *
+   * A closed plan's shape cannot be repaired without editing the record of what was actually done, and on this
+   * platform history is never edited to satisfy a checker. So on a closed plan a shape ERROR is reported as
+   * `LEGACY`: still printed, still counted, but in its own total, never in the one that gates. Same reasoning
+   * as the `preStandard` exemption above — charging a file with breaking a frame it was never inside inflates
+   * the failure count with findings nobody can act on.
+   *
+   * Deliberately NOT downgraded: WARNs, including the one about a closed plan handing nothing to
+   * `decisions.md` — that finding is ABOUT being closed, and it is actionable today.
+   */
+  if (CLOSED.has(status)) {
+    for (const f of findings) if (f.level === 'ERROR') f.level = 'LEGACY';
+  }
+
   return { rel, kind: kind || null, status: status || null, isProposal, findings };
 }
 
@@ -351,11 +372,14 @@ if (fileArgIdx !== -1 || HOOK) {
 
 const files = findPlanFiles();
 const results = files.map(auditFile);
-const errors = results.reduce((n, r) => n + r.findings.filter((f) => f.level === 'ERROR').length, 0);
-const warns = results.reduce((n, r) => n + r.findings.filter((f) => f.level === 'WARN').length, 0);
+const count = (level) =>
+  results.reduce((n, r) => n + r.findings.filter((f) => f.level === level).length, 0);
+const errors = count('ERROR'); // live plans only — closed ones are LEGACY (Batch D2)
+const warns = count('WARN');
+const legacy = count('LEGACY');
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ scanned: files.length, errors, warns, results }, null, 2));
+  console.log(JSON.stringify({ scanned: files.length, errors, warns, legacy, results }, null, 2));
 } else {
   console.log(`\nplan-audit — ${files.length} file(s) under platform/plans/ and */docs/plans/\n`);
   const dirty = results.filter((r) => r.findings.some((f) => f.level !== 'INFO'));
@@ -363,11 +387,18 @@ if (JSON_OUT) {
     const tag = r.isProposal ? 'proposal' : 'plan';
     console.log(`  ${r.rel}  [${tag} · kind: ${r.kind ?? '—'} · status: ${r.status ?? '—'}]`);
     for (const f of r.findings) {
-      console.log(`      ${{ ERROR: '✗', WARN: '·', INFO: 'i' }[f.level]} ${f.level}  ${f.msg}`);
+      console.log(`      ${{ ERROR: '✗', LEGACY: '~', WARN: '·', INFO: 'i' }[f.level]} ${f.level}  ${f.msg}`);
     }
     console.log('');
   }
-  console.log(`  clean: ${results.length - dirty.length}/${results.length}   ERROR: ${errors}   WARN: ${warns}`);
+  console.log(
+    `  clean: ${results.length - dirty.length}/${results.length}   ERROR: ${errors}   WARN: ${warns}   ` +
+      `LEGACY: ${legacy}`,
+  );
+  console.log(
+    `\n  ERROR counts LIVE plans only. LEGACY is the same shape gap on a plan already closed — kept visible,\n` +
+      `  never actionable: repairing it would mean editing the record of what was done.`,
+  );
   console.log(`\n  Shape only. A clean file can still be a bad plan — this never judges the thinking.\n`);
 }
 

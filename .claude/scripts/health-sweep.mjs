@@ -103,8 +103,13 @@ const checkers = [
           kind: "DRIFT",
           bad: 0,
           drift: j.errors ?? 0,
-          driftWhat: "plan file(s) with a shape ERROR",
-          line: `${j.scanned} plan(s) scanned · ${j.errors} error · ${j.warns} warn`,
+          driftWhat: "LIVE plan file(s) with a shape ERROR",
+          // `legacy` is the same shape gap on an already-closed plan (plan-audit Batch D2). Printed, never
+          // counted as drift: it was 80 of the 105 that used to be reported, and a number nobody can act on
+          // is a number that gets skimmed past — which is how the live ones stayed invisible.
+          line:
+            `${j.scanned} plan(s) scanned · ${j.errors} error (live) · ${j.warns} warn` +
+            (j.legacy ? ` · ${j.legacy} legacy (closed plans)` : ""),
         };
       } catch {
         return {

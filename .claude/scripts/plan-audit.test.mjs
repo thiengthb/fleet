@@ -496,9 +496,78 @@ Accept ⇒ it becomes a plan.
   rmSync(s.root, { recursive: true, force: true });
 }
 
+/* ═══════════ 10b. BATCH D2: a shape gap on a CLOSED plan is LEGACY, and the ERROR count is live-only ══
+ * All 105 shape ERRORs in the repo were on plans already closed, so the headline number described the
+ * repo's history and nothing anyone could act on — and the ~20 live ones hid inside it. The gap must stay
+ * VISIBLE (a silent exemption is how a checker becomes decorative), so it is reported under its own level
+ * and its own total, and only the live count is allowed to gate.
+ */
+{
+  const BROKEN_SHAPE = (status) => `---
+title: a plan missing most of its sections
+kind: system-change
+status: ${status}
+created: 2026-07-20
+updated: 2026-07-20
+---
+
+## Goal
+
+x
+`;
+  const s = sandbox({
+    "2026-07-20-closed.md": BROKEN_SHAPE("done"),
+    "2026-07-20-superseded.md": BROKEN_SHAPE("superseded"),
+    "2026-07-20-live.md": BROKEN_SHAPE("active"),
+  });
+
+  const live = findings(s, "2026-07-20-live.md");
+  assert.ok(
+    has(live, "ERROR", /missing required section `## Context`/),
+    "a LIVE plan still gets a hard ERROR — that is the whole point of the count",
+  );
+
+  for (const name of ["2026-07-20-closed.md", "2026-07-20-superseded.md"]) {
+    const r = findings(s, name);
+    assert.deepEqual(
+      levels(r, "ERROR"),
+      [],
+      `a closed plan must carry no ERROR: ${name}\n${JSON.stringify(r.findings)}`,
+    );
+    assert.ok(
+      has(r, "LEGACY", /missing required section `## Context`/),
+      `…and the same gap must still be REPORTED as LEGACY, not dropped: ${name}`,
+    );
+  }
+
+  const j = JSON.parse(audit(s, ["--json"]).out);
+  assert.ok(j.legacy >= 2, `the legacy total must be its own number, got ${j.legacy}`);
+  assert.ok(
+    j.errors > 0 && j.errors < j.legacy + j.errors,
+    "the error total must count live plans only",
+  );
+
+  // --strict is the CI gate: a repo full of closed plans must not fail it, a live shape gap must.
+  assert.equal(audit(s, ["--strict"]).code, 1, "a live shape ERROR must fail --strict");
+  const closedOnly = sandbox({ "2026-07-20-closed.md": BROKEN_SHAPE("abandoned") });
+  assert.equal(
+    audit(closedOnly, ["--strict"]).code,
+    0,
+    "…while closed plans alone must never fail it — otherwise the gate can never be satisfied",
+  );
+  assert.match(
+    audit(closedOnly).out,
+    /LEGACY: [1-9]/,
+    "the legacy count must be printed even when nothing is actionable",
+  );
+  rmSync(s.root, { recursive: true, force: true });
+  rmSync(closedOnly.root, { recursive: true, force: true });
+}
+
 /* ═══════════ 11. the suite must NOTICE a broken checker (mutation) ═══════════ */
 {
-  const src = readFileSync(SCRIPT, "utf8");
+  // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
+  const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const mutants = [
     {
@@ -545,13 +614,26 @@ Accept ⇒ it becomes a plan.
     },
     {
       name: "the pre-standard exemption removed (DEFECT #3 — inventing history)",
+      // `status: active`, not `done`. Batch D2 turns every ERROR on a CLOSED plan into LEGACY, so on a closed
+      // fixture this mutant is unobservable through the ERROR channel and reported itself as surviving. The
+      // exemption still matters exactly where it is observable: an OLD plan that is still live.
       plans: {
         "2026-06-01-ancient.md":
-          "---\ntitle: old\nstatus: done\ncreated: 2026-06-01\nupdated: 2026-06-02\n---\n\n" +
+          "---\ntitle: old\nstatus: active\ncreated: 2026-06-01\nupdated: 2026-06-02\n---\n\n" +
           "## Goal\n\nx\n\n## Context\n\nx\n\n## Approach & tradeoffs\n\nx\n\n## Steps\n\n- [ ] Step 1\n\n## Out of scope\n\nx\n",
       },
       apply: (s) => s.replace("const preStandard = !!fm.created &&", "const preStandard = false &&"),
       probe: (s) => has(findings(s, "ancient.md"), "ERROR", /missing `kind:`/),
+    },
+    {
+      name: "the closed-plan downgrade removed (the ERROR count goes back to describing history)",
+      plans: {
+        "2026-07-20-closed.md":
+          "---\ntitle: closed and shapeless\nkind: system-change\nstatus: done\ncreated: 2026-07-20\n" +
+          "updated: 2026-07-20\n---\n\n## Goal\n\nx\n",
+      },
+      apply: (s) => s.replace("if (CLOSED.has(status)) {", "if (false) {"),
+      probe: (s) => has(findings(s, "2026-07-20-closed.md"), "ERROR", /missing required section/),
     },
     {
       name: "HTML comments counted as content (every unfilled plan passes)",
@@ -630,5 +712,6 @@ Accept ⇒ it becomes a plan.
 console.log(
   "plan-audit.test.mjs — all 4 historical defects pinned (heading eats a bullet, exact anchor, synonyms, " +
     "inventing history), the verbatim-ask rules, step blocks, commented guidance, the checkin pair, the " +
-    "proposal rules, the in-loop hook + --strict, 7 mutants all killed  ✅",
+    "proposal rules, the in-loop hook + --strict, the closed-plan LEGACY split with a live-only gate, " +
+    "8 mutants all killed  ✅",
 );
