@@ -234,6 +234,53 @@ gets broken; this one is now measured by `.claude/scripts/memory-audit.mjs` and 
 if it grows past the point where reading it whole is cheap, that is a structural defect, not a content success — split
 it, don't summarise it away.
 
+### 7.3 What may LEAVE an always-loaded file — 4 exit criteria (INVARIANT)
+
+§7.2 says split a bloated artifact. This section says **what is allowed to move**, because the failure mode of
+"keep `CLAUDE.md` thin" is not bloat — it is a rule that was relocated somewhere that never fires, leaving prose
+that reads like coverage. That has already happened here once: the ≥2-external-sources rule existed, but its
+trigger was writing a *plan file*, so it never fired before writing *code* (ledger 2026-07-30, "A rule enforced at
+the wrong trigger reads as coverage").
+
+A rule may leave `CLAUDE.md` **only** if at least one of these holds, and the move names which one:
+
+| # | Criterion | Evidence required |
+|---|---|---|
+| 1 | **A code gate enforces it** — a hook or script fails/warns when it is violated | the file:line of the gate |
+| 2 | **A path-scoped `.claude/rules/*.md` carries it** — `paths:` globs, injected in full on any matching file touch | the glob, and that it matches the files the rule is about |
+| 3 | **It is a verbatim duplicate** of a destination the same turn already opens (a `SKILL.md` the task must load anyway) | `grep` hit at the destination |
+| 4 | **The thing cannot be done without opening the destination** — the rule is a step inside a skill's own procedure | the step number |
+
+Anything matching none of the four **stays**, however heavy. "There is a doc about it somewhere" is not a criterion —
+that is how a 421KB index happened.
+
+**The one hard exception: a PROHIBITION may never rely on criterion 2.** Measured 2026-07-30: a path-scoped rules
+file is delivered **attached to the tool result**, i.e. *after* the call it was supposed to govern. That is fine for
+"here is how to write this file well" and useless for "never write this file". Prohibitions (never edit own
+governance, never commit unasked, secrets only in `.env`) stay always-loaded or live in a PreToolUse hook.
+
+Criterion 2's mechanism is real and was verified, not assumed: reading one `.tsx` injected the whole of
+`.claude/rules/frontend.md` into context. That makes a path-scoped rules file the *preferred* destination for heavy
+spec that has a file-shaped trigger — it arrives in **full** rather than compressed to fit a line budget, and costs
+nothing on a session that never touches those paths.
+
+### 7.4 Is the second brain still working? — the supervisor's own tooling
+
+These are the checks a **human** runs on the agent, so they are listed here rather than left to the agent's memory:
+
+| Command | Cadence | What it is for |
+|---|---|---|
+| `node .claude/scripts/health-sweep.mjs` | weekly | runs every checker and labels what each *clean* result actually proves. Read the VERDICT line: `BROKEN` blocks other work; `drift` is a candidate list and is **never** auto-acted on |
+| `node .claude/scripts/platform-report.mjs` | monthly | per-file metrics, so the human can audit the agent instead of taking its summary |
+| `node .claude/scripts/memory-audit.mjs` | on demand | memory size, index drift, orphans, overlap, staleness — report-only |
+| `node .claude/scripts/attic.mjs` | on retiring anything | stage → ≥30 days + ≥4 sessions → verify → **the human** deletes. It has **no delete command by design**: the burden of proof is on removal |
+
+**After any move or rename, re-run every discovery tool and compare COUNTS against a pre-change baseline.** One
+folder move silently broke five of them and all five still exited 0 — an empty result set and a check that never ran
+are indistinguishable unless something positive is counted.
+
+Related: memory `preserve-data-prove-before-removing`, plan `plans/2026-07-30-second-brain-audit.md`.
+
 ---
 
 ## 8. Quick checklist when touching a project
