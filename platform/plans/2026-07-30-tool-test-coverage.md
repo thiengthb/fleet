@@ -173,7 +173,19 @@ its pre-committed threshold. That is the honest test for a measurement whose onl
       2. **`reuse-scan todo` — the mode its own docstring calls "the usual mode" — matched nothing.** `projects()` yields `projects/todo` after the folder move, and the focus filter compared it to `todo` by equality. Measured before the fix: `reuse-scan todo` reported **0 groups while the unfocused run reported 22**. Same failure shape as the 2026-07-30 discovery regression, and it stayed invisible until fix #1 started printing what was being filtered. Now tail-matched, like the `--calibrate` lookup.
       `tool-check` gained the EXEMPT mechanism: an exemption is printed on every run **with its reason**, counts in the denominator, is refused if the reason is shorter than a sentence (the run fails), and is flagged when it names a tool that no longer exists. `rule-classify` got a **reproduction** test instead of an exemption — it is deterministic, so the suite asserts the recorded verdict still comes out (PASS, 58.9%, gate 40%, seed 20260728) and that two runs are byte-identical; a study whose number stops reproducing is a finding, not a broken test. `eval-ledger-rule` is the one exemption: it spawns `claude -p` twice, so a standing test would be non-deterministic and billable.
 - [x] **Close** — `tool-check`: **29/29 suites pass · 28/29 tools tested · 1 exempt · 0 untested**, measured **34s** wall (AC-6's budget was 90s). `health-sweep`: nothing broken. The `projects/` gate is open. · Files: Create `.claude/scripts/{tool-check,reuse-scan}.test.mjs`; add EXEMPT support to `tool-check.mjs`; reproduce-or-exempt `rule-classify` / `eval-ledger-rule` · Test: `AC-2, AC-6` (tool-check's own suite must prove it cannot miss a `*.test.mjs`, cannot count a tool as tested without a file, and cannot exit 0 with a failing child)
-- [ ] **Close** — run `tool-check` + `health-sweep`, record the final numbers and the full defect list in this plan, distill to `decisions.md` / the ledger, then tell the supervisor the `projects/` gate is open · Test: `AC-2, AC-7`
+- [x] **Close, for real: 29/29 · 0 exempt** ✅ 2026-07-30 (later, on the Windows box). The partial below is
+      **closed, not re-argued**: `runArm` — the only half that spawns a model — stayed as it was, and everything
+      else (`buildSandbox`, `measure`, `verdictOf`, `direction`) is now exported behind a main-guard, so
+      importing the module spends nothing. `eval-ledger-rule.test.mjs` pins the two arms as genuinely different
+      worlds, all four verdict classes, all three pre-committed directions including INCONCLUSIVE, and 7
+      mutants. **It found a real defect in the first minute: `buildSandbox` never created
+      `platform/registries/`, so every arm of that eval died with ENOENT before the model was ever asked
+      anything** — the recorded PASS predates the regression, and the eval as it stood could not have run.
+      `tool-check`'s EXEMPT list is now empty, with a note naming the lesson: an exemption must describe the
+      smallest untestable PART, because "this file calls a model" concealed a file that could not execute.
+      Final: **30/30 suites pass · 29/29 tools tested · 0 exempt · 0 untested**, and 15 of the 29 suites had
+      been RED on Windows for reasons that were all tooling, not test rot (see
+      `plans/2026-07-30-second-brain-audit.md §5`) · Test: `AC-2, AC-6, AC-7`
 
 ## Closing check against the ask — 2026-07-30
 
@@ -182,7 +194,7 @@ Judged against `## The ask, verbatim` plus `## Scope changes`, not against this 
 | What was asked | What shipped | Verdict |
 | --- | --- | --- |
 | *"lên kế ho[ạch] cover test hết không chừa"* | a plan **and** its full execution, B1–B6 | **exceeded** — the ask was for a plan; the gate *"đến khi nào hoàn thiện rồi tôi mới vô project"* made finishing it the deliverable |
-| *"không chừa"* (leave nothing out) | **28 of 29 tested; 1 exempt** | ⚠ **PARTIAL — named, not smoothed over.** See below |
+| *"không chừa"* (leave nothing out) | **29 of 29 tested; 0 exempt** (closed 2026-07-30, later) | **met** — the partial below stood for a few hours; the Close step above says how it was closed and what that found |
 | *"đặt đồng hồ … (lưu trong file)"* for health-sweep + platform-report | `plans/2026-07-30-standing-cadence.md` on the `checkin:` rail, with `health-sweep` stamping its own dated evidence | **met** |
 | *"trước đó hay session wrap"* | ran before the compact, as asked | **met** |
 
@@ -193,6 +205,12 @@ reason is shorter than a sentence (the run fails), and flagged if it ever names 
 would cost to close it: extracting the deterministic measurement half of that script so it can be tested without
 spawning two billable model calls. **That is a real remaining item, not a closed one** — if the supervisor reads
 *không chừa* as 29/29, this plan is not finished, and the next step is that extraction.
+
+> **CLOSED the same day** (see the Close step above). The extraction was done, the exemption is gone, and the
+> forecast in this paragraph turned out to understate the value: the point of testing that file was not the
+> coverage ratio, it was that the eval **could not run at all** and nothing would have said so until someone
+> spent two model calls finding out. Kept here unedited because a prediction is only worth anything if you can
+> still read what it said.
 
 **Also delivered beyond the ask** (all in _Scope changes_): six defects fixed rather than merely reported, the EXEMPT
 mechanism, and the removal of the `_`-prefix blind spot from the denominator.

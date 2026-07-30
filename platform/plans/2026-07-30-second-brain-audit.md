@@ -261,6 +261,41 @@ Rules that make it safe:
 | hooks that have fired at least once | unknown until ~2026-08-06 | ≥1 firing each, or justify the hook |
 | retirement candidates rejected on review | 34 of 34 | if this stays >50%, the counter needs work, not the repo |
 
+**Re-measured on the WINDOWS box, 2026-07-30 (later the same day).** The numbers above were taken on the Linux
+box; this is the same tree on the second machine, and the gap between the two columns was almost entirely the
+platform's own tooling failing on Windows — not repo drift.
+
+| Metric | Windows, before | Windows, after | What the difference was |
+|---|---|---|---|
+| BROKEN | 59 | **44** | all 15 closed were tool defects, not repo faults (list below) |
+| tool suites passing | 15 of 29 | **30 of 30** | CRLF-stale mutation patches · native path separators in reports · `HOME` not redirecting `os.homedir()` on Windows |
+| tools with a test | 28 of 29 (1 exempt) | **29 of 29 · 0 exempt** | the exemption was closed, not re-argued (see `tool-test-coverage` Close) |
+| recurrence detectors firing | 1 | **0** | the firing one was a path-shape disagreement, fixed at the source |
+| plan-shape errors | 105 over 64 plans | **25 live + 80 legacy** | Batch D2 |
+| drift total | 178 | **90** | mostly D2; `usage-census` also stopped counting this session's own reads as unused |
+| link-check BROKEN | 44 | **44** | untouched on purpose — this is the machine's layout, not the repo's. Batch E9 of the rename plan |
+
+**The five defects the Windows box exposed, each one silent** — none reported an error, all four produced a
+confident wrong answer, which is the failure shape this whole audit exists for:
+
+1. `platform-report` built its git-log format with bash `$'\x01%at'` and `shell: "/bin/bash"`. There is no
+   `/bin/bash` on Windows → the spawn threw → the `catch` returned an empty history map → **every age in the
+   repo was unknown**, which is trap #1 of that same file arriving through a different door. Ages feed WATCH,
+   so the retirement candidate list was being computed from nothing.
+2. `attic` shelled out to `grep -rl … 2>/dev/null || true` through `cmd.exe`, where none of those exist. The
+   mention scan — the guard that stops a wrongful retirement — reported **"nobody mentions this file"** on
+   every call. Worst reader is `attic verify`, the C5 gate: an empty scan is what would tell the supervisor a
+   staged file is safe to delete. Now `git grep`, and a scan that fails is fatal rather than empty.
+3. `git-sync-check` measured a directory that merely *has* a `.git`; git walks UP to the nearest real repo, so
+   a corrupt or half-cloned project was reported with an **ancestor's** dirt under its own name. It now
+   requires `rev-parse --show-toplevel` to agree.
+4. Three test sandboxes set only `HOME`. `os.homedir()` reads `USERPROFILE` on Windows, so those fixtures were
+   silently measuring the **developer's real transcript store**. The lesson had been learned in
+   `usage-census.test.mjs` that morning and applied to one file of four.
+5. `eval-ledger-rule`'s `buildSandbox` never created `platform/registries/`, so **every arm died with ENOENT
+   before the model was asked anything** — found within minutes of extracting the deterministic half, i.e. the
+   exemption was hiding a script that could not run, not just an untested one.
+
 ## Acceptance criteria (Given / When / Then)
 
 - **AC-1** — Given a clean checkout, When `node .claude/scripts/health-sweep.mjs` runs, Then it prints one line
@@ -286,7 +321,7 @@ Rules that make it safe:
 - [x] B1 — `link-check.test.mjs`: a fixture fleet with all 6 wires intact, then **8 breakages one at a time**, each asserting that check fires *and that no other one does* — a checker that reports six problems for one broken file gets skimmed. Needed a `FLEET_ROOT` override so the suite can damage a copy instead of the repo · Test: AC-2 ✅
 - [x] B2 — `health-sweep.test.mjs`: 6 sub-checker failure modes each surfaced as BROKEN, plus a case pinning the 2026-07-30 regression verbatim (a findings count read as zero), plus drift never failing the run · Test: AC-2 ✅
 - [x] B2a — `attic.test.mjs`, added because `attic` is the only tool here that MOVES files. It asserts the thing that actually matters: **after every refusal, `git status` is byte-identical** — a half-done refusal would leave the repo in a state nobody chose. Also asserts no delete path exists at all · Test: AC-2 ✅
-- [ ] B3 — Tests for the two hooks that BLOCK and still have none: `guide-coverage-reminder` and `reuse-guard` · Files: 2 test files · Test: AC-2
+- [x] B3 — Tests for the two hooks that BLOCK and still have none: `guide-coverage-reminder` and `reuse-guard` · Files: 2 test files · Test: AC-2 ✅ delivered by `plans/2026-07-30-tool-test-coverage.md` **B1** the same day (both files exist and pass); recorded here rather than re-done, because the coverage campaign superset-ed this step
 
 > **What building Batch B taught, and it is the most useful thing in this batch:** the first `health-sweep`
 > test ran the live sweep, which runs `tool-check`, which runs every test file — **including that test**,
@@ -308,8 +343,16 @@ Rules that make it safe:
 **Batch D — close the measurement gaps**
 
 - [ ] D1 — After 7 days of hook-usage data, report which hooks have never fired · Files: — · Test: manual
-- [ ] D2 — Decide whether the 106 plan-shape errors on closed plans should be exempted by status, so the number
+- [x] D2 — Decide whether the 106 plan-shape errors on closed plans should be exempted by status, so the number
       means something · Files: `plan-audit.mjs` · Test: the count drops to live plans only
+      ✅ **2026-07-30 — decided: exempt by status, but never silently.** A shape ERROR on a plan whose status is
+      `done`/`superseded`/`abandoned`/`rejected` is reported as a new level `LEGACY` — same message, its own
+      total, and out of the count that gates (`--strict`, and the sweep's drift number). Repairing one would mean
+      editing the record of what was actually done, which this platform does not do to satisfy a checker.
+      Measured: **105 ERROR → 25 ERROR (live) + 80 LEGACY**, so the number now names work someone can do. The
+      same reasoning as the existing `preStandard` exemption, and it is printed on every run rather than
+      subtracted quietly. Two new cases + a mutant pin it, incl. `--strict` passing on a repo of closed plans
+      and failing on one live gap.
 
 ## Check-in runbook
 

@@ -184,12 +184,23 @@ proves what it was written to look for**, and this one was written before the na
   *protected* 25 files from the list. Its test suite was **already red here** and now passes (8/8 mutants killed);
   one mutation patch had gone stale against the new source and the suite said so, which is the mechanism working
   · Test: `tool-check` 15 FAILING → 14; `usage-census.test.mjs` ✅
-- [ ] E8 — **The folder rename on this box is the user's, at a session boundary** (the GitHub half turned out to be
+- [x] E8 — **The folder rename on this box is the user's, at a session boundary** (the GitHub half turned out to be
   already done — see D3c). Script
   prepared at `platform/proposals/finish-fleet-rename-windows.ps1`: it renames `C:\project\miniserver-platform` →
   `C:\project\fleet` and rewrites the 10 absolute paths inside the gitignored `.claude/settings.local.json`
   (`autoMemoryDirectory` + 9 permission entries) in the same run, because splitting those two is what left the
   Linux box pointing at a hollow memory directory for a day · Test: manual, then `memory-audit` at next session
+  ✅ **done by the user between sessions, verified 2026-07-30 from the tools, not from the plan:** cwd is
+  `C:\project\fleet` and `memory-audit` reports `wired -> C:\project\fleet\.claude\memory` with no findings. The
+  script's backup `.claude/settings.local.json.bak` is still on disk carrying the OLD paths — the only residue.
+- [ ] E9 — **The RESTRUCTURE half is still not done on this box** (found 2026-07-30 while clearing the sweep).
+  The nine app repos moved into `projects/` on the Linux box, but they are **git repos of their own, so the move
+  does not travel through this repo's git** — on Windows they still sit flat at the root and `projects/` is an
+  empty directory. That is what all **44 remaining `link-check` BROKEN** wires are: 11 INVENTORY `Dev path`s and
+  17 catalog rows that describe the `projects/<app>` layout, plus 16 rows under `commons/`, a repo never cloned
+  here at all. Nothing in the repo is wrong; the machine is. **Awaiting the supervisor's call** — moving 11
+  working trees is his move, not a mid-session one · Files: the 11 project folders on this box · Test:
+  `link-check` 44 → the commons rows only
 
 ## Out of scope
 

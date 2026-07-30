@@ -21,7 +21,7 @@
 
 ## A. Cross-project lessons (content here)
 
-> **Index only.** 203 lessons, full text in `ledger/YYYY-MM.md`. One row = one lesson:
+> **Index only.** 206 lessons, full text in `ledger/YYYY-MM.md`. One row = one lesson:
 > the headline plus a link. **Do not paste detail back into this table** — that is exactly how this
 > file grew to 421KB and stopped being readable. New lesson → append the full text to the current
 > month's file, then add one row here.
@@ -263,6 +263,9 @@
 | 2026-07-30 | A mutant that only CRASHES proves nothing — 5 cases in a day; third mutation lesson, so it got a detector. | [→](ledger/2026-07.md#2026-07-30-crash-only-mutants-prove-nothing) |
 | 2026-07-30 | The documented protection is often not the mechanism: 5 inert or redundant guards found by testing them. | [→](ledger/2026-07.md#2026-07-30-the-protection-is-not-always-the-mechanism) |
 | 2026-07-30 | A report that filters must say what it filtered — "nothing found" over 42 hidden groups hid a live defect. | [→](ledger/2026-07.md#2026-07-30-a-report-that-filters-must-say-what-it-filtered) |
+| 2026-07-30 | A tool that shells out has assumed a shell; the `catch` then turns that into a clean wrong answer | [→](ledger/2026-07.md#2026-07-30-a-tool-that-shells-out-has-assumed-a-shell) |
+| 2026-07-30 | A test sandbox must redirect EVERY name the runtime reads for "home", or it measures the developer | [→](ledger/2026-07.md#2026-07-30-a-sandbox-must-redirect-every-name-for-home) |
+| 2026-07-30 | An exemption must name the smallest untestable PART — a file-level one hid a script that could not run | [→](ledger/2026-07.md#2026-07-30-an-exemption-must-name-the-smallest-untestable-part) |
 
 ## B. Pointers to each project's knowledge log
 
