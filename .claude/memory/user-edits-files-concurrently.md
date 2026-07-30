@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: b3e55123-14d7-4f5b-8542-6a81cf4c4eb2
-  modified: 2026-07-30T11:33:27.358Z
+  modified: 2026-07-30T19:33:39.348Z
 ---
 
 The user frequently edits the codebase in their own editor WHILE I'm working the same session — new files, refactors, even reworking a feature I just built (e.g. 2026-07-14: they reworked the quiz from multiple-choice to fill-in-the-blank and removed the `mode` setting in parallel; their concurrent edit to `settings-schema.ts` removed an export another file imported and broke the build mid-task). Harness "file modified on disk" notes are the signal.
@@ -17,6 +17,17 @@ The user frequently edits the codebase in their own editor WHILE I'm working the
 **When they ask for a change IN a file they're actively editing** (e.g. 2026-07-24: the groups-view card-description placeholder, while they were mid-refactoring `groups-view.tsx`): don't just defer it — MAKE the edit and leave it UNCOMMITTED so it merges into their working copy, and tell them to commit that file with their WIP. I commit only the files they're NOT touching (per-cluster, staged explicitly). Deferring a change they explicitly requested reads as stalling; editing-but-not-committing delivers it without committing their unfinished work under my name. Verified my isolated files first by diffing each (line counts matched my edits) before committing them.
 
 **The "concurrent editor" is sometimes ANOTHER Claude session, not the human** (2026-07-24: I did the resources/detail UI polish while a PARALLEL session on the SAME working tree built the `ResourceAddDialog` unification; each of us saw the other's uncommitted files as "the operator's IDE edits", and both sessions independently rebuilt the container to the same image hash). Tells: files appear that match no request I received; a session-wrap log entry shows up in Claude's own voice describing work I didn't do; a `next build` lock is already held; a gate fails TRANSIENTLY because the other session is mid-saving a file (a re-run goes green). **How to apply:** same discipline as for the human — stage only MY fileset, never assume isolation — PLUS: before attributing a gate/build failure to my own change, re-run and re-check `git status` (it may be a mid-write race), and don't tell the user "you're refactoring X" when it may be a parallel agent — say the tree carries changes outside my fileset and let them place them. Watch for log/id collisions when two sessions wrap the same day (I had to bump my episodic id to avoid a duplicate).
+
+**It can make a TEST GATE flaky, and the false red costs a full investigation** (2026-07-31). `attic.test.mjs`
+failed in roughly one run of four, only when run under `tool-check`, never standalone. I chased it as a defect in
+the suite for several rounds before checking `git reflog` and finding five commits in this clone that I had not
+made. Every tool on this platform measures the REAL working tree — `attic.test` deliberately asserts
+`git status --porcelain` is byte-identical before and after, so any movement in its window fails it with a message
+about the wrong thing; two other counters (`plan-audit` plans, `usage-census` artefacts) had also been climbing
+run to run and looked like leaked fixtures. **How to apply:** an intermittent failure in a repo-measuring tool is
+a concurrency hypothesis FIRST — check `git reflog` for commits I did not make and `git log --format=%ci` for
+timestamps minutes old — before writing a fix. And say plainly that two agents in one folder is the cause: the
+right structure is `git worktree`, one tree per session, which is worth recommending rather than living with.
 
 **Two more things a parallel session does, both seen 2026-07-30 during a 6-hour pass.** (1) **It pushes.** My
 `unpushed` count went from 7 to 1 without my running anything, because the other session pushed `main` and carried my
