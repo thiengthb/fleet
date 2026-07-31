@@ -31,6 +31,16 @@ in the harness; one of them nearly deleted a working feature, another scored a b
    output the call, then stop" measures WHICH tool, not WHETHER.
 7. **Prefer a metric a script can compute.** Count what is countable from the persisted row; reach for a
    judge only for what genuinely cannot be counted, and keep its score in its own column, blind to arm.
+8. **On a machine that has never produced an eval result, prove the spawn FIRST:**
+   `node .claude/scripts/eval-plan-execution-gate.mjs --smoke`. Measured 2026-07-31: `eval-ledger-rule.mjs`
+   had **never been runnable on `TNT-Laptop`** — an env allowlist dropped `PATHEXT`, and Node refuses to spawn
+   `claude.cmd` directly (its CVE-2024-27980 mitigation). Every test that eval had stayed green, because the
+   spawn lives in the one half no test reaches. A whole run came back `ERROR × 4` and reported INCONCLUSIVE:
+   a harness failure wearing the costume of a null result.
+9. **"Created nothing" is not the same as "decided not to".** A metric that only sees absence scores a model
+   no-op as a success. Pair every absence metric with a positive signal — did it edit anything, did it NAME
+   the thing it was supposed to notice — and flag a run that created, edited and named nothing as SUSPECT
+   rather than counting it. Then verify one such run by hand, per rule 4's spirit: read the sandbox.
 
 ## Procedure
 

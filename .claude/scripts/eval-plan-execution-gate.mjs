@@ -63,7 +63,45 @@
  * already produced two confident wrong NUMBERS rather than errors. So it is exported and tested
  * (`eval-plan-execution-gate.test.mjs`); importing this file must never spend a token.
  *
+ * ─ RESULT, 2026-07-31, machine TNT-Laptop, model sonnet ──────────────────────────────────────────
+ *
+ *   fixture `moved`   control 5/5 BUILT THE DUPLICATE   ·   treatment 0/5
+ *   fixture `same-path`   control 1/1 detected   ·   treatment 1/1 detected   → VACUOUS, discriminates nothing
+ *
+ * Five draws per arm (1 first run + 3 replications + 1 hand-verification run). The control arm failed
+ * **every single time**: it created `src/notify.ts` while `src/lib/notifier.ts` already exported
+ * `notifyUser(message: string)`. A reliably-failing control is what makes the separation meaningful.
+ *
+ * **The clean result was red-teamed before being believed, per `/behavioural-eval` ("suspect the instrument
+ * first, especially when the result is clean"):**
+ *   · could a no-op produce it? No — the control arm emits a real FILE, a positive artefact.
+ *   · was the block the only difference? Byte-verified in the test suite, not assumed.
+ *   · one sample? No — replicated, and the first run agrees.
+ *   · **verify one "miss" by hand.** This was the check that mattered, because `createdNewCode: false` cannot
+ *     tell "noticed the duplicate" from "the model did nothing". Inspected a kept treatment sandbox: it wrote
+ *     a dated answer into the plan naming `src/lib/notifier.ts`, its exact signature and its "Already
+ *     implemented" comment, and stated *"No new file created — would have been a duplicate."* Genuine
+ *     detection. `planEdited` / `namedExisting` are now PRINTED so the no-op case cannot hide again.
+ *
+ * **What this does NOT establish, stated so the record cannot be over-read:** it is one fixture, one model
+ * (**sonnet** — the sessions that actually write plans here run Opus), and five draws. It says the block
+ * changes behaviour on the shape of failure it was written for. It does not say the block is sufficient, and
+ * `same-path` shows a fixture can be too easy to discriminate at all.
+ *
+ * ─ HARNESS DEFECT LOG (worth more than the pass rate — `/behavioural-eval` step 5) ────────────────
+ *   1. The env allowlist `{HOME, USERPROFILE, PATH, TERM}` dropped `PATHEXT`, so all four arms of the first
+ *      run failed `spawnSync claude ENOENT` and it reported INCONCLUSIVE. A harness failure wearing the
+ *      costume of a null result — the harness refusing to publish a verdict is the one thing that went right.
+ *   2. `claude` cannot be spawned directly on Windows: bare name → ENOENT, `claude.cmd` → EINVAL (Node's
+ *      CVE-2024-27980 mitigation). A shell is required. **The same two defects were in `eval-ledger-rule.mjs`,
+ *      so the platform's only pre-existing eval had never been runnable on this machine.**
+ *   3. `verdictOf` could not distinguish a detection from a model no-op. Fixed by printing the two secondary
+ *      signals and flagging any run that created, edited and named nothing as SUSPECT.
+ *   4. `--reps` did not exist: the first run drew ONE sample per cell and would have been reported as a
+ *      result. `/behavioural-eval` step 4 is the only reason it was caught.
+ *
  * Usage:  node .claude/scripts/eval-plan-execution-gate.mjs          # run it (spends money)
+ *         node .claude/scripts/eval-plan-execution-gate.mjs --smoke  # can this box spawn the CLI at all?
  *         node .claude/scripts/eval-plan-execution-gate.mjs --keep   # keep the sandboxes for inspection
  *         node .claude/scripts/eval-plan-execution-gate.mjs --haiku  # cheaper model
  */
@@ -281,7 +319,37 @@ export function direction(results) {
 
 // ── the run (only this half spends money) ────────────────────────────────────────────────────────
 
+/**
+ * The cheapest possible answer to defect 2 in the log above: can this machine spawn the CLI AT ALL?
+ *
+ * It exists because the untestable half of an eval is untested by definition, and that is exactly where both
+ * spawn defects lived — `eval-ledger-rule.mjs` sat broken on this box for as long as it existed and every test
+ * it had stayed green. One trivial call answers it. Deliberately NOT wired into `health-sweep`: the weekly
+ * sweep is deterministic and free, and making it spend tokens would change what it is. Run this by hand before
+ * trusting any eval result on a machine that has not produced one before.
+ */
+function smoke() {
+  process.stdout.write("  smoke: spawning the CLI … ");
+  try {
+    const out = execFileSync(`claude -p --model haiku`, {
+      input: "reply with the single word OK and stop",
+      env: childEnv(),
+      shell: true,
+      encoding: "utf8",
+      timeout: 180000,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    console.log(`ok — ${String(out).trim().slice(0, 40) || "(empty reply)"}`);
+    return 0;
+  } catch (e) {
+    console.log(`FAILED — ${String(e.message || e).slice(0, 160)}`);
+    console.log("  This machine cannot run any eval on this platform. Fix the spawn before reading any result.");
+    return 1;
+  }
+}
+
 if (process.argv[1] && process.argv[1].endsWith("eval-plan-execution-gate.mjs")) {
+  if (process.argv.includes("--smoke")) process.exit(smoke());
   const results = [];
   const fixtures = ONLY ? [ONLY] : Object.keys(FIXTURES);
   for (const fixture of fixtures) {
@@ -303,11 +371,26 @@ if (process.argv[1] && process.argv[1].endsWith("eval-plan-execution-gate.mjs"))
   }
 
   console.log(`\n  model: ${MODEL} · reps: ${REPS}${ONLY ? ` · fixture: ${ONLY}` : ""}\n`);
-  console.log("  arm        fixture     rep  created            verdict");
+  /**
+   * `planEdited` and `namedExisting` are PRINTED, not just measured, because `createdNewCode: false` alone
+   * cannot tell "noticed the duplicate" from "the model did nothing at all" — and a silent no-op would score
+   * as a success. `/behavioural-eval` step 4 asks exactly this ("could this number be produced by the harness
+   * doing nothing?"), so the two signals that distinguish the cases have to be visible in the result, not
+   * buried in the return value.
+   */
+  console.log("  arm        fixture     rep  created            planEdited  namedExisting  verdict");
   for (const r of results) {
     console.log(
       `  ${r.arm.padEnd(10)} ${r.fixture.padEnd(11)} ${String(r.rep).padEnd(4)} ` +
-        `${(r.createdFiles || []).join(",").padEnd(18)} ${verdictOf(r)}`,
+        `${(r.createdFiles || []).join(",").padEnd(18)} ${String(!!r.planEdited).padEnd(11)} ` +
+        `${String(!!r.namedExisting).padEnd(14)} ${verdictOf(r)}`,
+    );
+  }
+  const noop = results.filter((r) => !r.error && !r.createdNewCode && !r.planEdited && !r.namedExisting);
+  if (noop.length) {
+    console.log(
+      `\n  SUSPECT ${noop.length} run(s): created nothing, edited nothing, named nothing — indistinguishable from` +
+        ` a no-op. Inspect with --keep before counting them as detections.`,
     );
   }
   if (REPS === 1 && !ONLY) {
