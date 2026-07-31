@@ -1,11 +1,12 @@
 ---
 title: Re-examine the fleet harness against outside consensus and Anthropic's own guidance — adopt, align, and cut
 kind: system-change
-status: active
+status: done
 created: 2026-07-31
 updated: 2026-07-31
-checkin: 2026-08-07
-checkin_every: 7d
+# checkin cleared on closing: a date that outlives the plan is a reminder that has stopped meaning anything
+# (/project-plan Step 3.5). The `## Check-in runbook` is kept as the re-measurement procedure for whoever
+# re-derives the remainder — R4 and R5 closed UNSATISFIED, so this file is a record, not a finished job.
 checkin_owner: agent
 related:
   [
@@ -62,6 +63,68 @@ harness structures outside that credible people *agree* on; (R2) study Anthropic
 judge whether fleet is pointed the right way; (R3) list the best practices, mechanisms and extension points fleet
 is *missing*; (R4) cut what is bloated or impractical; (R5) make the result strong enough to carry `rulebook`
 outward — surviving other people, without their conventions flattening his.
+
+## Closing assessment — 2026-07-31: does what shipped satisfy what was actually asked?
+
+**Method, and a defect in this file that shapes everything below: there is no `## Scope changes` section.** The
+template requires one and says an *empty* one is a finding; a *missing* one is worse. `/session-wrap` Step 3.5
+compares the work against the raw quote **plus** that list, so with no list every divergence below is named a
+**miss** by default rather than smoothed over.
+
+**A clause of the ask that R1–R5 silently dropped.** The ask opens: *"bạn hãy sync commit từ trên về và **push**
+giúp tôi"*. None of the five extracted requirements covers it, and it is **unsatisfied at close: 33 commits sit
+unpushed on `main`.** The extraction that produced R1–R5 lost a clause of the request — the same failure this
+plan then documented four separate times in its own rows, where a restatement was read back as the requirement.
+It is not being fixed silently: pushing is outward-facing and is the one action explicitly held for the
+supervisor.
+
+| | Verdict at close |
+|---|---|
+| **R1** — outside structures credible people *agree* on | **SATISFIED.** 16 findings with explicit agreement counts, plus the sibling `community-harness-mining` plan's 17 rows. The strongest result is the opposite of what the ask anticipated: **F13 — fleet independently arrived at the field's settled architecture**, and neither large community framework (SuperClaude, Ruflo) yielded a single ADOPT |
+| **R2** — study Anthropic's material, judge the direction | **SATISFIED.** A 58-row checklist, every row citing a doc that was actually fetched, each with a verdict of uses / misaligned / missing / correctly-absent |
+| **R3** — the missing best practices and mechanisms | **SATISFIED as a list; partially executed.** Shipped: A1, A2, A5, A6, L1, L4, C1, C2. Withdrawn on measurement: A4. Refused on measurement: A3. Never started: A7. Fails the bar and marked so: A8 |
+| **R4** — cut what is bloated or impractical | **NOT SATISFIED AS ASKED, and this is the headline.** Delivered: **one** real cut (540 words out of the always-loaded surface) and **three refusals to cut, each with a number** — C1 deleted nothing and reclassified instead (live WARN debt was 18, not 92), C3's three merge candidates were refuted by measurement, C4 is an explicit refusal to retire 17 unused skills. **fleet was not bloated in the ways this plan expected.** The ask said *"cắt đi những khối u **nếu cần**"*, and the "nếu cần" was tested and mostly came back no — a legitimate answer, but it is not completion of R4 and is not dressed up as one |
+| **R5** — strong enough to carry `rulebook` outward | **NOT SATISFIED.** Measured: **15 of 38 skills are portable, 17 are agent-OS but fleet-coupled** (4 deeply — their procedure *reads* fleet standards and *writes* fleet registries), **6 are correctly deployment-only**. `rulebook` itself is ready — a validated plugin with its own marketplace since 2026-07-29, which this plan initially got wrong. **fleet's** harness is not portable, and mostly should not be. And **0 of 38 skills have an evaluation** (A7), the plan's own largest named gap, never begun |
+
+### The execution record, which is the most useful thing in this file
+
+Of the rows executed after the research came back, **nine changed shape or were refuted on contact with the repo**:
+A3's premise was false when written · A4's justification did not survive measurement (delegation was already
+100% explicit) · A5 specified a field that **grants** permission while I believed it restricted · A6 named an
+event that cannot speak · L1's ≤800 target was invented one step before the measurement it demanded · L2's
+`category:` field does not exist · C1's 92-WARN headline was 74 closed plans · C3's three pairs all measured
+below the threshold · and A1 was executed from memory of its intent, setting the field on five skills while
+missing `/app-env`, the only one that writes secrets.
+
+**So the value of this plan was not its verdicts — it was the discipline of testing them.** That discipline is
+now a shipped artefact rather than a habit: `## Before executing a batch` in the plan template, enforced by
+`plan-audit`, whose question 2 is literally *"has it already been built?"*. That is the most durable thing this
+plan produced, and it was produced by the plan being wrong repeatedly.
+
+### Why it closes now instead of running the remainder
+
+What is left is L3 (out of scope for the hard T4 list by this plan's own boundary), L6, A7 (L-effort, and its
+`claude plugin eval` route died with A3) and A8 (fails the ADOPT bar). **Five consecutive rows ended in "already
+existed", "false premise", or "my own earlier error".** Continuing to execute a list written *before* the repo
+was read has negative expected value; what remains should be **re-derived from the repo as it now is**, not
+inherited. Closing is therefore a judgement about the artefact, not a claim that fleet is finished.
+
+### Answers to `## Decisions to distill`
+
+- **Did "correctly absent" prevent shopping-list drift, or become a place to file inconvenient findings?**
+  It worked. Seven items were filed there and none was later smuggled back in; agent teams, code-execution MCP
+  and OPA/Rego stayed out. The category that *did* get abused is the opposite one — ADOPT — where three of six
+  rows did not survive their own execution.
+- **Did the pre-committed consequence hold?** It was honoured but it was **evaluated at the wrong time**. Judged
+  before execution it counted six qualifying ADOPTs and did not fire; judged after, only four survived contact
+  and it would have been one item from firing. Recorded in the row itself. A pre-commitment measured before the
+  evidence arrives is a weaker device than it looks.
+- **What was the cross-machine failure?** A migration artefact plus two real defects, not a structural
+  assumption — and the deeper finding is the one found later: **four checkers give false results inside a git
+  worktree**, so the branch-based governance workflow cannot be fully verified before merge.
+- **Is cross-linking preservation or calcification?** Preservation, on this evidence: the citations are what
+  surfaced `2026-07-30-claude-md-thin.mjs` and stopped L1 from re-doing a finished job. But they are unenforced
+  prose, which is why `claude-md-budget.mjs` now discovers and checks the `CLAUDE.md §<heading>` wires.
 
 ## Goal
 
@@ -754,22 +817,22 @@ that only works here cannot carry a rulebook anywhere. Cross-machine health is B
       plan-audit errors" headline.
       _Files: `.claude/scripts/health-sweep.mjs`, `.claude/scripts/health-sweep.test.mjs`,
       `platform/reports/health-sweep-log.md`._ · _Test: AC-6 ✓._
-- [ ] **Batch 3 — the verdict table. TABLE WRITTEN 2026-07-31, AWAITING THE SUPERVISOR'S YES.** Every finding is
+- **NOT DONE (see `## Closing assessment`)** — **Batch 3 — the verdict table. TABLE WRITTEN 2026-07-31, AWAITING THE SUPERVISOR'S YES.** Every finding is
       classified and the pre-committed consequence is evaluated (it does **not** fire — 6 qualifying ADOPT). The
       gate is real: **nothing in Batch 4 or 5 is touched until the table is approved.** What the yes does next:
       unblocks A1/A4/A5/A6 (config-only, ~1 session) and C1 (relax the plan standard). What a no does: sends the
       table back, and `rulebook` waits either way.
       _Files: this plan `## Verdict table`._ · _Test: AC-3 ✓ (no ADOPT row with an empty (b); A8 is marked as
       failing the bar rather than padded in)._
-- [ ] **Batch 4 — cut.** Execute the CUT column through `attic` staging; lower `sprawl-check` baselines in the same
+- **NOT DONE (see `## Closing assessment`)** — **Batch 4 — cut.** Execute the CUT column through `attic` staging; lower `sprawl-check` baselines in the same
       commits; decide AC-5's fork on the plan standard.
       _Files: `.claude/scripts/attic.mjs` (invoked), `.claude/scripts/sprawl-check.mjs` (baselines),
       `platform/attic/`, whatever the table names._ · _Test: AC-4, AC-5._
-- [ ] **Batch 5 — adopt.** Execute the ADOPT column in risk order (enforcement points before conveniences), each
+- **NOT DONE (see `## Closing assessment`)** — **Batch 5 — adopt.** Execute the ADOPT column in risk order (enforcement points before conveniences), each
       with a test per `standards/testing.md §2.7`. **Cancelled if the pre-committed consequence fires.**
       _Files: `.claude/hooks/`, `.claude/scripts/`, `.claude/settings.json` as the table names._
       · _Test: AC-3, `tool-check` green._
-- [ ] **Batch 6 — state rulebook-readiness.** The property list with pass/fail, and the honest verdict on whether
+- **NOT DONE (see `## Closing assessment`)** — **Batch 6 — state rulebook-readiness.** The property list with pass/fail, and the honest verdict on whether
       `rulebook` can leave. _Files: this plan `## Rulebook-readiness`, `rulebook/`._ · _Test: AC-7._
 
 ## Out of scope

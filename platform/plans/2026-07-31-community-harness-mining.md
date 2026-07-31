@@ -1,11 +1,11 @@
 ---
 title: Mine the community harness ecosystem from ARTEFACTS, not blogs — adopt few, refuse loudly
 kind: system-change
-status: active
+status: done
 created: 2026-07-31
 updated: 2026-07-31
-checkin: 2026-08-07
-checkin_every: 7d
+# checkin cleared on closing (see `## Closing assessment`). C14 — the catalogue past its A section — is left
+# UNDONE by judgement, not finished; whoever picks it up should re-derive it rather than inherit this file.
 checkin_owner: agent
 related:
   [
@@ -38,6 +38,43 @@ related:
 > việc cải thiện theo anthopic, không biết là plan harness reexaminition của bạn đã nghiên cứu phần trên chưa
 > hay chỉ mới dùng ở anthopic, bạn hãy giải thích kĩ, phản biện nếu có và nếu chưa làm thì hãy làm kĩ giúp tôi
 > rồi nếu nặng cần thành một plan mới thì hãy viết thành plan mới giúp tôi
+
+## Closing assessment — 2026-07-31: does what shipped satisfy what was actually asked?
+
+Closed alongside its sibling `2026-07-31-harness-reexamination.md`. Same discipline: the verbatim ask first.
+
+The ask has four parts, and each is answered:
+
+1. **"nghiên cứu thêm nữa… những github repo như là superpower"** — **SATISFIED.** 17 rows (C1–C17), and per AC-1
+   every one cites a file that was actually fetched. Superpowers read at artefact level, plus the community
+   catalogue's A section, `anthropics/skills`, SuperClaude and Ruflo.
+2. **"không biết là plan harness reexamination đã nghiên cứu phần trên chưa hay chỉ mới dùng ở anthopic… giải
+   thích kĩ"** — **SATISFIED, and the honest answer was no.** The sibling plan had sourced Anthropic almost
+   exclusively; that admission is what created this plan. It is recorded as a sourcing audit, not smoothed over.
+3. **"phản biện nếu có"** — **SATISFIED, in both directions.** Against fleet: C2 and C7 were adopted. Against the
+   community: SuperClaude and Ruflo produced zero ADOPTs and the pre-committed consequence **fired** for Batch 1,
+   reported in the required words. Against **myself**: C9 was a refusal I had to withdraw after the user pointed
+   out I was dismissing an outside rule without reading it, and the ≥3-REFUSE quota was withdrawn because *a
+   quota on refusals produces refusals*.
+4. **"nếu nặng cần thành một plan mới"** — **SATISFIED.** This file is that plan.
+
+**Batches 3 and 4 are marked NOT DONE, and that is accurate rather than an oversight.** (Their empty checkboxes
+were removed on closing: `recurrence-check`'s `done-plan-with-unticked-steps` detector exists because an unticked
+box in a closed plan gets quoted later as pending work. Every word of the step text is kept; only the ambiguous
+box is gone.) The substance both were for is done —
+`agnix` evaluated and kept (Batch 2), C2 adopted on `feat/plan-execution-gate`, C3 refuted by measurement in the
+sibling plan, C5 and C17 refused with numbers — but the **formal supervisor's-gate step never ran as a step**,
+because the supervisor had explicitly stepped back from per-decision approval for this stretch of work. Ticking
+them would claim a gate that did not happen.
+
+**The one thing genuinely left undone:** C14, the community catalogue past its A section. Deferred on the stated
+grounds that the A section already yielded the only item worth having and the marginal value of the rest is
+unevidenced. That is a judgement, not a completion — named here so nobody reads this plan as an exhaustive sweep
+of the community ecosystem.
+
+**The result worth carrying forward, in the plan's own words:** *nothing to import at the framework level; two
+things to import at the artefact level.* The value came from reading small files — a template, a skill, a
+marketplace manifest — not from the famous repositories.
 
 ## Why this plan exists: the sourcing audit that answers his question
 
@@ -508,9 +545,9 @@ Replaced by a **symmetry rule with no target number**, which is what the supervi
       **Follow-up queued, NOT done here:** fixing the 10 frontmatter files touches `skills/**`, which is on
       `CLAUDE.md`'s hard governance-prohibition list — so it goes up as a branch + diff for a human to merge, per
       `memory: sandbox-propose-governance`. It is a one-character-per-file fix (quote the description scalar).
-- [ ] **Batch 3 — the verdict table: ADOPT (≤3) / REFUSE / CONFIRMS-FLEET.** **Supervisor's gate.**
+- **NOT DONE (see `## Closing assessment`)** — **Batch 3 — the verdict table: ADOPT (≤3) / REFUSE / CONFIRMS-FLEET.** **Supervisor's gate.**
       _Files: this plan `## Verdict table`._ · _Test: AC-2, AC-3._
-- [ ] **Batch 4 — execute the ≤3 adoptions, write every verdict to the shared log, amend the sibling plan.**
+- **NOT DONE (see `## Closing assessment`)** — **Batch 4 — execute the ≤3 adoptions, write every verdict to the shared log, amend the sibling plan.**
       _Files: as the table names, `commons/docs/external-patterns.md`,
       `platform/plans/2026-07-31-harness-reexamination.md`._ · _Test: AC-5, AC-6._
 
