@@ -25,6 +25,7 @@ import {
   readFileSync,
   writeFileSync,
   appendFileSync,
+  copyFileSync,
   rmSync,
 } from "node:fs";
 import { join, dirname } from "node:path";
@@ -234,6 +235,13 @@ const writeCompliant = (dir, { rowChars = 90, detailFile = "2026-07.md" } = {}) 
   // wrong thing. Two sessions running the runner at once turned that into an intermittent, misleading failure.
   // The module under test imports only node builtins, so a temp dir needs nothing copied beside it.
   const lab = mkdtempSync(join(tmpdir(), "eval-ledger-mutants-"));
+  /**
+   * The library the eval imports has to sit beside the mutants. Added 2026-07-31 when the spawn moved to
+   * `_eval.mjs` at the rule of three: without it every mutant failed to RESOLVE, the catch below turned that
+   * into `killed = false`, and the suite reported a SURVIVING MUTANT — a module-resolution error wearing the
+   * costume of a real finding. Same fix already recorded for `secret-guard.test.mjs`.
+   */
+  copyFileSync(join(HERE, "_eval.mjs"), join(lab, "_eval.mjs"));
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
   const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
@@ -333,7 +341,14 @@ const writeCompliant = (dir, { rowChars = 90, detailFile = "2026-07.md" } = {}) 
     let killed = false;
     try {
       killed = mu.probe(await import(pathToFileURL(p).href));
-    } catch {
+    } catch (e) {
+      // A mutant that cannot LOAD is not a surviving mutant, and conflating the two hides a broken harness
+      // behind a plausible finding. Only a mutant declared `mayCrash` may be killed by crashing.
+      const msg = String(e && e.message);
+      assert.ok(
+        mu.mayCrash || !/Cannot find module|ERR_MODULE_NOT_FOUND/.test(msg),
+        `mutant "${mu.name}" failed to LOAD, which is a harness defect, not a survival: ${msg}`,
+      );
       killed = Boolean(mu.mayCrash);
     }
     assert.ok(killed, `SURVIVING MUTANT — "${mu.name}" and the suite still passed. Add a case for it.`);

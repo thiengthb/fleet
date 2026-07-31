@@ -1,4 +1,4 @@
-# Danh mục công cụ của agent — 36 công cụ
+# Danh mục công cụ của agent — 37 công cụ
 
 > **SINH TỰ ĐỘNG** bởi `node .claude/scripts/tool-catalog.mjs --write`. **Đừng sửa tay** — lần sinh sau ghi đè.
 > Muốn đổi phần chữ tiếng Việt: sửa dòng `@vi WHAT/WHEN/WHY` **ngay trong file công cụ đó**, rồi sinh lại.
@@ -12,7 +12,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | --- | --- | --- |
 | Hook | 15 | tự động, theo sự kiện |
 | Script | 19 | anh tự gọi khi cần |
-| Thư viện | 2 | các file khác import |
+| Thư viện | 3 | các file khác import |
 
 ## 1. Hook — tự chạy, anh không phải gọi
 
@@ -62,6 +62,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 
 | File | Nó giữ cái gì | Test |
 | --- | --- | --- |
+| [`_eval.mjs`](#_evalmjs) | Thư viện dùng chung cho các phép thử có model tham gia: dựng môi trường cho tiến trình con và gọi Claude headless một cách chạy được trên cả Linux và Windows. | ✓ |
 | [`_layout.mjs`](#_layoutmjs) | Nơi DUY NHẤT biết các project nằm ở đâu trong repo này. Các hook và script khác hỏi nó thay vì tự đoán. | ✓ |
 | [`_util.mjs`](#_utilmjs) | Bộ hàm dùng chung của các hook: đọc dữ liệu Claude Code gửi vào, và ghi lại mỗi lần một hook chạy. | ✓ |
 
@@ -477,6 +478,14 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Đo từng phần của agent OS thực sự được dùng bao nhiêu, bằng HAI con số: số lần được mở/chạy, và số file khác trỏ tới nó.
 
 **Vì sao có nó:** Hai con số, vì một con số đã sai hai lần trong cùng một ngày: tầng day-log trông như chết với grep (không script nào đọc nó) mà thực tế được đọc 93 lần; 30 file kế hoạch đã đóng trông như rác mà được 63 file khác gọi tên. Con số nó đưa ra là SÀN, không phải trần.
+
+### _eval.mjs
+
+`.claude/scripts/_eval.mjs` · thư viện · test: `_eval.test.mjs`
+
+**Nó làm gì:** Thư viện dùng chung cho các phép thử có model tham gia: dựng môi trường cho tiến trình con và gọi Claude headless một cách chạy được trên cả Linux và Windows.
+
+**Vì sao có nó:** Đúng đoạn code này đã hỏng âm thầm trên máy Windows và làm eval duy nhất của platform không chạy được suốt thời gian nó tồn tại — mà mọi test vẫn xanh. Gom về một chỗ nghĩa là chỉ có một chỗ để sửa, và một chỗ để test.
 
 ### _layout.mjs
 

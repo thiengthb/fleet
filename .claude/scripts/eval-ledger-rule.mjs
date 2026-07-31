@@ -50,7 +50,7 @@
  * is invoked as a command. Importing it must never spend a token.
  */
 
-import { execFileSync } from "node:child_process";
+import { spawnClaude } from "./_eval.mjs";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -194,35 +194,12 @@ function runArm(dir, lesson) {
     `record the following lesson by editing the files. Then stop.\n\n` +
     `THE LESSON TO RECORD:\n${lesson}`;
   /**
-   * FIXED 2026-07-31: as written, this could never run on Windows, so the platform's only eval had never been
-   * runnable on one of its two machines.
-   *
-   * Two defects, both measured on `TNT-Laptop`: (1) the allowlist `{HOME, PATH, TERM}` drops `PATHEXT`, and the
-   * launcher on PATH there is `claude.cmd`; (2) even with it, `claude` spawns as ENOENT and `claude.cmd` as
-   * EINVAL — Node refuses to spawn a `.cmd` directly since its CVE-2024-27980 mitigation — so a shell is
-   * required. The stated intent was only "do not leak this session's CLAUDE_* vars", which a **denylist**
-   * expresses without breaking the toolchain.
-   *
-   * Nothing is interpolated into the command from data: the string is constant, `MODEL` comes from a two-value
-   * set chosen by a CLI flag, and the prompt goes in over stdin. Kept duplicated rather than extracted — two
-   * call sites is not the rule of three, and the sibling is `eval-plan-execution-gate.mjs`.
+   * The spawn moved to `_eval.mjs` on 2026-07-31, at the rule of three. It is the code that had been broken on
+   * Windows in every copy of it — an env allowlist dropping `PATHEXT`, and Node refusing to spawn `claude.cmd`
+   * directly since its CVE-2024-27980 mitigation — so one copy means one place to fix and one place to test.
    */
-  const env = { ...process.env, TERM: "dumb" };
-  for (const k of Object.keys(env)) if (/^CLAUDE/i.test(k)) delete env[k];
-  try {
-    execFileSync(`claude -p --permission-mode acceptEdits --model ${MODEL}`, {
-      cwd: dir,
-      input: prompt,
-      env,
-      shell: true,
-      encoding: "utf8",
-      timeout: 300000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-  } catch (e) {
-    return { error: String(e.message || e).slice(0, 200) };
-  }
-  return {};
+  const { error } = spawnClaude({ cwd: dir, prompt, model: MODEL });
+  return error ? { error } : {};
 }
 
 /** Deterministic: measure the files, never ask the model what it did. */

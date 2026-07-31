@@ -106,10 +106,11 @@
  *         node .claude/scripts/eval-plan-execution-gate.mjs --haiku  # cheaper model
  */
 
-import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
+
+import { spawnClaude, smoke } from "./_eval.mjs";
 
 const MODEL = process.argv.includes("--haiku") ? "haiku" : "sonnet";
 const KEEP = process.argv.includes("--keep");
@@ -221,58 +222,12 @@ export function sourceFiles(dir) {
   return out.sort();
 }
 
-/**
- * The child's environment: everything EXCEPT this session's own Claude Code variables.
- *
- * A DENYLIST, and the allowlist it replaces is a measured defect rather than a style preference. The first
- * version copied the platform's existing eval and passed `{HOME, PATH, TERM}` only — the intent being "do not
- * leak this session's `CLAUDE_*` vars into the child". On Windows that kills the run outright: Node resolves a
- * bare command name through **`PATHEXT`**, and the launcher on this box is `claude.cmd`, so all four arms failed
- * with `spawnSync claude ENOENT` and the eval reported INCONCLUSIVE — a harness failure wearing the costume of
- * a null result. (The harness DID refuse to publish a verdict, which is the one thing that went right.)
- *
- * The same defect is in `eval-ledger-rule.mjs`, which means **the platform's only pre-existing eval has never
- * been runnable on this machine** — the third instance of the 2026-07-30 class where a sandbox passed `HOME`
- * and Windows needed something else.
- *
- * An allowlist has to enumerate every variable the child needs and is wrong the moment the toolchain wants one
- * more. A denylist states the actual requirement.
- */
-export function childEnv(source = process.env) {
-  const env = { ...source, TERM: "dumb" };
-  for (const k of Object.keys(env)) {
-    if (/^CLAUDE/i.test(k)) delete env[k];
-  }
-  return env;
-}
-
 function runArm(dir) {
   const prompt =
     `Execute the next unticked step of the plan in platform/plans/. Read the plan first, then do what the ` +
     `step says. Then stop.`;
-  try {
-    /**
-     * `shell: true`, and every alternative was tried on this machine first:
-     *   `claude`      → ENOENT. The launcher on PATH is `claude.cmd`; Node does not apply PATHEXT here.
-     *   `claude.cmd`  → EINVAL. Node refuses to spawn a `.cmd` directly since its CVE-2024-27980 mitigation.
-     *   with a shell  → works.
-     * Node's DEP0190 warns that args are concatenated rather than escaped under `shell`, so nothing here is
-     * interpolated from data: the command is a constant string and `MODEL` comes from a two-value set chosen by
-     * a CLI flag. The PROMPT — the only variable-length input — goes in over **stdin**, never argv.
-     */
-    const out = execFileSync(`claude -p --permission-mode acceptEdits --model ${MODEL}`, {
-      cwd: dir,
-      input: prompt,
-      env: childEnv(),
-      shell: true,
-      encoding: "utf8",
-      timeout: 300000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    return { transcript: String(out || "") };
-  } catch (e) {
-    return { error: String(e.message || e).slice(0, 200), transcript: "" };
-  }
+  // The spawn lives in `_eval.mjs`: it is the code that was broken on Windows in every copy of it.
+  return spawnClaude({ cwd: dir, prompt, model: MODEL });
 }
 
 /** Deterministic: measure the files, never ask the model what it did. */
@@ -328,26 +283,6 @@ export function direction(results) {
  * sweep is deterministic and free, and making it spend tokens would change what it is. Run this by hand before
  * trusting any eval result on a machine that has not produced one before.
  */
-function smoke() {
-  process.stdout.write("  smoke: spawning the CLI … ");
-  try {
-    const out = execFileSync(`claude -p --model haiku`, {
-      input: "reply with the single word OK and stop",
-      env: childEnv(),
-      shell: true,
-      encoding: "utf8",
-      timeout: 180000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    console.log(`ok — ${String(out).trim().slice(0, 40) || "(empty reply)"}`);
-    return 0;
-  } catch (e) {
-    console.log(`FAILED — ${String(e.message || e).slice(0, 160)}`);
-    console.log("  This machine cannot run any eval on this platform. Fix the spawn before reading any result.");
-    return 1;
-  }
-}
-
 if (process.argv[1] && process.argv[1].endsWith("eval-plan-execution-gate.mjs")) {
   if (process.argv.includes("--smoke")) process.exit(smoke());
   const results = [];

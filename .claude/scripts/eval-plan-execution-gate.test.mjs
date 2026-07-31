@@ -20,7 +20,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, copyFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -42,6 +42,13 @@ const RAW = readFileSync(SCRIPT, "utf8");
 const SOURCE = RAW.replace(/\r\n/g, "\n");
 
 const LAB = mkdtempSync(join(tmpdir(), "eval-gate-test-"));
+/**
+ * The mutants import `./_eval.mjs`, so the library has to sit beside them or every mutant dies of a module
+ * resolution error and reports itself killed for the wrong reason. Exactly the fix recorded for
+ * `secret-guard.test.mjs` on 2026-07-31 — and the reason mutants live in a temp dir at all is that the earlier
+ * version of THAT suite wrote them into `.claude/hooks/` and leaked one on a timeout.
+ */
+copyFileSync(join(HERE, "_eval.mjs"), join(LAB, "_eval.mjs"));
 let pass = 0;
 const fails = [];
 const built = [];
