@@ -1,4 +1,4 @@
-# Danh mục công cụ của agent — 35 công cụ
+# Danh mục công cụ của agent — 36 công cụ
 
 > **SINH TỰ ĐỘNG** bởi `node .claude/scripts/tool-catalog.mjs --write`. **Đừng sửa tay** — lần sinh sau ghi đè.
 > Muốn đổi phần chữ tiếng Việt: sửa dòng `@vi WHAT/WHEN/WHY` **ngay trong file công cụ đó**, rồi sinh lại.
@@ -11,7 +11,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | Loại | Số lượng | Ai gọi |
 | --- | --- | --- |
 | Hook | 15 | tự động, theo sự kiện |
-| Script | 18 | anh tự gọi khi cần |
+| Script | 19 | anh tự gọi khi cần |
 | Thư viện | 2 | các file khác import |
 
 ## 1. Hook — tự chạy, anh không phải gọi
@@ -42,6 +42,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | [`claude-md-budget.mjs`](#claude-md-budgetmjs) | Tự động trong health-sweep hằng tuần; và mỗi lần định sửa/làm gọn CLAUDE.md. | `node .claude/scripts/claude-md-budget.mjs` | không | ✓ |
 | [`decisions-split.mjs`](#decisions-splitmjs) | Khi một file decisions.md quá lớn — health-sweep hoặc memory-audit sẽ báo trước. | `node .claude/scripts/decisions-split.mjs` | không | ✓ |
 | [`eval-ledger-rule.mjs`](#eval-ledger-rulemjs) | Hầu như không chạy lại — nó tốn tiền thật và kết quả đã được ghi lại. | `node .claude/scripts/eval-ledger-rule.mjs` | không | ✓ |
+| [`eval-plan-execution-gate.mjs`](#eval-plan-execution-gatemjs) | Hầu như không chạy lại — nó tốn tiền thật, và kết quả đã được ghi lại ngay trong file này. | `node .claude/scripts/eval-plan-execution-gate.mjs` | không | ✓ |
 | [`health-sweep.mjs`](#health-sweepmjs) | Mỗi tuần một lần. Chỉ cần đọc dòng VERDICT. | `node .claude/scripts/health-sweep.mjs` | không | ✓ |
 | [`ledger-split.mjs`](#ledger-splitmjs) | Khi mục lục phình ra — memory-audit sẽ báo. | `node .claude/scripts/ledger-split.mjs` | không | ✓ |
 | [`link-check.mjs`](#link-checkmjs) | Tự động trong health-sweep hằng tuần. | `node .claude/scripts/link-check.mjs` | không | ✓ |
@@ -296,6 +297,18 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Một phép thử có model tham gia: nó gọi Claude thật hai lần để xem một phiên mới có ghi sổ tri thức đúng luật hay không (một dòng mục lục ngắn + một entry chi tiết ở file riêng).
 
 **Vì sao có nó:** Đây là công cụ DUY NHẤT được miễn test, và lý do đó được in ra mỗi lần tool-check chạy: kết quả của nó không tất định VÀ có phí. Nửa tất định của nó (đếm dòng trong file mà model đã sửa) chưa được tách ra nên chưa test được.
+
+### eval-plan-execution-gate.mjs
+
+`.claude/scripts/eval-plan-execution-gate.mjs` · script · test: `eval-plan-execution-gate.test.mjs`
+
+**Chạy tay:** `node .claude/scripts/eval-plan-execution-gate.mjs`
+
+**Khi nào cần:** Hầu như không chạy lại — nó tốn tiền thật, và kết quả đã được ghi lại ngay trong file này.
+
+**Nó làm gì:** Một phép thử có model tham gia: nó gọi Claude thật để xem cái khối `## Before executing a batch` trong file plan có thật sự khiến một phiên mới KIỂM TRA trước khi xây, hay nó chỉ là chữ nằm đó cho đẹp.
+
+**Vì sao có nó:** Ngày 2026-07-31 tôi đóng plan và tuyên bố khối đó là "thứ bền nhất plan này tạo ra" mà KHÔNG có bằng chứng nào. Một tuyên bố chưa kiểm chứng chính là thứ A7 tồn tại để chặn, nên nó bị đem ra đo — kể cả khi kết quả làm tôi sai.
 
 ### health-sweep.mjs
 
