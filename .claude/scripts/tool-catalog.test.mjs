@@ -183,6 +183,53 @@ check("wiring drives 'nổ khi nào' and the blocking verdict — both read from
   assert.doesNotMatch(quietRow || "", /CHẶN được/, "a SessionStart hook must never be labelled as blocking");
 });
 
+/* A Stop hook with exit(2) BLOCKS the turn from ending — the hooks reference lists Stop as exit-2-capable.
+ * Until 2026-07-31 the ladder recognised only PreToolUse, so this page labelled a real blocking gate
+ * "chỉ nhắc": the one column the supervisor reads it for, wrong, on the page whose header promises it cannot
+ * drift. Found by adding `verify-claim-gate.mjs` and reading the generated row instead of trusting it.
+ *
+ * The second half is the guard against over-correcting: a Stop hook WITHOUT exit(2) is advisory BY DESIGN and
+ * must stay "chỉ nhắc". The first version of the fix relabelled two correct hooks as broken.
+ */
+check("a Stop hook with exit(2) is CHẶN được; one without it stays chỉ nhắc", () => {
+  const { script } = sandbox({
+    hooks: {
+      "stopblock.mjs": `// @vi WHAT: chặn lượt lại\n//\nif (false) process.exit(2);\n`,
+      "stopnudge.mjs": tagged("chỉ nhắc, không bao giờ chặn"),
+    },
+    settings: {
+      hooks: {
+        Stop: [
+          {
+            hooks: [
+              { type: "command", command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/stopblock.mjs"' },
+              { type: "command", command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/stopnudge.mjs"' },
+            ],
+          },
+        ],
+      },
+    },
+  });
+  const r = run(script);
+  assert.equal(r.code, 0);
+  const row = (n) => r.out.split("\n").find((l) => l.includes(n) && l.includes("|")) || "";
+  assert.match(
+    row("stopblock.mjs"),
+    /CHẶN được/,
+    `a Stop hook containing exit(2) must be labelled blocking, got: ${row("stopblock.mjs")}`,
+  );
+  assert.doesNotMatch(
+    row("stopnudge.mjs"),
+    /CHẶN được/,
+    "a Stop hook with no exit(2) must NOT be labelled blocking",
+  );
+  assert.match(
+    row("stopnudge.mjs"),
+    /chỉ nhắc/,
+    `…and must stay plainly advisory, not read as a broken guard: ${row("stopnudge.mjs")}`,
+  );
+});
+
 check("an unmapped event/matcher prints its raw form instead of an empty cell", () => {
   const { script } = sandbox({
     hooks: { "odd.mjs": tagged("cắm ở chỗ lạ") },
@@ -340,6 +387,24 @@ const mutants = [
     // the sandbox catalogues its own copy of tool-catalog.mjs and that tool's `@vi WHY` sentence contains the
     // phrase verbatim. Third instance today of "the token appears in the prose that explains it" (§2.7).
     probe: ({ page }) => !/blocker\.mjs[^\n]*CHẶN được/.test(page),
+  },
+  {
+    name: "only PreToolUse counts as blocking again (a Stop gate reads as 'chỉ nhắc')",
+    // Needs its own fixture: a Stop hook WITH exit(2). mutantFiles has no Stop wiring, so without this the
+    // branch is never reached and the mutant would "survive" for the boring reason.
+    files: {
+      hooks: { ...mutantFiles.hooks, "stopblock.mjs": `// @vi WHAT: chặn lượt\n//\nif (false) process.exit(2);\n` },
+      settings: {
+        hooks: {
+          ...mutantFiles.settings.hooks,
+          Stop: [
+            { hooks: [{ type: "command", command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/stopblock.mjs"' }] },
+          ],
+        },
+      },
+    },
+    patch: (s) => s.replace("else if (blockingWired.length && canExit2)", "else if (false && canExit2)"),
+    probe: ({ page }) => !/stopblock\.mjs[^\n]*CHẶN được/.test(page),
   },
   {
     name: "blocking verdict ignores whether the source really has exit(2)",
