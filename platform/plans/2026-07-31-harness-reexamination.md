@@ -453,7 +453,7 @@ Bars are as declared in *Approach & tradeoffs* and were not loosened. Effort: **
 | **L1** | **DONE 2026-07-31 on branch `refactor/claude-md-triggers-only` — 2,270 → 1,730 words. And the `≤800` target in this row was WRONG.** | ~~Target: **≤800 words**, measured, not eyeballed~~ — the *result* was to be measured, but **the target itself was eyeballed**, which is the same defect one step earlier. Two things were found by measuring instead of assuming. **(1) The prior art already existed.** `platform/proposals/2026-07-30-claude-md-thin.mjs` ran a gated thinning **the day before this plan was written** (211 → 181 lines) with a 35-row provenance table naming an exit criterion per move and a 16-item prohibition-verbatim gate. So 2,270 was not un-thinned prose — it was **what survived a checked pass**, and this row read it as virgin fat. That is the **second** time in this one plan that a solved problem was researched (A3 was the first), same root cause: not reading what the repo already says. It was caught this time *before* anything was written, during destination verification — but only because the grep for inbound `CLAUDE.md §…` references happened to surface the file. **(2) The floor is ~1,700, not 800**, and it is structural: **16 prohibitions may never leave** (§7.3's hard exception — a path-scoped rules file is delivered attached to the tool *result*, i.e. after the call it was meant to govern), and the **task-shaped** rules (P-tiers, the JIT context-loading path, model routing, the EN-artifacts/VI-chat rule) have **no file-shaped `paths:` glob and no gate**, so they satisfy none of the four criteria and stay by law, not by preference. Verified against the real mechanism: `.claude/rules/*.md` supports **only** `paths:` — checked against the one live example, `frontend.md`. **What shipped:** 18 destinations grepped *before* any removal, every one already carrying its content, so **zero new rules files were needed** — the "move it into 2–3 new `.claude/rules/` files" design this row implies was dropped as machinery for a problem that did not exist. Plus the anti-erosion half, which the 2026-07-30 pass did not have: `claude-md-budget.mjs` + 14 tests / 5 mutants, wired into `health-sweep` |
 | **L2** | 38 skills in one flat discovery tier | Adopt the nine-clean-categories discipline (F5). Not a cut — a category field and a "does this straddle?" test at authoring time, enforced in `/skill-authoring` |
 | **L3** | `autonomy-gate.mjs` vs native auto mode + `PermissionRequest` | Native auto mode now covers part of T2/T3 with a classifier. Keep the T4 hard list (out of scope, correctly). Re-express the reversible tiers as permission rules where the native layer is strictly better |
-| **L4** | `reviewer.md` + `/honest-critique` with no over-engineering brake | Add the one sentence from Anthropic's own callout (F10): a reviewer will report findings even when the work is sound; flag only what affects correctness or the stated requirement. This is the cheapest possible guard on the exact failure this whole plan was called to fix |
+| **L4** | **DONE 2026-07-31.** `reviewer.md` + `/honest-critique` had no over-engineering brake | Shipped in both places, and it grew past "one sentence" for a reason: the guard has to run in **both** directions or it becomes an excuse. `reviewer.md` gains *"an empty `## Findings` list is a valid and complete review"* plus the bar (correctness / security / a platform invariant / the stated requirement) **and** the reverse — never soften a blocker because the rest of the diff is good. `/honest-critique` gains discipline #8: *"manufacturing a criticism is the same defect as manufacturing praise"*, with this platform's own measured cost attached (`commons`: 27 proven items, **0 installs**), and a row in the sycophancy table for filling a findings list because one was asked for. **Occasioned by a live instance the same session:** the A3 re-scoping below is a refusal to build something the plan told me to build, and this row is what makes that refusal a legitimate output rather than a lapse. Note on scope: `.claude/agents/` is the directory whose absence from `CLAUDE.md`'s prohibition list is flagged further down — this edit changes **prose only**, no `tools:` or `model:` grant, which is the distinction that list exists to protect |
 | **L5** | `compact-recap` at `SessionStart(source:compact)` | **No change, and this is a finding.** `PostCompact` now exists but still carries no `additionalContext` path (F/checklist 14), so the earlier redirect was right. Recorded so it is not re-litigated |
 | **L6** | Interview → build, in one session | Anthropic's shape is interview → **SPEC.md** → **fresh session** (checklist 40). `/brainstorming` and `/project-plan` produce the artefact but the clean-context handoff is not written down |
 
@@ -465,6 +465,53 @@ Bars are as declared in *Approach & tradeoffs* and were not loosened. Effort: **
 | **C2** | ~~~1,400 words of CLAUDE.md prose~~ **540 words, DONE 2026-07-31 with L1 (same commit pair).** | The premise held — the content did exist in `standards/*.md` and the skills, and 18 of 18 destinations were verified by grep before anything was removed, so nothing was deleted into a vacuum. The **size** did not hold: the cuttable mass was **540 words, not ~1,400**, because ~1,700 words are prohibitions or task-shaped triggers that §7.3 forbids relocating. It did not go to `.claude/rules/` either — no new rules file was needed, and building one would have been the `commons` failure (a shared item nobody installs) in a new place. **The honest headline: the always-loaded surface was 24% fat, not 62%.** A gate now holds the line (`claude-md-budget.mjs`), which is the part that was actually missing — prose has said "keep it thin" since §7.2 was written and the file grew anyway |
 | **C3** | Overlapping skill pairs | `/architecture` ↔ `/brainstorming`, `/react-best-practices` ↔ `/react-ui-craft`, `/lint-and-validate` ↔ `/verification-before-completion`. Anthropic names overlapping descriptions as a **discovery** failure (F5, checklist 57). Candidate merges, decided by reading the two descriptions side by side, staged through `attic` |
 | **C4** | **NOT the 17 unused skills** | Recorded as a refusal. The cut this plan expected to make did not survive the evidence: the vendor runs hundreds of skills, and A1 removes their entire cost without deleting anything. **AC-4 must be re-scoped** — C1/C2/C3 are real cuts but only C3 goes through `attic`, and the sprawl baselines will not fall from A1 because `sprawl-check` counts installation, not visibility |
+
+### A3's remainder, MEASURED and then REFUSED 2026-07-31 — "package fleet's harness" is a mis-framing
+
+The remaining A3 task read: *"fleet's **own** harness — skills/hooks — is still not packaged, only rulebook's
+frontend rules are."* Before building it, the pre-batch questions (now `## Before executing a batch`) were run,
+and the second one — *is it portable at all?* — killed the task.
+
+**The measurement, on 38 skills:**
+
+| Tier | Count | What it means |
+|---|---|---|
+| **Portable as-is** — zero `platform/` · `projects/` · `commons/` · `INVENTORY` · `nuc` reference | **15** | `api-integration-specialist` `async-python-patterns` `behavioural-eval` `brainstorming` `database-design` `dependabot-review` `honest-critique` `lint-and-validate` `mcp-builder` `memory` `playwright-e2e-builder` `react-best-practices` `react-ui-craft` `systematic-debugging` `verification-before-completion` |
+| **Deployment layer** (`app-*` / `host-*` / `nuc-*`) | **6** | Correctly fleet-only. Already filed that way by `CLAUDE.md`'s two-layer split |
+| **Agent-OS but fleet-coupled** | **17** | of which **4 are deep** — `coding-convention` (15 refs) `project-docs` (14) `project-plan` (12) `code-reuse` (10) — and 13 are shallow (≤5, mostly one pointer) |
+
+**The references are load-bearing, not citations, and this is the part that decides it.** Read, not assumed:
+`code-reuse` step 1 is *"**Read the catalog first:** `platform/registries/shared-assets.md`"*; `session-wrap` says
+*"add ONE row to section A of `platform/registries/knowledge-ledger.md`"*; `project-docs` says *"add/edit the
+project line in `knowledge-ledger.md §B`"*. Two of those are **writes**. Packaged and installed on someone else's
+repo, these skills would instruct the reader to read and write files that do not exist. **The coupling is not a
+path-string problem; it is that the skill's value IS fleet's accumulated knowledge base.** A `session-wrap` that
+writes to no ledger is not a portable `session-wrap` — it is a different skill.
+
+**A false finding I nearly recorded here, kept because the near-miss is the useful part.** The draft of this
+section concluded that *"`CLAUDE.md`'s claim that the agent OS is machine-agnostic is false in practice"*. Reading
+the actual sentence — *"machine-agnostic — identical on the NUC, this PC, a laptop, a VPS"* — it is a claim about
+**machines**, and it is **true**: the agent OS is git-synced and identical on every box. It never claimed to be
+portable to another **repo** or another person. The wrong claim was in the readiness row *I* wrote, not in
+`CLAUDE.md`. Third time in this plan that a premise turned out to be my own writing read back as evidence.
+
+**So the task is refused, on four grounds:**
+
+1. **It is not in the ask.** `## The ask, verbatim` asks to research and adopt outside practice, judge fleet's
+   direction, and cut tumours — with `rulebook` as the motive. "Package fleet's own harness as a plugin" appears
+   nowhere in it; it entered through a readiness row this plan invented.
+2. **It fails this plan's own ADOPT bar** — no named fleet failure it would have prevented.
+3. **It is the `commons` shape.** A 15-skill plugin nobody has asked to install, next to a shared-asset layer
+   holding 27 proven items and **0 installs**, against a FOMO brake in `CLAUDE.md` that forbids exactly this.
+4. **`rulebook` does not need it.** rulebook already ships as a validated plugin with its own marketplace
+   (corrected above). fleet's harness being packaged is a *different* goal — fleet's portability — and nobody has
+   asked for it.
+
+**What is left of A3, and it is small:** the `INVENTORY` line-78 machine ambiguity ("installed at user scope"
+without saying *which box*), which remains **proposed, not edited**. And the honest version of the readiness row
+is not "not packaged" but: **two thirds of the harness is non-portable by design, and that is a property, not a
+defect.** If fleet's harness is ever to leave, the decision is per-tier and starts with the 13 shallow ones — a
+separate piece of work with a real consumer attached, or not at all.
 
 ### A blind spot in this session's whole verification method, found 2026-07-31 by measuring it
 
@@ -551,8 +598,8 @@ Batch 4 is not re-run — but C4 is the honest record that the adversarial pass 
 | It has a distribution artefact someone else can install and version | **FAIL → PASS, corrected 2026-07-31.** `rulebook/.claude-plugin/marketplace.json` + `plugins/rulebook-frontend/.claude-plugin/plugin.json` have existed since 2026-07-29, with a `.release.json` and plugin-scoped hooks. The FAIL was mine for not reading `INVENTORY` line 78 |
 | It passes an external validator, not only fleet's own tools | **FAIL → PASS, corrected 2026-07-31.** `claude plugin validate` returns **✔ Validation passed** on both the plugin and the marketplace manifest. Note which tool answered this: the **native** validator, not `agnix` — and `agnix` was recruited into this plan precisely because this row had "no candidate". It had a better one, shipped with the CLI, unrun |
 | It is actually installed where it claims to be | **FAIL — new row.** INVENTORY says "installed at user scope 2026-07-29", but on this machine `claude plugin marketplace list` shows only `claude-plugins-official` and `claude plugin list` shows none installed. So the claim is true on the *other* box and unqualified in the file — the same machine-ambiguity Batch 2 fixed for `health-sweep`, recurring in `INVENTORY` |
-| fleet's OWN harness is packaged, not just rulebook's frontend rules | **FAIL** — the plugin ships `rules/`; fleet's skills and hooks are still `.claude/`-only. This is the real remainder of A3 |
-| Its rules survive being read by someone who did not write them (namespaced, no fleet-only paths) | **FAIL** — skills reference `platform/…` paths that only exist here |
+| ~~fleet's OWN harness is packaged, not just rulebook's frontend rules~~ | **ROW WITHDRAWN 2026-07-31 — it was never a `rulebook` precondition.** rulebook ships as a validated plugin with its own marketplace; whether *fleet's* harness is packaged is a separate goal with no consumer asking for it. Measured and refused: see *"A3's remainder, MEASURED and then REFUSED"* above |
+| Its rules survive being read by someone who did not write them (no fleet-only paths) | **FAIL, and now quantified — but it is a PROPERTY, not a bug.** Measured 2026-07-31: **15** of 38 skills carry zero fleet reference and are portable today; **6** are deployment-layer and correctly fleet-only; **17** are agent-OS but coupled, **4 of them deeply** (`coding-convention` `project-docs` `project-plan` `code-reuse`) because their procedure *reads fleet standards and writes fleet registries*. Two of those instructions are writes. The fix is not namespacing — it is deciding, per tier, whether a skill whose value IS fleet's knowledge base should exist outside it |
 | Its guardrails are deterministic, not advisory | **PASS** — F3 |
 | Its context cost is defensible on a repo that is not fleet | **FAIL** — 2,270-word CLAUDE.md + 38 flat skill descriptions (L1, A1) |
 | It is healthy on more than one machine | **FAIL → PASS, 2026-07-31, same day.** The intermittent `tool-check` result was diagnosed to two real defects (cross-suite repo pollution in `secret-guard.test.mjs`, an environment-coupled guard in `sprawl-check.test.mjs`), both fixed and verified by breaking them. Re-run green. The row went FAIL then PASS inside one session and both states are kept, because "it was green, then red, then explained" is the useful record — not the final tick |
