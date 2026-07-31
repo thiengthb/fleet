@@ -169,7 +169,12 @@ const checkers = [
     read: ({ code, out }) => ({
       kind: "BROKEN",
       bad: code ? 1 : 0,
-      line: (/(ok  platform\/registries\/tool-catalog\.md.*|✗ .*)/.exec(out) || [""])[0],
+      // The separator must be `[/\\]`: this tool prints its path with `relative()`, which yields
+      // `platform\registries\tool-catalog.md` on Windows. The forward-slash-only form matched nothing here,
+      // so the sweep printed `ok tool-catalog` with an EMPTY evidence line on every run on this machine —
+      // the verdict was still right (it comes from the exit code) but the number the supervisor is supposed
+      // to read was silently dropped. Found 2026-07-31 by reading a sweep instead of trusting its verdict.
+      line: (/(ok  platform[/\\]registries[/\\]tool-catalog\.md.*|✗ .*)/.exec(out) || [""])[0],
     }),
   },
   {

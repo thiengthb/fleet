@@ -42,8 +42,13 @@ const HEALTHY = {
     'console.log("recurrence-check — 3 detector(s), 0 firing");',
   "tool-check.mjs":
     'console.log("6/6 test file(s) pass · 24/25 tools have a test · 1 exempt with a written reason");',
+  // WINDOWS PATH ON PURPOSE. The real tool prints its path with `relative()`, which yields backslashes on
+  // Windows; this stub used the forward-slash form, so the sweep's parser was only ever tested against the
+  // Linux shape and its evidence line came out EMPTY on every real run on this machine. A fixture that does
+  // not match what production emits is the same defect class as the synthetic transcript that passed 17/17
+  // against a message shape Claude Code never produces (ledger 2026-07-31).
   "tool-catalog.mjs":
-    'console.log("ok  platform/registries/tool-catalog.md khớp thực tế · 30 công cụ, tất cả đã tự giới thiệu");',
+    'console.log("ok  platform\\\\registries\\\\tool-catalog.md khớp thực tế · 30 công cụ, tất cả đã tự giới thiệu");',
   "sprawl-check.mjs": 'console.log("ok  không tầng nào phình thêm so với mốc 2026-07-31.");',
   "plan-audit.mjs":
     "console.log(JSON.stringify({ scanned: 60, errors: 0, warns: 0, results: [] }));",
@@ -112,6 +117,21 @@ const runSweep = (scriptsDir) => {
     `the all-healthy sandbox must be green, else the stub cases prove nothing:\n${out}`,
   );
   assert.match(out, /VERDICT: nothing broken/, out);
+  /**
+   * The EVIDENCE, not just the verdict. A sweep's ok/BROKEN comes from the exit code, so a parser that fails
+   * to find the checker's summary line still reports `ok` — with a blank space where the number should be.
+   * That is how `tool-catalog`'s line was empty on every run on this machine for as long as the parser
+   * required a forward slash. Each checker's line is asserted here so a silent drop fails the suite.
+   */
+  for (const [id, needle] of [
+    ["link-check", /6 wire\(s\) checked, 0 broken/],
+    ["claude-md-budget", /16\/16 prohibitions/],
+    ["tool-catalog", /30 công cụ/],
+    ["plan-audit", /60 plan\(s\) scanned/],
+    ["skill-audit", /38 skills installed/],
+  ]) {
+    assert.match(out, needle, `${id}'s evidence line was dropped by the sweep's parser:\n${out}`);
+  }
   rmSync(root, { recursive: true, force: true });
 }
 
