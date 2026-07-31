@@ -8,7 +8,7 @@
 //
 // WHY THIS IS A HOOK AND NOT A BETTER-WORDED REMINDER
 // ───────────────────────────────────────────────────────────────────────────────────────────────
-// The rule already existed twice — CLAUDE.md §"Legible decision surface" and the memory file
+// The rule already existed twice — CLAUDE.md §Conventions ("Legible decision surface") and the memory file
 // `legible-proposals-plain-language.md` (since 2026-06-16) — and was broken repeatedly by its own
 // author in the session that produced the complaint. The research says that is structural, not
 // sloppy: the curse-of-knowledge literature finds that experts misread their own fluency as the
@@ -206,7 +206,7 @@ export function lintGate(questions = []) {
       // than silences.
     } else if (marked.length === 0) {
       blocking.push(
-        `${label}: no option is marked (khuyến nghị). CLAUDE.md §"Legible decision surface" requires ` +
+        `${label}: no option is marked (khuyến nghị). CLAUDE.md §Conventions ("Legible decision surface") requires ` +
           `flagging the one you recommend so the supervisor sees your pick without inferring it. ` +
           `Add it to exactly one option label, or state why there is no recommendation with ` +
           `"(no-recommendation: <reason ≥15 chars>)" in the question.`,

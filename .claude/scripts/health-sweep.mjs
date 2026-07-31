@@ -88,6 +88,25 @@ const checkers = [
     }),
   },
   {
+    id: "claude-md-budget",
+    proves:
+      "the always-loaded rule file is inside its word budget, still carries every prohibition, and every section other files cite by name still exists",
+    args: [S("claude-md-budget.mjs"), "--quiet"],
+    /**
+     * BROKEN, not drift. Two of its three checks are correctness rather than taste: a prohibition that has
+     * been relocated is unenforced from the moment it moves (`documentation.md §7.3`'s hard exception, since
+     * a path-scoped rules file arrives attached to the tool RESULT), and a citation to a heading that no
+     * longer exists sends a reader hunting for a rule they will never find. The word budget rides in the
+     * same result because a file over budget bills every session on the platform for spec that has a
+     * trigger site of its own.
+     */
+    read: ({ code, out }) => ({
+      kind: "BROKEN",
+      bad: code ? 1 : 0,
+      line: (/claude-md-budget.*/.exec(out) || [""])[0],
+    }),
+  },
+  {
     id: "recurrence-check",
     proves: "no mistake we already learned from has come back",
     args: [S("recurrence-check.mjs"), "--quiet"],

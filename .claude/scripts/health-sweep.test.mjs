@@ -33,6 +33,11 @@ const REPO = resolve(HERE, "..", "..");
  */
 const HEALTHY = {
   "link-check.mjs": 'console.log("link-check — 6 wire(s) checked, 0 broken");',
+  // Stubbed like the rest, and it has to be: the real one polices `<repo>/CLAUDE.md`, and this sandbox is a
+  // scripts directory with no repo above it. Left unstubbed it reported BROKEN in the all-healthy case — a
+  // true statement about the sandbox and a useless one about the sweep's parsing, which is what is tested.
+  "claude-md-budget.mjs":
+    'console.log("claude-md-budget — 1730/1800 words · 16/16 prohibitions · 6/6 cited sections resolve");',
   "recurrence-check.mjs":
     'console.log("recurrence-check — 3 detector(s), 0 firing");',
   "tool-check.mjs":
