@@ -103,7 +103,29 @@ check("a failed spawn returns an error string instead of throwing", () => {
 });
 
 check("acceptEdits is opt-out, and the flags differ when it is off", () => {
-  assert.match(SOURCE, /const flags = acceptEdits \? "-p --permission-mode acceptEdits" : "-p"/);
+  assert.match(SOURCE, /acceptEdits \? "-p --permission-mode acceptEdits" : "-p"/);
+});
+
+check("an unsafe tool spec is REFUSED before anything is spawned, and named", () => {
+  // This is the one caller-supplied value that reaches a shell command line, so it is validated rather than
+  // quoted-and-hoped: DEP0190 says args under `shell` are concatenated, not escaped.
+  for (const bad of ['Bash(node:*)" ; rm -rf /', "Bash(`id`)", "Bash($(id))", "a b", "'"]) {
+    const r = spawnClaude({ model: "haiku", prompt: "x", allowedTools: [bad] });
+    assert.match(r.error || "", /refusing to spawn: unsafe tool spec/, `accepted an unsafe spec: ${bad}`);
+  }
+});
+
+check("legitimate tool specs are accepted", () => {
+  // Asserted through the validator rather than by spawning: the point is the guard, not a model call.
+  const ok = ["Bash", "Bash(node:*)", "Read", "Bash(npm run build)", "Edit"];
+  const re = /const TOOL_SPEC = (\/.*\/);/.exec(SOURCE);
+  assert.ok(re, "TOOL_SPEC must be a single-line literal so this case can read it");
+  const pattern = new RegExp(re[1].slice(1, -1));
+  for (const t of ok) assert.ok(pattern.test(t), `rejected a legitimate spec: ${t}`);
+});
+
+check("allowedTools reaches the command line only when non-empty", () => {
+  assert.match(SOURCE, /const allow = tools\.length \? ` --allowed-tools \$\{tools\.map/);
 });
 
 /* ─────────────────────────── mutation testing (§2.7) ─────────────────────────── */
@@ -131,6 +153,15 @@ const MUTANTS = [
       const r = m.spawnClaude({ model: "; rm -rf /", prompt: "x", timeout: 1 });
       return !/refusing to spawn/.test(r.error || "");
     },
+  },
+  {
+    name: "the tool-spec validator is dropped, so a shell metacharacter reaches the command line",
+    from: "  const bad = tools.find((t) => !TOOL_SPEC.test(String(t)));",
+    to: "  const bad = undefined;",
+    caught: (m) =>
+      !/unsafe tool spec/.test(
+        m.spawnClaude({ model: "haiku", prompt: "x", allowedTools: ['Bash" ; echo pwned'], timeout: 1 }).error || "",
+      ),
   },
   {
     name: "TERM is no longer forced, so a pager can corrupt a transcript",

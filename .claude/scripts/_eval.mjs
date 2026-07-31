@@ -50,10 +50,36 @@ export function childEnv(source = process.env) {
  * The prompt — the only variable-length input — always goes in over **stdin**, never argv.
  */
 const MODELS = new Set(["haiku", "sonnet", "opus"]);
+/**
+ * A tool permission spec, e.g. `Bash(node:*)` or `Read`. Validated because it is the ONE caller-supplied value
+ * that reaches a shell command line, and Node's DEP0190 says args under `shell` are concatenated, not escaped.
+ * Anything with a quote, space, semicolon, backtick or `$` is refused rather than quoted-and-hoped.
+ */
+const TOOL_SPEC = /^[A-Za-z][A-Za-z0-9_]*(\([A-Za-z0-9_:*.,/ -]*\))?$/;
 
-export function spawnClaude({ cwd, prompt, model = "sonnet", timeout = 300000, acceptEdits = true } = {}) {
+/**
+ * `allowedTools` is not a convenience — it is what makes a null result meaningful.
+ *
+ * Measured 2026-07-31: `--permission-mode acceptEdits` accepts file EDITS and still denies Bash. A headless run
+ * told directly to `node build.mjs` replied *"The command needs your approval to run."* An eval whose success
+ * path requires a command therefore cannot reach it, both arms look identical, and the harness publishes
+ * NULL/NEGATIVE about a variable that was never given room to move — `/behavioural-eval` rule 3, violated by an
+ * eval whose own header quoted it. Pass the tools the success path needs, or the null is an artefact.
+ */
+export function spawnClaude({
+  cwd,
+  prompt,
+  model = "sonnet",
+  timeout = 300000,
+  acceptEdits = true,
+  allowedTools = [],
+} = {}) {
   if (!MODELS.has(model)) return { error: `refusing to spawn: unknown model ${JSON.stringify(model)}` };
-  const flags = acceptEdits ? "-p --permission-mode acceptEdits" : "-p";
+  const tools = Array.isArray(allowedTools) ? allowedTools : [allowedTools];
+  const bad = tools.find((t) => !TOOL_SPEC.test(String(t)));
+  if (bad !== undefined) return { error: `refusing to spawn: unsafe tool spec ${JSON.stringify(bad)}` };
+  const allow = tools.length ? ` --allowed-tools ${tools.map((t) => `"${t}"`).join(" ")}` : "";
+  const flags = `${acceptEdits ? "-p --permission-mode acceptEdits" : "-p"}${allow}`;
   try {
     const out = execFileSync(`claude ${flags} --model ${model}`, {
       cwd,
