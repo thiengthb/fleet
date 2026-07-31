@@ -1,6 +1,6 @@
 ---
 name: react-ui-craft
-description: Engineering standard for React/Next.js (App Router) UIs — Tailwind v4 + shadcn/ui, well-composed components, Motion animations, UX states (loading/empty/error), maintainable architecture, frontend security. Use for any React/Next frontend, UI component, design system, animation, or securing a client app — even when phrased as "make this page nicer", "build a dashboard", or "clean up this component". Complements frontend-design (pure visuals: palette/typography/layout).
+description: "Engineering standard for React/Next.js (App Router) UIs — Tailwind v4 + shadcn/ui, well-composed components, Motion animations, UX states (loading/empty/error), maintainable architecture, frontend security. Use for any React/Next frontend, UI component, design system, animation, or securing a client app — even when phrased as \"make this page nicer\", \"build a dashboard\", or \"clean up this component\". Complements frontend-design (pure visuals: palette/typography/layout)."
 ---
 
 # React UI Craft
