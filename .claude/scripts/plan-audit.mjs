@@ -455,11 +455,28 @@ const errors = count('ERROR'); // live plans only — closed ones are LEGACY (Ba
 const warns = count('WARN');
 const legacy = count('LEGACY');
 
+/**
+ * `clean` is computed ONCE, here, and reported by BOTH output modes.
+ *
+ * It used to exist only inside the text branch, so `--json` published `results` and left every consumer to
+ * re-derive the headline. That is not a hypothetical cost: on 2026-07-31 a reader counted
+ * `results.filter(r => !r.findings.length)` — a reasonable-looking definition — got **8/68** where the tool
+ * itself reports **10/68**, and spent three measurements hunting a regression that did not exist. The two
+ * numbers differ because a plan carrying only `INFO` findings IS clean.
+ *
+ * The fix is structural rather than a reminder: if the aggregate a tool computes is not in its machine-readable
+ * output, something downstream will invent it. `memory: report-state-from-the-tool` is the discipline; this is
+ * the shape that stops needing it.
+ */
+const dirty = results.filter((r) => r.findings.some((f) => f.level !== 'INFO'));
+const clean = results.length - dirty.length;
+
 if (JSON_OUT) {
-  console.log(JSON.stringify({ scanned: files.length, errors, warns, legacy, results }, null, 2));
+  console.log(
+    JSON.stringify({ scanned: files.length, clean, errors, warns, legacy, results }, null, 2),
+  );
 } else {
   console.log(`\nplan-audit — ${files.length} file(s) under platform/plans/ and */docs/plans/\n`);
-  const dirty = results.filter((r) => r.findings.some((f) => f.level !== 'INFO'));
   for (const r of dirty) {
     const tag = r.isProposal ? 'proposal' : 'plan';
     console.log(`  ${r.rel}  [${tag} · kind: ${r.kind ?? '—'} · status: ${r.status ?? '—'}]`);
@@ -469,8 +486,7 @@ if (JSON_OUT) {
     console.log('');
   }
   console.log(
-    `  clean: ${results.length - dirty.length}/${results.length}   ERROR: ${errors}   WARN: ${warns}   ` +
-      `LEGACY: ${legacy}`,
+    `  clean: ${clean}/${results.length}   ERROR: ${errors}   WARN: ${warns}   ` + `LEGACY: ${legacy}`,
   );
   console.log(
     `\n  ERROR counts LIVE plans only. LEGACY is the same shape gap on a plan already closed — kept visible,\n` +

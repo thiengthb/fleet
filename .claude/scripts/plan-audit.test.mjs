@@ -71,6 +71,9 @@ function findings(s, name, args = []) {
   return r;
 }
 
+/** Today, so a fixture that must not look "dangling" never crosses the 10-day staleness threshold with age. */
+const TODAY = new Date().toISOString().slice(0, 10);
+
 const levels = (r, level) => r.findings.filter((f) => f.level === level).map((f) => f.msg);
 const has = (r, level, re) => levels(r, level).some((m) => re.test(m));
 
@@ -79,6 +82,13 @@ function goodPlan({
   kind = "system-change",
   status = "active",
   created = "2026-07-30",
+  /**
+   * Defaults to `created`, which is what most cases want. A case that needs an OLD `created` (to trigger the
+   * pre-standard exemption) must override this, or the dangling check fires on top and the fixture stops being
+   * "one thing broken". Pass `TODAY` rather than a literal: a hardcoded date would silently cross the 10-day
+   * staleness threshold later and fail this suite for reasons that have nothing to do with the code.
+   */
+  updated = created,
   priorArt = "- [Source one](https://example.org/a) — what we learn\n- [Source two](https://example.net/b) — and this\n",
   ask = "> làm cho tôi cái này\n",
   // Overridable so a case can vary ONLY the styling of an acceptance criterion or a step label. Both defaults
@@ -95,7 +105,7 @@ title: a fixture plan
 kind: ${kind}
 status: ${status}
 created: ${created}
-updated: ${created}
+updated: ${updated}
 ---
 
 ## The ask, verbatim
@@ -713,6 +723,48 @@ Chosen: x.
 }
 
 /* ═══════════ 11. the suite must NOTICE a broken checker (mutation) ═══════════ */
+/* ═══════════ THE TWO OUTPUT MODES MUST AGREE ON `clean` ═══════════
+ *
+ * `clean` used to be computed inside the text branch only, so `--json` published `results` and left consumers to
+ * invent the headline. On 2026-07-31 one did: `results.filter(r => !r.findings.length)` looks right, gave 8/68
+ * where the tool reports 10/68, and three measurements were spent hunting a regression that never existed. The
+ * two differ because **a plan carrying only INFO findings is clean**.
+ *
+ * So the contract under test is not a formula, it is an agreement: whatever `clean` means, both modes must say
+ * the same number. The fixture set deliberately contains an INFO-only plan, because without one the naive
+ * derivation and the real one return the same value and the mutant below would be unobservable.
+ */
+{
+  const s = sandbox({
+    // pre-standard date => one INFO; every step ticked => the execute-half check stays silent.
+    "2026-01-01-info-only.md": goodPlan({
+      created: "2026-01-01",
+      updated: TODAY,
+      steps: "- [x] Step 1 — done · Files: `a/b.ts` · Test: `AC-1 (how)`",
+    }),
+    "2026-07-30-spotless.md": goodPlan(),
+    "2026-07-30-warned.md": goodPlan({ beforeExecuting: "" }),
+  });
+
+  const j = JSON.parse(audit(s, ["--json"]).out);
+  const infoOnly = j.results.find((r) => r.rel.endsWith("info-only.md"));
+  assert.ok(
+    infoOnly.findings.length > 0 && infoOnly.findings.every((f) => f.level === "INFO"),
+    `the fixture must produce an INFO-ONLY plan or this case proves nothing; got: ${JSON.stringify(infoOnly.findings)}`,
+  );
+
+  const text = audit(s).out;
+  const m = /clean: (\d+)\/(\d+)/.exec(text);
+  assert.ok(m, `the text report must state a clean count:\n${text}`);
+  assert.equal(
+    j.clean,
+    Number(m[1]),
+    `--json clean (${j.clean}) disagrees with the text report (${m?.[1]}):\n${text}`,
+  );
+  assert.equal(j.scanned, Number(m[2]), "the two modes disagree on how many files were scanned");
+  assert.equal(j.clean, 2, `an INFO-only plan and a spotless one are both clean; got ${j.clean}\n${text}`);
+}
+
 /* ═══════════ THE EXECUTE HALF (community-harness-mining C2, adopted 2026-07-31) ═══════════
  *
  * fleet had authoring discipline and none for executing a plan. The rule now lives as a block in the plan
@@ -767,6 +819,51 @@ let mutantsKilled = 0;
   const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const mutants = [
+    {
+      // The exact wrong derivation a reader reached for on 2026-07-31. It is observable ONLY because the
+      // fixture set contains an INFO-only plan; with a spotless-vs-dirty set it would be an equivalent
+      // mutation that "survives" no matter how good the cases are.
+      name: "`clean` in --json re-derived as 'no findings at all', disagreeing with the text report",
+      plans: {
+        "2026-01-01-m-info.md": goodPlan({
+          created: "2026-01-01",
+          updated: TODAY,
+          steps: "- [x] Step 1 — done · Files: `a/b.ts` · Test: `AC-1 (how)`",
+        }),
+      },
+      apply: (s) =>
+        s.replace(
+          "const clean = results.length - dirty.length;",
+          "const clean = results.filter((r) => !r.findings.length).length;",
+        ),
+      /**
+       * Probed by VALUE, not by agreement — and the first draft of this mutant probed agreement and SURVIVED,
+       * which is the fix working. Both modes now read one shared `clean`, so mutating that definition moves
+       * both numbers together and they still agree. Agreement is structural; only the definition is testable
+       * here. The divergence property gets its own mutant below.
+       */
+      probe: (s) => JSON.parse(audit(s, ["--json"]).out).clean !== 1,
+    },
+    {
+      name: "--json re-derives `clean` for itself, diverging from the text report (the pre-fix shape)",
+      plans: {
+        "2026-01-01-m-info2.md": goodPlan({
+          created: "2026-01-01",
+          updated: TODAY,
+          steps: "- [x] Step 1 — done · Files: `a/b.ts` · Test: `AC-1 (how)`",
+        }),
+      },
+      apply: (s) =>
+        s.replace(
+          "JSON.stringify({ scanned: files.length, clean, errors",
+          "JSON.stringify({ scanned: files.length, clean: results.filter((r) => !r.findings.length).length, errors",
+        ),
+      probe: (s) => {
+        const j = JSON.parse(audit(s, ["--json"]).out);
+        const m = /clean: (\d+)\//.exec(audit(s).out);
+        return j.clean !== Number(m[1]);
+      },
+    },
     {
       name: "the execute-half check stops caring whether the plan is still open",
       plans: { "2026-07-31-m-closed.md": goodPlan({ status: "done", beforeExecuting: "" }) },
