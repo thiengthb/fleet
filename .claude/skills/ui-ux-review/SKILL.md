@@ -1,6 +1,7 @@
 ---
 name: ui-ux-review
 description: Review a RUNNING UI in the browser against the platform's UI/UX standard — a deterministic machine pass (axe/WCAG 2.2 AA, contrast, focus order, target size, responsive matrix, CLS/LCP) followed by a bounded judgment pass in Claude-in-Chrome. Use before shipping a new screen or flow, when the user asks "review the UI / is this good / check UX / kiểm tra giao diện", or after a redesign. NOT for writing UI code (that is /react-ui-craft) and NOT for functional E2E (that is /playwright-e2e-builder).
+disallowed-tools: Write Edit
 ---
 
 # Skill: review a running UI (ui-ux-review)

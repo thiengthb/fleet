@@ -1,6 +1,7 @@
 ---
 name: dependabot-review
 description: Triage open Dependabot PRs — classify by risk (patch/minor/major + security), check CI, and present a recommended action per PR. Use when the user says "review/check dependabot", "dependabot PRs", or "update dependencies". On this platform it RECOMMENDS merges for the user to approve (never auto-merges) — Watchtower then auto-pulls the new image after the merge builds.
+disallowed-tools: Write Edit
 ---
 
 # Dependabot PR Review (platform-adapted)

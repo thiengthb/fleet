@@ -1,6 +1,7 @@
 ---
 name: supply-chain-guard
 description: Audit a project's dependencies + CI/CD for supply-chain compromise and harden against it — across npm/PyPI workers and the GitHub Actions → ghcr pipeline. Use before a risky deploy, when a supply-chain attack is in the news and you want to check exposure, or to harden a repo's dependency/CI hygiene. Distinct from /security-review (code) and /host-audit (infra).
+disallowed-tools: Write Edit
 ---
 
 # Supply Chain Guard (platform-adapted)
