@@ -1,4 +1,4 @@
-# Danh mục công cụ của agent — 32 công cụ
+# Danh mục công cụ của agent — 33 công cụ
 
 > **SINH TỰ ĐỘNG** bởi `node .claude/scripts/tool-catalog.mjs --write`. **Đừng sửa tay** — lần sinh sau ghi đè.
 > Muốn đổi phần chữ tiếng Việt: sửa dòng `@vi WHAT/WHEN/WHY` **ngay trong file công cụ đó**, rồi sinh lại.
@@ -11,7 +11,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | Loại | Số lượng | Ai gọi |
 | --- | --- | --- |
 | Hook | 13 | tự động, theo sự kiện |
-| Script | 17 | anh tự gọi khi cần |
+| Script | 18 | anh tự gọi khi cần |
 | Thư viện | 2 | các file khác import |
 
 ## 1. Hook — tự chạy, anh không phải gọi
@@ -37,6 +37,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | Công cụ | Khi nào anh cần nó | Lệnh | Cắm làm hook? | Test |
 | --- | --- | --- | --- | --- |
 | [`attic.mjs`](#atticmjs) | Khi định bỏ một skill, script hay tài liệu mà chưa chắc chắn. | `node .claude/scripts/attic.mjs` | không | ✓ |
+| [`claude-md-budget.mjs`](#claude-md-budgetmjs) | Tự động trong health-sweep hằng tuần; và mỗi lần định sửa/làm gọn CLAUDE.md. | `node .claude/scripts/claude-md-budget.mjs` | không | ✓ |
 | [`decisions-split.mjs`](#decisions-splitmjs) | Khi một file decisions.md quá lớn — health-sweep hoặc memory-audit sẽ báo trước. | `node .claude/scripts/decisions-split.mjs` | không | ✓ |
 | [`eval-ledger-rule.mjs`](#eval-ledger-rulemjs) | Hầu như không chạy lại — nó tốn tiền thật và kết quả đã được ghi lại. | `node .claude/scripts/eval-ledger-rule.mjs` | không | ✓ |
 | [`health-sweep.mjs`](#health-sweepmjs) | Mỗi tuần một lần. Chỉ cần đọc dòng VERDICT. | `node .claude/scripts/health-sweep.mjs` | không | ✓ |
@@ -233,6 +234,18 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Cơ chế cho một thứ nghỉ hưu có bằng chứng: nó chuyển thứ định bỏ vào phòng chờ và KHÔNG BAO GIỜ tự xoá — người mới được xoá.
 
 **Vì sao có nó:** Xoá sai file trong repo này là mất việc không dựng lại được từ đâu cả. Và nguy hiểm không phải sự bất cẩn mà là sự TỰ TIN: ngày 2026-07-30 một công cụ tuyên bố 14 skill đang sống là đã chết. Nó cũng từ chối lý do "không dùng nữa" — phải viết được lý do thật.
+
+### claude-md-budget.mjs
+
+`.claude/scripts/claude-md-budget.mjs` · script · test: `claude-md-budget.test.mjs`
+
+**Chạy tay:** `node .claude/scripts/claude-md-budget.mjs`
+
+**Khi nào cần:** Tự động trong health-sweep hằng tuần; và mỗi lần định sửa/làm gọn CLAUDE.md.
+
+**Nó làm gì:** Canh cái file luật luôn-được-nạp (CLAUDE.md): nó có vượt ngân sách từ không, có điều CẤM nào bị chuyển đi mất không, và những chỗ khác trong repo trỏ tới "CLAUDE.md §..." có còn trỏ đúng không.
+
+**Vì sao có nó:** Mọi từ trong file này bị tính phí cho MỌI lượt chat, kể cả lượt tầm phào — nên nó phình là mất tiền thật. Nhưng làm gọn sai thì tệ hơn phình: một điều CẤM bị dời sang file nạp-theo-đường-dẫn sẽ đến SAU cái lệnh nó phải ngăn. Máy đo được cả hai; người chỉ nhớ được một.
 
 ### decisions-split.mjs
 
