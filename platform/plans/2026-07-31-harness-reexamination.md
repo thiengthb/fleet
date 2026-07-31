@@ -433,7 +433,7 @@ Bars are as declared in *Approach & tradeoffs* and were not loosened. Effort: **
 
 | # | Item | Measurement + the argument that nothing depends on it |
 |---|---|---|
-| **C1** | The `plan-audit` **WARN** tier | Measured this session: **clean 11/67 · ERROR 25 · WARN 92 · LEGACY 80**. 92 warnings have produced zero repairs across the tool's life. A finding class that is never acted on is not a standard, it is noise that trains the reader to skip the report. **AC-5's fork is answered: relax, don't fix.** Keep ERROR (25, live plans, actionable); delete or demote the WARN checks that no plan has ever been edited to satisfy |
+| **C1** | ~~The `plan-audit` **WARN** tier~~ **DONE 2026-07-31, but NOT as a cut — and AC-5's fork was a false dichotomy.** | The row above proposed deleting WARN checks "no plan has ever been edited to satisfy". **Decomposing the 92 before acting killed that plan:** **74 were on CLOSED plans**, 62 of them the `Files:`/`Test:` step checks — the same unrepairable-without-editing-history case that `ERROR→LEGACY` already existed to handle. **Live WARN debt was 18, not 92.** And the checks are *not* unsatisfiable: both plans written 2026-07-31 meet them and are clean, so deleting them would have thrown away a working standard on a miscounted headline. **Fix shipped: the closed-plan downgrade now covers shape WARNs too**, with `keepWhenClosed` opt-in so the one WARN that is genuinely *about* being closed survives. Result **WARN 92 → 23** (18 live + 5 actionable-on-closed), LEGACY 80 → 149, **ERROR unchanged at 25, clean unchanged at 12/68 — no bar lowered, nothing deleted.** Two mutants added (under-fix and over-fix), suite now 8/8 mutants killed. Recorded in `standards/documentation.md §5.5` |
 | **C2** | ~1,400 words of CLAUDE.md prose | The same content exists in `standards/*.md` and the skills. Every word is charged to every session, including the trivial ones. Goes to `.claude/rules/` (L1), not to `attic` — this is a move, and the CUT is of the always-loaded copy |
 | **C3** | Overlapping skill pairs | `/architecture` ↔ `/brainstorming`, `/react-best-practices` ↔ `/react-ui-craft`, `/lint-and-validate` ↔ `/verification-before-completion`. Anthropic names overlapping descriptions as a **discovery** failure (F5, checklist 57). Candidate merges, decided by reading the two descriptions side by side, staged through `attic` |
 | **C4** | **NOT the 17 unused skills** | Recorded as a refusal. The cut this plan expected to make did not survive the evidence: the vendor runs hundreds of skills, and A1 removes their entire cost without deleting anything. **AC-4 must be re-scoped** — C1/C2/C3 are real cuts but only C3 goes through `attic`, and the sprawl baselines will not fall from A1 because `sprawl-check` counts installation, not visibility |
@@ -549,12 +549,15 @@ that only works here cannot carry a rulebook anywhere. Cross-machine health is B
   executed** (C1 the WARN tier, C2 the CLAUDE.md prose, or C3 a skill merge), with `tool-check` + `health-sweep`
   green after, and **any skill merge staged through `attic`**. The old baseline test is retired *in writing* here
   rather than left to fail silently — because a metric that cannot move should not be an acceptance criterion.
-- **AC-5 (R4) — the plan standard stops being theatre. FORK CHOSEN 2026-07-31: relax.** Measured this session:
-  **clean 11/67 · ERROR 25 · WARN 92 · LEGACY 80.** The clean-rate cannot reach 50% without editing closed plans,
-  which the tool itself forbids. So the deliberate choice is the other branch of the fork: **relax the standard**
-  — keep the 25 live ERRORs, cut the WARN checks no plan has ever been edited to satisfy (C1).
-  _Test: `standards/documentation.md` records the relaxation with its reason, and `plan-audit`'s WARN count drops
-  because checks were removed, not because plans were padded._
+- **AC-5 (R4) — MET 2026-07-31, by rejecting the question.** Both offered branches — relax the standard, or fix the
+  plans — shared a premise that turned out false: that 92 warnings were a backlog. **74 of them described history.**
+  So neither branch was taken. What shipped is a **classification** fix (shape WARNs on closed plans → `LEGACY`,
+  matching the rule ERRORs already followed, with `keepWhenClosed` opt-in), and **`standards/documentation.md §5.5`
+  records explicitly that no check was deleted and no bar lowered, plus why.**
+  _Test, restated to match what was actually done: WARN drops because findings were **reclassified**, ERROR and the
+  clean-rate are **unchanged** (25 · 12/68 both before and after), the standard documents the reasoning, and a test
+  pins both directions._ **A "theatre" verdict on a standard is itself a claim requiring evidence, and this one did
+  not survive its own measurement — the plan was wrong, not the standard.**
 - **AC-6 (R5) — cross-machine health. MET 2026-07-31, with one honest exception.** The log records which machine
   produced each row, and both boxes are attributed. The exception: this box still reports **1 BROKEN — `docgen`,
   which has no git remote at all** and therefore cannot resolve here. That is a fact about `docgen`, not about the

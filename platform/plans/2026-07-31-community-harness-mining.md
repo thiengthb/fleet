@@ -223,6 +223,95 @@ The `marketplace.json` fetch returned entries alphabetically and stopped around 
 **floor observed in the A section**, not a count. Stated because a floor quoted as a total is the exact mistake
 the sibling plan had to correct twice.
 
+## Findings — Batch 1 (the two large frameworks), 2026-07-31
+
+**C15 — Anthropic's own artefacts CONTRADICT each other on `version:`, so C5 is downgraded and a task is deleted.**
+[`anthropics/skills/template/SKILL.md`](https://raw.githubusercontent.com/anthropics/skills/main/template/SKILL.md)
+— the official template in a **165.3k-star** repo — is, verbatim and complete:
+
+```
+---
+name: template-skill
+description: Replace with description of the skill and when Claude should use it.
+---
+
+# Insert instructions below
+```
+
+**No `version` field.** C5 claimed "AGREEMENT: 2" for `version:` in skill frontmatter, counting Anthropic's
+`skill-development` skill plus the plugins doc — but the plugins doc governs `version` in
+**`.claude-plugin/plugin.json`**, which is a different file for a different purpose. So the real state is **one
+Anthropic artefact prescribing it and another omitting it**, and the official template wins on adoption by two
+orders of magnitude.
+**Consequence: C5 is downgraded from ADOPT-candidate to non-finding.** fleet should **not** add `version:` to 38
+skills. What is genuinely required is `version` in the **rulebook plugin manifest** — already covered by the sibling
+plan's A3. *This finding removes work rather than adding it, which is the outcome an honest pass should be able to
+produce and the reason "AGREEMENT: N" must count artefacts, not citations.*
+
+**C16 — SuperClaude: REFUSE the bulk, CONFIRMS-FLEET on routing. Evidence both ways.**
+[SuperClaude_Framework](https://github.com/SuperClaude-Org/SuperClaude_Framework) (~23.6k stars) installs via
+`pipx install superclaude` → `superclaude install`, adding **30 slash commands · 20 agents · 7 behavioural modes ·
+8 optional MCP servers**. Its own framing: *"behavioural instruction injection"*, and the workflow patterns are
+*"documented, not mandatory"*.
+
+- **Against, measured — not preference.** fleet's diagnosed problem is the **discovery tier**: 38 skill
+  descriptions, ~3.9k tokens always-loaded, **0 using `disable-model-invocation`** (sibling F5/A1). Adding 30
+  commands and 20 agents makes the *measured* problem roughly 1.5× worse, in the exact dimension already
+  identified as the bottleneck.
+- **Against, from a named fleet incident.** `memory: enforce-rules-with-gates` exists because the operator's stated
+  rules were *documented and then not followed* — the fix was enforcement. SuperClaude is explicitly the
+  documented-not-mandatory model, i.e. the thing that already failed here once.
+- **For, and it must be said.** Its stated goal — *"Reduced framework footprint… More context for your code"* — is
+  **the same goal as the sibling plan's L1**, reached independently. And `/recommend` (a command whose job is to
+  pick which command to use) is a real answer to discovery at 30+ surfaces. **fleet already has this pattern**
+  (`/testing-standard` routes to the other testing skills), so this is confirmation of an existing fleet idea, not
+  an import. Worth generalising if L2's categories are not enough.
+
+**C17 — Claude-Flow / Ruflo: REFUSE, and the headline numbers do not survive contact with the repo.**
+[ruvnet/claude-flow](https://github.com/ruvnet/claude-flow) (~31–61k stars, depending which page one believes):
+**98 agents · 60+ commands · 30 skills · 35 plugins**, an MCP server daemon (`ruflo mcp start`), **12
+auto-triggered background workers**, a swarm coordinator with hierarchical/mesh/adaptive topologies, and AgentDB —
+an **HNSW-indexed vector store** for agent memory.
+
+- **On the numbers, as promised in *Approach*:** the *"84.8% SWE-bench solve rate and 75% API cost savings"* I
+  recorded in C13 from a blog **does not appear in the repository at all**. What the repo actually claims is
+  *"~1.9× faster at N=20k, ~3.2×–4.7× at N=5k vs brute force"* — that is **vector-search speed, not agent
+  quality** — plus *"wins cold start, single turn, RSS by 1.3×–1953×"* against LangGraph/AutoGen/CrewAI, with
+  methodology in external files. **A 1953× range is a red flag, not a result.** C13's refusal to believe the blog
+  is now confirmed by the primary source: the claim was not the project's.
+- **Against, measured.** 12 background workers plus a daemon is an operational surface with **no one to run it**:
+  one operator, and the NUC has been down since 2026-07-22. The sibling plan already filed agent teams as
+  CORRECTLY ABSENT for N× token cost per teammate; this is that, larger.
+- **For — and this one is real, so it gets recorded properly.** **AgentDB's semantic retrieval over agent memory
+  answers an open question fleet actually has.** Sibling plan open question 4 asks whether the ledger is
+  sustainable at 183 entries, noting it is simultaneously the most-read *and* the largest file on the platform.
+  fleet's knowledge tier is flat markdown with a hand-maintained index **hard-capped at 200 lines** — that works at
+  33 memories and is visibly straining at 183 ledger entries. **Semantic retrieval is the known answer to exactly
+  that problem.** Not adopted now: it is a large dependency, the FOMO brake applies, and `commons` (27 items, 0
+  installs) is the standing evidence about premature capability. **Recorded as the leading candidate for open
+  question 4 when it becomes urgent**, which is a real deliverable from a refused framework.
+
+### Pre-committed consequence — FIRED for Batch 1's scope. Reported in the required words.
+
+The device said: *if Batch 1 (reading the two large frameworks) produces **zero** items that clear the ADOPT bar,
+the conclusion is that fleet has already absorbed what the community ecosystem has to offer.*
+
+**It produced zero.** SuperClaude's one good idea (a router) fleet already implements. Ruflo's one good idea (vector
+memory) is recorded for a future question, not adopted. Neither large framework yields an ADOPT.
+
+**So, in the required words: fleet has already absorbed what the community ecosystem has to offer** — at the level
+of *whole frameworks*. Both are built for a problem fleet does not have (many surfaces, many agents, unattended
+throughput) and both would worsen the one it does have (discovery cost).
+
+**What this does NOT license, stated so the device is not quietly renegotiated in the flattering direction:** the
+consequence was scoped to Batch 1. It says nothing about **Batch 0**, which produced the two genuine ADOPT
+candidates of this plan — **C2** (`executing-plans`: fleet writes plans and cannot execute them, 3 sources) and
+**C7** (`agnix`: found invalid YAML in 10 of 38 skills that ten in-house tools missed). Those stand on their own
+evidence. The honest summary is therefore narrower than either extreme:
+
+> **Nothing to import at the framework level; two things to import at the artefact level.** The value of this pass
+> came from reading small files — a template, a skill, a marketplace manifest — not from the famous repositories.
+
 ## agnix evaluation (Batch 2 — DONE 2026-07-31)
 
 **Verdict: KEEP. It found a real defect class that all ten of fleet's own tools miss, and it is the first oracle on
@@ -365,10 +454,12 @@ Replaced by a **symmetry rule with no target number**, which is what the supervi
 - [x] **Batch 0 — the sourcing audit + first artefacts. DONE 2026-07-31.** Answered whether the sibling plan had
       done this (it had not) and gathered C1–C14 from real files.
       _Files: this plan `## Prior art & sources`._ · _Test: AC-1._
-- [ ] **Batch 1 — read the two large frameworks as code.** SuperClaude and Claude-Flow/Ruflo: their config layout,
-      what they enforce, and what they assume about the operator. Plus `anthropics/skills` and the rest of the
-      community catalogue past the A section (C14).
-      _Files: this plan `## Findings`._ · _Test: AC-1, and the pre-committed consequence is evaluated._
+- [x] **Batch 1 — read the two large frameworks as code. DONE 2026-07-31.** SuperClaude (C16) and Claude-Flow/Ruflo
+      (C17) both REFUSED with measurements, `anthropics/skills` read at artefact level (C15, which **downgraded my
+      own C5 and deleted a task**). **The pre-committed consequence FIRED for this batch's scope and is reported in
+      the required words.** Still open: the community catalogue past the A section (C14) — deferred, because the
+      A section already produced the one item worth having (`agnix`) and the marginal value of Z is unevidenced.
+      _Files: this plan `## Findings`._ · _Test: AC-1 ✓ (every C-row cites a fetched file)._
 - [x] **Batch 2 — run `agnix` against fleet. DONE 2026-07-31. Verdict: KEEP.** 42 errors · 50 warnings · 1 info;
       **10 of 38 skills have strictly-invalid YAML frontmatter**, confirmed by a second independent parser, and
       invisible to all ten of fleet's own tools plus Claude Code's lenient loader. ~63 of 92 findings are noise for
