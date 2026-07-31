@@ -193,13 +193,28 @@ function runArm(dir, lesson) {
     `platform's procedure for recording a cross-project lesson. Read it, read whatever files it refers to, and ` +
     `record the following lesson by editing the files. Then stop.\n\n` +
     `THE LESSON TO RECORD:\n${lesson}`;
-  // env -i style: do not leak this session's CLAUDE_* vars into the child.
-  const env = { HOME: process.env.HOME, PATH: process.env.PATH, TERM: "dumb" };
+  /**
+   * FIXED 2026-07-31: as written, this could never run on Windows, so the platform's only eval had never been
+   * runnable on one of its two machines.
+   *
+   * Two defects, both measured on `TNT-Laptop`: (1) the allowlist `{HOME, PATH, TERM}` drops `PATHEXT`, and the
+   * launcher on PATH there is `claude.cmd`; (2) even with it, `claude` spawns as ENOENT and `claude.cmd` as
+   * EINVAL — Node refuses to spawn a `.cmd` directly since its CVE-2024-27980 mitigation — so a shell is
+   * required. The stated intent was only "do not leak this session's CLAUDE_* vars", which a **denylist**
+   * expresses without breaking the toolchain.
+   *
+   * Nothing is interpolated into the command from data: the string is constant, `MODEL` comes from a two-value
+   * set chosen by a CLI flag, and the prompt goes in over stdin. Kept duplicated rather than extracted — two
+   * call sites is not the rule of three, and the sibling is `eval-plan-execution-gate.mjs`.
+   */
+  const env = { ...process.env, TERM: "dumb" };
+  for (const k of Object.keys(env)) if (/^CLAUDE/i.test(k)) delete env[k];
   try {
-    execFileSync("claude", ["-p", "--permission-mode", "acceptEdits", "--model", MODEL], {
+    execFileSync(`claude -p --permission-mode acceptEdits --model ${MODEL}`, {
       cwd: dir,
       input: prompt,
       env,
+      shell: true,
       encoding: "utf8",
       timeout: 300000,
       stdio: ["pipe", "pipe", "pipe"],
