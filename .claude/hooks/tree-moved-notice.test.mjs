@@ -22,7 +22,13 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
 const HOOK = join(HERE, "tree-moved-notice.mjs");
-const SOURCE = readFileSync(HOOK, "utf8");
+const RAW = readFileSync(HOOK, "utf8");
+// LF-normalized for MUTATION only. On a CRLF working tree (Windows, and this repo has core.autocrlf on) a
+// multi-line patch written with `\n` matches nothing and the mutant reports "the patch matched nothing".
+// That is a documented local trap — it was one of the 15 defects fixed on 2026-07-30 — and it reappeared here
+// the moment a rebase re-checked-out this file with CRLF. RAW is kept separately so the no-repo-mutation check
+// still compares real bytes.
+const SOURCE = RAW.replace(/\r\n/g, "\n");
 
 const lab = mkdtempSync(join(tmpdir(), "tree-moved-"));
 let pass = 0;
@@ -292,7 +298,7 @@ for (const m of mutants) {
 /* ═══════════════════ 5. no repo mutation ═══════════════════ */
 
 check("the suite did not mutate the hook it reads", () => {
-  assert.equal(readFileSync(HOOK, "utf8"), SOURCE, "tree-moved-notice.mjs changed on disk during this run");
+  assert.equal(readFileSync(HOOK, "utf8"), RAW, "tree-moved-notice.mjs changed on disk during this run");
   assert.ok(!lab.startsWith(REPO), "sandboxes must live outside the repo");
   assert.ok(existsSync(HOOK));
 });

@@ -22,7 +22,13 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
 const HOOK = join(HERE, "verify-claim-gate.mjs");
-const SOURCE = readFileSync(HOOK, "utf8");
+const RAW = readFileSync(HOOK, "utf8");
+// LF-normalized for MUTATION only — every patch below is a single-line string today, so nothing here is broken
+// yet. It is normalized anyway because the failure is invisible until someone adds a multi-line patch, and then
+// it presents as "the patch matched nothing" rather than as an encoding problem. That trap has now cost this
+// repo twice (the 2026-07-30 batch, and `tree-moved-notice.test.mjs` an hour ago); `plan-audit.test.mjs` and
+// `secret-guard.test.mjs` already normalize, so this makes the convention uniform instead of two-out-of-three.
+const SOURCE = RAW.replace(/\r\n/g, "\n");
 
 const lab = mkdtempSync(join(tmpdir(), "verify-claim-gate-"));
 let pass = 0;
@@ -306,7 +312,7 @@ for (const m of mutants) {
 /* ═══════════════════ 5. no repo mutation ═══════════════════ */
 
 check("the suite did not mutate the hook it reads", () => {
-  assert.equal(readFileSync(HOOK, "utf8"), SOURCE, "verify-claim-gate.mjs changed on disk during this run");
+  assert.equal(readFileSync(HOOK, "utf8"), RAW, "verify-claim-gate.mjs changed on disk during this run");
   assert.ok(!lab.startsWith(REPO), "the lab must live outside the repo");
 });
 
