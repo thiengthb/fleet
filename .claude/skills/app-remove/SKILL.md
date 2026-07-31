@@ -1,6 +1,7 @@
 ---
 name: app-remove
 description: Remove/retire a project from its target completely and safely — reads `target` from INVENTORY §0 first, then tears down container + volume + image + directory, cleans auth config, verifies the app is really gone, and updates INVENTORY. Use when the user says "remove/delete/retire project X", "I don't use app X anymore", or "clean up X".
+disable-model-invocation: true
 ---
 
 # Skill: Remove a project from the NUC platform (safe, leaving nothing behind)

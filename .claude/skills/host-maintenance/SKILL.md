@@ -1,6 +1,7 @@
 ---
 name: host-maintenance
 description: "Decide which recurring upkeep is worth automating for a given target, and wire it via `/schedule` — reads `target` first, because a cloud scheduler cannot reach a `local` machine and that changes the answer. REPORT-ONLY by hard rule: a scheduled run notifies, it never deletes/restarts/edits. Use for \"automate the health check\", \"run X weekly\", \"what should run on a cron\". NOT for ad-hoc one-off runs."
+disable-model-invocation: true
 ---
 
 # Skill: Scheduled NUC maintenance (report-only)

@@ -1,6 +1,7 @@
 ---
 name: host-audit
 description: "Health-check a host and reconcile INVENTORY against what is actually running — reads `target` first to know what to check. On `nuc`: containers, volumes, Traefik routes, Authentik providers, subdomains, Watchtower, disk/RAM. On `local`: the local Docker daemon, orphans, port collisions, `.env` permissions. REPORT-ONLY: every destructive action asks. Use for \"audit/check the system\", \"clean up\", \"is everything ok\", \"any junk\"."
+disable-model-invocation: true
 ---
 
 # Skill: Health-check & sync the NUC platform
