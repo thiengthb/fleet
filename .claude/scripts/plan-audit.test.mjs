@@ -85,6 +85,9 @@ function goodPlan({
   // are the plainest form; the styled forms are what broke on 2026-07-31.
   ac = "- **AC-1** — Given a thing, When it happens, Then it is observable.",
   steps = "- [ ] Step 1 — do the thing · Files: Create `a/b.ts` · Test: `AC-1 (how)`",
+  // Overridable so a case can delete the execute-half block without touching anything else. A good plan has
+  // it: the default fixture must satisfy every rule, or "one thing broken" cases stop being one thing.
+  beforeExecuting = "## Before executing a batch\n\n1. Is the premise still true?\n",
   extra = "",
 } = {}) {
   return `---
@@ -121,6 +124,7 @@ ${ac}
 
 ${steps}
 
+${beforeExecuting}
 ## Out of scope
 
 Nothing else.
@@ -709,11 +713,91 @@ Chosen: x.
 }
 
 /* ═══════════ 11. the suite must NOTICE a broken checker (mutation) ═══════════ */
+/* ═══════════ THE EXECUTE HALF (community-harness-mining C2, adopted 2026-07-31) ═══════════
+ *
+ * fleet had authoring discipline and none for executing a plan. The rule now lives as a block in the plan
+ * itself, because the plan is the artefact an executor opens; this checker is only responsible for the block
+ * being PRESENT, and only where there is still something to execute.
+ *
+ * The three cases below are the boundary, and each exists because the naive version of this check would have
+ * been noise: measured the same day on this repo, `plan-audit` was emitting 92 WARNs of which 74 sat on
+ * closed plans. A finding on a plan nobody will open again is indistinguishable from a finding that matters.
+ */
+{
+  const s = sandbox({
+    "2026-07-31-no-exec-block.md": goodPlan({ beforeExecuting: "" }),
+    "2026-07-31-all-ticked.md": goodPlan({
+      steps: "- [x] Step 1 — done already · Files: `a/b.ts` · Test: `AC-1 (how)`",
+      beforeExecuting: "",
+    }),
+    "2026-07-31-closed-plan.md": goodPlan({ status: "done", beforeExecuting: "" }),
+    "2026-07-31-has-exec-block.md": goodPlan(),
+  });
+  const RE = /no `## Before executing a batch`/;
+
+  assert.ok(
+    has(findings(s, "no-exec-block.md"), "WARN", RE),
+    "an active plan with unticked steps and no execute-half block must warn",
+  );
+  assert.ok(
+    !has(findings(s, "all-ticked.md"), "WARN", RE),
+    "a plan whose every step is ticked has nothing left to execute — warning about it is noise",
+  );
+  assert.ok(
+    !has(findings(s, "closed-plan.md"), "WARN", RE) &&
+      !has(findings(s, "closed-plan.md"), "LEGACY", RE),
+    "a closed plan must not be asked for an execution gate at all — not even as LEGACY",
+  );
+  assert.ok(
+    !has(findings(s, "has-exec-block.md"), "WARN", RE),
+    "the block being present must silence it, or the check is unsatisfiable",
+  );
+}
+
+/**
+ * Counted, not written down. The summary line used to end with the literal string "8 mutants all killed", and
+ * on the day three mutants were added it reported 8 — a test suite reciting a remembered number about itself,
+ * which is the same defect (`memory: report-state-from-the-tool`) this platform has already been bitten by
+ * twice in one session. The loop below asserts every mutant dies, so this counter cannot overstate.
+ */
+let mutantsKilled = 0;
+
 {
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
   const src = readFileSync(SCRIPT, "utf8").replace(/\r\n/g, "\n");
 
   const mutants = [
+    {
+      name: "the execute-half check stops caring whether the plan is still open",
+      plans: { "2026-07-31-m-closed.md": goodPlan({ status: "done", beforeExecuting: "" }) },
+      apply: (s) => s.replace("status === 'active' && open > 0", "open > 0"),
+      // Killed through the LEGACY channel, not WARN: the closed-plan downgrade turns this WARN into LEGACY on
+      // a `status: done` file, so probing for WARN would report the mutant as surviving when it is loose.
+      probe: (s) =>
+        has(findings(s, "m-closed.md"), "LEGACY", /no `## Before executing a batch`/) ||
+        has(findings(s, "m-closed.md"), "WARN", /no `## Before executing a batch`/),
+    },
+    {
+      name: "the execute-half check counts ticked steps as work still to do",
+      plans: {
+        "2026-07-31-m-ticked.md": goodPlan({
+          steps: "- [x] Step 1 — done already · Files: `a/b.ts` · Test: `AC-1 (how)`",
+          beforeExecuting: "",
+        }),
+      },
+      apply: (s) => s.replace("status === 'active' && open > 0", "status === 'active' && items.length > 0"),
+      probe: (s) => has(findings(s, "m-ticked.md"), "WARN", /no `## Before executing a batch`/),
+    },
+    {
+      name: "the execute-half presence test inverted (warns when the block IS there)",
+      plans: { "2026-07-31-m-present.md": goodPlan() },
+      apply: (s) =>
+        s.replace(
+          "section(text, 'Before executing a batch') === null",
+          "section(text, 'Before executing a batch') !== null",
+        ),
+      probe: (s) => has(findings(s, "m-present.md"), "WARN", /no `## Before executing a batch`/),
+    },
     {
       name: "the heading regex back to `\\s*` (DEFECT #4 — the heading eats the first bullet)",
       plans: {
@@ -869,6 +953,7 @@ Chosen: x.
     }
     rmSync(s.root, { recursive: true, force: true });
     assert.ok(killed, `SURVIVING MUTANT — "${m.name}" and the suite still passed. Add a case for it.`);
+    mutantsKilled += 1;
   }
 }
 
@@ -886,5 +971,5 @@ console.log(
     "a bold-span AC id, an italicised Test label, " +
     "inventing history), the verbatim-ask rules, step blocks, commented guidance, the checkin pair, the " +
     "proposal rules, the in-loop hook + --strict, the closed-plan LEGACY split with a live-only gate, " +
-    "8 mutants all killed  ✅",
+    `the execute-half block scoped to open plans, ${mutantsKilled} mutants all killed  ✅`,
 );

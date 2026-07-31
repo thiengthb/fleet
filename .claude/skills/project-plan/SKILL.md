@@ -78,6 +78,11 @@ The chosen approach + what was ruled out and why (brief — the durable "why" is
 - [ ] Step 1 — <action> · Files: Create/Modify `path:line` · Test: `<how it's verified>`
 - [ ] Step 2 — ... (one line each; check off as you go, across sessions)
 
+## Before executing a batch
+1. Is the premise of this batch still true against the repo AS IT IS TODAY? 2. Has it already been built (grep +
+`INVENTORY` + `decisions.md` + `platform/proposals/`)? 3. Is every number it promises derived, or guessed?
+4. Write the answers here, dated — including "unchanged".
+
 ## Out of scope
 Explicit non-goals, so a later session doesn't scope-creep.
 
@@ -97,6 +102,13 @@ Set `status: draft` until the user approves it; flip to `active` once execution 
   weakest assumption, what's missing, what could break an invariant? Fix it in the plan, not mid-execution.
 
 ## Step 3 — Keep it in sync while executing
+
+**The gate that must NOT live here.** The pre-batch questions belong in the plan file's own
+`## Before executing a batch` section, not in this skill — because a later session that resumes execution opens the
+**plan**, not this file, and a rule filed where it never fires reads as coverage (ledger 2026-07-30). `plan-audit`
+warns when an `active` plan with unticked steps is missing that section. Measured 2026-07-31: the three failures that
+justified adopting it were all premise failures at execution time on plans whose author had already written the
+guidance below — the guidance was right and unread.
 
 **Execute in small batches with a checkpoint.** Don't run the whole plan in one silent sweep — do ~3 related steps, then
 report (and, for outward/irreversible steps, wait for the user) before the next batch. This is the rhythm this very

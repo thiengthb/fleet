@@ -89,6 +89,18 @@ session-scoped or file-blind and this cadence is neither. Sources: `code.claude.
 - [x] Step 2 — this file, with `checkin:` + a self-contained runbook · Files: Create `platform/plans/2026-07-30-standing-cadence.md` · Test: `node .claude/hooks/plan-checkin.mjs --list` surfaces it when the date has arrived
 - [ ] Step 3 — first real check-in on 2026-08-06 · Files: Modify this file (record the outcome, roll `checkin:`) · Test: the runbook below, executed
 
+## Before executing a batch
+
+<!-- Read at the START of every working session on this plan, not once when it was written. Rationale and
+     sources: `.claude/skills/project-plan/templates/plan.md`, same section. -->
+
+1. **Is the premise of this batch still true?** Check the step against the repo AS IT IS TODAY, not as this
+   plan described it. A plan is a snapshot; the repo moved.
+2. **Has it already been built?** Grep for it, and read `INVENTORY`, the relevant `decisions.md` and
+   `platform/proposals/` before writing anything.
+3. **Is every number this batch promises derived, or guessed?**
+4. **Write the answers here, dated — including "unchanged".**
+
 ## Check-in runbook
 
 **What this gate decides** — whether the second brain is still working, and whether the numbers are moving the

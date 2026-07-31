@@ -66,6 +66,34 @@ The chosen approach + **≥2 options ruled out and why** (brief — the durable 
 - [ ] Step 1 — <action> · Files: Create/Modify `path:line` · Test: `AC-1 (<how verified>)`
 - [ ] Step 2 — ... (one line each; check off as you go, across sessions)
 
+## Before executing a batch
+
+<!-- REQUIRED while `status: active` and any step is still unticked. Read it at the START of every working
+     session on this plan — not once, when the plan was written.
+
+     WHY IT EXISTS. fleet had rich discipline for AUTHORING a plan and none for executing one, so execution
+     was improvised every time. Three independent parties ship the execute half: Superpowers ships
+     `writing-plans` AND `executing-plans`; the community `agent-handoff` skill uses a strict
+     plan → execute → verify handoff; `agentsatlas` an eight-command init→plan→execute→…→complete workflow.
+     Source rows: `platform/plans/2026-07-31-community-harness-mining.md` C1/C2.
+
+     WHY IT IS A BLOCK IN THIS FILE AND NOT A SKILL. The plan is the artefact the executor actually opens.
+     A rule filed in a skill that nobody opens at execution time reads as coverage (ledger 2026-07-30, "A
+     rule enforced at the wrong trigger reads as coverage"), and fleet already has 38 skills of which 17
+     have never been invoked. Same mechanism as `## Check-in runbook` below: prose that fires on being read,
+     with `plan-audit` responsible only for the section being present. -->
+
+1. **Is the premise of this batch still true?** Re-read the step you are about to build and check it against
+   the repo AS IT IS TODAY, not as the plan described it. A plan is a snapshot; the repo moved.
+2. **Has it already been built?** Grep for it, and read `INVENTORY`, the project's `decisions.md` and
+   `platform/proposals/` before writing anything. Researching a solved problem is the most expensive error
+   available here, because nothing downstream re-tests a premise.
+3. **Is every number this batch promises derived, or guessed?** If a step names a target, say where the
+   number came from. A target invented one step before the measurement it demands is the same defect, one
+   step earlier.
+4. **Write the answers into this plan, dated — including "unchanged".** A batch that recorded nothing cannot
+   later be told apart from a batch that skipped this.
+
 ## Check-in runbook
 
 <!-- REQUIRED if and only if the frontmatter sets `checkin:`. Delete this section otherwise.
