@@ -1,6 +1,10 @@
 ---
 name: app-env
 description: "Set an app's env vars / secrets without ever exposing the values to the agent — reads `target` from INVENTORY §0 first. On `nuc`: idempotent upsert into `/opt/apps/<app>/.env` over SSH from a LOCAL mirror. On `local`: the project's own gitignored `.env` at chmod 600. Use whenever an app needs env/secret values set, changed or rotated."
+# Manual-only: this skill writes secrets. F6 named it explicitly and the first pass of A1 still missed it —
+# five skills got the field and this one, the only one that touches secrets, did not. Caught 2026-07-31 by
+# reading `/context`, where the five were correctly absent and this one was still listed.
+disable-model-invocation: true
 ---
 
 # Skill: set NUC app env/secrets without leaking them (app-env)
