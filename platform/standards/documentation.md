@@ -172,6 +172,27 @@ session** keeps its roadmap + execution state on disk instead of evaporating wit
 > Different from `decisions.md` (backward, append-only knowledge) and from a one-off in-session plan (ephemeral, not
 > persisted). A plan file is the persisted roadmap of **one multi-session effort** in **one project**.
 
+**How `plan-audit.mjs` reports a CLOSED plan — and why the standard was NOT relaxed (2026-07-31).**
+
+A closed plan's shape cannot be repaired without editing the record of what was actually done, and on this platform
+history is never edited to satisfy a checker. So on a closed plan, **both shape ERRORs and shape WARNs are reported
+as `LEGACY`** — still printed, still counted, in their own total, never in the one that gates. A finding that is
+*about* being closed (no `## Decisions to distill`) stays an actionable **WARN**; the exemption is opt-in
+(`keepWhenClosed`), so a newly added check is treated as shape by default.
+
+This replaced a state where ERRORs were downgraded and WARNs were not. The measurement that forced it: of 92 WARNs,
+**74 were on closed plans**, 62 of those being the `Files:`/`Test:` step checks. Live WARN debt was **18, not 92**.
+
+**The reason this is recorded here as a *classification* fix and not a relaxation:** the plan
+`2026-07-31-harness-reexamination.md` (AC-5) offered a fork — relax the standard, or fix the plans — and **both
+branches were wrong**, because both accepted the premise that 92 warnings were a backlog. They were not: 80% of them
+described history. **No check was deleted and no bar was lowered** — new plans do meet these checks (the two plans
+written on 2026-07-31 are clean), so deleting them would have discarded a working standard on the strength of a
+miscounted headline. This is the third time in one session that an aggregate figure was quoted as evidence and
+proved wrong when decomposed (after "105 plan-audit errors" and an exit code read through a shell pipe); the lesson
+is about **reading a number's components before acting on it**, and it belongs with the standard the number
+describes.
+
 ---
 
 ## 6. Relationship with personal memory (`~/.claude/.../memory`)

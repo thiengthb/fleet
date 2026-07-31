@@ -161,7 +161,14 @@ function auditFile(path) {
   // POSIX-shaped so the report reads the same on every machine (see _layout.mjs).
   const rel = posix(relative(REPO, path));
   const findings = [];
-  const add = (level, msg) => findings.push({ level, msg });
+  /**
+   * `keepWhenClosed` marks a finding that stays actionable on a CLOSED plan — i.e. one that is ABOUT being
+   * closed, rather than about the plan's shape. Everything else is a shape finding and is downgraded to
+   * `LEGACY` once the plan closes, because repairing it would mean editing the record of what was done.
+   * See the CLOSED block below for why this is opt-IN rather than opt-out.
+   */
+  const add = (level, msg, { keepWhenClosed = false } = {}) =>
+    findings.push({ level, msg, keepWhenClosed });
 
   const fm = parseFrontmatter(text);
   if (!fm) {
@@ -308,7 +315,11 @@ function auditFile(path) {
     }
 
     if (section(text, 'Decisions to distill') === null && ['done'].includes(status)) {
-      add('WARN', 'closed plan with no `## Decisions to distill` — nothing hands off to `decisions.md` at /session-wrap');
+      add(
+        'WARN',
+        'closed plan with no `## Decisions to distill` — nothing hands off to `decisions.md` at /session-wrap',
+        { keepWhenClosed: true }, // this finding is ABOUT being closed, and appending the section repairs no history
+      );
     }
 
     /* the checkin pair — mirrors plan-checkin.mjs so one command reports everything */
@@ -342,11 +353,28 @@ function auditFile(path) {
    * as the `preStandard` exemption above — charging a file with breaking a frame it was never inside inflates
    * the failure count with findings nobody can act on.
    *
-   * Deliberately NOT downgraded: WARNs, including the one about a closed plan handing nothing to
-   * `decisions.md` — that finding is ABOUT being closed, and it is actionable today.
+   * BATCH D2 EXEMPTED WARNs WHOLESALE, AND THAT WAS WRONG — CORRECTED 2026-07-31
+   * (plan `2026-07-31-harness-reexamination.md` AC-5).
+   *
+   * The original note read: "Deliberately NOT downgraded: WARNs, including the one about a closed plan handing
+   * nothing to `decisions.md` — that finding is ABOUT being closed, and it is actionable today." That reasoning
+   * is correct **for that one WARN** and was then applied to all of them.
+   *
+   * Measured 2026-07-31, decomposing the headline instead of quoting it: of 92 WARNs, **74 were on CLOSED
+   * plans**, and 62 of those were the two shape checks (`Files:` 33, `Test:` 29) — which are exactly the
+   * "cannot repair without editing history" case that ERROR→LEGACY already exists to handle. Live WARN debt is
+   * **18, not 92**. So the same mistake as the 105 ERRORs was still live one tier down: an aggregate that
+   * measured the repo's history got read as a backlog, and the fix considered first was to DELETE the checks —
+   * which would have destroyed a standard that new plans do meet (this repo's two 2026-07-31 plans are clean).
+   *
+   * So: a closed plan downgrades ERRORs **and shape WARNs** to LEGACY. `keepWhenClosed` is opt-IN, so a new
+   * check is treated as shape by default and a future author must argue for actionability rather than inherit it.
    */
   if (CLOSED.has(status)) {
-    for (const f of findings) if (f.level === 'ERROR') f.level = 'LEGACY';
+    for (const f of findings) {
+      if (f.keepWhenClosed) continue;
+      if (f.level === 'ERROR' || f.level === 'WARN') f.level = 'LEGACY';
+    }
   }
 
   return { rel, kind: kind || null, status: status || null, isProposal, findings };

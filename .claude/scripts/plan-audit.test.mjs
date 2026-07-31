@@ -629,6 +629,85 @@ x
   rmSync(closedOnly.root, { recursive: true, force: true });
 }
 
+/* ═══════════ 10c. a shape WARN on a CLOSED plan is LEGACY too — but a WARN *about* being closed is not ══
+ * Batch D2 downgraded ERRORs on closed plans and exempted WARNs wholesale, reasoning it for the one WARN that
+ * is genuinely about being closed. Measured 2026-07-31: 74 of 92 WARNs were on closed plans, 62 of them the
+ * `Files:`/`Test:` shape checks — the same unrepairable-without-editing-history case. So the exemption is now
+ * opt-IN (`keepWhenClosed`), and this case pins BOTH halves: the shape WARN must move, the about-being-closed
+ * WARN must stay. Without the second half, "relaxing" the tier would have silenced a finding that is real.
+ */
+{
+  // Steps with no `Files:`/`Test:` → shape WARNs. No `## Decisions to distill` → the actionable-when-closed WARN.
+  const SHAPELESS_STEPS = (status) => `---
+title: a plan whose steps name nothing
+kind: system-change
+status: ${status}
+created: 2026-07-20
+updated: 2026-07-20
+---
+
+## The ask, verbatim
+
+> làm cho tôi cái này
+
+## Goal
+
+One sentence.
+
+## Context
+
+Why now.
+
+## Prior art & sources
+
+- [Source one](https://example.org/a) — what we learn
+- [Source two](https://example.net/b) — and this
+
+## Approach & tradeoffs
+
+Chosen: x.
+
+## Acceptance criteria
+
+- **AC-1** — Given a thing, When it happens, Then it is observable.
+
+## Steps
+
+- [ ] Step 1 — do the thing
+- [ ] Step 2 — do the other thing
+
+## Out of scope
+
+- not this
+`;
+
+  const live = sandbox({ "2026-07-20-live.md": SHAPELESS_STEPS("active") });
+  const rLive = findings(live, "live.md");
+  assert.ok(
+    has(rLive, "WARN", /steps name no `Files:`/),
+    `on a LIVE plan the shape gap must stay a WARN — it is repairable today\n${JSON.stringify(rLive.findings)}`,
+  );
+
+  const closed = sandbox({ "2026-07-20-closed.md": SHAPELESS_STEPS("done") });
+  const rClosed = findings(closed, "closed.md");
+  assert.ok(
+    !has(rClosed, "WARN", /steps name no `Files:`/),
+    "on a CLOSED plan the shape gap must NOT be a WARN — repairing it would edit the record",
+  );
+  assert.ok(
+    has(rClosed, "LEGACY", /steps name no `Files:`/),
+    "…and it must still be REPORTED as LEGACY, never dropped — a silent exemption is how a checker rots",
+  );
+  // The other half: this one is ABOUT being closed, so it must survive as an actionable WARN.
+  assert.ok(
+    has(rClosed, "WARN", /no `## Decisions to distill`/),
+    `a WARN about being closed must stay a WARN\n${JSON.stringify(rClosed.findings)}`,
+  );
+
+  rmSync(live.root, { recursive: true, force: true });
+  rmSync(closed.root, { recursive: true, force: true });
+}
+
 /* ═══════════ 11. the suite must NOTICE a broken checker (mutation) ═══════════ */
 {
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
@@ -689,6 +768,34 @@ x
       },
       apply: (s) => s.replace("const preStandard = !!fm.created &&", "const preStandard = false &&"),
       probe: (s) => has(findings(s, "ancient.md"), "ERROR", /missing `kind:`/),
+    },
+    {
+      name: "the WARN downgrade removed (the WARN count goes back to describing history — the 2026-07-31 defect)",
+      plans: {
+        "2026-07-20-closed.md":
+          "---\ntitle: closed with shapeless steps\nkind: system-change\nstatus: done\ncreated: 2026-07-20\n" +
+          "updated: 2026-07-20\n---\n\n## The ask, verbatim\n\n> x\n\n## Goal\n\nx\n\n## Context\n\nx\n\n" +
+          "## Prior art & sources\n\n- [a](https://a.example.org/x) — x\n- [b](https://b.example.net/y) — y\n\n" +
+          "## Approach & tradeoffs\n\nx\n\n## Acceptance criteria\n\n- **AC-1** — Given, When, Then.\n\n" +
+          "## Steps\n\n- [ ] Step 1 — bare\n\n## Out of scope\n\n- x\n",
+      },
+      apply: (s) => s.replace("if (f.level === 'ERROR' || f.level === 'WARN')", "if (f.level === 'ERROR')"),
+      probe: (s) => has(findings(s, "closed.md"), "WARN", /steps name no `Files:`/),
+    },
+    {
+      name: "keepWhenClosed ignored (the one WARN that IS actionable gets silenced with the rest)",
+      plans: {
+        "2026-07-20-nodistill.md":
+          "---\ntitle: closed, hands nothing off\nkind: system-change\nstatus: done\ncreated: 2026-07-20\n" +
+          "updated: 2026-07-20\n---\n\n## The ask, verbatim\n\n> x\n\n## Goal\n\nx\n\n## Context\n\nx\n\n" +
+          "## Prior art & sources\n\n- [a](https://a.example.org/x) — x\n- [b](https://b.example.net/y) — y\n\n" +
+          "## Approach & tradeoffs\n\nx\n\n## Acceptance criteria\n\n- **AC-1** — Given, When, Then.\n\n" +
+          "## Steps\n\n- [ ] Step 1 — do it · Files: `a/b.ts` · Test: `AC-1 (how)`\n\n## Out of scope\n\n- x\n",
+      },
+      // Drop the guard: now EVERY warn on a closed plan is downgraded, including the actionable one. This is the
+      // over-correction the fix had to avoid, so the suite must catch it as surely as it catches the under-fix.
+      apply: (s) => s.replace("if (f.keepWhenClosed) continue;", ""),
+      probe: (s) => !has(findings(s, "nodistill.md"), "WARN", /no `## Decisions to distill`/),
     },
     {
       name: "the closed-plan downgrade removed (the ERROR count goes back to describing history)",
