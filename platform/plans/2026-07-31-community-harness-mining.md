@@ -367,6 +367,18 @@ outside instrument. Counterweight, stated so this is not a sales pitch: **~63 of
 low-value for fleet as it stands**, the tool is pre-1.0 (0.41.1) with a rule count its own pages quote as 156 /
 414 / 444, and it must never be run with `--fix` on prose a human wrote for a human.
 
+**Blind spot found 2026-07-31, while executing A5 — `agnix`'s field allowlist LAGS the vendor docs.** It reported
+`disallowed-tools` as *"Unknown frontmatter field"* on all four skills, while accepting `disable-model-invocation`
+on the five beside them. The tiebreaker is the official
+[frontmatter reference](https://code.claude.com/docs/en/skills), fetched the same day, which documents
+`disallowed-tools` in a table with full semantics — alongside `arguments`, `user-invocable`, `effort`, `background`
+and `hooks`, several carrying explicit `min-version: 2.1.196 / 2.1.218` markers. So agnix (published 2026-07-27,
+v0.41.1) is behind, and **its "unknown field" rule cannot be trusted as a gate** for a repo that tracks current
+Claude Code features. This is the pre-1.0 caveat above, now with a named instance rather than a disclaimer — and it
+downgrades agnix from "external oracle" to **"external oracle with a known blind spot"**, which is what the
+rulebook-readiness row should say. The failure is safe in this direction (a false warning, not a missed defect), but
+the inverse — agnix passing something Claude Code rejects — has not been tested and should not be assumed.
+
 **Open question 3 is answered: one-off audit now, standing check only after A3.** Adding a young third-party binary
 to the weekly sweep buys a dependency for a check whose value is front-loaded — it has already told fleet the one
 thing it did not know. Re-run it when `rulebook` is packaged, where a strict parser is the actual customer.
