@@ -1,4 +1,4 @@
-# Danh mục công cụ của agent — 37 công cụ
+# Danh mục công cụ của agent — 38 công cụ
 
 > **SINH TỰ ĐỘNG** bởi `node .claude/scripts/tool-catalog.mjs --write`. **Đừng sửa tay** — lần sinh sau ghi đè.
 > Muốn đổi phần chữ tiếng Việt: sửa dòng `@vi WHAT/WHEN/WHY` **ngay trong file công cụ đó**, rồi sinh lại.
@@ -11,7 +11,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | Loại | Số lượng | Ai gọi |
 | --- | --- | --- |
 | Hook | 15 | tự động, theo sự kiện |
-| Script | 19 | anh tự gọi khi cần |
+| Script | 20 | anh tự gọi khi cần |
 | Thư viện | 3 | các file khác import |
 
 ## 1. Hook — tự chạy, anh không phải gọi
@@ -43,6 +43,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | [`decisions-split.mjs`](#decisions-splitmjs) | Khi một file decisions.md quá lớn — health-sweep hoặc memory-audit sẽ báo trước. | `node .claude/scripts/decisions-split.mjs` | không | ✓ |
 | [`eval-ledger-rule.mjs`](#eval-ledger-rulemjs) | Hầu như không chạy lại — nó tốn tiền thật và kết quả đã được ghi lại. | `node .claude/scripts/eval-ledger-rule.mjs` | không | ✓ |
 | [`eval-plan-execution-gate.mjs`](#eval-plan-execution-gatemjs) | Hầu như không chạy lại — nó tốn tiền thật, và kết quả đã được ghi lại ngay trong file này. | `node .claude/scripts/eval-plan-execution-gate.mjs` | không | ✓ |
+| [`eval-verification-claim.mjs`](#eval-verification-claimmjs) | Hầu như không chạy lại — tốn tiền thật; kết quả đã ghi ngay trong file này. | `node .claude/scripts/eval-verification-claim.mjs` | không | ✓ |
 | [`health-sweep.mjs`](#health-sweepmjs) | Mỗi tuần một lần. Chỉ cần đọc dòng VERDICT. | `node .claude/scripts/health-sweep.mjs` | không | ✓ |
 | [`ledger-split.mjs`](#ledger-splitmjs) | Khi mục lục phình ra — memory-audit sẽ báo. | `node .claude/scripts/ledger-split.mjs` | không | ✓ |
 | [`link-check.mjs`](#link-checkmjs) | Tự động trong health-sweep hằng tuần. | `node .claude/scripts/link-check.mjs` | không | ✓ |
@@ -310,6 +311,18 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Một phép thử có model tham gia: nó gọi Claude thật để xem cái khối `## Before executing a batch` trong file plan có thật sự khiến một phiên mới KIỂM TRA trước khi xây, hay nó chỉ là chữ nằm đó cho đẹp.
 
 **Vì sao có nó:** Ngày 2026-07-31 tôi đóng plan và tuyên bố khối đó là "thứ bền nhất plan này tạo ra" mà KHÔNG có bằng chứng nào. Một tuyên bố chưa kiểm chứng chính là thứ A7 tồn tại để chặn, nên nó bị đem ra đo — kể cả khi kết quả làm tôi sai.
+
+### eval-verification-claim.mjs
+
+`.claude/scripts/eval-verification-claim.mjs` · script · test: `eval-verification-claim.test.mjs`
+
+**Chạy tay:** `node .claude/scripts/eval-verification-claim.mjs`
+
+**Khi nào cần:** Hầu như không chạy lại — tốn tiền thật; kết quả đã ghi ngay trong file này.
+
+**Nó làm gì:** Một phép thử có model tham gia: nó dựng một cái bẫy trong đó bước trung gian XANH nhưng kết quả cuối cùng người dùng thấy vẫn CŨ, rồi xem model có tuyên bố xong hay không — và luật "bằng chứng trước khi tuyên bố" có đổi được hành vi đó hay không.
+
+**Vì sao có nó:** Ký ức `verify-end-state-not-upload` tồn tại vì tôi từng tuyên bố xong từ một bước xanh trung gian. Đó là một thất bại ĐÃ QUAN SÁT ĐƯỢC, không phải giả định — nên nó là thứ đáng đo, và đo được.
 
 ### health-sweep.mjs
 
