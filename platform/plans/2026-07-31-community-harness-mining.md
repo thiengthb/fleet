@@ -87,7 +87,34 @@ plan's `F` series.
 `using-git-worktrees` · `using-superpowers` · `verification-before-completion` · `writing-plans` ·
 `writing-skills`. fleet already has equivalents of six. **AGREEMENT: n/a (primary artefact).**
 
-**C2 — fleet writes plans and has no skill for executing one. AGREEMENT: 3.**
+**C2 — ADOPTED 2026-07-31 on branch `feat/plan-execution-gate`. And this row's premise was PARTLY FALSE, which
+makes it the third such row in these two plans.** What was claimed: *"fleet has `/project-plan` for authoring and
+**nothing for the execute half**."* Checked against the file before building: `/project-plan/SKILL.md` **already**
+carries `## Step 3 — Keep it in sync while executing` ("execute in small batches with a checkpoint", "check off
+steps, bump `updated:`") **and** a block literally headed *"Two habits that make steps + execution sharp (borrowed
+from the community plan/execute skills)"* — so the community's execute-half had already been partially absorbed,
+and this row read the absence of a *skill* as the absence of a *practice*.
+
+**What was genuinely missing survives the correction, and it is sharper than the original claim:** the guidance
+existed **at the wrong trigger**. It lives inside the skill you open to *write* a plan; a later session resuming
+*execution* opens the **plan file**, never the skill. That is the failure the ledger already names (2026-07-30, "A
+rule enforced at the wrong trigger reads as coverage"). Evidence it did not fire, from this very session: A3 built
+on a premise falsified two days earlier, L1 on a target invented one step before the measurement it demanded, and
+this row itself — **three premise failures at execution time on plans whose author had already written the
+guidance.**
+
+**So: content adopted, packaging REFUSED.** No 39th skill — the platform has 38 with 17 never invoked, and a skill
+nobody opens at execution time is the exact defect being fixed. The pre-batch questions ship as a
+`## Before executing a batch` block in the **plan template**, plus a `plan-audit` WARN when an `active` plan with
+unticked steps lacks it. WARN not ERROR, per `CLAUDE.md`'s escalation order (restructure → measure → gate): the
+template makes compliance the default, so this measures the residue. **Measured: fired on 4 of 4 live plans, then
+3 were retrofitted and it fell to 1** — the remaining one is `harness-reexamination`, deliberately left alone
+because the `refactor/claude-md-triggers-only` branch has already edited that file and a manufactured green is
+worth less than an honest 1. 3 new mutants, all killed.
+_Also fixed in passing: that suite's summary line hardcoded "8 mutants all killed" while the file contained 10 —
+a test reciting a remembered number about itself. It is now counted from the loop._
+
+~~C2 — fleet writes plans and has no skill for executing one.~~ **AGREEMENT: 3.**
 Superpowers ships `writing-plans` **and** `executing-plans` (C1) · the community catalogue contains
 `agent-handoff` ("strict 3-stage handoff: plan → execute → verify") and `agentsatlas` (an eight-command
 init→plan→execute→status→sync→triage→review→complete workflow) · `agentic-swe` ("structured software-engineering
@@ -486,6 +513,18 @@ Replaced by a **symmetry rule with no target number**, which is what the supervi
 - [ ] **Batch 4 — execute the ≤3 adoptions, write every verdict to the shared log, amend the sibling plan.**
       _Files: as the table names, `commons/docs/external-patterns.md`,
       `platform/plans/2026-07-31-harness-reexamination.md`._ · _Test: AC-5, AC-6._
+
+## Before executing a batch
+
+<!-- Read at the START of every working session on this plan, not once when it was written. Rationale and
+     sources: `.claude/skills/project-plan/templates/plan.md`, same section. -->
+
+1. **Is the premise of this batch still true?** Check the step against the repo AS IT IS TODAY, not as this
+   plan described it. A plan is a snapshot; the repo moved.
+2. **Has it already been built?** Grep for it, and read `INVENTORY`, the relevant `decisions.md` and
+   `platform/proposals/` before writing anything.
+3. **Is every number this batch promises derived, or guessed?**
+4. **Write the answers here, dated — including "unchanged".**
 
 ## Out of scope
 

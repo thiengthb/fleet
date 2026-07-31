@@ -354,6 +354,18 @@ confident wrong answer, which is the failure shape this whole audit exists for:
       subtracted quietly. Two new cases + a mutant pin it, incl. `--strict` passing on a repo of closed plans
       and failing on one live gap.
 
+## Before executing a batch
+
+<!-- Read at the START of every working session on this plan, not once when it was written. Rationale and
+     sources: `.claude/skills/project-plan/templates/plan.md`, same section. -->
+
+1. **Is the premise of this batch still true?** Check the step against the repo AS IT IS TODAY, not as this
+   plan described it. A plan is a snapshot; the repo moved.
+2. **Has it already been built?** Grep for it, and read `INVENTORY`, the relevant `decisions.md` and
+   `platform/proposals/` before writing anything.
+3. **Is every number this batch promises derived, or guessed?**
+4. **Write the answers here, dated — including "unchanged".**
+
 ## Check-in runbook
 
 **What this gate decides** — whether the second brain is still healthy, and whether anything staged for

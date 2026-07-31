@@ -120,6 +120,27 @@ check("--check is silent and exits 0 when the page matches and every tool introd
   assert.doesNotMatch(r.out, /✗/, `nothing should be reported as wrong: ${r.out}`);
 });
 
+check("a CRLF checkout of a byte-correct page is NOT stale", () => {
+  // Found 2026-07-31 by running `--check` in a fresh git worktree: it reported the page stale on a file that
+  // differed from the generated text by exactly one CR per line and nothing else. `core.autocrlf` restores
+  // CRLF on every checkout here, so the gate was one `git checkout --` away from crying BROKEN in the weekly
+  // sweep, on every machine that had not just run `--write`. The reverse case above still has to fail, so a
+  // fix that simply stopped comparing would be caught there.
+  const files = {
+    hooks: { "blocker.mjs": tagged("chặn thử", "// process.exit(2)\n") },
+    settings: WIRED,
+  };
+  const a = sandbox(files);
+  assert.equal(run(a.script, ["--write"]).code, 0, "--write must succeed to produce the reference page");
+  const lf = readFileSync(join(a.dir, "platform", "registries", "tool-catalog.md"), "utf8");
+  assert.ok(!lf.includes("\r\n"), "the generator is expected to emit LF — if that changes, this case is moot");
+
+  const b = sandbox({ ...files, page: lf.replace(/\n/g, "\r\n") });
+  const r = run(b.script, ["--check"]);
+  assert.equal(r.code, 0, `a CRLF copy of the same page must pass, got ${r.code}: ${r.out}`);
+  assert.doesNotMatch(r.out, /đã lệch/, `must not call a byte-correct page stale: ${r.out}`);
+});
+
 /* ═══════════════════ 2. the acting paths, asserted BY MESSAGE ═══════════════════ */
 
 check("a tool with no @vi WHAT fails --check and is named", () => {
@@ -379,6 +400,18 @@ const mutantFiles = {
  * ("the page no longer says X") true against the `--check` output, where X never appears. Four mutants then
  * reported "the probe is not specific" — correctly. A probe that can match the wrong stream is not a probe.
  */
+/**
+ * The correct page for `mutantFiles`, stored with CRLF. Generated rather than written by hand: the point of the
+ * case that uses it is that the CONTENT is right and only the line endings differ, which a hand-written fixture
+ * could not honestly claim.
+ */
+const CRLF_PAGE = (() => {
+  const s = sandbox(mutantFiles);
+  assert.equal(run(s.script, ["--write"]).code, 0, "--write must succeed to build the CRLF fixture");
+  const lf = readFileSync(join(s.dir, "platform", "registries", "tool-catalog.md"), "utf8");
+  return lf.replace(/\r?\n/g, "\r\n");
+})();
+
 const mutants = [
   {
     name: "wiring parse returns nothing (every hook would read as 'anh tự gọi')",
@@ -420,8 +453,25 @@ const mutants = [
   {
     name: "the drift comparison always agrees with whatever is on disk",
     files: { page: "# một trang cũ đã lạc hậu\n" },
-    patch: (s) => s.replace("} else if (onDisk !== page) {", "} else if (false) {"),
+    patch: (s) =>
+      s.replace(
+        "} else if (onDisk.replace(/\\r\\n/g, '\\n') !== page.replace(/\\r\\n/g, '\\n')) {",
+        "} else if (false) {",
+      ),
     probe: ({ gate }) => !/đã lệch/.test(gate),
+  },
+  {
+    // The other direction of the CRLF fix: normalising must not be reachable by dropping the comparison
+    // altogether, and it must not be reachable by normalising ONLY the generated side either — that is the
+    // shape the bug actually had, and it is what a careless "fix" would leave behind.
+    name: "only the generated side is LF-normalised (the original CRLF bug, half-fixed)",
+    files: { page: CRLF_PAGE },
+    patch: (s) =>
+      s.replace(
+        "} else if (onDisk.replace(/\\r\\n/g, '\\n') !== page.replace(/\\r\\n/g, '\\n')) {",
+        "} else if (onDisk !== page.replace(/\\r\\n/g, '\\n')) {",
+      ),
+    probe: ({ gate }) => /đã lệch/.test(gate),
   },
   {
     name: "the test column reports ✓ for a tool with no test file",

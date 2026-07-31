@@ -411,7 +411,15 @@ if (CHECK) {
   if (onDisk === null) {
     console.log(`✗ chưa có ${relative(REPO, OUT)} — chạy \`--write\``);
     fail = 1;
-  } else if (onDisk !== page) {
+    /**
+     * Compared LF-normalised, and this is a bug fix, not a convenience. `--write` emits `\n`; on a Windows
+     * checkout with `core.autocrlf` on, git restores the file as CRLF. A strict `!==` then reported the page
+     * as STALE on every fresh clone, worktree or `git checkout --` — 34,905 bytes on disk vs 34,454
+     * generated, a difference of exactly 451 bytes for 451 lines, with zero content difference. That is a
+     * false BROKEN in the weekly sweep about a page that is byte-correct, and it only passed on this machine
+     * because the live copy happened to have been written by `--write` and never checked out again.
+     */
+  } else if (onDisk.replace(/\r\n/g, '\n') !== page.replace(/\r\n/g, '\n')) {
     console.log(`✗ ${relative(REPO, OUT)} đã lệch so với thực tế — chạy \`--write\` để sinh lại`);
     fail = 1;
   }

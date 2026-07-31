@@ -290,6 +290,29 @@ function auditFile(path) {
       const noTest = items.filter((s) => !/(?<![A-Za-z])Test:/i.test(s)).length;
       if (noFiles) add('WARN', `${noFiles}/${items.length} steps name no \`Files:\` — a fresh session must re-derive where to work`);
       if (noTest) add('WARN', `${noTest}/${items.length} steps name no \`Test:\` — "done" is unverifiable for those steps`);
+
+      /**
+       * THE EXECUTE HALF. Adopted 2026-07-31 from `community-harness-mining` C2 — three independent parties
+       * ship an execute-half skill next to their plan-writing one, and fleet shipped only the authoring side.
+       *
+       * Checked here rather than in the required-section list on purpose: a plan with nothing left to do has
+       * nothing left to execute, so demanding the block on a closed or fully-ticked plan would manufacture
+       * findings on files nobody will open again. That is the C1 lesson from the same day, where 74 of 92
+       * WARNs sat on closed plans and buried the 18 that were live.
+       *
+       * WARN, not ERROR, and deliberately: `CLAUDE.md` says escalate in order — restructure so compliance is
+       * easiest, then measure, then gate only if prose lost. The template now carries the block, so
+       * compliance is the default for anything written from it; this measures the gap on plans that predate
+       * it. It earns ERROR only if the number stops falling.
+       */
+      const open = items.filter((s) => /^[ \t]*-[ \t]*\[[ \t]\]/.test(s)).length;
+      if (status === 'active' && open > 0 && section(text, 'Before executing a batch') === null) {
+        add(
+          'WARN',
+          `\`status: active\` with ${open} unticked step(s) but no \`## Before executing a batch\` — ` +
+            `the plan says what to build and nothing about re-checking the premise first`
+        );
+      }
     }
 
     const acBody = section(text, 'Acceptance criteria');
