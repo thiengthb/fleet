@@ -450,7 +450,7 @@ Bars are as declared in *Approach & tradeoffs* and were not loosened. Effort: **
 
 | # | Item | The move |
 |---|---|---|
-| **L1** | CLAUDE.md at 2,270 words | Move the coding / docs / memory / lifecycle / routing sections into path- or task-scoped `.claude/rules/*.md`, keeping only triggers, prohibitions and pointers — the exit criteria in `documentation.md §7.3` already say this; F1+F2 say how. Target: **≤800 words**, measured, not eyeballed |
+| **L1** | **DONE 2026-07-31 on branch `refactor/claude-md-triggers-only` — 2,270 → 1,730 words. And the `≤800` target in this row was WRONG.** | ~~Target: **≤800 words**, measured, not eyeballed~~ — the *result* was to be measured, but **the target itself was eyeballed**, which is the same defect one step earlier. Two things were found by measuring instead of assuming. **(1) The prior art already existed.** `platform/proposals/2026-07-30-claude-md-thin.mjs` ran a gated thinning **the day before this plan was written** (211 → 181 lines) with a 35-row provenance table naming an exit criterion per move and a 16-item prohibition-verbatim gate. So 2,270 was not un-thinned prose — it was **what survived a checked pass**, and this row read it as virgin fat. That is the **second** time in this one plan that a solved problem was researched (A3 was the first), same root cause: not reading what the repo already says. It was caught this time *before* anything was written, during destination verification — but only because the grep for inbound `CLAUDE.md §…` references happened to surface the file. **(2) The floor is ~1,700, not 800**, and it is structural: **16 prohibitions may never leave** (§7.3's hard exception — a path-scoped rules file is delivered attached to the tool *result*, i.e. after the call it was meant to govern), and the **task-shaped** rules (P-tiers, the JIT context-loading path, model routing, the EN-artifacts/VI-chat rule) have **no file-shaped `paths:` glob and no gate**, so they satisfy none of the four criteria and stay by law, not by preference. Verified against the real mechanism: `.claude/rules/*.md` supports **only** `paths:` — checked against the one live example, `frontend.md`. **What shipped:** 18 destinations grepped *before* any removal, every one already carrying its content, so **zero new rules files were needed** — the "move it into 2–3 new `.claude/rules/` files" design this row implies was dropped as machinery for a problem that did not exist. Plus the anti-erosion half, which the 2026-07-30 pass did not have: `claude-md-budget.mjs` + 14 tests / 5 mutants, wired into `health-sweep` |
 | **L2** | 38 skills in one flat discovery tier | Adopt the nine-clean-categories discipline (F5). Not a cut — a category field and a "does this straddle?" test at authoring time, enforced in `/skill-authoring` |
 | **L3** | `autonomy-gate.mjs` vs native auto mode + `PermissionRequest` | Native auto mode now covers part of T2/T3 with a classifier. Keep the T4 hard list (out of scope, correctly). Re-express the reversible tiers as permission rules where the native layer is strictly better |
 | **L4** | `reviewer.md` + `/honest-critique` with no over-engineering brake | Add the one sentence from Anthropic's own callout (F10): a reviewer will report findings even when the work is sound; flag only what affects correctness or the stated requirement. This is the cheapest possible guard on the exact failure this whole plan was called to fix |
@@ -462,9 +462,34 @@ Bars are as declared in *Approach & tradeoffs* and were not loosened. Effort: **
 | # | Item | Measurement + the argument that nothing depends on it |
 |---|---|---|
 | **C1** | ~~The `plan-audit` **WARN** tier~~ **DONE 2026-07-31, but NOT as a cut — and AC-5's fork was a false dichotomy.** | The row above proposed deleting WARN checks "no plan has ever been edited to satisfy". **Decomposing the 92 before acting killed that plan:** **74 were on CLOSED plans**, 62 of them the `Files:`/`Test:` step checks — the same unrepairable-without-editing-history case that `ERROR→LEGACY` already existed to handle. **Live WARN debt was 18, not 92.** And the checks are *not* unsatisfiable: both plans written 2026-07-31 meet them and are clean, so deleting them would have thrown away a working standard on a miscounted headline. **Fix shipped: the closed-plan downgrade now covers shape WARNs too**, with `keepWhenClosed` opt-in so the one WARN that is genuinely *about* being closed survives. Result **WARN 92 → 23** (18 live + 5 actionable-on-closed), LEGACY 80 → 149, **ERROR unchanged at 25, clean unchanged at 12/68 — no bar lowered, nothing deleted.** Two mutants added (under-fix and over-fix), suite now 8/8 mutants killed. Recorded in `standards/documentation.md §5.5` |
-| **C2** | ~1,400 words of CLAUDE.md prose | The same content exists in `standards/*.md` and the skills. Every word is charged to every session, including the trivial ones. Goes to `.claude/rules/` (L1), not to `attic` — this is a move, and the CUT is of the always-loaded copy |
+| **C2** | ~~~1,400 words of CLAUDE.md prose~~ **540 words, DONE 2026-07-31 with L1 (same commit pair).** | The premise held — the content did exist in `standards/*.md` and the skills, and 18 of 18 destinations were verified by grep before anything was removed, so nothing was deleted into a vacuum. The **size** did not hold: the cuttable mass was **540 words, not ~1,400**, because ~1,700 words are prohibitions or task-shaped triggers that §7.3 forbids relocating. It did not go to `.claude/rules/` either — no new rules file was needed, and building one would have been the `commons` failure (a shared item nobody installs) in a new place. **The honest headline: the always-loaded surface was 24% fat, not 62%.** A gate now holds the line (`claude-md-budget.mjs`), which is the part that was actually missing — prose has said "keep it thin" since §7.2 was written and the file grew anyway |
 | **C3** | Overlapping skill pairs | `/architecture` ↔ `/brainstorming`, `/react-best-practices` ↔ `/react-ui-craft`, `/lint-and-validate` ↔ `/verification-before-completion`. Anthropic names overlapping descriptions as a **discovery** failure (F5, checklist 57). Candidate merges, decided by reading the two descriptions side by side, staged through `attic` |
 | **C4** | **NOT the 17 unused skills** | Recorded as a refusal. The cut this plan expected to make did not survive the evidence: the vendor runs hundreds of skills, and A1 removes their entire cost without deleting anything. **AC-4 must be re-scoped** — C1/C2/C3 are real cuts but only C3 goes through `attic`, and the sprawl baselines will not fall from A1 because `sprawl-check` counts installation, not visibility |
+
+### A blind spot in this session's whole verification method, found 2026-07-31 by measuring it
+
+**`tool-check` cannot be green inside a git worktree, and every branch in this session was verified inside
+one.** `projects/`, `commons` and `rulebook` are separate repos that fleet does not track (`git ls-files
+projects/` → **0**), so a linked worktree contains only `CLAUDE.md`, `platform/` and `.claude/`. Two suites
+scan those sibling repos and therefore fail on absence: `_layout.test.mjs` ("sees only 1 projects in the real
+repo") and `reuse-scan.test.mjs` ("0 of 6 ground-truth pairs resolved"). In a worktree the run is **32/34 by
+construction**.
+
+**Proven, not assumed.** A control worktree was created from clean `main` with no changes at all, and both
+suites exit **1** there — so neither failure is attributable to any branch. Both pass in the main tree.
+
+**Consequence, and it is uncomfortable.** A2 (`feat/verify-claim-gate`), A5 (`fix/skill-frontmatter-yaml`),
+A6 (`feat/tree-moved-notice`) and L1 (`refactor/claude-md-triggers-only`) were all built and verified in
+worktrees. Their green results are green **except those two, by construction** — which is fine once it is
+named, and misleading while it is not. It also sharpens the note already in Batch 2: the post-merge
+`tool-check` figure is **inferred, not measured**, and the only place it can be measured is the main tree
+after the merge.
+
+**Catchable mechanically, and here is the mechanism — NOT built, deliberately.** `tool-check` can detect a
+linked worktree (`git rev-parse --git-dir` ≠ `--git-common-dir`) and report a suite that depends on untracked
+sibling repos as `N/A (worktree)` rather than `FAILING`. It is not built here because it needs its own tests
+and belongs in the same change as a declaration of *which* suites have that dependency — inventing that list
+while shipping something else is how a half-tuned check gets in. Queued as a named step, not a vague intent.
 
 ### A hole in the governance list itself, found 2026-07-31 by trying to obey it
 
