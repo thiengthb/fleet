@@ -298,6 +298,19 @@ authoring guide says to establish (that guide's "no built-in way to run these" r
 discovery-tier cost that F1 and A1 estimated by hand all session. Also `claude plugin tag`, which validates that
 `plugin.json` and the marketplace entry agree — C5's version question answered by tooling instead of by taste.
 
+**BOTH BLOCKED — checked immediately after recommending them, and the recommendation did not survive.**
+`claude plugin eval` prints **"`plugin eval` is currently in early access"** and runs nothing, so A7's native path
+is **unavailable to fleet today**; A7 returns to hand-built or wait, and the "A7 is now cheaper than A3" advice one
+message earlier was wrong. · `claude plugin details` resolves **installed plugins only** — its own error suggests
+`--plugin-dir`, but that is the `claude` launch flag, not a subcommand option (`error: unknown option`). Measuring
+fleet's discovery cost with it therefore requires **installing** a plugin, which is a user-scope config change and
+not something to do unprompted.
+**Consequence for sequencing, stated plainly:** `--ablation with-without` only offers its baseline arm when the
+target is a plugin *by name*. So measurable, baselined evals for fleet's skills **require A3's remainder first** —
+A7 depends on A3, the reverse of the order I proposed. And with `plugin eval` gated, even that ordering is on hold.
+**The honest position is that the queue is blocked on a human merge, and inventing adjacent work to stay busy is
+the failure this plan was written to cut.**
+
 **F12 — Subagent isolation returning 1–2k distilled tokens is the documented context lever. AGREEMENT: 4.**
 [Anthropic — Effective context
 engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents): a subagent *"might
