@@ -171,12 +171,46 @@ const tools = files.map((f) => {
   // dir, which changes nothing the user owns. Measured 2026-07-30 before choosing.
   const rewritesFile = f.startsWith(HOOK_DIR) && /--write/.test(src);
 
+  /**
+   * Events where exit(2) genuinely blocks, per the hooks reference
+   * (https://code.claude.com/docs/en/hooks). `PreToolUse` was the only one recognised until 2026-07-31, which
+   * made this page report a BLOCKING `Stop` gate as "chỉ nhắc" — the exact class of lie the page exists to
+   * prevent, on the one column the supervisor reads it for. Found by adding `verify-claim-gate.mjs` and
+   * reading the generated row instead of trusting it.
+   *
+   * `PreToolUse` keeps its own wording because what it blocks differs: a TOOL CALL, versus the TURN ENDING.
+   */
+  const BLOCKING_EVENTS = new Set([
+    "UserPromptSubmit",
+    "UserPromptExpansion",
+    "PreToolUse",
+    "PermissionRequest",
+    "PostToolBatch",
+    "PreCompact",
+    "Stop",
+    "SubagentStop",
+    "TaskCreated",
+    "TaskCompleted",
+    "TeammateIdle",
+    "ConfigChange",
+    "WorktreeCreate",
+    "Elicitation",
+    "ElicitationResult",
+  ]);
+  const blockingWired = [...events].filter((e) => BLOCKING_EVENTS.has(e));
+
   let power = "—";
   if (isLib) power = "thư viện, không tự chạy";
   else if (events.has("PreToolUse") && canExit2) power = "**CHẶN được**";
   else if (events.has("PreToolUse")) power = "cắm chỗ chặn nhưng không có exit(2)";
+  else if (blockingWired.length && canExit2) power = `**CHẶN được** (${blockingWired.join(", ")})`;
   else if (rewritesFile) power = "**SỬA lại file vừa ghi**";
   else if (events.has("PostToolUse") && canExit2) power = "góp ý (không chặn)";
+  // NOT relabelled: a blocking-capable event WITHOUT exit(2). The "cắm chỗ chặn nhưng không có exit(2)"
+  // warning is right for `PreToolUse`, where a guard that cannot guard is a defect — but on `Stop` most hooks
+  // are advisory BY DESIGN (`suggest-session-wrap` says so in its own header). Relabelling those would make
+  // two correct hooks read as broken, so they stay "chỉ nhắc". Measured before choosing: the first version of
+  // this fix flipped both of them.
   else if (wires.length) power = "chỉ nhắc";
   else power = "anh tự gọi";
 

@@ -1,4 +1,4 @@
-# Danh mục công cụ của agent — 32 công cụ
+# Danh mục công cụ của agent — 33 công cụ
 
 > **SINH TỰ ĐỘNG** bởi `node .claude/scripts/tool-catalog.mjs --write`. **Đừng sửa tay** — lần sinh sau ghi đè.
 > Muốn đổi phần chữ tiếng Việt: sửa dòng `@vi WHAT/WHEN/WHY` **ngay trong file công cụ đó**, rồi sinh lại.
@@ -10,7 +10,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 
 | Loại | Số lượng | Ai gọi |
 | --- | --- | --- |
-| Hook | 13 | tự động, theo sự kiện |
+| Hook | 14 | tự động, theo sự kiện |
 | Script | 17 | anh tự gọi khi cần |
 | Thư viện | 2 | các file khác import |
 
@@ -31,6 +31,7 @@ thư viện thì không tự chạy, chỉ được các file khác dùng lại.
 | [`reuse-guard.mjs`](#reuse-guardmjs) | TRƯỚC mỗi lần ghi/sửa file | Khi tôi tạo một file mới mà tên trùng với thứ commons đã có sẵn, nó chặn lần đầu và nói nên `shadcn add` cái nào. Lần thứ hai thì cho qua. | **CHẶN được** | ✓ |
 | [`secret-guard.mjs`](#secret-guardmjs) | TRƯỚC mỗi lần ghi/sửa file | Nó CHẶN việc viết một khoá hay token thật vào bất cứ file nào không phải .env. | **CHẶN được** | ✓ |
 | [`suggest-session-wrap.mjs`](#suggest-session-wrapmjs) | khi tôi kết thúc một lượt trả lời | Khi tôi kết thúc một lượt trả lời, nếu phiên này đã làm nhiều việc mà chưa ghi lại gì, nó nhắc một lần duy nhất: nên chạy /session-wrap. | chỉ nhắc | ✓ |
+| [`verify-claim-gate.mjs`](#verify-claim-gatemjs) | khi tôi kết thúc một lượt trả lời | Khi tôi nói "xong / done / đã kiểm chứng" ở cuối một lượt mà lượt đó CÓ sửa file nhưng KHÔNG chạy một lệnh kiểm tra nào, hook này CHẶN lượt đó lại và buộc tôi hoặc chạy kiểm tra, hoặc nói rõ là "chưa xác minh". | **CHẶN được** (Stop) | ✓ |
 
 ## 2. Script — anh tự gọi khi cần
 
@@ -221,6 +222,18 @@ thích dài bằng tiếng Anh (kèm số đo và ngày tháng) nằm ở đầu
 **Nó làm gì:** Khi tôi kết thúc một lượt trả lời, nếu phiên này đã làm nhiều việc mà chưa ghi lại gì, nó nhắc một lần duy nhất: nên chạy /session-wrap.
 
 **Vì sao có nó:** Tối đa một lần mỗi phiên, và chỉ khi có bằng chứng đã làm thật (từ 3 file hoặc 5 lần sửa trở lên) mà chưa có file tri thức nào được cập nhật. Không bao giờ chặn việc kết thúc.
+
+### verify-claim-gate.mjs
+
+`.claude/hooks/verify-claim-gate.mjs` · hook · test: `verify-claim-gate.test.mjs`
+
+**Nổ khi nào:** khi tôi kết thúc một lượt trả lời
+
+**Quyền:** **CHẶN được** (Stop)
+
+**Nó làm gì:** Khi tôi nói "xong / done / đã kiểm chứng" ở cuối một lượt mà lượt đó CÓ sửa file nhưng KHÔNG chạy một lệnh kiểm tra nào, hook này CHẶN lượt đó lại và buộc tôi hoặc chạy kiểm tra, hoặc nói rõ là "chưa xác minh".
+
+**Vì sao có nó:** Đây là luật duy nhất trong platform này từng bị vi phạm theo cách đo được: memory `verify-end-state-not-upload` sinh ra vì tôi tuyên bố xong từ một bước xanh trung gian. Văn bản đã không chặn được nó; một hook thì chặn được. Anthropic gọi đây là "deterministic gate", và người chấm không được là người làm.
 
 ### attic.mjs
 
