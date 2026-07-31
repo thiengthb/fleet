@@ -19,7 +19,9 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 
 - **One job per skill.** If the description needs "and", it's probably two skills.
 - **Lean `SKILL.md`; depth in `references/`** (progressive disclosure) — the description + body load into context every
-  session, so keep them tight. ~28 skills already cost ~4k tokens; every addition is a context tax.
+  session, so keep them tight. **Measured 2026-07-31: 38 skills, of which 5 are `disable-model-invocation: true` and
+  cost nothing, leaving 33 in the discovery tier at ~3,450 tokens of name+description.** Every addition is a context
+  tax; a manual, side-effecting skill should pay none (set the field instead of arguing for the skill's removal).
 - **SKILL.md = procedure; `references/<domain>.md` = LAW.** A skill body holds the *workflow* (numbered steps + the
   `done-when` checklist); declarative rules ("if X then Y", naming tables, mandatory stack lists) go into
   `references/<domain>.md` and are read on-demand from a procedure step. Format inside a reference file is bullets
@@ -34,6 +36,20 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 - **Authoring is TDD: test the trigger.** Before finishing, read the new description against the existing skill list:
   would it fire when intended, and *not* hijack a neighbour's cases? If two skills overlap, give each an explicit
   ownership lane (e.g. `architecture` = system-level + log→decisions.md; `brainstorming` = feature-level options).
+- **Fit cleanly into ONE category — the measured bar you must not fall below.** Anthropic runs *hundreds* of skills
+  and the discipline that makes that work is that each one *"fit cleanly into one"* category, because ones
+  *"straddling several confuse the agent"*
+  ([lessons/skills](https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills)). fleet currently
+  meets it, and here is the state to preserve, measured 2026-07-31 rather than assumed: **0 straddlers · 38/38
+  descriptions carry an explicit trigger clause · highest description overlap 0.222 Jaccard**
+  (`playwright-e2e-builder` ↔ `vitest-server-actions`), and every pair above 0.10 is either **intra-domain family
+  resemblance** — siblings sharing their domain's vocabulary, which the nine-category discipline *produces* — or has
+  a `disable-model-invocation` side that the model cannot mis-select at all.
+  **Deliberately NOT a gate**, and the reason is evidence, not laziness: the throwaway checker written to measure
+  this reported 4 of 38 descriptions as having no trigger clause, and reading those four showed **all four had
+  one** ("Use after…", "Use specifically when…", "Use before…", "Fires the moment…") — the regex was narrow. A
+  checker that reports present things as missing is the defect class this platform has already recorded three
+  times, and a false finding across 38 skills would cost more than the property is at risk of losing.
 - **Match platform conventions:** English; reference the living app (`todo`/`yakudoku`); respect every CLAUDE.md invariant.
 
 ## Adopting a community skill — the procedure (no-breakage gate)
