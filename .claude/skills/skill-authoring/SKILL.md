@@ -19,9 +19,16 @@ description: How to author a new skill, adopt a community skill, or fold an idea
 
 - **One job per skill.** If the description needs "and", it's probably two skills.
 - **Lean `SKILL.md`; depth in `references/`** (progressive disclosure) — the description + body load into context every
-  session, so keep them tight. **Measured 2026-07-31: 38 skills, of which 5 are `disable-model-invocation: true` and
-  cost nothing, leaving 33 in the discovery tier at ~3,450 tokens of name+description.** Every addition is a context
-  tax; a manual, side-effecting skill should pay none (set the field instead of arguing for the skill's removal).
+  session, so keep them tight. **Measured 2026-07-31 from `/context`, not estimated: 38 skills, of which 6 set
+  `disable-model-invocation: true` and are ABSENT from the loaded list entirely, leaving 32 in the discovery tier at
+  ~3,350 tokens of name+description.** Every addition is a context tax; a manual, side-effecting skill should pay
+  none — set the field instead of arguing for the skill's removal.
+  Two things `/context` shows that no fleet tool reports: **a `.claude/workflows/*.js` file is listed alongside the
+  skills** (`deep-research` is a workflow, not a skill), so the discovery tier is 33 entries, not 32; and
+  `skill-audit`'s "38 skills installed" counts directories, which is deliberately *not* the loaded-cost number.
+  **When you need the real figure, read `/context` — do not derive it from a `grep`.** A `grep -l
+  'disable-model-invocation: true' .claude/skills/*/SKILL.md` counted **this file** as manual-only the moment the
+  string appeared in the prose above; scope the match to the frontmatter block.
 - **SKILL.md = procedure; `references/<domain>.md` = LAW.** A skill body holds the *workflow* (numbered steps + the
   `done-when` checklist); declarative rules ("if X then Y", naming tables, mandatory stack lists) go into
   `references/<domain>.md` and are read on-demand from a procedure step. Format inside a reference file is bullets
