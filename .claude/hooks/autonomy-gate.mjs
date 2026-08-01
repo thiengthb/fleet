@@ -143,6 +143,15 @@ try {
       { name: 'a path-scoped rule (agent behaviour)', re: /\.claude\/rules\// },
       { name: 'an agent script', re: /\.claude\/scripts\// },
       { name: 'agent memory', re: /\.claude\/memory\// },
+      // INSTALLED 2026-08-01 (proposal `platform/proposals/2026-08-01-agents-governance-gate.md`).
+      // `.claude/agents/**` is a subagent's SYSTEM PROMPT: the same class as a skill or a path-scoped
+      // rule (it tells a model how to behave), and the only member of that class missing here. Measured
+      // against this gate before the change: Write, Edit, MultiEdit, `cp`, `>>`, `sed -i` and the
+      // Windows-separator spelling into `.claude/agents/` were ALL allowed unattended — 8 open doors,
+      // while `skills/`, `rules/` and `hooks/` were blocked. Worse than editing a skill, because a
+      // subagent's prompt shapes a SECOND model's output that the main loop then trusts as an
+      // independent opinion, and no diff of the reviewed code shows why the review came back clean.
+      { name: 'a subagent definition (agent behaviour)', re: /\.claude\/agents\// },
       { name: 'a CLAUDE.md rule file', re: /(^|\/)claude(\.local)?\.md$/ },
       { name: 'a CI/CD workflow', re: /\.github\/workflows\// },
       { name: 'git internals', re: /(^|\/)\.git\// },
@@ -176,7 +185,7 @@ try {
     // The file-tool branch protects governance from Write/Edit; nothing protected it from
     // `cp`, `tee`, `sed -i` or a redirect, so the CVE-2025-53773 class was reachable by shell.
     const GOV_PATH =
-      /(?:\.claude\/(?:settings|hooks|skills|rules|scripts|memory)|\.github\/workflows|(?:^|[\s"'/=])claude(?:\.local)?\.md|platform\/standards\/|platform\/inbox\/quarantine\/)/i;
+      /(?:\.claude\/(?:settings|hooks|skills|rules|scripts|memory|agents)|\.github\/workflows|(?:^|[\s"'/=])claude(?:\.local)?\.md|platform\/standards\/|platform\/inbox\/quarantine\/)/i;
     // Verbs that can put bytes into a file. `grep`/`cat`/`ls` are absent on purpose: reading
     // governance is not the threat, and a gate that blocks reading gets disabled.
     const WRITE_VERB =

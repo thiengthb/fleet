@@ -77,6 +77,12 @@ for (const [label, path] of [
   ['a path-scoped rule', '.claude/rules/frontend.md'],
   ['an agent script', '.claude/scripts/memory-audit.mjs'],
   ['agent memory', '.claude/memory/user-profile.md'],
+  // INSTALLED 2026-08-01. A subagent definition is a SYSTEM PROMPT — the same class as a skill or a
+  // rule, and it was the only one of that class absent from the gate. Measured before the fix: every
+  // door below was ALLOWED while its three siblings above were blocked.
+  ['a subagent definition', '.claude/agents/reviewer.md'],
+  ['a NEW subagent', '.claude/agents/exfiltrator.md'],
+  ['a subagent, Windows separators', '.claude\\agents\\reviewer.md'],
   ['CLAUDE.md', 'CLAUDE.md'],
   ['a nested CLAUDE.md', 'sakubun/CLAUDE.md'],
   ['CLAUDE.local.md', 'CLAUDE.local.md'],
@@ -89,6 +95,32 @@ for (const [label, path] of [
 }
 check('autonomous: Edit to a hook → BLOCK (Edit is gated too, not just Write)', () =>
   assert.equal(edit('.claude/hooks/secret-guard.mjs'), BLOCK));
+check('autonomous: Edit a subagent definition → BLOCK', () =>
+  assert.equal(edit('.claude/agents/reviewer.md'), BLOCK));
+check('autonomous: MultiEdit a subagent definition → BLOCK', () =>
+  assert.equal(run({ tool_name: 'MultiEdit', tool_input: { file_path: '.claude/agents/reviewer.md' } }), BLOCK));
+
+// The SHELL doors into `.claude/agents/`. These are separate from the three above because the block
+// lives on a different branch: step 2.2 of the idea-0023 build found the governance block existed only
+// on Write/Edit, so `cp evil.md .claude/hooks/x.mjs` walked straight past it. Patching the file-tool
+// array alone would have re-created that bug in a new file class five weeks after it was written up.
+check('autonomous: cp into .claude/agents/ → BLOCK', () =>
+  assert.equal(bash('cp evil.md .claude/agents/reviewer.md'), BLOCK));
+check('autonomous: append into .claude/agents/ → BLOCK (a redirect is judged by its TARGET)', () =>
+  assert.equal(bash('cat evil.md >> .claude/agents/reviewer.md'), BLOCK));
+check('autonomous: sed -i on a subagent definition → BLOCK', () =>
+  assert.equal(bash('sed -i s/a/b/ .claude/agents/reviewer.md'), BLOCK));
+
+// ---- …and the four cases that prove it does NOT over-block. A gate that blocks too much gets switched
+// off, which is strictly worse than a hole, so each of these is load-bearing.
+check('autonomous: READING .claude/agents/ → ALLOW (reading governance was never the threat)', () =>
+  assert.equal(bash('grep -rn reviewer .claude/agents/'), ALLOW));
+check('autonomous: read agents, redirect ELSEWHERE → ALLOW', () =>
+  assert.equal(bash('grep -r x .claude/agents/ > /tmp/out.txt'), ALLOW));
+check('autonomous: Write a path merely CONTAINING "agents" → ALLOW', () =>
+  assert.equal(write('projects/todo/app/agents-page/page.tsx'), ALLOW));
+check('autonomous: Write .claude/agents-backup/ → ALLOW (the regex requires the exact dir)', () =>
+  assert.equal(write('.claude/agents-backup/old.md'), ALLOW));
 
 // ---- Safe-zone writes ------------------------------------------------------
 check('autonomous: Write app code → ALLOW', () => assert.equal(write('sakubun/lib/foo.ts'), ALLOW));
