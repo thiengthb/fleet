@@ -1,0 +1,31 @@
+# Nothing in fleet's control plane is Prettier-managed — and this file is what makes that a fact
+# rather than an understanding.
+#
+# WHY IT EXISTS. This repo has no `.prettierrc` at its root, on purpose: the tracked meta layer
+# (`.claude/**`, `platform/**`, `CLAUDE.md`) is hand-wrapped at ~110 columns, and `platform/**` is prose
+# whose line breaks carry meaning (tables, checklists, quoted asks). With no config, `npx prettier` falls
+# back to its OWN defaults — printWidth 80 — so a single `--write` reflows files it was never meant to own.
+#
+# That is not hypothetical. On 2026-08-01 a `prettier --write` over four scripts turned a 200-line semantic
+# diff into 680 lines, most of it re-wrapping code the change never touched; it had to be reverted to HEAD
+# and re-applied edit by edit. The same mechanism was recorded once before, from the opposite direction, on
+# 2026-07-29 (`rulebook` Step 1.2: a NEW project with no `.prettierrc` had Prettier "silently use its own
+# defaults"). Twice is the point at which a lesson has to stop being a lesson: it is cheaper to make the
+# command a no-op than to remember when not to run it.
+#
+# `.prettierignore` is honoured even for explicitly-passed paths — verified here before relying on it — so
+# `npx prettier --write .claude/scripts/x.mjs` now changes nothing, and `--check` reports clean instead of
+# reporting hundreds of false violations that invite exactly the destructive fix.
+#
+# WHAT IS DELIBERATELY *NOT* LISTED: the sibling repos (`projects/*`, `commons`, `rulebook`). Each is an
+# independent git repo WITH its own `.prettierrc`, Prettier resolves config per-file by walking up from the
+# file, and those files genuinely are Prettier-managed. Ignoring them here would break formatting for the
+# projects that want it. This file covers the control plane only.
+#
+# If the meta layer should ever become Prettier-managed, the change is to add a root `.prettierrc` with the
+# width this repo actually uses and reformat in ONE dedicated commit — never as a side effect of a feature.
+
+.claude/
+platform/
+CLAUDE.md
+CLAUDE.local.md

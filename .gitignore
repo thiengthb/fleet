@@ -6,6 +6,9 @@
 
 !/.gitignore
 !/.gitattributes
+# Vì sao phải allowlist: đây là cái chặn `prettier --write` reformat cả tầng meta viết tay. Nếu để `/*`
+# ignore nó thì file chỉ tồn tại ở máy này, và máy còn lại vẫn vấp đúng lỗi đó. Lý do đầy đủ nằm trong file.
+!/.prettierignore
 !/CLAUDE.md
 !/platform/
 !/.claude/
