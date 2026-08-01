@@ -115,8 +115,34 @@ what they print.
 
 ## If accepted
 
-1. A human edits `.claude/hooks/_util.mjs` (~6 lines).
-2. `usage-census`'s hook table gains a `spoke` column beside `ran`, and `n/a` for `fired` stays — a hook that
-   cannot block still cannot block. Agent work, tested, mutation-checked.
-3. Old log lines have no `spoke` key. They must read as **unknown, never as `false`** — a missing field silently
-   defaulting to "never spoke" would fabricate exactly the false-death verdict §3 of the audit plan is about.
+1. A human edits `.claude/hooks/_util.mjs` (~15 lines with the comment). **This is the only step left.**
+2. ~~`usage-census`'s hook table gains a `spoke` column…~~ **DONE 2026-08-01, before the producer exists.**
+3. ~~Old log lines have no `spoke` key…~~ **DONE — and it is the case with the most tests on it.**
+
+### The reading half is already built, and deliberately built FIRST
+
+Both readers ship the column now, so the day the patch lands the answer appears with no further work — and,
+more importantly, the dangerous case was pinned **while it could still be constructed**. Once real `spoke` data
+exists, a fixture where *no* line carries the key can only be written on purpose; today it is the default.
+
+| State | `usage-census` | `platform-report` | Means |
+|---|---|---|---|
+| some runs printed | `2/3` | `2‑of‑3` | measured, with its denominator |
+| ran, printed nothing | `0/2` | `0‑of‑2` | **a measurement** — not the same as no data |
+| no line carries the key | `?` | `?` | **UNKNOWN.** Never `0` |
+
+The denominator is not decoration: mid-transition most runs predate the key, and a bare `2` would hide whether
+it is 2 of 3 or 2 of 300. `usage-census` also prints, when every hook shows `?`, a line naming this proposal as
+the reason — so the column reads as a pending patch rather than as a broken tool.
+
+**Guards, because `spoke` is exactly the kind of number that gets misread into a deletion:**
+
+- `typeof e.spoke === "boolean"`, not truthiness — `spoke: false` is a measurement and must land in the
+  denominator. A mutant pins it: with `if (e.spoke)` a measured silence collapses into "no data".
+- A second mutant pins absence → `?`: removing the guard makes UNKNOWN report as an object, i.e. as data.
+- `platform-report` re-created this class once already with `?? 0`, in the one document the supervisor is told
+  to audit the agent's judgement with. Its case was **proven red** by reverting the null check, not assumed.
+- The LIMITS block states the rule that matters more than any count: **a guard with nothing to say is a guard
+  finding nothing wrong.** `spoke` never justifies retiring a hook on its own.
+
+12 mutants in `usage-census.test.mjs` (was 10), and `platform-report.test.mjs` covers both shapes in one pass.

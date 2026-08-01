@@ -410,33 +410,51 @@ function rows(s, args = []) {
 {
   const s = sandbox({
     files: {
-      ".claude/hooks/tapir-hook.mjs": "process.exit(0);\n", // speaks at exit 0 ⇒ n/a
-      ".claude/hooks/dingo-hook.mjs": "if (bad) process.exit(2);\n", // can block ⇒ a real number
+      ".claude/hooks/tapir-hook.mjs": "process.exit(0);\n", // speaks at exit 0 ⇒ fired n/a
+      ".claude/hooks/dingo-hook.mjs": "if (bad) process.exit(2);\n", // can block ⇒ fired is a real number
+      ".claude/hooks/emu-hook.mjs": "process.exit(0);\n", // its runs recorded `spoke`
     },
     hookLog: [
+      // No `spoke` key: the legacy shape, which must render `?` and never 0.
       JSON.stringify({ ts: new Date().toISOString(), hook: "tapir-hook.mjs", code: 0, ms: 1 }),
       JSON.stringify({ ts: new Date().toISOString(), hook: "dingo-hook.mjs", code: 0, ms: 1 }),
+      // …and one hook whose runs DID record it, so the populated shape is covered in the same pass.
+      JSON.stringify({ ts: new Date().toISOString(), hook: "emu-hook.mjs", code: 0, ms: 1, spoke: true }),
+      JSON.stringify({ ts: new Date().toISOString(), hook: "emu-hook.mjs", code: 0, ms: 1, spoke: false }),
     ],
   });
   s.commit("hooks");
   const { out } = report(s, ["--stdout"]);
   assert.match(
     out,
-    /tapir-hook\.mjs.*\| 1\/n\/a \|/,
-    `a hook with no exit-2 path must render ran/fired as 1/n/a:\n${out
+    /tapir-hook\.mjs.*\| 1\/n\/a\/\? \|/,
+    `a hook with no exit-2 path and no spoke data must render 1/n/a/?:\n${out
       .split("\n")
       .filter((l) => /tapir/.test(l))
       .join("\n")}`,
   );
   assert.match(
     out,
-    /dingo-hook\.mjs.*\| 1\/0 \|/,
-    "…and a hook that CAN block keeps a real 0, which is a measurement",
+    /dingo-hook\.mjs.*\| 1\/0\/\? \|/,
+    "…and a hook that CAN block keeps a real 0 for `fired`, which is a measurement",
+  );
+  assert.match(
+    out,
+    /emu-hook\.mjs.*\| 2\/n\/a\/1‑of‑2 \|/,
+    `a hook whose runs recorded the flag shows the pair with its denominator:\n${out
+      .split("\n")
+      .filter((l) => /emu/.test(l))
+      .join("\n")}`,
   );
   assert.match(
     out,
     /`n\/a` means the hook has no exit-2 path/,
     "the legend must explain n/a, or a reader treats the gap as missing data",
+  );
+  assert.match(
+    out,
+    /`\?` means no line carries it yet/,
+    "…and must explain `?` too, or it reads as a bug rather than as a pending patch",
   );
   rmSync(s.root, { recursive: true, force: true });
 }
@@ -598,6 +616,6 @@ console.log(
   "platform-report.test.mjs — the 3 measured regressions (marker-vs-data separation, rename following, " +
     "unknown age), " +
     "the full verdict ladder, 7 PROTECTED classes with their stated blindness, outbound links, the report's " +
-    "no-deletion framing, `n/a` surviving the census pipe, a refused report on a broken census, " +
-    "7 mutants all killed  ✅",
+    "no-deletion framing, `n/a` AND `?` surviving the census pipe (both were re-created here once by `?? 0`), " +
+    "a refused report on a broken census, 7 mutants all killed  ✅",
 );

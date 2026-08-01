@@ -371,9 +371,24 @@ function countLinks(items) {
 /* ------------------------------------- axis 3: hooks record their own runs (they cannot be mined) */
 
 /**
- * A hook is never a tool call, so no amount of transcript mining can see it run. `_util.mjs` therefore
- * has every hook append {ts, hook, code} to a local log as it exits. `fired` is the count of runs that
- * ended in exit 2 — the guard actually said something — as opposed to merely looking and staying silent.
+ * A hook is never a tool call, so no amount of transcript mining can see it run. `_util.mjs` therefore has
+ * every hook append a line to a local log as it exits. Two different questions are read off it:
+ *
+ *   `fired` — runs that ended in **exit 2**. Meaningful only for a hook that HAS an exit-2 path; see
+ *             `canBlock()`, which is why this is `n/a` rather than `0` for the seven that do not.
+ *   `spoke` — runs that actually printed something. This is the question `fired` could not answer for those
+ *             seven: they speak by printing `additionalContext` / `systemMessage` and exiting **0**.
+ *
+ * THE `spoke` KEY IS NEW (2026-08-01) AND MOST LINES DO NOT HAVE IT. That is the whole difficulty, and it is
+ * handled here rather than left to the reader: a line written before the key existed carries no opinion about
+ * whether the hook spoke, and **absence must never be counted as `false`**. Doing so would say "this hook has
+ * never once said anything" about a hook that has been talking for a week — the confident false verdict of
+ * death that the second-brain audit exists to prevent, manufactured by a schema change rather than by a bug.
+ *
+ * So `spoke` is reported as a pair, `{ yes, known }`, and rendered `yes/known`. The denominator is the point:
+ * during the transition most runs are unknown, and a bare "2" would hide that it is 2 out of 9 rather than 2
+ * out of 300. When `known` is 0 the column prints `?` — no data yet, which is different from `n/a`
+ * (not applicable, ever) and different again from `0` (measured, and it never spoke).
  */
 function countHookRuns(items) {
   const path =
@@ -399,6 +414,12 @@ function countHookRuns(items) {
     if (!it) continue;
     it.ran = (it.ran || 0) + 1;
     if (e.code === 2) it.fired = (it.fired || 0) + 1;
+    // `typeof`, not truthiness: `spoke: false` is a MEASUREMENT (it ran and said nothing) and must land in
+    // `known`, while a missing key must not. `if (e.spoke)` would have collapsed those two into one.
+    if (typeof e.spoke === "boolean") {
+      it.spokeKnown = (it.spokeKnown || 0) + 1;
+      if (e.spoke) it.spokeYes = (it.spokeYes || 0) + 1;
+    }
     if (!it.last || ts > it.last) it.last = ts;
   }
   return stat;
@@ -417,6 +438,16 @@ let rows = [...items.values()].map((it) => ({
   // `fired` is null — not 0 — for a hook with no exit-2 path, so no consumer can read a structural zero as
   // "ran a lot and caught nothing". See canBlock() above for what made this necessary.
   fired: it.kind === "hook" && it.canBlock === false ? null : it.fired || 0,
+  /**
+   * `spoke` is null when NOTHING is known, and `{ yes, known }` when something is. Three states, and a
+   * consumer that ignores the distinction gets `null` rather than a plausible zero — the same shape as
+   * `fired`, for the same reason: `platform-report` turned a null into `0` with `?? 0` and put it in the one
+   * document the supervisor audits the agent's judgement with.
+   */
+  spoke:
+    it.kind === "hook" && it.spokeKnown
+      ? { yes: it.spokeYes || 0, known: it.spokeKnown }
+      : null,
   lines: (() => {
     const p = join(REPO, it.path);
     try {
@@ -463,20 +494,36 @@ for (const kind of KINDS) {
   // hooks — see canBlock(). Only for a hook that CAN block is `ran>0, fired=0` a signal at all, and even
   // then it may just mean the guard found nothing to block.
   const isHook = kind === "hook";
+  /**
+   * Three symbols, three different things, and keeping them apart is the point:
+   *   a number — measured.
+   *   `n/a`    — NOT APPLICABLE, ever: this hook has no exit-2 path, so `fired` cannot move (canBlock()).
+   *   `?`      — NOT KNOWN YET: no log line for this hook carries the `spoke` key. Different from `0`, which
+   *              would claim it ran and never said a word.
+   * Collapsing any two of them is how a schema change turns into a retirement recommendation.
+   */
+  const firedCell = (r) => (r.fired === null ? "n/a" : String(r.fired ?? 0));
+  const spokeCell = (r) => (r.spoke === null ? "?" : `${r.spoke.yes}/${r.spoke.known}`);
   console.log(
-    `   ${"use".padStart(5)} ${isHook ? `${"ran".padStart(6)} ${"fired".padStart(5)} ` : ""}${"links".padStart(5)} ${"lines".padStart(5)} ${"last".padStart(5)}  path`,
+    `   ${"use".padStart(5)} ${isHook ? `${"ran".padStart(6)} ${"fired".padStart(5)} ${"spoke".padStart(7)} ` : ""}${"links".padStart(5)} ${"lines".padStart(5)} ${"last".padStart(5)}  path`,
   );
   for (const r of group)
     console.log(
       `   ${String(r.total).padStart(5)} ` +
         (isHook
-          ? `${String(r.ran ?? 0).padStart(6)} ${(r.fired === null ? "n/a" : String(r.fired ?? 0)).padStart(5)} `
+          ? `${String(r.ran ?? 0).padStart(6)} ${firedCell(r).padStart(5)} ${spokeCell(r).padStart(7)} `
           : "") +
         `${String(r.links).padStart(5)} ${String(r.lines).padStart(5)} ${ago(r.last).padStart(5)}  ${r.path}`,
     );
   if (isHook && !hookLog.exists)
     console.log(
       `   (no hook-usage log yet — ran/fired stay 0 until a session runs with the recorder installed)`,
+    );
+  if (isHook && hookLog.exists && group.every((r) => r.spoke === null))
+    console.log(
+      `   (spoke = ? everywhere: no log line carries the \`spoke\` key yet. It is recorded by\n` +
+        `    \`.claude/hooks/_util.mjs\`; until a human applies that patch this column cannot fill in, and a\n` +
+        `    0 here would be a fabrication. See platform/proposals/2026-08-01-hook-spoke-flag.md.)`,
     );
   console.log("");
 }
@@ -506,7 +553,11 @@ LIMITS — read before cutting anything:
   • "fired" = n/a means the hook has NO exit-2 path, so the number is zero by construction and proves nothing.
     Those hooks speak by printing additionalContext/systemMessage and exiting 0, or work by side effect — the
     exit code cannot tell "looked and spoke" from "looked and stayed silent" for them (measured 2026-08-01:
-    7 of 15). To judge one of those, read what it prints; do not read this column.
+    7 of 15). To judge one of those, read what it prints; do not read this column — read "spoke".
+  • "spoke" = yes/known, over the log lines that carry the flag at all. "?" means NO line does yet, which is
+    not the same as 0: a hook that has been printing for a week would show 0 if absence were counted as false.
+    A low yes over a large known IS a finding; a low yes over a known of 3 is noise. Never retire a hook on
+    this column alone — a guard that has nothing to say is a guard finding nothing wrong.
   • Subagent tool calls live in their own transcripts and may be missed; counts are a floor, never a ceiling.
   • MEMORY FILES: 0 here means "never explicitly opened", NOT "never used". The index line loads every session and
     the harness can inject a memory's content as a system-reminder, which is not a tool call and is not mined.

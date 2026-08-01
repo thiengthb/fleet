@@ -363,7 +363,7 @@ p(
   `| \`run\` | session transcripts | \`node <path>\` invocations — scripts and hooks only. |`,
 );
 p(
-  `| \`ran\`/\`fired\` | \`~/.claude/hook-usage.jsonl\` | hooks record their own exit; \`fired\` = exit 2. **\`n/a\` means the hook has no exit-2 path**, so the number is zero by construction and is NOT evidence it catches nothing — it speaks by printing \`additionalContext\`/\`systemMessage\` at exit 0, or works by side effect (7 of 15 hooks, measured 2026-08-01). **Starts 2026-07-30**, no history before that. |`,
+  `| \`ran\`/\`fired\`/\`spoke\` | \`~/.claude/hook-usage.jsonl\` | hooks record their own exit. \`fired\` = exit 2, and **\`n/a\` means the hook has no exit-2 path** — the number is zero by construction and is NOT evidence it catches nothing (7 of 15 hooks, measured 2026-08-01). \`spoke\` = runs that printed something, over the runs that recorded the flag; **\`?\` means no line carries it yet**, which is not \`0\`. For the seven hooks that cannot exit 2, \`spoke\` is the only column that can judge them — but a guard with nothing to say is a guard finding nothing wrong, so it never justifies retirement on its own. **Starts 2026-07-30**, no history before that. |`,
 );
 p(
   `| \`in\` | this repo | how many other files cite it by name — its inbound links. |`,
@@ -388,14 +388,25 @@ for (const kind of KINDS) {
   p(`## ${kind} (${group.length})`);
   p();
   p(
-    `| verdict | file | read | write | run | ran/fired | in | out | commits | age | touched | lines |`,
+    `| verdict | file | read | write | run | ran/fired/spoke | in | out | commits | age | touched | lines |`,
   );
   p(`|---|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|`);
   for (const r of group) {
-    // `fired === null` ⇒ the hook cannot exit 2; printing 0 here would re-create the false signal that
-    // usage-census's canBlock() exists to remove, so it must survive the trip through --json as `n/a`.
+    /**
+     * Two nulls that must NOT become zeros on this side of the pipe:
+     *   `fired === null` — the hook cannot exit 2 (usage-census `canBlock()`), so 0 would read as "catches
+     *                      nothing" about a guard that is working.
+     *   `spoke === null` — no log line carries the flag yet, so 0 would read as "never said a word" about a
+     *                      hook that may have been printing all week.
+     * Both were re-created here once already, by `?? 0`, in the one document the supervisor is told to audit
+     * the agent's judgement with.
+     */
     const hook =
-      r.kind === "hook" ? `${r.ran ?? 0}/${r.fired === null ? "n/a" : (r.fired ?? 0)}` : "—";
+      r.kind === "hook"
+        ? `${r.ran ?? 0}/${r.fired === null ? "n/a" : (r.fired ?? 0)}/${
+            r.spoke === null || r.spoke === undefined ? "?" : `${r.spoke.yes}‑of‑${r.spoke.known}`
+          }`
+        : "—";
     p(
       `| \`${r.v}\` | \`${r.path}\` | ${r.reads} | ${r.writes} | ${r.runs} | ${hook} | ${r.links} | ${r.linksOut} | ${r.commits} | ${ago(r.first)} | ${d(r.last_touched)} | ${r.lines} |`,
     );

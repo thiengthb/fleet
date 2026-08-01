@@ -450,6 +450,67 @@ function rows(s, args = []) {
   rmSync(s.root, { recursive: true, force: true });
 }
 
+/* ═════════ 9c. `spoke` — three states, and ABSENCE is not `false` ═══════════════════════════════
+ *
+ * `spoke` was added to the log on 2026-08-01 to answer the question `fired` cannot: did an advisory hook, which
+ * exits 0 whether or not it printed, actually say anything? Almost every existing line predates the key, so the
+ * dangerous case is the boring one — a missing field must read as UNKNOWN. Counting absence as `false` would
+ * report "never said a word" about a hook that has been printing for a week, which is a confident false verdict
+ * of death produced by a schema change rather than by a bug. Written BEFORE the producing patch is applied,
+ * because after real data arrives this case can no longer be constructed by accident. */
+{
+  const now = Date.now();
+  const line = (hook, extra) => JSON.stringify({ ts: iso(now), hook, code: 0, ms: 1, ...extra });
+  const s = sandbox({
+    files: {
+      ".claude/hooks/tapir-hook.mjs": "process.exit(0);\n", // speaks: two of three runs printed
+      ".claude/hooks/quokka-hook.mjs": "process.exit(0);\n", // measured silent: ran, printed nothing
+      ".claude/hooks/emu-hook.mjs": "process.exit(0);\n", // legacy only: no line carries the key
+      ".claude/hooks/ibis-hook.mjs": "process.exit(0);\n", // the transition: some lines have it, some do not
+    },
+    hookLog: [
+      line("tapir-hook.mjs", { spoke: true }),
+      line("tapir-hook.mjs", { spoke: true }),
+      line("tapir-hook.mjs", { spoke: false }),
+      line("quokka-hook.mjs", { spoke: false }),
+      line("quokka-hook.mjs", { spoke: false }),
+      line("emu-hook.mjs", {}),
+      line("emu-hook.mjs", {}),
+      line("ibis-hook.mjs", {}), // written before the patch
+      line("ibis-hook.mjs", { spoke: true }), // written after it
+    ],
+  });
+  const { map } = rows(s);
+  const h = (n) => map[`.claude/hooks/${n}-hook.mjs`];
+
+  assert.deepEqual(h("tapir").spoke, { yes: 2, known: 3 }, "counts printed runs over the runs that recorded it");
+  assert.deepEqual(
+    h("quokka").spoke,
+    { yes: 0, known: 2 },
+    "`spoke: false` is a MEASUREMENT — it must land in `known` and read 0/2, never `?`",
+  );
+  assert.equal(
+    h("emu").spoke,
+    null,
+    "no line carries the key ⇒ null (UNKNOWN). Reporting 0 here is the fabrication this case exists to stop",
+  );
+  assert.deepEqual(
+    h("ibis").spoke,
+    { yes: 1, known: 1 },
+    "mid-transition, the denominator counts ONLY the lines that carry the flag — 1/1, not 1/2",
+  );
+  assert.equal(h("ibis").ran, 2, "…while `ran` still counts every line, because both runs happened");
+
+  // What a reader actually sees.
+  const human = census(s, ["--kind", "hook"]);
+  assert.match(human.out, /2\/3\s+.*tapir-hook\.mjs/, `2/3 for the speaker:\n${human.out}`);
+  assert.match(human.out, /0\/2\s+.*quokka-hook\.mjs/, "0/2 for the measured-silent one");
+  assert.match(human.out, /\?\s+.*emu-hook\.mjs/, "`?` for the unknown one, not 0");
+  // …and the guidance must be present, or `?` reads as a bug rather than as a pending patch.
+  assert.match(human.out, /"spoke" = yes\/known/, "the LIMITS block must explain the pair");
+  rmSync(s.root, { recursive: true, force: true });
+}
+
 /* ─────────────────── 10. the human-readable report must carry its own caveats ──
  * These sentences are the difference between a measurement and a deletion order. On 2026-07-30 an earlier
  * version of this report was read as a dead-weight list; 34 of 34 candidates were kept on review.
@@ -595,6 +656,34 @@ let MUTANTS_RUN = 0;
       probe: (s) => rows(s).map[".claude/hooks/quokka-hook.mjs"].fired === 0,
     },
     {
+      // Truthiness instead of a type check: `spoke: false` — a hook that RAN and said nothing — stops counting
+      // as known, so a measured silence becomes indistinguishable from no data. The two states this column
+      // exists to separate collapse back into one.
+      name: "`spoke: false` no longer counted as a measurement",
+      spec: {
+        files: { ".claude/hooks/quokka-hook.mjs": "process.exit(0);\n" },
+        hookLog: [
+          JSON.stringify({ ts: iso(Date.now()), hook: "quokka-hook.mjs", code: 0, ms: 1, spoke: false }),
+        ],
+      },
+      apply: (s) => s.replace('if (typeof e.spoke === "boolean") {', "if (e.spoke) {"),
+      probe: (s) => rows(s).map[".claude/hooks/quokka-hook.mjs"].spoke === null,
+    },
+    {
+      // Absence reported as a measured zero — the exact fabrication case 9c is written against. A hook that has
+      // been printing for a week would be published as having never said anything.
+      name: "no `spoke` data reported as 0/0 instead of UNKNOWN",
+      spec: {
+        files: { ".claude/hooks/emu-hook.mjs": "process.exit(0);\n" },
+        hookLog: [JSON.stringify({ ts: iso(Date.now()), hook: "emu-hook.mjs", code: 0, ms: 1 })],
+      },
+      apply: (s) => s.replace("it.kind === \"hook\" && it.spokeKnown", "it.kind === \"hook\""),
+      // Probes on `!== null`, not on `known === 0`: without the guard, `known` is `undefined` rather than 0
+      // (there were no lines to count), so the first cut of this probe reported a live mutant as a survivor.
+      // A probe must assert what the mutation actually changes — here, that UNKNOWN stops being null at all.
+      probe: (s) => rows(s).map[".claude/hooks/emu-hook.mjs"].spoke !== null,
+    },
+    {
       name: "the --days window ignored",
       spec: {
         files: { "platform/standards/zebra-standard.md": "x\n" },
@@ -652,5 +741,6 @@ let MUTANTS_RUN = 0;
 console.log(
   "usage-census.test.mjs — inventory scope + 5 exclusions, the 3 measured regressions (skill folding, " +
     "self-corpus, generic basenames), run-vs-mention, the --days window, hook ran/fired, `fired: n/a` for a " +
-    `hook with no exit-2 path, the LIMITS block, ${MUTANTS_RUN} mutants all killed  ✅`,
+    "hook with no exit-2 path, `spoke` in all three states (absence is NOT false), the LIMITS block, " +
+    `${MUTANTS_RUN} mutants all killed  ✅`,
 );
