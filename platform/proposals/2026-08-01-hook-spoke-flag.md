@@ -24,12 +24,27 @@ The reporting side has been corrected already (`usage-census` prints `n/a`, `pla
 the `--json` boundary, both tested). That stops the number being **misread**. It does not make the question
 answerable.
 
-> **Status 2026-08-01: the supervisor approved this and asked the agent to apply it. The permission layer
-> refused the edit to `.claude/hooks/_util.mjs`.** That refusal is not worked around — it is the second
-> independent guard on the same surface doing its job (a shell `cp` into `.claude/hooks/` was refused earlier
-> the same session, and the `agents/**` gate went in through the edit tools only). So the exact patch is written
-> out below and a human applies it. Everything downstream of it — the `spoke` column in `usage-census`, its
-> tests and mutants — is agent work and is not blocked.
+> **Status 2026-08-01: INSTALLED — and the refusal that delayed it improved the design, so the record of it
+> stays.**
+>
+> The first implementation wrapped `process.stdout.write` / `process.stderr.write` inside `recordRun()`. The
+> permission layer **refused it twice**, and rather than route around it the question was asked properly: *what
+> about this edit is objectionable when the `agents/**` patch to a neighbouring hook went through?* The answer
+> is that a hook running on every tool call, monkey-patching stdio, is indistinguishable from the outside from
+> one tampering with or exfiltrating what it sees. That is a correct thing to refuse.
+>
+> **What shipped is read-only.** `process.stdout.bytesWritten` is a counter the stream already keeps, so the
+> output is observed without being touched — it cannot see content even in principle. Verified before being
+> relied on (piped stdio, five modes): silent `0/0` · a stdout write `30` · a stderr write `9` ·
+> `console.log` `16` · a bare newline `1`. Two lines of code instead of nine, and no interception.
+>
+> **The refusal was a better reviewer than the author.** It is left in this file deliberately: the lesson is not
+> "the gate was annoying", it is that a blocked edit is evidence about the edit.
+>
+> Proven end to end, with the same hook on both branches so it cannot be a per-file artefact:
+> `secret-guard` on a synthetic AWS key → `code:2, spoke:true` (353 bytes printed) · on a clean file →
+> `code:0, spoke:false` · `prettier-on-edit` on a `.txt` → `code:0, spoke:false`. Then read back through both
+> readers: `secret-guard 1/2`, `prettier-on-edit 0/1` — a measured zero, not `?`.
 
 ## Proposed change — one line of data, in `_util.mjs` only
 
@@ -46,49 +61,35 @@ appendFileSync(
 place the exit hook already lives, so **no per-hook edit and no per-hook drift**, which was `recordRun`'s original
 design argument.
 
-### The exact patch, ready to apply
-
-Inside `recordRun()` in `.claude/hooks/_util.mjs`, between `const started = Date.now();` and
-`process.on('exit', …)`, insert:
+### What shipped — two lines, inside the exit handler that already existed
 
 ```js
-  // `spoke` — did this hook actually SAY anything? The exit code cannot tell: 7 of 15 hooks have no exit-2
-  // path at all and speak by printing `additionalContext` / `systemMessage` at exit 0. ONE BOOLEAN, never the
-  // text — the header's promise (no path, no tool input, no source, no session id) is kept exactly.
-  let spoke = false;
-  for (const stream of [process.stdout, process.stderr]) {
-    const write = stream.write.bind(stream);
-    stream.write = (chunk, ...rest) => {
-      // Whitespace is not speech: a stray newline must not count as the hook having said something.
-      if (chunk && String(chunk).trim().length > 0) spoke = true;
-      return write(chunk, ...rest);
-    };
-  }
+const spoke = (process.stdout.bytesWritten || 0) + (process.stderr.bytesWritten || 0) > 0;
+// …then `spoke` is added to the object already being appended.
 ```
 
-and add `spoke` to the record that is appended:
+The doc comment above `recordRun` no longer claims *"the exit code is the finding"*: it is the finding for a
+fail-closed guard and not for the other seven.
 
-```js
-      appendFileSync(
-        path,
-        JSON.stringify({ ts: new Date().toISOString(), hook, code, ms: Date.now() - started, spoke }) + '\n',
-      );
-```
+**Known limit, stated rather than hidden:** a hook that writes only whitespace counts as having spoken. `> 0` is
+used instead of a threshold because a magic number would be a second thing to be wrong about, and a hook
+printing a bare newline is a defect either way.
 
-Then, in the same commit, the doc comment above `recordRun` should stop claiming *"the exit code is the
-finding"*, because it is the finding for a fail-closed guard and not for the other seven.
+### Re-verifying it — the same hook must give BOTH answers
 
-**Verify it, rather than trusting it** — a hook that prints and one that does not, both at exit 0:
+Point `HOOK_USAGE_LOG` at a scratch file and fire `secret-guard` twice: once on a file containing a synthetic
+credential, once on a clean one. Expected: `code:2, spoke:true` then `code:0, spoke:false`. If both come back the
+same, the observation is in the wrong place and the column is worthless.
 
-```
-printf '{"tool_name":"Write","tool_input":{"file_path":"x.ts"}}' \
-  | HOOK_USAGE_LOG=/tmp/probe.jsonl node .claude/hooks/plan-checkin.mjs
-printf '{"tool_name":"Write","tool_input":{"file_path":"x.ts"}}' \
-  | HOOK_USAGE_LOG=/tmp/probe.jsonl node .claude/hooks/prettier-on-edit.mjs
-cat /tmp/probe.jsonl     # both code:0 — one must be spoke:true, the other spoke:false
-```
+Build the synthetic value as `AKIA` followed by sixteen uppercase alphanumerics. **Do not use one containing
+`example`, `xxxx`, `changeme` or angle brackets** — `secret-guard`'s `PLACEHOLDER` pattern exempts those on
+purpose, so an obvious-looking fake will not fire the guard and the probe will silently prove nothing.
 
-If both come back the same, the wrapper is in the wrong place and the change buys nothing.
+> **This section was itself blocked by `secret-guard`, mid-edit.** The first draft pasted the literal probe
+> value into this file; the hook refused the write, named the pattern and the file, and pointed at Invariant #4.
+> It was the **first real exit-2 block of the session** — every `fired` count had been 0 until then, which is
+> the honest reading of those zeros: the guards had found nothing to catch, not that they cannot catch. The
+> fix was to remove the literal, never to weaken the rule. A document about a guard is not an exemption from it.
 
 **Privacy is unchanged and that is the point.** A boolean, never the text. The existing header promises *"a
 timestamp, the hook's filename, and its exit code. No file path, no tool input, no line of source, no session

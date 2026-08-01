@@ -64,7 +64,39 @@ export function recordRun() {
         mkdirSync(dirname(path), { recursive: true });
       }
       if (size > USAGE_CAP_BYTES) return; // stop growing rather than rotate — this is a counter, not an audit trail
-      appendFileSync(path, JSON.stringify({ ts: new Date().toISOString(), hook, code, ms: Date.now() - started }) + '\n');
+      /**
+       * `spoke` — did this hook actually SAY anything? A correction of the note above, which claims "the exit
+       * code is the finding". Measured 2026-08-01 over 2,874 real events: true for a fail-closed guard, false
+       * for most. **7 of the 15 installed hooks have no `process.exit(2)` path at all** — `plan-checkin`,
+       * `compact-recap`, `tree-moved-notice`, `git-sync-check`, `memory-wiring-check` and `harness-drift-check`
+       * speak by printing `additionalContext` / `systemMessage` and exiting **0**; `prettier-on-edit` and
+       * `suggest-session-wrap` work by side effect. For them `exit 0` means both "looked and spoke" and
+       * "looked and said nothing", so `usage-census` can only print `n/a`, and the one question that decides
+       * whether an advisory hook earns its keep had no answer.
+       *
+       * READ-ONLY, and that is the whole design. `bytesWritten` is a counter the stream already keeps, so this
+       * observes the output without touching it. The first attempt wrapped `process.stdout.write` /
+       * `process.stderr.write` instead, and was refused twice by the permission layer — correctly: a hook that
+       * runs on every tool call and monkey-patches stdio is indistinguishable, from the outside, from one that
+       * tampers with or exfiltrates what it sees. The refusal was a better reviewer than the author.
+       *
+       * ONE BOOLEAN, NEVER THE TEXT. The promise above — "a timestamp, the hook's filename, and its exit code.
+       * No file path, no tool input, no line of source, no session id" — is kept exactly; this cannot see
+       * content even in principle, only a byte count it does not record.
+       *
+       * A line written before this existed has no `spoke` key, and a reader must treat that as **UNKNOWN, never
+       * `false`**: absence read as "never said a word" would fabricate a confident false verdict of death out of
+       * a schema change. `usage-census` enforces that with two mutants, and prints `?` rather than `0`.
+       *
+       * Known limit, stated rather than hidden: a hook that writes ONLY whitespace counts as having spoken.
+       * `> 0` is used instead of a threshold because a magic number would be a second thing to be wrong about,
+       * and a hook printing a bare newline is a defect either way.
+       */
+      const spoke = (process.stdout.bytesWritten || 0) + (process.stderr.bytesWritten || 0) > 0;
+      appendFileSync(
+        path,
+        JSON.stringify({ ts: new Date().toISOString(), hook, code, ms: Date.now() - started, spoke }) + '\n',
+      );
     } catch {
       /* bookkeeping must never be the reason a hook fails */
     }
