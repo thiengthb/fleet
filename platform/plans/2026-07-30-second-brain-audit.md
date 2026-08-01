@@ -207,9 +207,21 @@ These are superseded by something that now exists — verifiable, not a judgemen
 
 Total: **11 files**, none of them load-bearing, none of them deleted by this plan.
 
-**One contradiction needing a human decision, not an agent guess:**
+~~**One contradiction needing a human decision, not an agent guess:**
 `platform/skill-proposals/prisma-expert-migration-rehearsal.md` says `status: installed`, but no such skill
-directory exists. Either the status is wrong or an installed skill was removed. Do not resolve by deleting.
+directory exists.~~
+
+**WITHDRAWN 2026-08-01 — there was no contradiction. The finding was an agent guess about an agent guess.** The
+file is `kind: extension`, `extends: prisma-expert`, and says on its second line that it is *not* a new skill;
+its content is installed at `.claude/skills/prisma-expert/SKILL.md:79`. The audit had matched `proposed_name`
+against the skill directories and read the absence as a defect — a check no tool performs, so nothing needed
+retuning, only deleting.
+
+**Worth keeping because of what it cost.** This sat for two days labelled *"needs a human decision"*, which is
+this platform's scarcest resource, and it would have consumed a supervisor turn to be told the plan had misread
+one of its own files. The rule that follows: **a finding whose remedy is "escalate to a human" must clear the
+same verification bar as a finding whose remedy is code** — arguably a higher one, because an unverified
+escalation spends someone else's attention and cannot be caught by a test.
 
 ## 4 — The retirement procedure: move, wait, then delete
 
@@ -258,7 +270,8 @@ Rules that make it safe:
 | tools with a test | 5 of 25 | up; block-first order |
 | drift total | 159 | falling is good, rising without a cause is a finding |
 | plan-shape errors | 105 over 64 plans | only the ~21 on live plans are real debt |
-| hooks that have fired at least once | unknown until ~2026-08-06 | ≥1 firing each, or justify the hook |
+| hooks that have **run** at least once | ~~unknown until ~2026-08-06~~ **15 of 15, measured 2026-08-01** | stays 15/15; a new hook joins at 0 and must reach 1 |
+| hooks that have **fired** (exit 2) | ~~≥1 firing each, or justify the hook~~ **withdrawn as a target — see D1** | for the 7 hooks with no exit-2 path this is 0 forever; the column now reads `n/a` and must never be a retirement input |
 | retirement candidates rejected on review | 34 of 34 | if this stays >50%, the counter needs work, not the repo |
 
 **Re-measured on the WINDOWS box, 2026-07-30 (later the same day).** The numbers above were taken on the Linux
@@ -337,12 +350,49 @@ confident wrong answer, which is the failure shape this whole audit exists for:
 - [x] C1a — **Reversibility proven, not assumed**: staged → `restore` → the file is back at its original path and `git status` shows no change at all → re-staged. A retirement path that has never been walked backwards is not reversible, it is only believed to be · Test: AC-3 ✅
 - [x] C3 — Staged `platform/plans/nuc-set-env-sandbox/` (6 files, superseded by the installed `/app-env`), with an evidence snapshot and an `⚠ OVERRIDE` note: its one remaining live mention is this plan, which is what authorised the staging · Files: `git mv` · Test: AC-3 ✅ sweep 0 BROKEN in the same session
 - [ ] C2 — The 5 superseded proposal drafts. **Blocked by the measurement, deliberately**: `platform-report` scores them ACTIVE because this audit read them, so the tool disagrees with the agent's judgement. They will qualify once that contamination ages out, or the supervisor may authorise `--force` with a reason · Files: — · Test: AC-3
-- [ ] C4 — Ask the supervisor to resolve the `prisma-expert-migration-rehearsal` contradiction (`status: installed`, no such skill) · Files: — · Test: manual
+- [x] C4 — ~~Ask the supervisor to resolve the `prisma-expert-migration-rehearsal` contradiction~~
+      ✅ **2026-08-01 — CLOSED with no supervisor decision needed: there was no contradiction, and the finding
+      was mine.** The proposal's own frontmatter says `kind: extension` and, on the next line,
+      *"NOT a new skill — a section to paste into `.claude/skills/prisma-expert/SKILL.md"*, with
+      `extends: prisma-expert`. So no directory named after its `proposed_name` was ever supposed to exist.
+      `status: installed` is **true and verifiable**: `.claude/skills/prisma-expert/SKILL.md:79` carries
+      `### Rehearse on a COPY before touching live data`, the six-step procedure, and the clause the review
+      block says was added on install (the copy is migrated and deleted, not a route for reading production
+      data). Nothing to fix in either file · Files: — · Test: read both, 0 edits needed
 - [ ] C5 — **2026-08-29 at the earliest**: `attic.mjs verify` must report 0 ALIVE, then the supervisor deletes or restores and records which, and why · Files: manifest · Test: manual
 
 **Batch D — close the measurement gaps**
 
-- [ ] D1 — After 7 days of hook-usage data, report which hooks have never fired · Files: — · Test: manual
+- [x] D1 — ~~After 7 days of hook-usage data, report which hooks have never fired~~
+      ✅ **2026-08-01 — answered early, because the answer did not need the wait and the METRIC was broken.**
+      Measured on this machine: **2,874 events, 2026-07-30 → 2026-08-01, and 15 of 15 hooks have run.** Zero
+      candidates by the "never ran" test — so the retirement question D1 was written to open does not open.
+      `_util.mjs` is at 0 and correctly so: it is the shared library, not a hook.
+
+      **The finding is the other column.** `fired` counts runs that ended in **exit 2**, and **7 of the 15
+      hooks have no `exit(2)` path anywhere in their source** — `plan-checkin`, `compact-recap`,
+      `tree-moved-notice`, `git-sync-check`, `memory-wiring-check`, `harness-drift-check` speak by printing
+      `hookSpecificOutput.additionalContext` / `systemMessage` and exiting 0; `prettier-on-edit` and
+      `suggest-session-wrap` have no speech path at all and work by side effect. For all seven, `fired = 0` is
+      true **by construction and forever**. `usage-census`'s own comment read *"ran>0 with fired=0 over weeks is
+      the signature of a guard that costs time and catches nothing"*, and §5's row below said *"≥1 firing each,
+      or justify the hook"* — i.e. the instrument nominated **seven working hooks for retirement on a number
+      that cannot move.** Same defect class as §6, *condemning* direction, in a NEW instrument.
+
+      Fixed in the two readers (both `.claude/scripts/`, so within the agent's authority): `fired` is now
+      **`null` → printed `n/a`** for a hook with no exit-2 path, derived by scanning that hook's own source with
+      comments stripped (`tree-moved-notice` *discusses* exit 2 in its header and must not be counted), never
+      from a list of names — a hook added tomorrow classifies itself. `platform-report` re-created the bug on
+      the far side of the pipe with `r.fired ?? 0`, which turned the null straight back into `0` in the one
+      document §5 tells the supervisor to audit the agent with; that path had **no test at all** until now.
+      · Files: `usage-census.mjs`, `usage-census.test.mjs` (2 new cases, 10 mutants), `platform-report.mjs`,
+      `platform-report.test.mjs` (new case, proven red by reverting the fix) · Test: both suites, `tool-check`
+
+      **Left open on purpose, and it needs a human.** Recording *whether the hook actually spoke* means
+      recording a `spoke` flag in `.claude/hooks/_util.mjs` — **governance, which the agent never edits.**
+      Without it, the 8 blocking hooks are honest (`autonomy-gate` 1,134 runs / 0 blocks means it found nothing
+      to block, and `tool-check` proves each one CAN block on crafted input) but the 7 advisory ones can only be
+      judged by reading what they print. Proposal, not an edit: `platform/proposals/2026-08-01-hook-spoke-flag.md`.
 - [x] D2 — Decide whether the 106 plan-shape errors on closed plans should be exempted by status, so the number
       means something · Files: `plan-audit.mjs` · Test: the count drops to live plans only
       ✅ **2026-07-30 — decided: exempt by status, but never silently.** A shape ERROR on a plan whose status is
@@ -365,6 +415,22 @@ confident wrong answer, which is the failure shape this whole audit exists for:
    `platform/proposals/` before writing anything.
 3. **Is every number this batch promises derived, or guessed?**
 4. **Write the answers here, dated — including "unchanged".**
+
+### 2026-08-01 — answers before touching C4 and D1
+
+1. **Premise still true?** For C4, **NO — and it was never true.** See the C4 row. For D1, **partly**: the plan
+   said "never fired" needs 7 days of data (⇒ 2026-08-06). The log has **2,874 events over 2 days**, which is
+   already conclusive for the *ran* half — every hook has run — and the *fired* half turned out not to need
+   waiting at all, because it was broken. Waiting five more days would have changed nothing except that the
+   defect would have been read as a finding.
+2. **Already built?** The recorder and both readers existed (`_util.mjs` → `usage-census` → `platform-report`).
+   Nothing new was built; one derivation was added to a reader and two documents were corrected. Checked
+   `platform/proposals/` (nothing on hooks), `known-traps`, and grepped for `proposed_name` in every tool
+   before concluding C4 was mine and not a tool's.
+3. **Numbers derived or guessed?** Derived, every one, and re-derived at write time: 2,874 log events · 15 hooks
+   installed · 7 with no exit-2 path · 15/15 ran · 0 never ran. The 7 comes from scanning each hook's source
+   with comments stripped, not from a list I typed.
+4. Recorded here, dated, as required.
 
 ## Check-in runbook
 
@@ -399,8 +465,11 @@ retirement has proved it is still needed. A failing result forbids starting the 
 - **The biggest risk is this plan's own tooling.** Four new checkers were written in one day; two of them
   mis-reported on their first run and were retuned. Batch B exists precisely because they are not yet
   trustworthy, and until B lands, a green sweep is *weak* evidence, not proof.
-- **The hook-usage counter has no history.** It began on 2026-07-30, so "never fired" means nothing before
-  ~2026-08-06. Do not retire a hook on it until then.
+- ~~**The hook-usage counter has no history.**~~ **ANSWERED 2026-08-01 (D1), and the risk was mis-stated.** The
+  worry was that the counter needed time. What it needed was a reader that knew what the number means: 2 days
+  gave 2,874 events and a conclusive answer for *ran*, while *fired* would have been unreadable after a year
+  because 7 of 15 hooks cannot produce the exit code it counts. **A metric does not become trustworthy by
+  ageing** — the wait had been standing in for a correctness check on the instrument.
 - ~~Are the connections between files intact?~~ **Answered 2026-07-30 by measurement:** memory cross-links
   0 broken, ledger anchors 0 broken, hook wiring 0 broken; INVENTORY and the shared-asset catalog were broken
   and are fixed.

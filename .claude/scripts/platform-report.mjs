@@ -363,7 +363,7 @@ p(
   `| \`run\` | session transcripts | \`node <path>\` invocations — scripts and hooks only. |`,
 );
 p(
-  `| \`ran\`/\`fired\` | \`~/.claude/hook-usage.jsonl\` | hooks record their own exit; \`fired\` = exit 2, i.e. it actually said something. **Starts 2026-07-30**, no history before that. |`,
+  `| \`ran\`/\`fired\` | \`~/.claude/hook-usage.jsonl\` | hooks record their own exit; \`fired\` = exit 2. **\`n/a\` means the hook has no exit-2 path**, so the number is zero by construction and is NOT evidence it catches nothing — it speaks by printing \`additionalContext\`/\`systemMessage\` at exit 0, or works by side effect (7 of 15 hooks, measured 2026-08-01). **Starts 2026-07-30**, no history before that. |`,
 );
 p(
   `| \`in\` | this repo | how many other files cite it by name — its inbound links. |`,
@@ -392,7 +392,10 @@ for (const kind of KINDS) {
   );
   p(`|---|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|`);
   for (const r of group) {
-    const hook = r.kind === "hook" ? `${r.ran ?? 0}/${r.fired ?? 0}` : "—";
+    // `fired === null` ⇒ the hook cannot exit 2; printing 0 here would re-create the false signal that
+    // usage-census's canBlock() exists to remove, so it must survive the trip through --json as `n/a`.
+    const hook =
+      r.kind === "hook" ? `${r.ran ?? 0}/${r.fired === null ? "n/a" : (r.fired ?? 0)}` : "—";
     p(
       `| \`${r.v}\` | \`${r.path}\` | ${r.reads} | ${r.writes} | ${r.runs} | ${hook} | ${r.links} | ${r.linksOut} | ${r.commits} | ${ago(r.first)} | ${d(r.last_touched)} | ${r.lines} |`,
     );

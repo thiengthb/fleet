@@ -276,6 +276,9 @@
 | 2026-07-31 | Verify a platform claim against YOUR version: a credible external report voided the safety gate, measurement disproved it. | [→](ledger/2026-07.md#2026-07-31-verify-a-platform-claim-against-your-version) |
 | 2026-07-31 | Audit a deletion tool by READING its first suggestions — mine exited 0 while proposing to delete live safety rules. | [→](ledger/2026-07.md#2026-07-31-audit-a-deletion-tool-by-reading-its-suggestions) |
 | 2026-07-31 | A green synthetic suite proves nothing about a shape you invented — 17/17 passed on a hook that blocked every turn; replay the real artefact. | [→](ledger/2026-07.md#2026-07-31-a-green-synthetic-suite-proves-nothing-about-an-invented-shape) |
+| 2026-08-01 | A metric that cannot move must never be printed as a measurement — 7 of 15 hooks can't exit 2, so `fired=0` condemned them forever | [→](ledger/2026-08.md#2026-08-01-a-metric-that-cannot-move-must-never-be-printed-as-a-measurement) |
+| 2026-08-01 | A finding whose remedy is "ask a human" needs a HIGHER verification bar — a false escalation spends the one resource that can't be recovered | [→](ledger/2026-08.md#2026-08-01-a-finding-whose-remedy-is-ask-a-human-needs-a-higher-bar) |
+| 2026-08-01 | A tool with no config does not do nothing; it applies its own defaults — a false red invited a `--write` that reflowed 4 files | [→](ledger/2026-08.md#2026-08-01-a-tool-with-no-config-does-not-do-nothing) |
 | 2026-07-31 | Read a config field's SEMANTICS, not its name: `allowed-tools` GRANTS permission; the row using it to "restrict" would have opened up secrets. | [→](ledger/2026-07.md#2026-07-31-read-a-config-fields-semantics-not-its-name) |
 
 ## B. Pointers to each project's knowledge log

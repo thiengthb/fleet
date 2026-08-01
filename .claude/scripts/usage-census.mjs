@@ -87,6 +87,38 @@ const walk = (dir, out = []) => {
   return out;
 };
 
+/**
+ * Can this hook ever exit 2 — i.e. is `fired` a number that can move for it?
+ *
+ * WHY THIS EXISTS, and it is a correction of this file. `fired` counts runs that ended in exit 2, and the
+ * comment on the hook table below used to read *"ran>0 with fired=0 over weeks is the signature of a guard
+ * that costs time and catches nothing"*. Measured 2026-08-01 against the live log (2,874 events): **7 of 15
+ * hooks have no `exit(2)` path at all.** They speak by printing `hookSpecificOutput.additionalContext` or a
+ * `systemMessage` and exiting 0 — `plan-checkin`, `compact-recap`, `tree-moved-notice`, `git-sync-check`,
+ * `memory-wiring-check`, `harness-drift-check` — or they have no speech at all and work by side effect
+ * (`prettier-on-edit` formats the file). For every one of them `fired` is 0 **by construction, forever**, so
+ * reading it as "catches nothing" nominates seven working hooks for retirement. That is the *condemning*
+ * direction of the same defect class as `platform-report`'s unknown ages: confidently wrong, and no crash.
+ *
+ * Derived from the hook's own source, never a hardcoded list of names, so a hook added tomorrow classifies
+ * itself. Comments are stripped first: `tree-moved-notice.mjs` *discusses* exit 2 in its header, and prose
+ * about a behaviour is not the behaviour.
+ */
+const BLOCKING_EXIT = /process\.exit\(\s*2\s*\)|declareFailMode\(\s*2\b/;
+const stripComments = (src) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+
+function canBlock(file) {
+  let src;
+  try {
+    src = readFileSync(file, "utf8");
+  } catch {
+    return true; // unreadable ⇒ assume it CAN block, so a real 0 is never explained away as structural
+  }
+  const code = stripComments(src);
+  return BLOCKING_EXIT.test(code);
+}
+
 /** Every artefact the platform could plausibly retire, keyed by its repo-relative path. */
 function inventory() {
   const items = new Map();
@@ -136,7 +168,7 @@ function inventory() {
   // hooks + scripts: the executable layer
   for (const f of walk(join(REPO, ".claude", "hooks")))
     if (/\.mjs$/.test(f) && !/\.test\.mjs$/.test(f) && !/_util/.test(f))
-      add(posix(relative(REPO, f)), "hook");
+      add(posix(relative(REPO, f)), "hook", { canBlock: canBlock(f) });
   for (const f of walk(join(REPO, ".claude", "scripts")))
     if (/\.(mjs|sh|ps1)$/.test(f)) add(posix(relative(REPO, f)), "script");
 
@@ -382,6 +414,9 @@ countLinks(items);
 let rows = [...items.values()].map((it) => ({
   ...it,
   total: it.reads + it.runs,
+  // `fired` is null — not 0 — for a hook with no exit-2 path, so no consumer can read a structural zero as
+  // "ran a lot and caught nothing". See canBlock() above for what made this necessary.
+  fired: it.kind === "hook" && it.canBlock === false ? null : it.fired || 0,
   lines: (() => {
     const p = join(REPO, it.path);
     try {
@@ -422,9 +457,11 @@ for (const kind of KINDS) {
   console.log(
     `── ${kind}  (${group.length} items, ${used} used, ${group.length - used} never)`,
   );
-  // Hooks get two extra columns because "was it read" is the wrong question for them: `ran` is how often
-  // it executed, `fired` how often it actually said something (exit 2). ran>0 with fired=0 over weeks is
-  // the signature of a guard that costs time and catches nothing.
+  // Hooks get two extra columns because "was it read" is the wrong question for them: `ran` is how often it
+  // executed, `fired` how often it exited 2. `fired` prints as `n/a` for a hook with no exit-2 path, because
+  // for those it is zero by construction and reading it as "catches nothing" would condemn seven working
+  // hooks — see canBlock(). Only for a hook that CAN block is `ran>0, fired=0` a signal at all, and even
+  // then it may just mean the guard found nothing to block.
   const isHook = kind === "hook";
   console.log(
     `   ${"use".padStart(5)} ${isHook ? `${"ran".padStart(6)} ${"fired".padStart(5)} ` : ""}${"links".padStart(5)} ${"lines".padStart(5)} ${"last".padStart(5)}  path`,
@@ -433,7 +470,7 @@ for (const kind of KINDS) {
     console.log(
       `   ${String(r.total).padStart(5)} ` +
         (isHook
-          ? `${String(r.ran ?? 0).padStart(6)} ${String(r.fired ?? 0).padStart(5)} `
+          ? `${String(r.ran ?? 0).padStart(6)} ${(r.fired === null ? "n/a" : String(r.fired ?? 0)).padStart(5)} `
           : "") +
         `${String(r.links).padStart(5)} ${String(r.lines).padStart(5)} ${ago(r.last).padStart(5)}  ${r.path}`,
     );
@@ -466,6 +503,10 @@ LIMITS — read before cutting anything:
   • Hooks do NOT appear in transcripts (they are not tool calls), so their "use" column counts only reads/edits.
     "ran"/"fired" come from ~/.claude/hook-usage.jsonl, which hooks append to as they exit — a LOCAL log, so it
     starts empty on a new machine and says nothing about history before 2026-07-30. Switch off: HOOK_USAGE_LOG=off.
+  • "fired" = n/a means the hook has NO exit-2 path, so the number is zero by construction and proves nothing.
+    Those hooks speak by printing additionalContext/systemMessage and exiting 0, or work by side effect — the
+    exit code cannot tell "looked and spoke" from "looked and stayed silent" for them (measured 2026-08-01:
+    7 of 15). To judge one of those, read what it prints; do not read this column.
   • Subagent tool calls live in their own transcripts and may be missed; counts are a floor, never a ceiling.
   • MEMORY FILES: 0 here means "never explicitly opened", NOT "never used". The index line loads every session and
     the harness can inject a memory's content as a system-reminder, which is not a tool call and is not mined.

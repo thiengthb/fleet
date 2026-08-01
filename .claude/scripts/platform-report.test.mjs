@@ -56,7 +56,7 @@ const event = (name, input) =>
  * A sandbox that is a REAL git repository: the three regressions this suite exists for were all git-parsing
  * failures, so the git layer is the thing under test and must not be faked.
  */
-function sandbox({ files = {}, events = [], skills = [] } = {}) {
+function sandbox({ files = {}, events = [], skills = [], hookLog = null } = {}) {
   const root = mkdtempSync(join(tmpdir(), "platform-report-"));
   const home = join(root, "__home__");
   const scripts = join(root, ".claude", "scripts");
@@ -105,7 +105,12 @@ function sandbox({ files = {}, events = [], skills = [] } = {}) {
     });
   };
 
-  return { root, home, scripts, git, commit, hookLogPath: join(root, "__nolog__.jsonl") };
+  let hookLogPath = join(root, "__nolog__.jsonl");
+  if (hookLog) {
+    hookLogPath = join(root, "hook-usage.jsonl");
+    writeFileSync(hookLogPath, hookLog.join("\n") + "\n");
+  }
+  return { root, home, scripts, git, commit, hookLogPath };
 }
 
 function report(s, args = []) {
@@ -395,6 +400,47 @@ function rows(s, args = []) {
   rmSync(s.root, { recursive: true, force: true });
 }
 
+/* ═════════ 9b. the hook column must carry `n/a` across the process boundary ══════════════════════
+ *
+ * This report does not measure hooks itself — it spawns `usage-census --json` and renders the rows. As of
+ * 2026-08-01 usage-census reports `fired: null` for a hook with no exit-2 path, because 7 of 15 hooks can
+ * never exit 2 and a zero there condemns a working guard. The render used `r.fired ?? 0`, which turns that
+ * null straight back into `0` — the defect re-appearing on the far side of the pipe, in the one document the
+ * supervisor is told to audit the agent's judgement with. Untested until this case existed. */
+{
+  const s = sandbox({
+    files: {
+      ".claude/hooks/tapir-hook.mjs": "process.exit(0);\n", // speaks at exit 0 ⇒ n/a
+      ".claude/hooks/dingo-hook.mjs": "if (bad) process.exit(2);\n", // can block ⇒ a real number
+    },
+    hookLog: [
+      JSON.stringify({ ts: new Date().toISOString(), hook: "tapir-hook.mjs", code: 0, ms: 1 }),
+      JSON.stringify({ ts: new Date().toISOString(), hook: "dingo-hook.mjs", code: 0, ms: 1 }),
+    ],
+  });
+  s.commit("hooks");
+  const { out } = report(s, ["--stdout"]);
+  assert.match(
+    out,
+    /tapir-hook\.mjs.*\| 1\/n\/a \|/,
+    `a hook with no exit-2 path must render ran/fired as 1/n/a:\n${out
+      .split("\n")
+      .filter((l) => /tapir/.test(l))
+      .join("\n")}`,
+  );
+  assert.match(
+    out,
+    /dingo-hook\.mjs.*\| 1\/0 \|/,
+    "…and a hook that CAN block keeps a real 0, which is a measurement",
+  );
+  assert.match(
+    out,
+    /`n\/a` means the hook has no exit-2 path/,
+    "the legend must explain n/a, or a reader treats the gap as missing data",
+  );
+  rmSync(s.root, { recursive: true, force: true });
+}
+
 /* ───────────────────── 10. the suite must NOTICE a broken verdict engine (mutation) ── */
 {
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
@@ -552,5 +598,6 @@ console.log(
   "platform-report.test.mjs — the 3 measured regressions (marker-vs-data separation, rename following, " +
     "unknown age), " +
     "the full verdict ladder, 7 PROTECTED classes with their stated blindness, outbound links, the report's " +
-    "no-deletion framing, a refused report on a broken census, 7 mutants all killed  ✅",
+    "no-deletion framing, `n/a` surviving the census pipe, a refused report on a broken census, " +
+    "7 mutants all killed  ✅",
 );

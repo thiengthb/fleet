@@ -367,7 +367,13 @@ function rows(s, args = []) {
 /* ═════════ 9. hooks are invisible to transcripts — ran/fired come from the hook's own log ═════ */
 {
   const s = sandbox({
-    files: { ".claude/hooks/dingo-hook.mjs": "// x\n", ".claude/hooks/emu-hook.mjs": "// x\n" },
+    files: {
+      // dingo CAN block, so `fired` is a number worth reading. The fixture must carry a real exit-2 path:
+      // after 2026-08-01 a hook without one reports `fired: null`, and a fixture logging `code: 2` for a hook
+      // that cannot produce a 2 is not a scenario the tool should have to explain.
+      ".claude/hooks/dingo-hook.mjs": "if (bad) process.exit(2);\n",
+      ".claude/hooks/emu-hook.mjs": "// x\n",
+    },
     hookLog: [
       JSON.stringify({ ts: iso(Date.now()), hook: "dingo-hook.mjs", code: 0, ms: 4 }),
       JSON.stringify({ ts: iso(Date.now()), hook: "dingo-hook.mjs", code: 2, ms: 6 }),
@@ -382,10 +388,65 @@ function rows(s, args = []) {
   assert.equal(
     map[".claude/hooks/dingo-hook.mjs"].fired,
     1,
-    "only exit 2 counts as FIRED — ran>0 with fired=0 over weeks is the signature of a guard that costs " +
-      "time and catches nothing, and conflating the two hides exactly that",
+    "only exit 2 counts as FIRED — for a hook that CAN exit 2, conflating the two would hide a guard that " +
+      "runs constantly and never actually blocks anything",
   );
   assert.equal(map[".claude/hooks/emu-hook.mjs"].ran ?? 0, 0, "a hook with no log lines stays at zero");
+  rmSync(s.root, { recursive: true, force: true });
+}
+
+/* ═════════ 9b. `fired` is n/a, never 0, for a hook that has NO exit-2 path ═════════════════════
+ *
+ * Measured 2026-08-01 on the live log: 7 of 15 hooks cannot exit 2 at all — they speak by printing
+ * `hookSpecificOutput.additionalContext` / `systemMessage` and exiting 0, or they work by side effect. For
+ * those, `fired = 0` is true by construction and forever, and the audit plan's row "≥1 firing each, or
+ * justify the hook" read it as seven dead guards. A metric that cannot move must not be printed as though
+ * it had stayed still. */
+{
+  const s = sandbox({
+    files: {
+      // Speaks at exit 0 — the majority shape, and the one that was being condemned.
+      ".claude/hooks/tapir-hook.mjs":
+        'process.stdout.write(JSON.stringify({ hookSpecificOutput: { additionalContext: "hi" } }));\nprocess.exit(0);\n',
+      // Only *discusses* exit 2, in a line comment and a block comment. Must NOT count as able to block:
+      // `tree-moved-notice.mjs` really does this in its header, and it is one of the seven.
+      ".claude/hooks/quokka-hook.mjs":
+        "// the docs say its exit 2 is ignored for FileChanged\n/* process.exit(2) would be wrong here */\nprocess.exit(0);\n",
+      // The other spelling of blocking, via the shared helper.
+      ".claude/hooks/ibis-hook.mjs": "declareFailMode(2, 'a hard invariant');\n",
+    },
+    hookLog: [
+      JSON.stringify({ ts: iso(Date.now()), hook: "tapir-hook.mjs", code: 0, ms: 2 }),
+      JSON.stringify({ ts: iso(Date.now()), hook: "quokka-hook.mjs", code: 0, ms: 2 }),
+      JSON.stringify({ ts: iso(Date.now()), hook: "ibis-hook.mjs", code: 0, ms: 2 }),
+    ],
+  });
+  const { map } = rows(s);
+  assert.equal(
+    map[".claude/hooks/tapir-hook.mjs"].fired,
+    null,
+    "a hook that speaks at exit 0 must report fired: null — printing 0 invites retiring a working hook",
+  );
+  assert.equal(map[".claude/hooks/tapir-hook.mjs"].ran, 1, "…while `ran` still counts, because it did run");
+  assert.equal(
+    map[".claude/hooks/quokka-hook.mjs"].fired,
+    null,
+    "mentioning exit 2 in a comment is not having an exit-2 path — comments must be stripped before the test",
+  );
+  assert.equal(
+    map[".claude/hooks/ibis-hook.mjs"].fired,
+    0,
+    "declareFailMode(2, …) IS a blocking path, so 0 here is a real measurement and must stay a number",
+  );
+
+  // …and the human table must show it, not just the JSON: `n/a` is what a reader actually sees.
+  const human = census(s, ["--kind", "hook"]);
+  assert.match(
+    human.out,
+    /n\/a.*tapir-hook\.mjs/,
+    `the hook table must print n/a for a hook that cannot exit 2:\n${human.out}`,
+  );
+  assert.doesNotMatch(human.out, /n\/a.*ibis-hook\.mjs/, "…and must NOT print n/a for one that can");
   rmSync(s.root, { recursive: true, force: true });
 }
 
@@ -437,6 +498,9 @@ function rows(s, args = []) {
 }
 
 /* ───────────────────── 12. the suite must NOTICE a broken census (mutation) ── */
+// Counted from the array below rather than typed into the summary line, because the summary was still
+// claiming "8 mutants" after the 9th and 10th were added — a tool reciting a remembered number about itself.
+let MUTANTS_RUN = 0;
 {
   const src = readFileSync(SCRIPT, "utf8");
 
@@ -502,11 +566,33 @@ function rows(s, args = []) {
     {
       name: "any exit code counted as FIRED",
       spec: {
-        files: { ".claude/hooks/dingo-hook.mjs": "// x\n" },
+        files: { ".claude/hooks/dingo-hook.mjs": "if (bad) process.exit(2);\n" },
         hookLog: [JSON.stringify({ ts: iso(Date.now()), hook: "dingo-hook.mjs", code: 0, ms: 1 })],
       },
       apply: (s) => s.replace("if (e.code === 2)", "if (e.code >= 0)"),
       probe: (s) => rows(s).map[".claude/hooks/dingo-hook.mjs"].fired === 1,
+    },
+    {
+      // The defect this section fixes, re-introduced: every hook classified as able to block, so the
+      // structural zero comes back and seven working hooks look like guards that catch nothing.
+      name: "canBlock always true (a structural zero printed as a measurement)",
+      spec: {
+        files: { ".claude/hooks/tapir-hook.mjs": "process.exit(0);\n" },
+        hookLog: [JSON.stringify({ ts: iso(Date.now()), hook: "tapir-hook.mjs", code: 0, ms: 1 })],
+      },
+      apply: (s) => s.replace("return BLOCKING_EXIT.test(code);", "return true;"),
+      probe: (s) => rows(s).map[".claude/hooks/tapir-hook.mjs"].fired === 0,
+    },
+    {
+      // Comments not stripped ⇒ a hook that merely DISCUSSES exit 2 is called a blocking hook, which is the
+      // false-ANCHOR mistake from case 3 arriving through a different door: prose read as behaviour.
+      name: "comments not stripped before the exit-2 test",
+      spec: {
+        files: { ".claude/hooks/quokka-hook.mjs": "// process.exit(2) is wrong here\nprocess.exit(0);\n" },
+        hookLog: [JSON.stringify({ ts: iso(Date.now()), hook: "quokka-hook.mjs", code: 0, ms: 1 })],
+      },
+      apply: (s) => s.replace("const code = stripComments(src);", "const code = src;"),
+      probe: (s) => rows(s).map[".claude/hooks/quokka-hook.mjs"].fired === 0,
     },
     {
       name: "the --days window ignored",
@@ -550,6 +636,7 @@ function rows(s, args = []) {
     const killed = m.probe(s);
     rmSync(s.root, { recursive: true, force: true });
     assert.ok(killed, `SURVIVING MUTANT — "${m.name}" and the suite still passed. Add a case for it.`);
+    MUTANTS_RUN++;
   }
 }
 
@@ -564,6 +651,6 @@ function rows(s, args = []) {
 
 console.log(
   "usage-census.test.mjs — inventory scope + 5 exclusions, the 3 measured regressions (skill folding, " +
-    "self-corpus, generic basenames), run-vs-mention, the --days window, hook ran/fired, the LIMITS block, " +
-    "8 mutants all killed  ✅",
+    "self-corpus, generic basenames), run-vs-mention, the --days window, hook ran/fired, `fired: n/a` for a " +
+    `hook with no exit-2 path, the LIMITS block, ${MUTANTS_RUN} mutants all killed  ✅`,
 );
