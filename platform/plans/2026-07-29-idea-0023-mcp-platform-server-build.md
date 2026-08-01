@@ -495,7 +495,40 @@ failing result means the whole feature — not one of its two halves — was mac
 
 ### Q1 (the gate) — is the plugin hook actually used?
 
-1. `claude plugin list` — is `rulebook-frontend@rulebook` still installed and enabled? (Uninstalled ⇒ that IS the answer.)
+> **STEP 0, added 2026-08-01 — WHICH MACHINE are you answering on? Answer this before reading any number
+> below, or the gate produces a false verdict of abandonment.**
+>
+> Everything Q1 reads is **per-machine**: the plugin is installed at *user* scope (`~/.claude/`), and
+> `~/.claude/rulebook-usage.jsonl` is a local file. Neither travels with the repo. **Measured 2026-08-01 on
+> `TNT-Laptop` (Windows): the plugin is NOT installed here** — `claude plugin list` reports none, the
+> `rulebook` marketplace is not even configured, and the usage log does not exist. Yet this is the box a
+> large share of recent sessions ran on.
+>
+> So step 2's decision table was incomplete. It offered two readings of zero — "no UI work happened" or "the
+> hook is not firing (a defect)". There is a **third**: *the plugin was never installed on this machine*, in
+> which case zero is neither, and it is not evidence about the feature at all.
+>
+> **Do this first:**
+>
+> ```
+> claude plugin list                # installed here?
+> claude plugin marketplace list    # is `rulebook` even configured here?
+> ```
+>
+> - **Not installed here** ⇒ **STOP. Q1 is UNANSWERABLE from this machine.** Say so, roll `checkin:` forward,
+>   and record which machine was checked. Do NOT read the missing log as "unused"; do not tick or fail
+>   anything. An answer that could only ever come out one way is not an answer — the same rule the eval
+>   harness enforces as `recurrence-check` D7 (*a null is only a null when the success path was reachable*),
+>   arriving here through a different door: a check-in gate rather than an experiment.
+> - **Installed here** ⇒ continue to step 1. The verdict you reach covers **this machine only**, and the
+>   report must name it.
+>
+> **The open decision this exposes, and it is the supervisor's:** the primary delivery path exists on one of
+> two machines. Either install it here so the rule is actually enforced where the work happens, or record
+> deliberately that `rulebook` is a one-machine tool. The agent does not install into `~/.claude/` unattended
+> — same reason it does not edit governance.
+
+1. `claude plugin list` — is `rulebook-frontend@rulebook` still installed and enabled? (Uninstalled ⇒ that IS the answer **only if it was ever installed on this machine** — see step 0.)
 2. **Read the usage log — do not infer.** `node /home/thien/projects/fleet/rulebook/scripts/usage-report.mjs`
    Added 2026-07-29 (v0.2.0) precisely because this step used to be an inference: the hook is silent on a clean file, so
    the original instruction was to look at git history for UI files and *assume* the hook saw them. It now counts every
