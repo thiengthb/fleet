@@ -280,6 +280,58 @@ function main() {
           `them to the list, or remove them from the gate.`
       );
     }
+
+    /**
+     * THE COUNT, checked separately — and the reason it is a separate check is a limitation found by using the
+     * one above.
+     *
+     * On 2026-08-01 `.claude/workflows/` was added to both the gate and the prose, and this check went on
+     * reporting the same score. Cause: it matches WORDS, and `workflows` was already in the token set from
+     * `.github/workflows` — two different surfaces, one word. So GOVERNANCE-SYNC **never could have found that
+     * hole**, and it cannot be made to: the prose groups surfaces under a `.claude/` prefix rather than spelling
+     * each full path, so requiring `claude/workflows` as a phrase would fail on correct prose. The distinction is
+     * verified where it actually can be — `autonomy-gate.test.mjs` asserts both directories block, separately.
+     *
+     * What IS mechanically checkable is the NUMBER the always-loaded file asserts about itself. It is
+     * hand-maintained, and hand-maintained numbers drift: this very bullet records that the list "said 7 while
+     * the gate enforced 12", and on the same day the knowledge-ledger index was found claiming 211 lessons while
+     * holding 258. A count in the always-loaded file is a claim the agent reads every session; if it is wrong,
+     * everything downstream of it is wrong quietly.
+     */
+    // Searched in the WHOLE bullet, not the narrowed `region`: `region` deliberately stops at "it may
+    // *propose*" so that prose about a surface cannot satisfy a search for it, and the count sentence lives on
+    // the far side of that cut. Measured — the first version looked in `region` and reported the number missing
+    // while it was two clauses away. Narrowing is per-question; a scope that is right for one check is not
+    // automatically right for the next one bolted beside it.
+    const claimed = /All\s+(\d+)\s+enforced by/.exec(bullet ? bullet[0] : '');
+    // Re-read rather than thread the source out of `governanceTokens()`: that function's contract is "tokens or
+    // null", and widening it to carry a second value is how a helper stops being checkable on its own.
+    let gateSrc = '';
+    try {
+      gateSrc = readFileSync(join(REPO, '.claude', 'hooks', 'autonomy-gate.mjs'), 'utf8');
+    } catch {
+      /* unreachable: govTokens === null already handled the missing-gate case above */
+    }
+    const gateStart = gateSrc.indexOf('const GOVERNANCE = [');
+    const gateEntries =
+      gateStart < 0
+        ? null
+        : gateSrc
+            .slice(gateStart, gateSrc.indexOf('];', gateStart))
+            .split('\n')
+            .filter((l) => /^\s*\{\s*name:/.test(l)).length;
+    if (!claimed) {
+      errors.push(
+        `GOVERNANCE-SYNC: the prohibition does not state how many surfaces the gate enforces ("All N enforced ` +
+          `by ..."). That number is the only part of this list a machine can check exactly — keep it.`
+      );
+    } else if (gateEntries !== null && Number(claimed[1]) !== gateEntries) {
+      errors.push(
+        `GOVERNANCE-SYNC: CLAUDE.md claims ${claimed[1]} enforced governance surfaces; autonomy-gate's ` +
+          `GOVERNANCE array has ${gateEntries}. One of them is a hand-maintained number that drifted — read the ` +
+          `array, then fix the prose (or the array, if a surface was dropped by accident).`
+      );
+    }
   }
 
   /* ANCHORS */

@@ -251,7 +251,16 @@ const HEALTHY = {
     {
       name: "a wrong directory accepted",
       spec: { memory: HEALTHY, wiring: "elsewhere" },
-      apply: (s) => s.replace("} else if (setting.dir !== MEMORY_DIR) {", "} else if (false) {"),
+      // RE-ANCHORED 2026-08-01. This patched `} else if (setting.dir !== MEMORY_DIR) {`, which the worktree fix
+      // replaced — so the mutant silently changed nothing and the suite died on its own staleness assertion
+      // rather than on a surviving mutant. That assertion is why this was a 10-second fix instead of a false
+      // green, and it is the second stale anchor in two days: anchor a mutation on the SMALLEST text that
+      // identifies the mechanism, never on a line that is likely to be rewritten around it.
+      apply: (s) =>
+        s.replace(
+          "const wiredCorrectly = (dir) => samePath(dir, MEMORY_DIR) || samePath(dir, MAIN_MEMORY_DIR);",
+          "const wiredCorrectly = () => true;",
+        ),
       probe: (s) => fire(s).out.trim() === "",
     },
     {
@@ -318,6 +327,118 @@ const HEALTHY = {
   }
 }
 
+/* ─────────── N. inside a linked git worktree, the MAIN tree's memory directory is CORRECT ──────────
+ *
+ * A REAL `git worktree`, not an injected `spawn`. `_layout.test.mjs` fakes git for its own unit cases and says
+ * why (deterministic, free) — but the bug this section exists for was invisible to every fake: the hook derives
+ * its repo root from its own file location, so only a real second checkout puts a different root under it.
+ *
+ * The failure, measured 2026-08-01 the first time `claude --worktree` was run: the hook reported *"the
+ * git-synced shared tier is not being loaded or written to"* inside a worktree whose `autoMemoryDirectory` was
+ * inherited — correctly — from the main tree. Every worktree session would have opened by telling the agent it
+ * had no memory of the user, and this hook's `additionalContext` tells the agent to pass that on.
+ */
+function gitWorktreeSandbox({ src = null } = {}) {
+  const root = mkdtempSync(join(tmpdir(), "memory-wiring-wt-"));
+  const main = join(root, "main");
+  const home = join(root, "__home__");
+  mkdirSync(join(home, ".claude"), { recursive: true });
+  mkdirSync(join(main, ".claude", "hooks"), { recursive: true });
+  mkdirSync(join(main, ".claude", "scripts"), { recursive: true });
+  mkdirSync(join(main, ".claude", "memory"), { recursive: true });
+
+  const hookAt = join(main, ".claude", "hooks", "memory-wiring-check.mjs");
+  if (src === null) copyFileSync(HOOK, hookAt);
+  else writeFileSync(hookAt, src);
+  copyFileSync(join(HERE, "_util.mjs"), join(main, ".claude", "hooks", "_util.mjs"));
+  // The hook imports this at load time. A fixture missing it would exercise the swallowed-import fallback
+  // instead of the worktree logic, and pass for the wrong reason.
+  copyFileSync(
+    join(REPO, ".claude", "scripts", "_layout.mjs"),
+    join(main, ".claude", "scripts", "_layout.mjs"),
+  );
+  for (const [name, body] of Object.entries(HEALTHY))
+    writeFileSync(join(main, ".claude", "memory", name), body);
+
+  // `-c user.*` rather than a global config: the suite must not depend on, or touch, the developer's git identity.
+  const git = (...args) =>
+    execFileSync("git", ["-c", "user.name=fixture", "-c", "user.email=f@x", ...args], {
+      cwd: main,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  git("init", "-q");
+  git("add", "-A");
+  git("commit", "-qm", "fixture");
+  const wt = join(root, "wt");
+  git("worktree", "add", "-q", wt, "-b", "probe");
+
+  return {
+    root,
+    home,
+    hook: join(wt, ".claude", "hooks", "memory-wiring-check.mjs"),
+    mainMemory: join(main, ".claude", "memory"),
+    wt,
+  };
+}
+
+{
+  // (a) pointing at the MAIN tree's memory directory — the inherited, correct wiring ⇒ SILENT.
+  const s = gitWorktreeSandbox();
+  writeFileSync(
+    join(s.wt, ".claude", "settings.local.json"),
+    JSON.stringify({ autoMemoryDirectory: s.mainMemory }),
+  );
+  const inherited = fire(s);
+  assert.equal(inherited.code, 0, "the hook must always exit 0");
+  assert.equal(
+    inherited.out.trim(),
+    "",
+    `a worktree inheriting the main tree's memory directory is CORRECTLY wired and must be silent:\n${inherited.out}`,
+  );
+
+  // (b) …and the check is still LIVE: a third directory must still be reported, otherwise (a) passed because
+  // the comparison accepts everything rather than because it understands worktrees.
+  writeFileSync(
+    join(s.wt, ".claude", "settings.local.json"),
+    JSON.stringify({ autoMemoryDirectory: join(s.root, "unrelated", "memory") }),
+  );
+  const wrong = fire(s);
+  assert.equal(wrong.code, 0, "the hook must always exit 0");
+  assert.match(
+    wrong.out,
+    /autoMemoryDirectory` points at/,
+    "a directory that is neither this tree's nor the main tree's must still be reported",
+  );
+  assert.match(
+    wrong.out,
+    /nor the main tree's/,
+    "inside a worktree the message must name the main tree's directory as also acceptable — otherwise the " +
+      "reader is told to 'fix' wiring by pointing at a per-worktree copy, which is the drift this prevents",
+  );
+  rmSync(s.root, { recursive: true, force: true });
+}
+
+{
+  // Mutant: restore the strict pre-2026-08-01 comparison. Case (a) must go from silent to complaining.
+  const src = readFileSync(HOOK, "utf8");
+  const mutated = src.replace(
+    "} else if (!wiredCorrectly(setting.dir)) {",
+    "} else if (setting.dir !== MEMORY_DIR) {",
+  );
+  assert.notEqual(mutated, src, "the worktree mutation changed nothing — the patch anchor is stale");
+  const s = gitWorktreeSandbox({ src: mutated });
+  writeFileSync(
+    join(s.wt, ".claude", "settings.local.json"),
+    JSON.stringify({ autoMemoryDirectory: s.mainMemory }),
+  );
+  const r = fire(s);
+  assert.equal(r.code, 0, `the mutant crashed instead of changing behaviour — it proves nothing:\n${r.out}`);
+  const killed = /autoMemoryDirectory` points at/.test(r.out);
+  rmSync(s.root, { recursive: true, force: true });
+  assert.ok(killed, "SURVIVING MUTANT — the strict comparison is back and the worktree case still passed");
+}
+
 /* ─────────── the real memory tier must be untouched ── */
 {
   const dirty = execFileSync("git", ["status", "--porcelain", "--", ".claude/memory"], {
@@ -333,5 +454,6 @@ const HEALTHY = {
 console.log(
   "memory-wiring-check.test.mjs — silent when healthy, 6 distinct load failures each with its fix and its " +
     "model-facing warning, multiple problems reported together, settings precedence, malformed settings and a " +
-    "missing directory both survived, 6 mutants all killed  ✅",
+    "missing directory both survived, a REAL git worktree proving the inherited main-tree directory is accepted " +
+    "and a third directory still reported, 7 mutants all killed  ✅",
 );

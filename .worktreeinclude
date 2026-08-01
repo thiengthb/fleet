@@ -1,0 +1,32 @@
+# .worktreeinclude — gitignored files that MUST be copied into every new worktree (`claude --worktree`).
+#
+# WHY THIS FILE EXISTS. A worktree is a fresh checkout of tracked files only, so everything in `.gitignore`
+# is absent by construction. For this repo two of those absences are load-bearing, and both fail QUIETLY:
+#
+#   1. `.claude/settings.local.json` holds `autoMemoryDirectory` — an ABSOLUTE path, which is exactly why it
+#      cannot be committed. Without it a worktree session starts with `.claude/memory/` NOT loaded: the agent
+#      has no memory of the user and does not know that it doesn't. That is not hypothetical — it is the
+#      failure `.claude/hooks/memory-wiring-check.mjs` was written for after a memory sat unloaded for 4 days.
+#      The hook still fires in a worktree, so the failure is *detected*; this file is what PREVENTS it.
+#      Note the path inside it points at the MAIN tree's memory directory, which is correct: one shared tier,
+#      not a per-worktree copy that would drift.
+#   2. `CLAUDE.local.md` holds this machine's facts (shells, node version, Docker, the CRLF contract). A
+#      worktree session without it re-derives them wrong — or worse, assumes the other machine's.
+#
+# WHAT IS DELIBERATELY NOT HERE, and this is the more interesting half:
+#
+#   `projects/`, `commons/`, `rulebook/` are gitignored too — they are INDEPENDENT git repos this control
+#   plane does not track. Their absence is the documented reason `_layout.test.mjs` and `reuse-scan.test.mjs`
+#   cannot pass inside a worktree (`tool-check` is 37/39 there by construction, proven against a control
+#   worktree built from clean `main`). Copying them would "fix" that — and would also duplicate several GB of
+#   `node_modules` per worktree and clone nine repos out of their own history. So the answer for those stays
+#   DETECTION, not prevention: `_layout.mjs`'s `worktreeInfo()` reports the caveat and `health-sweep` refuses
+#   to publish a VERDICT from inside a worktree. Prevention outranks detection (plan principle 2) only when
+#   prevention is actually cheaper than the failure.
+#
+# Plan: platform/plans/2026-08-01-harness-upgrade.md step 2.5 (F-new-3). Named failure: memory
+# `user-edits-files-concurrently` — the detector (`tree-moved-notice.mjs`) shipped 2026-07-31 and fired again
+# on 2026-08-01; isolation is the half that stops it happening rather than reporting it.
+
+.claude/settings.local.json
+CLAUDE.local.md

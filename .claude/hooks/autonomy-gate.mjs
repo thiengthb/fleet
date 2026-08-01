@@ -152,6 +152,15 @@ try {
       // subagent's prompt shapes a SECOND model's output that the main loop then trusts as an
       // independent opinion, and no diff of the reviewed code shows why the review came back clean.
       { name: 'a subagent definition (agent behaviour)', re: /\.claude\/agents\// },
+      // INSTALLED 2026-08-01 (proposal `platform/proposals/2026-08-01-governance-workflows-and-statusline.md`),
+      // and found the same way as the entry above: by trying to obey the list and noticing what it omits. The
+      // list already named `.github/workflows/` — the CI directory — which reads as covering "workflows" and
+      // does not. `.claude/workflows/**` holds JavaScript the runtime EXECUTES to spawn subagents (capped at 16
+      // concurrent / 1,000 per run) with a tool set, a model and an `agentType` the script itself chooses. That
+      // is a larger capability grant than several entries here, and the directory is not hypothetical:
+      // `deep-research.js` already lives there and fans out web agents. Two omissions of the same kind mean the
+      // original list was built by enumerating what had been EDITED, not what confers capability.
+      { name: 'a workflow script (spawns subagents with a tool set of its choosing)', re: /\.claude\/workflows\// },
       { name: 'a CLAUDE.md rule file', re: /(^|\/)claude(\.local)?\.md$/ },
       { name: 'a CI/CD workflow', re: /\.github\/workflows\// },
       { name: 'git internals', re: /(^|\/)\.git\// },
@@ -185,7 +194,7 @@ try {
     // The file-tool branch protects governance from Write/Edit; nothing protected it from
     // `cp`, `tee`, `sed -i` or a redirect, so the CVE-2025-53773 class was reachable by shell.
     const GOV_PATH =
-      /(?:\.claude\/(?:settings|hooks|skills|rules|scripts|memory|agents)|\.github\/workflows|(?:^|[\s"'/=])claude(?:\.local)?\.md|platform\/standards\/|platform\/inbox\/quarantine\/)/i;
+      /(?:\.claude\/(?:settings|hooks|skills|rules|scripts|memory|agents|workflows)|\.github\/workflows|(?:^|[\s"'/=])claude(?:\.local)?\.md|platform\/standards\/|platform\/inbox\/quarantine\/)/i;
     // Verbs that can put bytes into a file. `grep`/`cat`/`ls` are absent on purpose: reading
     // governance is not the threat, and a gate that blocks reading gets disabled.
     const WRITE_VERB =

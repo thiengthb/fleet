@@ -83,6 +83,14 @@ for (const [label, path] of [
   ['a subagent definition', '.claude/agents/reviewer.md'],
   ['a NEW subagent', '.claude/agents/exfiltrator.md'],
   ['a subagent, Windows separators', '.claude\\agents\\reviewer.md'],
+  // INSTALLED 2026-08-01, and it is NOT the same surface as `.github/workflows/` two lines below — that is
+  // CI. `.claude/workflows/**` is JavaScript the runtime executes to spawn subagents (16 concurrent, 1,000
+  // per run) with a tool set and model the script picks. The pair below is deliberate: the two directories
+  // must BOTH block, because `claude-md-budget`'s GOVERNANCE-SYNC check tokenises on words and therefore
+  // cannot tell them apart — this suite is the only place the distinction is actually verified.
+  ['a workflow script', '.claude/workflows/deep-research.js'],
+  ['a NEW workflow script', '.claude/workflows/exfiltrate.js'],
+  ['a workflow, Windows separators', '.claude\\workflows\\deep-research.js'],
   ['CLAUDE.md', 'CLAUDE.md'],
   ['a nested CLAUDE.md', 'sakubun/CLAUDE.md'],
   ['CLAUDE.local.md', 'CLAUDE.local.md'],
@@ -99,6 +107,10 @@ check('autonomous: Edit a subagent definition → BLOCK', () =>
   assert.equal(edit('.claude/agents/reviewer.md'), BLOCK));
 check('autonomous: MultiEdit a subagent definition → BLOCK', () =>
   assert.equal(run({ tool_name: 'MultiEdit', tool_input: { file_path: '.claude/agents/reviewer.md' } }), BLOCK));
+check('autonomous: Edit a workflow script → BLOCK', () =>
+  assert.equal(edit('.claude/workflows/deep-research.js'), BLOCK));
+check('autonomous: cp into .claude/workflows/ → BLOCK (the shell door, on the other branch)', () =>
+  assert.equal(bash('cp evil.js .claude/workflows/deep-research.js'), BLOCK));
 
 // The SHELL doors into `.claude/agents/`. These are separate from the three above because the block
 // lives on a different branch: step 2.2 of the idea-0023 build found the governance block existed only

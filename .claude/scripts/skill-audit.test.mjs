@@ -49,7 +49,12 @@ const write = (p, body) => {
  * A sandbox repo. `.claude/scripts/` holds a copy of the script under test plus `_layout.mjs` (imported
  * relative to it), so the script resolves the sandbox as its repo root exactly as it resolves the real one.
  */
-function sandbox({ skills, map, files = {} }) {
+/**
+ * `extraFrontmatter` maps a skill name to EXTRA frontmatter lines. Added 2026-08-01 for the inert-key check:
+ * the fixed two-key block below can only ever produce "all keys known", so a case for an unknown key needs a
+ * way to write one — and a suite that cannot express the failing input cannot pin the check.
+ */
+function sandbox({ skills, map, files = {}, extraFrontmatter = {} }) {
   const root = mkdtempSync(join(tmpdir(), "skill-audit-"));
   const scripts = join(root, ".claude", "scripts");
   mkdirSync(scripts, { recursive: true });
@@ -60,9 +65,10 @@ function sandbox({ skills, map, files = {} }) {
 
   for (const name of skills) {
     // A skill IS a directory containing SKILL.md — the frontmatter is what gets injected every session.
+    const extra = extraFrontmatter[name] ? `${extraFrontmatter[name]}\n` : "";
     write(
       join(root, ".claude", "skills", name, "SKILL.md"),
-      `---\nname: ${name}\ndescription: fixture skill ${name}\n---\n\nbody\n`,
+      `---\nname: ${name}\ndescription: fixture skill ${name}\n${extra}---\n\nbody\n`,
     );
   }
   for (const [rel, body] of Object.entries(files)) write(join(root, rel), body);
@@ -458,8 +464,87 @@ const verdicts = (scripts) => {
   );
 }
 
+/* ────────────────── N. INERT frontmatter keys — a field the loader does not read ──────────
+ *
+ * The defect class: this platform has proposed a non-existent SKILL.md field three times (`category:` in L2,
+ * `version:` in C5, and `allowed-tools` read as a restriction when it GRANTS). All three were caught by reading
+ * the vendor's field table before typing; this pins the backstop for when nobody does.
+ */
+{
+  const { root, scripts } = sandbox({
+    skills: ["real-keys", "inert-key", "nested-value"],
+    map: { "real-keys": null, "inert-key": null, "nested-value": null },
+    extraFrontmatter: {
+      // Every one of these is documented, so none may be reported.
+      "real-keys": "disable-model-invocation: true\ndisallowed-tools: Write Edit\nmodel: inherit\neffort: high",
+      // `version:` is the one refused on 2026-08-01; `category:` is L2's. Both must be named.
+      "inert-key": "version: 1.0.0\ncategory: lifecycle",
+      // An INDENTED key is a nested value, not a field. Reporting it would make every structured field noisy,
+      // and `hooks:` is documented as taking children.
+      "nested-value": "hooks:\n  PreToolUse:\n    - command: echo hi",
+    },
+  });
+
+  const { out: json } = run(scripts, ["--json"]);
+  const inert = JSON.parse(json).inertKeys;
+  const named = inert.map((k) => `${k.skill}:${k.key}`).sort();
+  assert.deepEqual(
+    named,
+    ["inert-key:category", "inert-key:version"],
+    `only the two undocumented top-level keys may be reported, and both must be — got ${JSON.stringify(named)}`,
+  );
+
+  const { out: text } = run(scripts);
+  assert.match(text, /INERT FRONTMATTER KEYS \(2\)/, "the text report must name the count");
+  assert.match(text, /`version:` is not a documented field/, "the row must say what is wrong with the key");
+  // A reporter, deliberately: `health-sweep` and the heading contract depend on exit 0. If this ever needs to
+  // block, that is an escalation with its own decision, not a side effect of adding a row.
+  const { code } = run(scripts);
+  assert.equal(code, 0, "skill-audit stays a reporter — an inert key is reported, never fatal");
+
+  rmSync(root, { recursive: true, force: true });
+}
+
+{
+  // …and the clean case must be able to say "clean", or the check is a permanent red that gets ignored.
+  const { root, scripts } = sandbox({
+    skills: ["plain"],
+    map: { plain: null },
+  });
+  const { out } = run(scripts);
+  assert.match(out, /all 1 skills use only keys Claude Code reads/, "a clean repo must read as clean");
+  assert.doesNotMatch(out, /INERT FRONTMATTER KEYS/, "no inert section when there is nothing inert");
+  rmSync(root, { recursive: true, force: true });
+}
+
+{
+  // Mutant: allow every key. The inert case must go quiet, proving the assertion above observes the allowlist
+  // and not merely the regex that finds keys.
+  const src = readFileSync(SCRIPT, "utf8");
+  const mutated = src.replace(
+    "if (!KNOWN_FRONTMATTER_KEYS.has(m[1])) inertKeys.push({ skill: name, key: m[1] });",
+    "if (false) inertKeys.push({ skill: name, key: m[1] });",
+  );
+  assert.notEqual(mutated, src, 'mutation "every key accepted" changed nothing — the patch anchor is stale');
+  const root = mkdtempSync(join(tmpdir(), "skill-audit-mut-"));
+  const scripts = join(root, ".claude", "scripts");
+  mkdirSync(scripts, { recursive: true });
+  write(join(scripts, "skill-audit.mjs"), mutated);
+  copyFileSync(join(HERE, "_layout.mjs"), join(scripts, "_layout.mjs"));
+  write(join(scripts, "skill-substrate.json"), JSON.stringify({ skills: { "inert-key": null } }));
+  write(
+    join(root, ".claude", "skills", "inert-key", "SKILL.md"),
+    "---\nname: inert-key\ndescription: fixture\nversion: 1.0.0\n---\n\nbody\n",
+  );
+  const r = run(scripts, ["--json"]);
+  assert.equal(r.code, 0, `the mutant crashed instead of changing behaviour:\n${r.out.slice(0, 300)}`);
+  const killed = JSON.parse(r.out).inertKeys.length === 0;
+  rmSync(root, { recursive: true, force: true });
+  assert.ok(killed, "SURVIVING MUTANT — the allowlist was bypassed and the suite still passed");
+}
+
 console.log(
   "skill-audit.test.mjs — 3 verdict classes, drift both ways, the container-directory regression, " +
     "grep:/array specs, node_modules ignored, the health-sweep heading contract, loud failure on a missing " +
-    "map, 6 mutants all killed  ✅",
+    "map, inert frontmatter keys named while documented and nested ones are not, 7 mutants all killed  ✅",
 );

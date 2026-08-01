@@ -9,6 +9,9 @@
 # Vì sao phải allowlist: đây là cái chặn `prettier --write` reformat cả tầng meta viết tay. Nếu để `/*`
 # ignore nó thì file chỉ tồn tại ở máy này, và máy còn lại vẫn vấp đúng lỗi đó. Lý do đầy đủ nằm trong file.
 !/.prettierignore
+# Lần thứ HAI của đúng cái bẫy trên (2026-08-01): mọi dotfile config ở gốc đều bị `/*` ăn im lặng, nên nó chỉ
+# sống ở một máy. `.worktreeinclude` quyết định worktree có nạp được ký ức không — mất nó là mất im lặng.
+!/.worktreeinclude
 !/CLAUDE.md
 !/platform/
 !/.claude/

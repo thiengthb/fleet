@@ -21,7 +21,10 @@
 
 ## A. Cross-project lessons (content here)
 
-> **Index only.** 209 lessons, full text in `ledger/YYYY-MM.md`. One row = one lesson:
+> **Index only.** **259 lessons** — MEASURED 2026-08-01 (`| YYYY-MM-DD |` rows in section A, which is this file's
+> own definition of a lesson). The header said **211**, a hand-maintained number that has been incremented by
+> whoever last added a row since it read 203, and it had drifted by 47. Recite nothing from here: count it.
+> Full text in `ledger/YYYY-MM.md`. One row = one lesson:
 > the headline plus a link. **Do not paste detail back into this table** — that is exactly how this
 > file grew to 421KB and stopped being readable. New lesson → append the full text to the current
 > month's file, then add one row here.
@@ -281,7 +284,12 @@
 | 2026-08-01 | A tool with no config does not do nothing; it applies its own defaults — a false red invited a `--write` that reflowed 4 files | [→](ledger/2026-08.md#2026-08-01-a-tool-with-no-config-does-not-do-nothing) |
 | 2026-08-01 | You cannot spell a pattern out inside the file that searches for it — 6× in one day, twice by the detector for it | [→](ledger/2026-08.md#2026-08-01-addendum-prose-about-a-pattern-matches-the-pattern) |
 | 2026-08-01 | A blocked edit is evidence about the edit — ask what the guard sees that you don't; the refusal gave a better design | [→](ledger/2026-08.md#2026-08-01-a-blocked-edit-is-evidence-about-the-edit) |
-| 2026-07-31 | Read a config field's SEMANTICS, not its name: `allowed-tools` GRANTS permission; the row using it to "restrict" would have opened up secrets. | [→](ledger/2026-07.md#2026-07-31-read-a-config-fields-semantics-not-its-name) |
+| 2026-08-01 | If a human is the only way to reach a line, no gate covers it — make the human an argument (pass the streams) | [→](ledger/2026-08.md#2026-08-01-if-a-human-is-the-only-way-to-reach-a-line-make-the-human-an-argument) |
+| 2026-08-01 | A second front end is cheap only if the surface it drives is DATA — one served catalog fed a CLI, a TUI and the in-app guide | [→](ledger/2026-08.md#2026-08-01-a-second-front-end-is-cheap-only-if-the-surface-is-data) |
+| 2026-08-01 | Measure the requirement before you refuse the dependency — hand-rolling the table meant re-implementing `string-width` | [→](ledger/2026-08.md#2026-08-01-measure-the-requirement-before-you-refuse-the-dependency) |
+| 2026-08-01 | A plan can be stale on the day it is written — 8 steps dead on arrival, because a long plan quotes a source once and never re-reads it | [→](ledger/2026-08.md#2026-08-01-a-plan-can-be-stale-on-the-day-it-is-written) |
+| 2026-08-01 | Shipping the prevention makes latent bugs reachable — 8 lines of config exposed a silent gitignore and the 5th worktree-blind checker | [→](ledger/2026-08.md#2026-08-01-shipping-the-prevention-makes-latent-bugs-reachable) |
+| 2026-07-31 | Read a config field's SEMANTICS, not its name: `allowed-tools` GRANTS permission; the row using it to "restrict" would have opened up secrets. **+ addendum 2026-08-01: 3rd occurrence ⇒ it got a gate** | [→](ledger/2026-07.md#2026-07-31-read-a-config-fields-semantics-not-its-name) |
 
 ## B. Pointers to each project's knowledge log
 

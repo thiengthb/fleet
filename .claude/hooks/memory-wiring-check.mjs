@@ -29,6 +29,38 @@ recordRun(); // reads no stdin, so it must count itself (see _util.mjs — usage
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const MEMORY_DIR = join(REPO, ".claude", "memory");
+
+/**
+ * INSIDE A LINKED WORKTREE, pointing at the MAIN tree's memory directory is CORRECT — and this hook used to
+ * call it a problem.
+ *
+ * Found 2026-08-01 by running `claude --worktree` for the first time (which only became usable that day, when
+ * `.worktreeinclude` started copying `settings.local.json` into new worktrees). The warning read: *"the
+ * git-synced shared tier is not being loaded or written to"* — and it was false. `autoMemoryDirectory` is an
+ * absolute path; a worktree that inherits it points at the main tree's `.claude/memory`, which is exactly the
+ * one shared tier this whole mechanism exists to keep. Left unfixed, every worktree session would open by
+ * telling the agent it has no memory of the user, and this hook instructs the agent to surface that to them.
+ *
+ * That makes this the FIFTH checker to give a false answer inside a worktree — `_layout.mjs`'s `worktreeInfo`
+ * was written on 2026-07-31 for the other four. It is reused here rather than re-derived (memory:
+ * extend-dont-rebuild), and the import is dynamic and swallowed: a SessionStart hook must never be the reason
+ * a session will not start, which is the same rule the exit code obeys.
+ */
+let worktreeInfo = null;
+try {
+  ({ worktreeInfo } = await import("../scripts/_layout.mjs"));
+} catch {
+  /* discovery library unavailable ⇒ fall back to main-tree-only behaviour, never crash the session */
+}
+const wt = worktreeInfo ? worktreeInfo(REPO) : { known: false, isWorktree: false };
+/** `--git-common-dir` is `<main tree>/.git`, so its parent is the main tree's root. */
+const MAIN_MEMORY_DIR =
+  wt.isWorktree && wt.commonDir ? join(dirname(wt.commonDir), ".claude", "memory") : null;
+const samePath = (a, b) =>
+  !!a && !!b && a.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase() === b.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+/** Either this tree's memory directory, or — in a worktree — the main tree's. Nothing else. */
+const wiredCorrectly = (dir) => samePath(dir, MEMORY_DIR) || samePath(dir, MAIN_MEMORY_DIR);
+
 const INDEX = join(MEMORY_DIR, "MEMORY.md");
 
 /** Settings sources, lowest precedence first — the last one that sets the key wins. */
@@ -73,11 +105,14 @@ if (setting?.disabled) {
       `      { "autoMemoryDirectory": "${MEMORY_DIR}" }\n` +
       "    then restart the session. Nothing else needs setting up — the memories themselves came with `git pull`.",
   );
-} else if (setting.dir !== MEMORY_DIR) {
+} else if (!wiredCorrectly(setting.dir)) {
+  const alsoAccepted = MAIN_MEMORY_DIR
+    ? ` (nor the main tree's ${MAIN_MEMORY_DIR}, which would also be correct from inside this worktree)`
+    : "";
   problems.push(
     `\`autoMemoryDirectory\` points at ${setting.dir} (set in ${setting.from}), not this repo's` +
-      ` ${MEMORY_DIR}. The git-synced shared tier is not being loaded or written to; anything the agent` +
-      " saves this session stays on this machine and will not travel.",
+      ` ${MEMORY_DIR}${alsoAccepted}. The git-synced shared tier is not being loaded or written to; anything` +
+      " the agent saves this session stays on this machine and will not travel.",
   );
 }
 

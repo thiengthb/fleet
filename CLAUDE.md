@@ -101,10 +101,11 @@ queues, the scoring and the gate's behaviour live in the contract. **The prohibi
 
 - never push `main` / deploy / run a destructive command unattended;
 - the agent **NEVER edits its own governance** — under `.claude/`: `settings*.json`, `hooks/`, `skills/`, `agents/`
-  (a subagent's prompt), `rules/`, `scripts/`, `memory/`; plus any `CLAUDE.md`, `.github/workflows/`,
-  `platform/standards/`, `platform/inbox/quarantine/`, `.git/`, `.env*` — it may *propose*, a human decides (the
-  CVE-2025-53773 lesson). All 13 enforced by `autonomy-gate.mjs` (PreToolUse), and the list is checked against the
-  gate by `claude-md-budget.mjs`, because this list said 7 while the gate enforced 12 and `agents/` was in neither;
+  (a subagent's prompt), `workflows/` (a script that spawns subagents), `rules/`, `scripts/`, `memory/`; plus any
+  `CLAUDE.md`, `.github/workflows/`, `platform/standards/`, `platform/inbox/quarantine/`, `.git/`, `.env*` — it may
+  *propose*, a human decides (the CVE-2025-53773 lesson). All 14 enforced by `autonomy-gate.mjs` (PreToolUse), and the
+  list is checked against the gate by `claude-md-budget.mjs`, because this list said 7 while the gate enforced 12 and
+  `agents/` was in neither — and on 2026-08-01 both were still missing `workflows/`;
 - **two proposers, both propose-don't-install:** `/idea` for FEATURES, `/skill-proposer` for SKILLS — the agent **NEVER
   writes to `.claude/skills/`**. **The supervisor's accept/reject is the oracle — self-scoring in a closed loop is
   forbidden.**

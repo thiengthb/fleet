@@ -166,10 +166,19 @@ const GATE = (...dirs) =>
   `const GOVERNANCE = [\n` +
   dirs.map((d) => `  { name: '${d}', re: /\\.claude\\/${d}\\// },`).join("\n") +
   `\n];\n`;
-const govBullet = (...dirs) =>
+/**
+ * The bullet carries the COUNT as well as the list, because the real one does and the count is the only part of
+ * this list a machine can check exactly. `claimed` defaults to `dirs.length`; pass a number to make it lie.
+ *
+ * Adding the count check without touching this helper would have fired the "no count stated" error in EVERY
+ * governance fixture, masking whether each one reported its own defect — the failure the missing-gate branch of
+ * this checker was already rewritten once to avoid. Verified by running it that way first.
+ */
+const govBullet = (...dirs) => govBulletCounted(dirs.length, ...dirs);
+const govBulletCounted = (claimed, ...dirs) =>
   `\n- the agent NEVER edits its own governance — under \`.claude/\`: ` +
   dirs.map((d) => `\`${d}/\``).join(", ") +
-  ` — it may propose, a human decides;\n`;
+  ` — it may propose, a human decides. All ${claimed} enforced by \`autonomy-gate.mjs\`;\n`;
 
 check("GOVERNANCE-SYNC passes when the prose names every surface the gate blocks", () => {
   const root = buildTree("gov-ok", {
@@ -191,6 +200,51 @@ check("GOVERNANCE-SYNC fires, and NAMES the surface, when the prose omits one", 
   assert.match(out, /GOVERNANCE-SYNC/, out);
   assert.match(out, /agents/, "the message must name the missing surface, not just count it");
   assert.match(out, /1\/2 governance surfaces named/, out);
+});
+
+/* ───────── the COUNT the always-loaded file asserts about itself ─────────
+ *
+ * Why a separate check from the one above, stated because it is a limitation and not a design preference:
+ * GOVERNANCE-SYNC matches WORDS, so when `.claude/workflows/` was added on 2026-08-01 the score did not move —
+ * `workflows` was already in the token set from `.github/workflows`. Two surfaces, one word. It cannot be fixed
+ * by requiring the phrase either, because the prose groups paths under a `.claude/` prefix instead of spelling
+ * each one. The directories are distinguished where that is actually possible (`autonomy-gate.test.mjs` asserts
+ * both block); what is left for THIS file is the number, which is hand-maintained and has drifted before — the
+ * bullet itself records "said 7 while the gate enforced 12".
+ */
+check("the count matches the gate's entry count → pass", () => {
+  const root = buildTree("gov-count-ok", {
+    claudeMd: healthyClaudeMd(govBulletCounted(2, "hooks", "agents")),
+    ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+  });
+  const { code, out } = run(root);
+  assert.equal(code, 0, `a truthful count must pass:\n${out}`);
+});
+
+check("a count that disagrees with the gate FAILS, and both numbers are printed", () => {
+  const root = buildTree("gov-count-drift", {
+    // Every surface is named, so the word-matching half is satisfied — only the number lies. That is the whole
+    // point: this catches the case the check above cannot see.
+    claudeMd: healthyClaudeMd(govBulletCounted(7, "hooks", "agents")),
+    ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+  });
+  const { code, out } = run(root);
+  assert.equal(code, 1, `a drifted count must FAIL:\n${out}`);
+  assert.match(out, /claims 7 enforced governance surfaces/, out);
+  assert.match(out, /array has 2/, "both numbers must appear — one alone cannot be acted on");
+});
+
+check("stating no count at all FAILS — the exact-checkable part may not be dropped", () => {
+  const root = buildTree("gov-count-absent", {
+    claudeMd: healthyClaudeMd(
+      `\n- the agent NEVER edits its own governance — under \`.claude/\`: \`hooks/\`, \`agents/\` — it may ` +
+        `propose, a human decides;\n`,
+    ),
+    ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+  });
+  const { code, out } = run(root);
+  assert.equal(code, 1, `dropping the count must FAIL:\n${out}`);
+  assert.match(out, /does not state how many surfaces/, out);
 });
 
 check("prose ABOUT a surface does not satisfy the check — only the list before 'it may' counts", () => {
@@ -289,7 +343,13 @@ const MUTANTS = [
     to: "const unnamed = [];",
     caught: () => {
       const root = buildTree("m6", {
-        claudeMd: healthyClaudeMd(govBullet("hooks")),
+        // `govBulletCounted(2, …)` names only `hooks` but states the gate's REAL entry count, so the count check
+        // is satisfied and the word comparison is the only thing that can speak. Written the naive way first
+        // (`govBullet("hooks")`, which states 1) and this mutant SURVIVED: the count error fired under both the
+        // mutated and unmutated tool, so the probe could not tell them apart. That is the same defect the
+        // missing-gate branch was rewritten to avoid, reproduced one level down in the mutant's own fixture —
+        // a new check must be neutral in every fixture that is probing something else.
+        claudeMd: healthyClaudeMd(govBulletCounted(2, "hooks")),
         ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
       });
       return run(root, { script: mutantPath }).code === 0;
@@ -304,10 +364,27 @@ const MUTANTS = [
     to: "const region = bullet ? bullet[0] : '';",
     caught: () => {
       const root = buildTree("m7", {
+        // The count sentence is stated truthfully (2 = the gate's entries) for the same reason as m6: this probe
+        // is about WHERE the list ends, so the count must not be able to fail the run on its own.
         claudeMd: healthyClaudeMd(
           `\n- the agent NEVER edits its own governance — under \`.claude/\`: \`hooks/\` — it may propose. This` +
-            ` list once omitted \`agents/\`;\n`,
+            ` list once omitted \`agents/\`. All 2 enforced by \`autonomy-gate.mjs\`;\n`,
         ),
+        ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+      });
+      return run(root, { script: mutantPath }).code === 0;
+    },
+  },
+  {
+    // The count comparison neutered. Added with the check on 2026-08-01: the number in the always-loaded file is
+    // hand-maintained, and this bullet's own history is the evidence that hand-maintained numbers drift ("said 7
+    // while the gate enforced 12"). Every surface is named in this fixture, so ONLY the count can speak.
+    name: "the enforced-surface count no longer compared (a drifted number reports clean)",
+    from: "} else if (gateEntries !== null && Number(claimed[1]) !== gateEntries) {",
+    to: "} else if (false) {",
+    caught: () => {
+      const root = buildTree("m8", {
+        claudeMd: healthyClaudeMd(govBulletCounted(7, "hooks", "agents")),
         ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
       });
       return run(root, { script: mutantPath }).code === 0;

@@ -150,7 +150,47 @@ const installed = readdirSync(SKILLS_DIR, { withFileTypes: true })
 const missingFromMap = installed.filter((s) => !(s in map));
 const staleInMap = Object.keys(map).filter((s) => !installed.includes(s));
 
+/**
+ * The frontmatter keys Claude Code actually READS, fetched from the vendor's field table on 2026-08-01
+ * (https://code.claude.com/docs/en/skills). A key outside this set is INERT: the loader ignores it, so it is
+ * documentation pretending to be configuration.
+ *
+ * WHY THIS LIST EXISTS — this platform has now proposed a non-existent frontmatter field three times:
+ *   1. `category:` (L2, 2026-07-31) — a plan step asked for it across all 38 skills; discovery reads
+ *      `description`, so the field would have done nothing. Caught by measuring the keys in use.
+ *   2. `allowed-tools` used as a RESTRICTION (A5, 2026-07-31) — the field exists but GRANTS permission. That
+ *      one was worse than inert: it would have pre-approved the skills that touch auth and secrets.
+ *   3. `version:` (C5, refused 2026-08-01) — proposed for all 38 as "the field that decides whether a consumer
+ *      receives an update". That is PLUGIN semantics (`plugin.json`), and it is real there; SKILL.md has no
+ *      such field. Refused before writing, by fetching the table.
+ *
+ * All three were caught by reading the docs before typing. This is the cheaper backstop for the time nobody
+ * reads them. Deliberately a REPORT and not a failure: `skill-audit` is a reporter, its callers rely on that,
+ * and `health-sweep` runs it weekly, so an inert key surfaces long before it could reach a consumer. The
+ * escalation ladder (memory: enforce-rules-with-gates) is restructure → measure → gate; this is the measure
+ * rung. If a key is ever reported here and shipped anyway, that is the evidence for a PreToolUse gate.
+ *
+ * KEEP DATED. The vendor adds fields (`background` and boolean-alias parsing arrived in 2.1.218); a stale
+ * allowlist would report a real, working field as inert, which is the failure direction that teaches people to
+ * ignore the check.
+ */
+const KNOWN_FRONTMATTER_KEYS = new Set([
+  "name",
+  "description",
+  "arguments",
+  "disable-model-invocation",
+  "user-invocable",
+  "allowed-tools",
+  "disallowed-tools",
+  "model",
+  "effort",
+  "context",
+  "background",
+  "hooks",
+]);
+
 let catalogBytes = 0;
+const inertKeys = [];
 const rows = [];
 for (const name of installed) {
   const file = join(SKILLS_DIR, name, "SKILL.md");
@@ -158,6 +198,14 @@ for (const name of installed) {
   const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   const fmBytes = fm ? Buffer.byteLength(fm[1]) : 0;
   catalogBytes += fmBytes;
+
+  // Top-level keys only: column 0 inside the block. An indented key is a nested value (`hooks:` has children),
+  // not a frontmatter field, and treating one as a field would report every structured value as inert.
+  if (fm) {
+    for (const m of fm[1].matchAll(/^([A-Za-z_][A-Za-z0-9_-]*):/gm)) {
+      if (!KNOWN_FRONTMATTER_KEYS.has(m[1])) inertKeys.push({ skill: name, key: m[1] });
+    }
+  }
 
   const bodyBytes = Buffer.byteLength(raw) - fmBytes;
   let refBytes = 0;
@@ -192,6 +240,7 @@ const report = {
   catalogBytes,
   catalogTokensEst: Math.round(catalogBytes / 4),
   drift: { missingFromMap, staleInMap },
+  inertKeys,
   skills: rows,
 };
 
@@ -242,6 +291,20 @@ p("");
 const heaviest = [...rows].sort((a, b) => b.catalogBytes - a.catalogBytes).slice(0, 5);
 p("── HEAVIEST CATALOG ENTRIES (shorten the description, keep the skill) ──");
 for (const r of heaviest) p(`  ${String(r.catalogBytes).padStart(4)}B  ${r.name}`);
+p("");
+p(
+  inertKeys.length
+    ? `── INERT FRONTMATTER KEYS (${inertKeys.length}) — written, but the loader does not read them ──`
+    : `── FRONTMATTER KEYS — all ${installed.length} skills use only keys Claude Code reads (allowlist dated 2026-08-01) ──`,
+);
+for (const k of inertKeys) p(`  ${k.skill.padEnd(30)} → \`${k.key}:\` is not a documented field, so it does nothing`);
+if (inertKeys.length)
+  p(
+    "  Either delete the key or check the field table — https://code.claude.com/docs/en/skills. A field written\n" +
+      "  from memory of what ought to exist has been proposed here three times (`category:`, `version:`, and\n" +
+      "  `allowed-tools` read as a restriction when it is a GRANT). If the vendor has added it, update the\n" +
+      "  allowlist in this file and date it, rather than silencing the row.",
+  );
 p("");
 p("Removing a skill is a governance change: propose it, let a human commit it.");
 p("NO-SUBSTRATE is a strong signal, not a verdict — a skill may be installed ahead of a planned need.");
