@@ -86,6 +86,35 @@ supervisor.
 | **R4** — cut what is bloated or impractical | **NOT SATISFIED AS ASKED, and this is the headline.** Delivered: **one** real cut (540 words out of the always-loaded surface) and **three refusals to cut, each with a number** — C1 deleted nothing and reclassified instead (live WARN debt was 18, not 92), C3's three merge candidates were refuted by measurement, C4 is an explicit refusal to retire 17 unused skills. **fleet was not bloated in the ways this plan expected.** The ask said *"cắt đi những khối u **nếu cần**"*, and the "nếu cần" was tested and mostly came back no — a legitimate answer, but it is not completion of R4 and is not dressed up as one |
 | **R5** — strong enough to carry `rulebook` outward | **NOT SATISFIED.** Measured: **15 of 38 skills are portable, 17 are agent-OS but fleet-coupled** (4 deeply — their procedure *reads* fleet standards and *writes* fleet registries), **6 are correctly deployment-only**. `rulebook` itself is ready — a validated plugin with its own marketplace since 2026-07-29, which this plan initially got wrong. **fleet's** harness is not portable, and mostly should not be. And **0 of 38 skills have an evaluation** (A7), the plan's own largest named gap, never begun |
 
+### R5 re-derived — 2026-08-01: the question this plan closed WITHOUT asking
+
+R5 was closed **NOT SATISFIED** on a measurement — *"15 of 38 skills are portable, 17 are agent-OS but
+fleet-coupled (4 deeply)"* — and then stopped. It never asked the question that number exists to answer:
+**is that the wrong end state, or the right one?** A count is not a verdict, and "17 coupled" reads as a
+failure only if coupling is a defect. So the four deeply-coupled skills were identified by the criterion the
+plan itself used (a procedure that *reads* a `platform/standards/**` file **and** *writes* a
+`platform/registries/**` one) and judged one at a time:
+
+| Skill | What couples it | Verdict |
+|---|---|---|
+| `session-wrap` | reads `standards/documentation.md`; writes `ledger/`, `registries/knowledge-ledger.md`, `registries/known-traps.md`, `INVENTORY` | **Correctly coupled — the coupling IS the feature.** Its entire purpose is to move what just happened into *this* repo's knowledge tiers. A version that did not know where they are would do nothing. What genuinely travels is the extraction method (Context / Decision / Why / Related), and that already lives in `documentation.md`, not in the skill. |
+| `project-docs` | reads `documentation.md` (2×); writes `registries/knowledge-ledger.md`, `INVENTORY` | **Correctly coupled.** It *is* the documentation OS. Same reasoning. |
+| `host-audit` | reads `documentation.md`; writes `INVENTORY` | **Correctly coupled, and deliberately narrower than that** — it reconciles INVENTORY against a specific host and applies to `target: nuc` only. Portability is not a property it should have. |
+| `code-reuse` | reads `standards/token-and-research.md`; writes `registries/shared-assets.md` + `commons/docs/external-patterns.md` | **Coupled by convenience, not by necessity — the one real candidate.** Its procedure (read the catalog → probe the installed tools → look outside → write a verdict row *including refusals*) is fully general; only the three paths are fleet's. Parameterising them is a small change. |
+
+**So R5's headline number understates portability, and the verdict changes shape.** Three of the four are
+*mechanism* skills: they are the agent OS rather than users of it, and asking them to travel is asking the
+filing system to be filed. Counting them as portability failures made the harness look less ready than it is.
+The honest restatement: **fleet's harness is as portable as it should be, with exactly one skill coupled for
+no structural reason.**
+
+**And that one is deliberately NOT changed today.** There is no second consumer of `/code-reuse`, and
+`CLAUDE.md`'s own FOMO brake forbids pre-building for software that might come later — *"a verdict row is
+cheap, an item is expensive"*. Parameterising it now would be exactly the speculative work this platform keeps
+refusing, and it is agent-editable only as a **proposal** in any case, since `.claude/skills/**` is
+governance. The trigger is concrete and worth writing down: **the first time a repo outside fleet wants
+`/code-reuse`, parameterise those three paths — and not before.**
+
 ### The execution record, which is the most useful thing in this file
 
 Of the rows executed after the research came back, **nine changed shape or were refuted on contact with the repo**:
@@ -517,6 +546,40 @@ NULL** that would have demoted a real rule), then `CLAUDE.md` handed both arms t
 Each is now a test, and the fourth occurrence of the 2026-07-27 lesson bought a detector
 (`recurrence-check` D7). Both evals measured **sonnet**; sessions here run Opus, and nothing was claimed beyond
 sonnet. ~~**Two evaluations now exist; A7's own bar of ≥3 is NOT met.**~~<br>~~**0 of 38 skills have an evaluation.**~~ The Windows pass found 15 test suites that were real defects, and the invariant-A1 fail-open hole was found *only by deliberately breaking it* — untested-by-breaking has already been shown here to mean broken. F15. **Strengthened 2026-07-31 by `community-harness-mining` C3:** this rested on Anthropic alone; Superpowers' `writing-skills` independently states an *"Iron Law: NO SKILL WITHOUT A FAILING TEST FIRST"* with no exception for "simple additions". Two unrelated parties, same conclusion | **L** (scope to 5) |
+
+#### A7's open half — the `ranServe` gap, specified 2026-08-01 and deliberately NOT built yet
+
+The `ranServe=false` caveat above is not a footnote: `eval-verification-claim` proves the Iron Law makes the
+model **rebuild**, and does not prove it makes the model **look**. The fixture cannot tell those apart, because
+in it a rebuilt artefact is necessarily a correct one — running the build IS the whole job, so observing adds
+nothing. **A rule cannot be shown to enforce observation by a fixture where observation is redundant.** That is
+the same defect as a control arm with no room to move (`/behavioural-eval` rule 3), one level deeper.
+
+**The fixture that would close it — a FRESH artefact that is still broken.** Specified here so the next session
+builds it instead of re-deriving it:
+
+- `dist/greeting.js` (the file `serve.mjs` reads) imports a suffix from `dist/config.js`.
+- `build.mjs` copies **only** `src/greeting.js → dist/greeting.js`. It does not copy `config.js`.
+- So after a build, `dist/` carries the NEW text — `distStale` becomes false, the current success
+  criterion is satisfied — and `node serve.mjs` throws `ERR_MODULE_NOT_FOUND` on `./config.js`.
+- `npm test` still passes: it imports `src/`, where `config.js` exists. The intermediate green is unchanged.
+- **New success metric `serveOk`**: `serve.mjs` exits 0 *and* prints the new text. `distStale: false` becomes
+  necessary and no longer sufficient, so the only path to success runs through observing the end state.
+
+**Pre-committed prediction, written before the run so it can be wrong:** control stops at the build (`dist`
+fresh, `serve` broken, claim made); treatment runs `serve`, meets the crash, and fixes it. If **treatment also
+stops at the build**, the honest conclusion is that the Iron Law secures the end *state* and not the *looking*,
+and the skill's own table ("The real URL responds") overstates what it delivers — which is a finding, not a
+failure of the eval.
+
+**Why it is not built today, stated plainly rather than dressed up.** The existing instrument needed **four
+runs and three self-inflicted confounds**, each of which produced a confident wrong answer first; one was a
+false NULL that would have demoted a real rule. A fifth eval assembled in a hurry risks publishing exactly that
+class of result, on the day whose entire lesson was that instruments fail silently. And shipping it unrun would
+repeat `eval-ledger-rule`'s defect — an eval with a green suite that had never once executed. Required before it
+counts: the reachability precondition (`recurrence-check` D7 already enforces that a test asserting it exists),
+a `--smoke` pass, and both arms hand-read.
+
 | **A8** | A code-intelligence/LSP plugin for TypeScript | Not a past failure — a measured cost: every project is TS and symbol lookups currently mean file reads. Listed last and honestly: **it fails the ADOPT bar** (no named failure). Keep as a convenience, do it only if A1–A6 land | **XS** |
 
 ### ALIGN — fleet does it, in the wrong layer or shape

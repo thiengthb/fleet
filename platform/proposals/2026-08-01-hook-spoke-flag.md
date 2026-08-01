@@ -24,6 +24,13 @@ The reporting side has been corrected already (`usage-census` prints `n/a`, `pla
 the `--json` boundary, both tested). That stops the number being **misread**. It does not make the question
 answerable.
 
+> **Status 2026-08-01: the supervisor approved this and asked the agent to apply it. The permission layer
+> refused the edit to `.claude/hooks/_util.mjs`.** That refusal is not worked around — it is the second
+> independent guard on the same surface doing its job (a shell `cp` into `.claude/hooks/` was refused earlier
+> the same session, and the `agents/**` gate went in through the edit tools only). So the exact patch is written
+> out below and a human applies it. Everything downstream of it — the `spoke` column in `usage-census`, its
+> tests and mutants — is agent work and is not blocked.
+
 ## Proposed change — one line of data, in `_util.mjs` only
 
 Record whether the hook wrote anything to stdout/stderr:
@@ -38,6 +45,50 @@ appendFileSync(
 `wroteAnything` is set by wrapping `process.stdout.write` / `process.stderr.write` inside `recordRun()` — the same
 place the exit hook already lives, so **no per-hook edit and no per-hook drift**, which was `recordRun`'s original
 design argument.
+
+### The exact patch, ready to apply
+
+Inside `recordRun()` in `.claude/hooks/_util.mjs`, between `const started = Date.now();` and
+`process.on('exit', …)`, insert:
+
+```js
+  // `spoke` — did this hook actually SAY anything? The exit code cannot tell: 7 of 15 hooks have no exit-2
+  // path at all and speak by printing `additionalContext` / `systemMessage` at exit 0. ONE BOOLEAN, never the
+  // text — the header's promise (no path, no tool input, no source, no session id) is kept exactly.
+  let spoke = false;
+  for (const stream of [process.stdout, process.stderr]) {
+    const write = stream.write.bind(stream);
+    stream.write = (chunk, ...rest) => {
+      // Whitespace is not speech: a stray newline must not count as the hook having said something.
+      if (chunk && String(chunk).trim().length > 0) spoke = true;
+      return write(chunk, ...rest);
+    };
+  }
+```
+
+and add `spoke` to the record that is appended:
+
+```js
+      appendFileSync(
+        path,
+        JSON.stringify({ ts: new Date().toISOString(), hook, code, ms: Date.now() - started, spoke }) + '\n',
+      );
+```
+
+Then, in the same commit, the doc comment above `recordRun` should stop claiming *"the exit code is the
+finding"*, because it is the finding for a fail-closed guard and not for the other seven.
+
+**Verify it, rather than trusting it** — a hook that prints and one that does not, both at exit 0:
+
+```
+printf '{"tool_name":"Write","tool_input":{"file_path":"x.ts"}}' \
+  | HOOK_USAGE_LOG=/tmp/probe.jsonl node .claude/hooks/plan-checkin.mjs
+printf '{"tool_name":"Write","tool_input":{"file_path":"x.ts"}}' \
+  | HOOK_USAGE_LOG=/tmp/probe.jsonl node .claude/hooks/prettier-on-edit.mjs
+cat /tmp/probe.jsonl     # both code:0 — one must be spoke:true, the other spoke:false
+```
+
+If both come back the same, the wrapper is in the wrong place and the change buys nothing.
 
 **Privacy is unchanged and that is the point.** A boolean, never the text. The existing header promises *"a
 timestamp, the hook's filename, and its exit code. No file path, no tool input, no line of source, no session
