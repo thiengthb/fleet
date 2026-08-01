@@ -348,6 +348,50 @@ const d1 = (s) => detectors(s)["stale-tool-citation"].hits;
   rmSync(s.root, { recursive: true, force: true });
 }
 
+/* ═══════════════ 7c. D8 — a comment-blanking tool with no test for a pattern hidden in a comment ══
+ * Added 2026-08-01 after the SIXTH instance of "text about a thing mistaken for the thing" — and two of those
+ * six were this detector matching its own source while it was being written. Both halves are pinned, and the
+ * must-not-fire half is the one that matters: the naive version of this check matched 26 tools, and one of them
+ * (`tool-catalog`) reads metadata OUT of comments by design, so a broad rule would have been wrong as well as
+ * noisy. The invocation-vs-mention distinction is the whole fix. */
+{
+  const s = sandbox({});
+  const put = (name, body) => write(join(s.scripts, name), body);
+  const d8 = () => detectors(s)["comment-stripper-with-no-comment-case"].hits;
+  const files = () => d8().map((h) => h.file);
+
+  // A tool that strips, with a test that never mentions comments ⇒ HIT, and it names the TEST, not the tool.
+  put("stripper-tool.mjs", "const stripComments = (s) => s;\nexport const f = (s) => stripComments(s);\n");
+  put("stripper-tool.test.mjs", "// asserts the happy path only\n");
+  assert.ok(
+    files().some((f) => f.endsWith("stripper-tool.test.mjs")),
+    `a stripper whose suite never mentions comments must be found:\n${JSON.stringify(d8())}`,
+  );
+  assert.equal(run(s).code, 1, "a firing detector must exit 1 so it can gate");
+
+  // The same tool once its suite covers the case ⇒ silent.
+  put("stripper-tool.test.mjs", "// a pattern that appears ONLY inside a comment must not match\n");
+  assert.ok(
+    !files().some((f) => f.endsWith("stripper-tool.test.mjs")),
+    "a suite that covers the comment case must not be flagged",
+  );
+
+  // A tool that only MENTIONS the helper — the exact self-match that fired twice while D8 was written.
+  put("mentions-tool.mjs", "// this one deliberately does not use stripComments anywhere\nexport const f = 1;\n");
+  put("mentions-tool.test.mjs", "// nothing about annotations here\n");
+  assert.ok(
+    !files().some((f) => f.endsWith("mentions-tool.test.mjs")),
+    "a bare MENTION is not an invocation — flagging it is the very failure this detector is about",
+  );
+
+  // A stripper with no suite at all ⇒ HIT against the tool itself, so the message still has a subject.
+  put("orphan-tool.mjs", "const stripComments = (s) => s;\nexport const f = (s) => stripComments(s);\n");
+  const orphan = d8().find((h) => h.file.endsWith("orphan-tool.mjs"));
+  assert.ok(orphan, "a stripper with no test file at all must be reported");
+  assert.match(orphan.why, /no test file/, "…and the reason must say so, not imply the suite is incomplete");
+  rmSync(s.root, { recursive: true, force: true });
+}
+
 /* ═══════════════════ 8. the suite must NOTICE a broken detector (mutation) ══════════════════ */
 {
   // LF-normalized: on a CRLF working tree (Windows) every multi-line mutation patch below would go stale.
@@ -494,6 +538,8 @@ const d1 = (s) => detectors(s)["stale-tool-citation"].hits;
 console.log(
   "recurrence-check.test.mjs — D1 both citation shapes + 10 exemptions each from a real false positive, " +
     "the ticked-step inversion, dedup, D2's three bands and its rule-vs-reality note, D3 agreement / " +
-    "under-report / broken-crosschecker, D6 both directions (an empty collection from a catch found, a " +
+    "under-report / broken-crosschecker, D8 both directions (a stripper with no comment case found, a bare " +
+    "MENTION left alone — the self-match that fired twice while it was written), D6 both directions (an " +
+    "empty collection from a catch found, a " +
     "spoken reason and a null sentinel left alone), the covered-elsewhere list, 9 mutants all killed  ✅",
 );

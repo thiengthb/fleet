@@ -3,7 +3,7 @@ title: Build — rule delivery without shipping the rulebook: tier-2 verdicts (M
 kind: system-change # feature | system-change | fix | refactor | chore
 status: active # Phases 1-3 + ALL of Phase 5 DONE (5.1-5.7). Phase 4 NOT authorized (superseded by the Phase 3 verdict + the B′ re-target, both 2026-07-29). Nothing left to build — the ONLY thing open is the 2026-08-12 used-vs-built check-in, which cannot be answered early by design
 created: 2026-07-29
-updated: 2026-07-29 # session 3: plugin v0.2.0 RELEASED — the installed copy had been 6 commits stale (consumers resolve by version, not commit), and the hook now counts every check so the check-in below has evidence instead of an inference
+updated: 2026-08-01
 related:
   [
     platform/plans/2026-07-28-idea-0023-mcp-platform-server-proposal.md (the ACCEPTED RFC — sources · options · pre-mortem · counter-case),

@@ -495,6 +495,94 @@ detectors.push({
     `write target, or "success needs no tool"). Without it a NULL result cannot be told from a denied tool.`,
 });
 
+/**
+ * D8 — a tool that BLANKS COMMENTS before matching must have a test where the pattern lives only in a comment.
+ *
+ * THE LESSON, and it was already in the ledger. `[→ 2026-07-24 "A regex lint gate must match CLASS TOKENS …
+ * and STRIP comments before scanning"]` was recorded about product-level gates in `sakubun`. On **2026-08-01 the
+ * same mechanism hit platform tooling four times in one day**, each time as *text ABOUT a thing being mistaken
+ * for the thing*:
+ *
+ *   1. `usage-census` counted a document that DISCUSSES `INSTALL.md` as depending on it.
+ *   2. `canBlock` read a comment about `exit 2` as an exit-2 path (`tree-moved-notice` discusses it in its header).
+ *   3. `claude-md-budget` accepted the sentence EXPLAINING a missing governance surface as the surface being named.
+ *   4. `_layout`'s no-hardcoding assertion failed on the comment written to explain that nothing was hardcoded.
+ *
+ * WHY THIS IS NARROW, measured before shipping rather than assumed. The obvious detector — "every tool that
+ * pattern-matches file contents needs a comment case" — was tried and **matched 26 tools**, which is a detector
+ * that fires on day one, i.e. mistuned. Worse, it would be WRONG: `tool-catalog` reads `@vi` metadata *out of*
+ * comments by design, and `claude-md-budget`'s citation scan deliberately reads them too. **"Always strip
+ * comments" is not the rule** — knowing which side of the line you are on is, and no pattern can infer intent.
+ *
+ * So this guards the narrow thing that IS mechanical: a tool that has decided comments are noise, and blanks
+ * them, must have a case proving the blanking works. That protects the four fixes from being silently removed —
+ * the actual recurrence risk now — and it grows by itself as more tools strip. Keyed on the TEST, like D7: the
+ * claim must be something somebody runs, not a sentence in a header. Shipped at 1 tool, 0 firing.
+ */
+detectors.push({
+  id: "comment-stripper-with-no-comment-case",
+  learned: "2026-08-01",
+  what: "a tool blanks comments before matching, but no test proves a pattern hidden in a comment is ignored",
+  run() {
+    const hits = [];
+    /**
+     * Matches an INVOCATION of a comment-blanking helper — the identifier immediately followed by an opening
+     * parenthesis — never the bare identifier.
+     *
+     * WHY IT IS WRITTEN SO CAREFULLY, and this is the most instructive thing in the file. This detector fired
+     * on ITSELF twice while being written:
+     *
+     *   · v1 matched the bare identifier, and this file's pattern plus its own prose contain it.
+     *   · v2 matched the invocation form — and the sentence explaining v2 had written that form out literally,
+     *     parenthesis included, so the prose matched again.
+     *
+     * That is instances five and six of the failure this detector exists for, self-inflicted inside two
+     * minutes. The repair both times was to change the PROSE, never to exempt the file: an exemption blinds the
+     * detector to the real thing later, and a weaker pattern blinds it immediately.
+     *
+     * **The rule that generalises, sharper than "strip comments": you cannot spell a pattern out inside the
+     * file that searches for it.** `claude-md-budget` reached the same conclusion independently and shipped a
+     * convention for it — write the citation form with angle brackets so the scanner cannot match its own
+     * documentation. This comment follows that convention: it DESCRIBES the shape in words instead of showing it.
+     *
+     * STATED LIMIT: a tool that inlines the block-comment regex instead of naming a helper is not detected.
+     * Deliberate — matching a comment-stripping regex means escaping a regex inside a regex, which went wrong
+     * twice in this session, and a detector nobody can read is worse than one with a known gap. If an inlined
+     * stripper ever needs guarding, give it a name, which is better anyway.
+     */
+    const STRIPS = /\b(?:stripComments|blankComments)\s*\(/;
+    for (const dir of ["scripts", "hooks"]) {
+      for (const f of walk(join(REPO, ".claude", dir))) {
+        const rel = posix(relative(REPO, f));
+        if (!rel.endsWith(".mjs") || rel.endsWith(".test.mjs")) continue;
+        let src;
+        try {
+          src = readFileSync(f, "utf8");
+        } catch {
+          continue;
+        }
+        if (!STRIPS.test(src)) continue;
+        const test = f.replace(/\.mjs$/, ".test.mjs");
+        if (!existsSync(test)) {
+          hits.push({ file: rel, why: "strips comments but has no test file at all" });
+          continue;
+        }
+        if (!/comment/i.test(readFileSync(test, "utf8"))) {
+          hits.push({
+            file: posix(relative(REPO, test)),
+            why: "its tool blanks comments, but no case mentions comments",
+          });
+        }
+      }
+    }
+    return hits;
+  },
+  format: (h) =>
+    `${h.file} — ${h.why}. Add a fixture where the pattern appears ONLY inside a comment and assert it is NOT ` +
+    `matched. Four tools were wrong this way on 2026-08-01; a stripper nobody tests is a stripper that gets ` +
+    `removed as dead code.`,
+});
+
 const execSyncQuiet = (cmd) =>
   execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 

@@ -152,9 +152,20 @@ for (const r of rows) {
   }
 }
 
+/**
+ * The summary NAMES what failed, not just how many.
+ *
+ * Measured the hard way 2026-08-01: a run reported `38/39 — 1 FAILING`, the output had been piped through
+ * `tail -2`, and the three re-runs that followed were all green. The failing suite could not be identified at
+ * all — an intermittent failure in the gate that guards every other tool, and the one run that saw it left no
+ * usable trace. Reading only the tail of this tool's output is exactly how defect 5 of the second-brain audit
+ * survived six hours, so the fix belongs in the tool rather than in a resolution to pipe more carefully.
+ */
+const failing = rows.filter((r) => !r.ok).map((r) => r.file);
+
 console.log(
   `\n${tests.length - failed}/${tests.length} test file(s) pass` +
-    (failed ? ` — ${failed} FAILING` : "") +
+    (failed ? ` — ${failed} FAILING: ${failing.join(", ")}` : "") +
     ` · ${tools.length - untested.length - exempt.length}/${tools.length} tools have a test` +
     (exempt.length ? ` · ${exempt.length} exempt with a written reason` : "") +
     (untested.length ? ` · ${untested.length} UNTESTED` : ""),

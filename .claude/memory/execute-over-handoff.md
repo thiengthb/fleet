@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: ce5bb8ad-0fed-4458-b08d-75ba6d9ecff7
-  modified: 2026-07-30T11:25:45.470Z
+  modified: 2026-08-01T06:17:00.627Z
 ---
 
 The user prefers the agent to DO the work end-to-end — make the edits, run the commands, run the baseline, commit when
@@ -45,10 +45,25 @@ classifier is a separate, blunter layer:
 
 | Path | Agent can write it? |
 | --- | --- |
-| `.claude/hooks/**` | **depends on the operation** — `Bash` and `Write` (whole-file) were refused 2026-07-30; a targeted `Edit` of an existing line went through on 2026-07-30 (4 hook files, comment lines) |
+| `.claude/hooks/**` | **depends on WHAT THE CHANGE DOES, not on the operation** — corrected 2026-08-01, see below. `Bash` and `Write` (whole-file) refused 2026-07-30; targeted `Edit`s both refused and allowed on the same file 2026-08-01 |
 | `.claude/settings.json`, `.claude/settings.local.json` | yes (Edit) |
 | `.claude/skills/**` | yes (Edit) |
 | `.claude/scripts/**`, `.claude/memory/**` | yes |
+
+**The table's "depends on the operation" was wrong — it depends on what the change DOES** (measured 2026-08-01,
+on `_util.mjs`). Two targeted `Edit`s to the same file: one that wrapped `process.stdout.write` was **refused
+twice**, and a two-line read-only version (`bytesWritten`) went through immediately — while a same-day `Edit`
+adding a governance entry to `autonomy-gate.mjs`, a neighbouring file, was never questioned. A hook that runs on
+every tool call and monkey-patches stdio is indistinguishable from one tampering with what it sees; the classifier
+read the *behaviour*, not the path.
+
+**So the right response to a block is to re-read the change, not to re-try or to route around it.** Do not reach
+for `Write`, a shell redirect, or a wider permission — that discards the signal at the moment it is most useful.
+The refusal produced a better design here (2 lines instead of 9, and it cannot see content even in principle).
+Full write-up: `[→ ledger 2026-08-01 "A blocked edit is evidence about the edit"]`. **And when it is genuinely
+blocked twice, say so plainly and hand over the exact patch** — the supervisor asked a third time on 2026-08-01
+and the honest answer was still "I cannot", with the patch already written out and self-verification commands
+attached.
 
 **Do not read the table as a permission budget.** It records what the classifier did, not what is wise: a hook rewrite
 still belongs in `platform/proposals/` for a human to install ([[sandbox-propose-governance]]). The useful asymmetry is

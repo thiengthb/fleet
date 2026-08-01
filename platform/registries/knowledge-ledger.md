@@ -279,6 +279,8 @@
 | 2026-08-01 | A metric that cannot move must never be printed as a measurement — 7 of 15 hooks can't exit 2, so `fired=0` condemned them forever | [→](ledger/2026-08.md#2026-08-01-a-metric-that-cannot-move-must-never-be-printed-as-a-measurement) |
 | 2026-08-01 | A finding whose remedy is "ask a human" needs a HIGHER verification bar — a false escalation spends the one resource that can't be recovered | [→](ledger/2026-08.md#2026-08-01-a-finding-whose-remedy-is-ask-a-human-needs-a-higher-bar) |
 | 2026-08-01 | A tool with no config does not do nothing; it applies its own defaults — a false red invited a `--write` that reflowed 4 files | [→](ledger/2026-08.md#2026-08-01-a-tool-with-no-config-does-not-do-nothing) |
+| 2026-08-01 | You cannot spell a pattern out inside the file that searches for it — 6× in one day, twice by the detector for it | [→](ledger/2026-08.md#2026-08-01-addendum-prose-about-a-pattern-matches-the-pattern) |
+| 2026-08-01 | A blocked edit is evidence about the edit — ask what the guard sees that you don't; the refusal gave a better design | [→](ledger/2026-08.md#2026-08-01-a-blocked-edit-is-evidence-about-the-edit) |
 | 2026-07-31 | Read a config field's SEMANTICS, not its name: `allowed-tools` GRANTS permission; the row using it to "restrict" would have opened up secrets. | [→](ledger/2026-07.md#2026-07-31-read-a-config-fields-semantics-not-its-name) |
 
 ## B. Pointers to each project's knowledge log

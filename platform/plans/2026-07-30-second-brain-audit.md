@@ -3,7 +3,7 @@ title: Second-brain audit — is everything outside projects/ actually working, 
 kind: system-change
 status: active
 created: 2026-07-30
-updated: 2026-07-31
+updated: 2026-08-01
 related:
   [
     platform/inventory.md,

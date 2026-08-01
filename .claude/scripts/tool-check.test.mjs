@@ -83,7 +83,18 @@ function run(s, args = []) {
   assert.equal(code, 1, `a failing suite MUST fail the run, or this script cannot gate a commit:\n${out}`);
   assert.match(out, /^FAIL\s+\d+ms\s+\.claude\/scripts\/bad\.test\.mjs/m, `the failing file must be named:\n${out}`);
   assert.match(out, /fixture suite exploded/, "…and its output shown, or nobody can act on it");
-  assert.match(out, /1 FAILING/, "…and counted in the summary line, which is the line people read");
+  /**
+   * The summary line must NAME the failure, not only count it. On 2026-08-01 a run reported `1 FAILING`
+   * through a `tail -2` pipe and the three re-runs after it were green — an intermittent failure in the gate
+   * that guards every other tool, unidentifiable because the one run that saw it left only a number. The
+   * summary is the line people read, and often the only line they keep.
+   */
+  assert.match(
+    out,
+    /1 FAILING: \.claude\/scripts\/bad\.test\.mjs/,
+    `the summary line must name the failing file, not just count it — a count survives a pipe and a name is ` +
+      `what makes it actionable:\n${out}`,
+  );
   assert.match(out, /^PASS\s+\d+ms\s+\.claude\/hooks\/good\.test\.mjs/m, "the passing one is still reported");
   rmSync(s.root, { recursive: true, force: true });
 }
