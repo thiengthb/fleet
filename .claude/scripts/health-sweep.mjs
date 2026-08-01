@@ -90,7 +90,7 @@ const checkers = [
   {
     id: "claude-md-budget",
     proves:
-      "the always-loaded rule file is inside its word budget, still carries every prohibition, and every section other files cite by name still exists",
+      "the always-loaded rule file is inside its word budget, still carries every prohibition, every section other files cite by name still exists, and its governance list names every surface `autonomy-gate` actually blocks",
     args: [S("claude-md-budget.mjs"), "--quiet"],
     /**
      * BROKEN, not drift. Two of its three checks are correctness rather than taste: a prohibition that has

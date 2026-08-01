@@ -153,6 +153,68 @@ check("a citation written as §Heading (\"parenthetical\") resolves to the headi
   assert.match(out, /cited sections resolve/, out);
 });
 
+/* ───────── GOVERNANCE-SYNC: the prose list must match what the gate really blocks ─────────
+ *
+ * Added 2026-08-01, after measuring that CLAUDE.md named 7 surfaces while the gate enforced 12 and
+ * `.claude/agents/**` — a subagent's system prompt — was in NEITHER for as long as the directory existed.
+ *
+ * The fixture's own prohibition bullet has to sit on ONE line: `healthyClaudeMd` deliberately wraps every
+ * prohibition mid-phrase (that is what its first case tests), and this check reads RAW text because a bullet
+ * boundary is a newline. The wrapped copy therefore does not match the anchor and the appended one does.
+ */
+const GATE = (...dirs) =>
+  `const GOVERNANCE = [\n` +
+  dirs.map((d) => `  { name: '${d}', re: /\\.claude\\/${d}\\// },`).join("\n") +
+  `\n];\n`;
+const govBullet = (...dirs) =>
+  `\n- the agent NEVER edits its own governance — under \`.claude/\`: ` +
+  dirs.map((d) => `\`${d}/\``).join(", ") +
+  ` — it may propose, a human decides;\n`;
+
+check("GOVERNANCE-SYNC passes when the prose names every surface the gate blocks", () => {
+  const root = buildTree("gov-ok", {
+    claudeMd: healthyClaudeMd(govBullet("hooks", "agents")),
+    ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+  });
+  const { code, out } = run(root);
+  assert.equal(code, 0, `expected a pass:\n${out}`);
+  assert.match(out, /2\/2 governance surfaces named/, out);
+});
+
+check("GOVERNANCE-SYNC fires, and NAMES the surface, when the prose omits one", () => {
+  const root = buildTree("gov-missing", {
+    claudeMd: healthyClaudeMd(govBullet("hooks")), // `agents` deliberately absent
+    ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+  });
+  const { code, out } = run(root);
+  assert.equal(code, 1, `a surface enforced but unnamed must FAIL:\n${out}`);
+  assert.match(out, /GOVERNANCE-SYNC/, out);
+  assert.match(out, /agents/, "the message must name the missing surface, not just count it");
+  assert.match(out, /1\/2 governance surfaces named/, out);
+});
+
+check("prose ABOUT a surface does not satisfy the check — only the list before 'it may' counts", () => {
+  // The real failure this narrowing came from: with `agents/` deleted from the list, the bullet's own
+  // explanation of the gap still contained the word, so the check passed for the wrong reason.
+  const root = buildTree("gov-prose", {
+    claudeMd: healthyClaudeMd(
+      `\n- the agent NEVER edits its own governance — under \`.claude/\`: \`hooks/\` — it may propose, a human` +
+        ` decides. This list once omitted \`agents/\` and nobody noticed;\n`,
+    ),
+    ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+  });
+  const { code, out } = run(root);
+  assert.equal(code, 1, `a mention in the RATIONALE must not count as naming it:\n${out}`);
+  assert.match(out, /agents/, out);
+});
+
+check("no gate to compare against ⇒ SKIPPED, never a failure (it would fire in every fixture)", () => {
+  const root = buildTree("gov-nogate", { claudeMd: healthyClaudeMd(govBullet("hooks")) });
+  const { code, out } = run(root);
+  assert.equal(code, 0, `a missing gate is link-check's job, not this one's:\n${out}`);
+  assert.match(out, /governance-sync skipped/, out);
+});
+
 check("the retired tier is never scanned for citations", () => {
   const root = buildTree("attic-ignored", {
     claudeMd: healthyClaudeMd(),
@@ -217,6 +279,38 @@ const MUTANTS = [
         ".claude/hooks/y.mjs": '// CLAUDE.md §Conventions ("Legible decision surface") requires it\n',
       });
       return run(root, { script: mutantPath }).code === 1;
+    },
+  },
+  {
+    // The GOVERNANCE-SYNC comparison neutered: every surface the gate blocks is treated as named, so an
+    // enforced-but-unknown class — the exact state `.claude/agents/**` was in — reports clean.
+    name: "governance-sync comparison neutered (an unnamed surface reports clean)",
+    from: "const unnamed = [...govTokens].filter((t) => !sentence.includes(t));",
+    to: "const unnamed = [];",
+    caught: () => {
+      const root = buildTree("m6", {
+        claudeMd: healthyClaudeMd(govBullet("hooks")),
+        ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+      });
+      return run(root, { script: mutantPath }).code === 0;
+    },
+  },
+  {
+    // The region narrowing removed, so the RATIONALE half of the bullet counts as the list again. This is the
+    // bug that shipped for one run: `agents/` deleted from the list, still green, because the sentence
+    // explaining the omission contained the word.
+    name: "governance-sync reads the whole bullet again, rationale included",
+    from: "const region = (bullet ? bullet[0] : '').split(/it may\\b/)[0];",
+    to: "const region = bullet ? bullet[0] : '';",
+    caught: () => {
+      const root = buildTree("m7", {
+        claudeMd: healthyClaudeMd(
+          `\n- the agent NEVER edits its own governance — under \`.claude/\`: \`hooks/\` — it may propose. This` +
+            ` list once omitted \`agents/\`;\n`,
+        ),
+        ".claude/hooks/autonomy-gate.mjs": GATE("hooks", "agents"),
+      });
+      return run(root, { script: mutantPath }).code === 0;
     },
   },
 ];

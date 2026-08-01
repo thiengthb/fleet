@@ -135,6 +135,57 @@ function citedSections(text) {
   return found;
 }
 
+/**
+ * Every file class the LIVE gate blocks must be named in the always-loaded prohibition — checked, not trusted.
+ *
+ * WHY THIS EXISTS. Measured 2026-08-01: `CLAUDE.md` listed **7** governance surfaces and said *"Enforced by
+ * `autonomy-gate.mjs`"*, which reads as "this list is that list". The gate's array held **12**. The drift bit in
+ * both directions — a reader trusting the prose thought `.claude/scripts/` and `.claude/rules/` were free to edit
+ * unattended, and nobody comparing the two noticed `.claude/agents/`, which was in **neither**: a subagent's
+ * system prompt, unguarded, for as long as the directory had existed.
+ *
+ * A prohibition that lives only in the hook is enforced but not known; one that lives only in the prose is known
+ * but not enforced. Neither half can be trusted to notice the other drifting, so this asserts the agreement.
+ *
+ * DELIBERATELY A KEYWORD CHECK, not a pattern comparison. It pulls the distinctive directory/word token out of
+ * each regex (`/\.claude\/hooks\//` → `hooks`) and requires it to appear in the prohibition sentence. Matching
+ * the regexes structurally against prose would be brittle in the way `plan-audit`'s first heading check was —
+ * *"the rule was right; the ruler was short"* — and a checker that cries wolf about wording gets deleted. A
+ * missing CLASS is the failure worth catching, and `agents` absent would have fired.
+ */
+function governanceTokens() {
+  let gate;
+  try {
+    gate = readFileSync(join(REPO, '.claude', 'hooks', 'autonomy-gate.mjs'), 'utf8');
+  } catch {
+    return null; // no gate to compare against ⇒ report it, never silently pass
+  }
+  const start = gate.indexOf('const GOVERNANCE = [');
+  if (start < 0) return null;
+  const block = gate.slice(start, gate.indexOf('];', start));
+  const tokens = new Set();
+  /**
+   * Words are taken from the text AFTER `re:` on each entry line — deliberately not by parsing the regex
+   * literal. The first attempt did try to parse it (`/re:\s*\/([^/\n]*(?:\\\/[^/\n]*)*)\//`) and extracted
+   * exactly ONE token out of thirteen, because `[^/\n]*` swallows the escaping backslash before `\/` and the
+   * match dies at the first slash. It reported `1/1 named` — a green that measured nothing, which is the
+   * failure this whole file exists to catch, produced by the file itself. Splitting on non-letters cannot
+   * fail that way: there is no grammar to get wrong.
+   *
+   * `claude`/`local`/`json`/`md`/`platform` are dropped as carrier words — they appear in nearly every
+   * pattern and would match the prose no matter what it said, so counting them would inflate the score.
+   */
+  for (const line of block.split('\n')) {
+    const i = line.indexOf('re:');
+    if (i < 0) continue;
+    for (const w of line.slice(i + 3).replace(/\\/g, '').split(/[^A-Za-z]+/)) {
+      const t = w.toLowerCase();
+      if (t.length > 2 && !['claude', 'local', 'json', 'platform'].includes(t)) tokens.add(t);
+    }
+  }
+  return tokens;
+}
+
 function main() {
   let text;
   try {
@@ -155,6 +206,7 @@ function main() {
 
   const errors = [];
   const legacy = [];
+  const skipped = [];
 
   /* BUDGET */
   if (words > WORD_BUDGET) {
@@ -168,6 +220,66 @@ function main() {
   const lostRules = PROHIBITIONS.filter((p) => !flat.includes(norm(p)));
   for (const p of lostRules) {
     errors.push(`PROHIBITION missing from the always-loaded text: "${norm(p)}" — it may not live anywhere else (§7.3).`);
+  }
+
+  /* GOVERNANCE-SYNC */
+  const govTokens = governanceTokens();
+  let govChecked = 0;
+  let govNamed = 0;
+  if (govTokens === null) {
+    /**
+     * No gate to compare against ⇒ SKIP, loudly, and do not fail.
+     *
+     * The first cut raised an ERROR here, on the principle of never passing silently. That was wrong twice
+     * over. It duplicates a job `link-check` already does properly — `settings.json` wires this hook, and its
+     * hook-wiring check fails if the file is gone — and, measured immediately, it broke two of this suite's own
+     * mutants: every fixture lacks `.claude/hooks/`, so the unconditional error meant EVERY sandbox run
+     * reported at least one problem, which masked whether the mutated code reported its own. A check that
+     * fires in every fixture does not add a signal, it destroys the ones already there.
+     */
+    skipped.push('governance-sync — no .claude/hooks/autonomy-gate.mjs beside this CLAUDE.md to compare against');
+  } else {
+    /**
+     * Scope to the prohibition BULLET, not the whole file: a token appearing in some unrelated paragraph would
+     * satisfy a whole-file search while the prohibition itself stayed silent about the class.
+     *
+     * Cut at the next list item, NOT at the first `;`. The first cut of this check used `;` and immediately
+     * reported a false break — the bullet separates its two path groups with a semicolon, so the ruler stopped
+     * before `.github/workflows/` and called it unnamed. Same defect as `plan-audit`'s short heading regex, in a
+     * checker written the day that lesson was re-read. Matched on RAW text because the bullet boundary is a
+     * newline, which whitespace-normalising destroys.
+     */
+    const bullet = /NEVER edits its own governance[\s\S]*?(?=\n[ \t]*[-*][ \t]|\n\n|$)/.exec(text);
+    /**
+     * Two further narrowings, each added because the check passed for the wrong reason:
+     *
+     * 1. **Only the LIST, not the rationale.** With `agents/` deleted from the list the check still passed,
+     *    because the bullet's own explanation of the gap contains the word — prose *about* a surface satisfying
+     *    a search for that surface. Same shape as the false-ANCHOR bug (`usage-census`: a document discussing
+     *    `INSTALL.md` counted as depending on it) and the comment-stripping one in `canBlock`, which is three
+     *    occurrences in one day of *text about a thing being mistaken for the thing*. The list ends where the
+     *    rule's second half begins, at "it may *propose*"; if that is ever reworded the check degrades to
+     *    scanning the whole bullet — weaker, never broken.
+     * 2. **Only inside code spans.** Every surface in the list is written in backticks. Requiring that makes an
+     *    incidental mention in ordinary prose insufficient.
+     */
+    const region = (bullet ? bullet[0] : '').split(/it may\b/)[0];
+    const sentence = [...region.matchAll(/`([^`]+)`/g)]
+      .map((m) => m[1])
+      .join(' ')
+      .toLowerCase();
+    govChecked = govTokens.size;
+    const unnamed = [...govTokens].filter((t) => !sentence.includes(t));
+    govNamed = govChecked - unnamed.length;
+    if (!sentence) {
+      errors.push(`GOVERNANCE-SYNC: the "NEVER edits its own governance" sentence was not found, so its list cannot be checked.`);
+    } else if (unnamed.length) {
+      errors.push(
+        `GOVERNANCE-SYNC: autonomy-gate blocks ${unnamed.length} surface(s) the always-loaded prohibition never ` +
+          `names — ${unnamed.join(', ')}. Enforced but unknown is how \`.claude/agents/\` stayed unguarded; add ` +
+          `them to the list, or remove them from the gate.`
+      );
+    }
   }
 
   /* ANCHORS */
@@ -218,12 +330,14 @@ function main() {
   const summary =
     `${label} — ${words}/${WORD_BUDGET} words · ` +
     `${PROHIBITIONS.length - lostRules.length}/${PROHIBITIONS.length} prohibitions · ` +
-    `${anchorsOk}/${cites.size} cited sections resolve` +
+    `${anchorsOk}/${cites.size} cited sections resolve · ` +
+    (govChecked ? `${govNamed}/${govChecked} governance surfaces named` : 'governance-sync skipped') +
     (legacy.length ? ` · ${legacy.length} legacy` : '');
 
   if (!QUIET) {
     for (const e of errors) console.log(`   ✗ ${e}`);
     for (const l of legacy) console.log(`   · legacy (archival source, not failing): ${l}`);
+    for (const s of skipped) console.log(`   · skipped (not a failure, but not a pass either): ${s}`);
     if (!errors.length) console.log(`   ok  ${words} words, every prohibition present, every live citation resolves`);
   }
   console.log(errors.length ? `✗ ${summary}` : `ok ${summary}`);
