@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: b3e55123-14d7-4f5b-8542-6a81cf4c4eb2
-  modified: 2026-07-29T16:36:45.959Z
+  modified: 2026-08-01T15:33:02.941Z
 ---
 
 **The principle this all comes from, stated by the user 2026-07-29:** *I am working with a HUMAN, so reporting and
@@ -58,7 +58,15 @@ supervisor installed it himself. Do not treat the rules above as advice to recal
 - **Open follow-up:** on 2026-07-29 these checks fired on 25–37% of historical reports. If that has not collapsed by
   ~2026-08-05, the warnings have become wallpaper and the design — not the rate — is what needs revisiting.
 
+**Shipping a TOOL? The three sentences must contain the command to run it (2026-08-01).** Measured, not guessed: a
+terminal CLI was delivered with correct instructions inside the report, and his very next message was *"bây giờ tôi
+sử dụng cli của sakubun kiểu gì"* — then, one turn later, *"tôi sử dụng ... kiểu như thế nào"* again after the Docker
+packaging. Twice. The instructions were present both times and did not land, because they sat inside an account of
+architecture, gates and defects. So for anything he will OPERATE (a CLI, a script, a page, a container), the report
+opens with the runnable line(s) and the first keystrokes; the engineering account comes after, and "gates green" is
+never the headline. **A shipped tool's report answers "what do I type", not "what did you build".**
+
 **How to apply:** every proposal/option block → `(khuyến nghị)` on my pick + one plain-language sentence on why; every
 "bạn duyệt nhé?" → name the skill + the workflow step it gates; explain flow conversationally first, technical terms
-second. Relates to [[research-before-design]] (the proposal must be grounded) and [[sandbox-propose-governance]] (human
+second; ship a tool → lead with the command. Relates to [[research-before-design]] (the proposal must be grounded) and [[sandbox-propose-governance]] (human
 installs; so the human must understand). See also [[user-profile]] — values honest pushback + system-level clarity.
