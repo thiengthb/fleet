@@ -556,3 +556,53 @@ the local Ubuntu box while the NUC is down; data verified byte-identical, old na
 **Watch.** Docker Desktop re-grabs the context to `desktop-linux` every time it starts — after (a) the context
 can silently flip back, so `docker context show` before any rebuild. LOCAL-dev-specific (the canonical NUC only
 ever pulls prebuilt images — Docker Desktop is not part of it); relevant only while deploying locally.
+
+---
+
+## 17. LATER TRAP (2026-08-01): `npm install --omit=dev <pkg>` PRUNES the very package you named, if the manifest in scope lists it as a devDependency
+
+**Symptom.** A Dockerfile stage installs two packages by name into a dedicated tree, the build succeeds with no
+warning, the image is produced, the container starts healthy — and the code that needs them dies at run time with
+`Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'string-width'`. Inspecting the image showed
+`/app/cli/node_modules` with **482** entries and neither of the two requested packages among them.
+
+**Cause.** The stage did `COPY package.json ./` (to read pinned versions with `node -p`, an idiom already used by
+the neighbouring `prisma-cli` stage) and then:
+
+```dockerfile
+npm install --no-save --omit=dev ink@"$(…)" string-width@"$(…)" react@"$(…)"
+```
+
+With the app manifest sitting in the working directory, npm does two things nobody asked for:
+
+1. it installs **everything in that manifest's `dependencies`** as well (hence 482 entries), and
+2. because `ink` and `string-width` are listed in that manifest's **`devDependencies`**, it resolves the
+   explicitly-named specs as dev edges — and `--omit=dev` then prunes them. The flag deleted the exact two
+   packages the command existed to install.
+
+`react` survived only because it happens to be a real `dependency`. So the failure is silent, partial, and looks
+like a copy problem rather than a resolution problem.
+
+**Fix.** Read the manifest for VERSIONS without putting it in npm's scope, and drop `--omit=dev` (it has no meaning
+in an empty directory):
+
+```dockerfile
+WORKDIR /cli
+COPY package.json /versions/package.json          # NOT ./package.json
+RUN npm install --no-save \
+    ink@"$(node -p "require('/versions/package.json').devDependencies.ink")" \
+    string-width@"$(node -p "require('/versions/package.json').devDependencies['string-width']")" \
+    react@"$(node -p "require('/versions/package.json').dependencies.react")"
+```
+
+38 packages instead of 482, and both requested packages present.
+
+**Generalisation.** `--omit=dev` is about the MANIFEST's edges, not about the command line, and it silently wins
+over an explicit request. Any time a stage installs a package that the app declares as a devDependency — a CLI, a
+test runner, a codegen tool shipped into an image — either keep the manifest out of that directory or leave
+`--omit=dev` off. And the general form, which is why this is in this file at all: **a Dockerfile stage that
+"succeeded" proves the commands exited 0, nothing more.** This one was found by running the binary inside the
+container (`docker exec sakubun sakubun help`), which is the only step that could have found it — the build log,
+the image size and the healthcheck were all green.
+
+Detail: `projects/sakubun/docs/decisions/2026-08.md` (2026-08-01) · `projects/sakubun/Dockerfile` stage `cli-deps`.
