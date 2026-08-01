@@ -499,10 +499,21 @@ failing result means the whole feature — not one of its two halves — was mac
 > below, or the gate produces a false verdict of abandonment.**
 >
 > Everything Q1 reads is **per-machine**: the plugin is installed at *user* scope (`~/.claude/`), and
-> `~/.claude/rulebook-usage.jsonl` is a local file. Neither travels with the repo. **Measured 2026-08-01 on
-> `TNT-Laptop` (Windows): the plugin is NOT installed here** — `claude plugin list` reports none, the
-> `rulebook` marketplace is not even configured, and the usage log does not exist. Yet this is the box a
+> `~/.claude/rulebook-usage.jsonl` is a local file. Neither travels with the repo. Measured 2026-08-01 on
+> `TNT-Laptop` (Windows): the plugin was **NOT installed here** — `claude plugin list` reported none, the
+> `rulebook` marketplace was not even configured, and the usage log did not exist. Yet this is the box a
 > large share of recent sessions ran on.
+>
+> **RESOLVED the same day, at the supervisor's instruction: it is now installed here (v0.3.0).** So Q1 is
+> answerable on both machines from 2026-08-01 — but only for work done *after* that date, and the verdict
+> still has to name which machine it describes.
+>
+> **Subtract the install probe before reading any count.** The log records metadata only (no paths, by
+> design), so it cannot distinguish a verification probe from real use. The install verification wrote
+> exactly **3 lines at 2026-08-01T03:02Z** (`blocked`, `clean`, `unreadable`, all `ext=tsx`). The 333-file
+> re-scan wrote **none** — it was deliberately run with `RULEBOOK_USAGE_LOG` pointed at a scratch file,
+> because a bulk probe into the real log would have manufactured the very signal this gate measures. Usage
+> above those 3 lines is real; the 3 themselves are not evidence of anything but that the hook runs.
 >
 > So step 2's decision table was incomplete. It offered two readings of zero — "no UI work happened" or "the
 > hook is not firing (a defect)". There is a **third**: *the plugin was never installed on this machine*, in
