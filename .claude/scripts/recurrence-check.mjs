@@ -454,6 +454,47 @@ detectors.push({
     `cannot tell "nothing found" from "the check did not run". Print the reason (or die), then return.`,
 });
 
+/* ───────────────────────────────────────────────────────────────────────────────────────── D7 ──
+ *
+ * "A control arm can be confounded into always agreeing" was written into the ledger on **2026-07-27**, worded
+ * correctly, and on **2026-08-01** a single eval walked into it **three times**: the success path needed a shell
+ * command the spawn denied (published as NULL/NEGATIVE — a false null that would have demoted a real rule), then
+ * the control arm was handed the answer in `CLAUDE.md`, then again in the prompt. Four runs of the instrument to
+ * get one usable comparison.
+ *
+ * `/behavioural-eval` rule 3 already said it. Prose lost, so this is the check the fourth occurrence owes
+ * (`/session-wrap` Step 4b). It asks the one question nobody asks: **can the compliant arm even comply?**
+ *
+ * Deliberately keyed on the TEST file, not the eval: the claim has to be an assertion somebody runs, not a
+ * sentence in a header. And deliberately loose about HOW — the three evals answer it three different ways (no
+ * tool needed · file edits only · a permitted command) — because a detector that dictated the mechanism would be
+ * wrong for two of the three. Measured at 0 firing when shipped, after adding the missing case to two suites.
+ */
+detectors.push({
+  id: "eval-with-no-reachability-assertion",
+  learned: "2026-08-01",
+  what: "a model-in-the-loop eval never asserts that its own success path is reachable, so a null may be an artefact",
+  run() {
+    const hits = [];
+    for (const f of walk(join(REPO, ".claude", "scripts"))) {
+      const rel = posix(relative(REPO, f));
+      if (!/\/eval-[\w-]+\.mjs$/.test(rel) || rel.endsWith(".test.mjs")) continue;
+      const test = f.replace(/\.mjs$/, ".test.mjs");
+      if (!existsSync(test)) {
+        hits.push({ file: rel, why: "has no test file at all, so nothing asserts its success path is reachable" });
+        continue;
+      }
+      if (!/reachab/i.test(readFileSync(test, "utf8"))) {
+        hits.push({ file: posix(relative(REPO, test)), why: "no case mentions reachability of the success path" });
+      }
+    }
+    return hits;
+  },
+  format: (h) =>
+    `${h.file} — ${h.why}. Add a case proving the compliant arm CAN comply (a permitted command, an existing ` +
+    `write target, or "success needs no tool"). Without it a NULL result cannot be told from a denied tool.`,
+});
+
 const execSyncQuiet = (cmd) =>
   execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 

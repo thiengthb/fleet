@@ -100,6 +100,24 @@ check("the `moved` fixture is genuinely harder — the existing file is NOT wher
   assert.ok(!existsSync(join(dir, "src", "notify.ts")), "src/notify.ts must be absent in the moved fixture");
 });
 
+check("the success path is REACHABLE without any tool permission, and the duplicate is discoverable", () => {
+  /**
+   * The question nobody asks, and the one that made a sibling eval publish a false NULL on 2026-08-01: **can the
+   * compliant arm even comply?** Here it can, for a reason worth stating rather than assuming — success is
+   * "create nothing", which needs no Bash, no build, no permission at all. What success DOES require is that the
+   * already-built implementation be findable, so that is what is asserted.
+   */
+  for (const fixture of Object.keys(FIXTURES)) {
+    const { dir, impl } = buildSandbox("treatment", fixture);
+    built.push(dir);
+    const before = sourceFiles(dir);
+    const m = measure({ dir, impl, before, planBefore: planOf(dir), transcript: "" });
+    assert.equal(m.createdNewCode, false, `${fixture}: doing nothing must already count as success`);
+    const found = sourceFiles(dir).filter((f) => readFileSync(join(dir, f), "utf8").includes("notifyUser"));
+    assert.ok(found.length > 0, `${fixture}: nothing in the tree exports notifyUser — the duplicate is undetectable`);
+  }
+});
+
 check("unknown fixture names are rejected rather than silently building an empty repo", () => {
   assert.throws(() => buildSandbox("control", "no-such-fixture"), /unknown fixture/);
 });

@@ -53,6 +53,30 @@ const writeCompliant = (dir, { rowChars = 90, detailFile = "2026-07.md" } = {}) 
   appendFileSync(join(LEDGER_DIR(dir), detailFile), `\n### 2026-07-30 — x\n\nfull reasoning, at length.\n`);
 };
 
+/* ═══════════════════ 0. the success path must be REACHABLE, or a null means nothing ═══════════════════
+ *
+ * The question nobody asks, and the one that made a sibling eval publish a FALSE NULL on 2026-08-01: **can the
+ * compliant arm even comply?** There, the success path needed a shell command and the spawn denied Bash, so
+ * neither arm could succeed and the harness reported NULL/NEGATIVE about a variable with no room to move.
+ *
+ * Here the success path is two FILE WRITES — a short index row plus a detail entry — which `acceptEdits` grants
+ * without any extra permission. So it is reachable, and what has to hold is that both write targets exist in
+ * the treatment world. Asserted rather than assumed. (Ledger 2026-07-27: "a control arm can be confounded into
+ * always agreeing"; `/behavioural-eval` rule 3.)
+ */
+{
+  const t = sandbox("treatment");
+  assert.ok(existsSync(INDEX(t)), "the index the compliant arm must add a row to has to exist");
+  assert.ok(existsSync(LEDGER_DIR(t)), "the directory the compliant arm must write the detail into has to exist");
+  // And the compliant outcome must be EXPRESSIBLE by the scorer: if no input can be judged "compliant", the
+  // treatment arm cannot win however well it behaves, which is the same defect wearing a different costume.
+  assert.equal(
+    verdictOf({ arm: "treatment", rowsAdded: 1, indexRowChars: 100, detailWritten: true }),
+    "compliant",
+    "a short row plus a written detail entry must score as compliant, or success is unreachable by definition",
+  );
+}
+
 /* ═══════════════════ 1. the two fixtures are DIFFERENT WORLDS — defect #1 ═══════════════════
  * The control arm must be the pre-2026-07-28 world exactly: a monolithic index and no `ledger/` directory at
  * all. An empty `ledger/` is an instruction — one control run duly split its entry into it, which is the
