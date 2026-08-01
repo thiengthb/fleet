@@ -314,7 +314,18 @@ confident wrong answer, which is the failure shape this whole audit exists for:
 - **AC-1** — Given a clean checkout, When `node .claude/scripts/health-sweep.mjs` runs, Then it prints one line
   per checker plus a VERDICT, and exits 0 with `nothing broken`. ✅ verified 2026-07-30.
 - **AC-2** — Given any wire named in §1, When it is broken deliberately (a hook renamed, an INVENTORY path
-  edited), Then `link-check` reports it and exits 1. ✅ verified for stale citations; **not yet** for the other five.
+  edited), Then `link-check` reports it and exits 1. ~~✅ verified for stale citations; **not yet** for the other
+  five.~~ ✅ **FULLY verified — the "not yet" was stale, written before B1 landed and never revisited (checked
+  2026-08-01).** `link-check.test.mjs` builds a structurally real fixture fleet, asserts `0 broken`, then applies
+  **8 breakages across all 6 wires, one at a time**, each asserting exit 1 **and that no other check fires** —
+  the second half matters, because a checker that reports six problems for one broken file gets skimmed. The
+  suite also carries the case where two wires shared a file, which is what made the isolation assertion fail
+  once and is why it is still asserted.
+
+  > Worth noting how this was caught: not by a tool. `plan-audit` checks a plan's *shape*, never whether its
+  > acceptance criteria still describe the repo — so a criterion can sit marked half-met for two days after the
+  > work that met it. Answering question 2 of `## Before executing a batch` ("has it already been built?") is
+  > what surfaced it, on a step nobody was executing.
 - **AC-3** — Given the retirement procedure, When an item is staged, Then it is in `platform/attic/MANIFEST.md`
   with an earliest-delete date ≥30 days out, and `health-sweep` is green in the same session.
 - **AC-4** — Given a structural change (a move, a rename), When the session ends, Then `health-sweep` was run
