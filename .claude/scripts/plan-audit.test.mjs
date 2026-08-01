@@ -854,9 +854,13 @@ let mutantsKilled = 0;
         }),
       },
       apply: (s) =>
+        // Anchored on `{ scanned: files.length, clean,` alone — the surrounding call was reformatted on
+        // 2026-08-01 when the worktree caveat joined the payload, and a patch pinned to the whole
+        // `JSON.stringify(...)` prefix went stale and failed as "changed nothing". A mutation target should be
+        // the smallest text that identifies the behaviour, not the line it happens to sit on.
         s.replace(
-          "JSON.stringify({ scanned: files.length, clean, errors",
-          "JSON.stringify({ scanned: files.length, clean: results.filter((r) => !r.findings.length).length, errors",
+          "{ scanned: files.length, clean,",
+          "{ scanned: files.length, clean: results.filter((r) => !r.findings.length).length,",
         ),
       probe: (s) => {
         const j = JSON.parse(audit(s, ["--json"]).out);

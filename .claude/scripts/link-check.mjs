@@ -29,6 +29,7 @@
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { printWorktreeCaveat } from "./_layout.mjs";
 
 /**
  * FLEET_ROOT exists so the suite can point this at a fixture tree and BREAK each wire on purpose. Without
@@ -246,6 +247,10 @@ if (JSON_OUT) {
   process.exit(brokenTotal ? 1 : 0);
 }
 
+// Measured 2026-08-01: inside a worktree this reports 45 broken against the main tree's 1, because the
+// INVENTORY dev paths point at sibling repos that a worktree does not contain. 44 fabricated breaks read as
+// a catastrophe, so say so BEFORE the number rather than after it.
+printWorktreeCaveat(REPO);
 console.log(
   `link-check — ${checks.length} wire(s) checked, ${brokenTotal} broken\n`,
 );

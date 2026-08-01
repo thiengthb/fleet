@@ -37,7 +37,7 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { join, resolve, dirname, relative, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { projectRoots, gitRepos, posix } from "./_layout.mjs";
+import { projectRoots, gitRepos, posix, printWorktreeCaveat } from "./_layout.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const JSON_OUT = process.argv.includes("--json");
@@ -563,6 +563,11 @@ if (JSON_OUT) {
   process.exit(fired.length ? 1 : 0);
 }
 
+// Measured 2026-08-01: 0 firing in the main tree, **1 firing** inside a worktree — `stale-tool-citation`
+// scores 3 HIT because the documents that cite those tools live in sibling repos the worktree does not have.
+// A fabricated recurrence is the most expensive false positive this tool can produce: its whole contract is
+// "a mistake we already recorded has come back", so a fake one sends someone re-fixing something that is fine.
+printWorktreeCaveat(REPO);
 console.log(
   `recurrence-check — ${detectors.length} detector(s), ${fired.length} firing\n`,
 );

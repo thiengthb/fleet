@@ -30,7 +30,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { projectRoots, posix } from './_layout.mjs';
+import { projectRoots, posix, worktreeCaveat } from './_layout.mjs';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const JSON_OUT = process.argv.includes('--json');
@@ -471,11 +471,27 @@ const legacy = count('LEGACY');
 const dirty = results.filter((r) => r.findings.some((f) => f.level !== 'INFO'));
 const clean = results.length - dirty.length;
 
+/**
+ * Measured 2026-08-01: **68 plans scanned in the main tree, 36 inside a worktree** — the project plan dirs
+ * live in sibling repos a worktree has no copy of. This is the *protecting* direction and the worst of the
+ * four affected checkers, because the number it reports is a plausible one: nothing looks wrong, half the
+ * corpus is simply absent, and `--strict` can pass on a repo whose live gaps were never opened.
+ *
+ * Published in `--json` too, not only printed: `health-sweep` consumes that, and a caveat only a human reads
+ * is not a caveat a tool honours.
+ */
+const wtCaveat = worktreeCaveat(REPO);
+
 if (JSON_OUT) {
   console.log(
-    JSON.stringify({ scanned: files.length, clean, errors, warns, legacy, results }, null, 2),
+    JSON.stringify(
+      { scanned: files.length, clean, errors, warns, legacy, worktree: wtCaveat ?? null, results },
+      null,
+      2,
+    ),
   );
 } else {
+  if (wtCaveat) console.log(`\n  ⚠ UNRELIABLE HERE — ${wtCaveat}`);
   console.log(`\nplan-audit — ${files.length} file(s) under platform/plans/ and */docs/plans/\n`);
   for (const r of dirty) {
     const tag = r.isProposal ? 'proposal' : 'plan';

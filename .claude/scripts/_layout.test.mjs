@@ -21,9 +21,17 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "nod
 import { join, dirname, resolve, basename, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { looksLikeProject, projectRoots, gitRepos, posix } from "./_layout.mjs";
+import {
+  looksLikeProject,
+  projectRoots,
+  gitRepos,
+  posix,
+  worktreeInfo,
+  worktreeCaveat,
+} from "./_layout.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+let MUTANTS_RUN = 0;
 const MODULE = join(HERE, "_layout.mjs");
 
 const root = mkdtempSync(join(tmpdir(), "layout-"));
@@ -193,6 +201,10 @@ const names = (opts) => projectRoots(root, opts).map((p) => p.name).sort();
     return import(pathToFileURL(p).href);
   };
 
+  // Counted, not typed into the summary: this line still read "7 mutants" after the 8th, 9th and 10th were
+  // added — a suite reciting a remembered number about itself. Same fix as `usage-census.test.mjs` today.
+  // It also has to be right per-OS: one mutant only exists where the host separator is not `/`.
+
   const mutants = [
     {
       name: "`plans` dropped from the marker set (platform becomes invisible)",
@@ -239,6 +251,39 @@ const names = (opts) => projectRoots(root, opts).map((p) => p.name).sort();
       // mutant as surviving on one machine and killed on the other.
       probe: (m) => m.projectRoots(root).some((p) => /[\\/]/.test(p.name)),
     },
+    {
+      // The whole guard neutered: every tree reports as the main tree, so four checkers go back to
+      // publishing 45 fabricated breaks and a clean verdict over half the plan corpus.
+      name: "worktree detection always says main tree",
+      apply: (s) => s.replace("const isWorktree = norm(gitDir) !== norm(commonDir);", "const isWorktree = false;"),
+      probe: (m) => {
+        const fake = (_c, a) => ({
+          status: 0,
+          stdout: a.includes("--absolute-git-dir") ? "/r/.git/worktrees/p\n" : "/r/.git\n",
+        });
+        return m.worktreeInfo(root, { spawn: fake }).isWorktree === false;
+      },
+    },
+    {
+      // Normalisation dropped: a trailing slash or a case difference — both of which git really does emit on
+      // Windows — would invent a worktree in the MAIN tree, and then every checker would refuse to answer.
+      name: "path normalisation dropped (the main tree starts reporting as a worktree)",
+      apply: (s) => s.replace('const norm = (p) => posix(p).replace(/\\/+$/, "").toLowerCase();', "const norm = (p) => p;"),
+      probe: (m) => {
+        const fake = (_c, a) => ({
+          status: 0,
+          stdout: a.includes("--absolute-git-dir") ? "/R/.git/\n" : "/r/.git\n",
+        });
+        return m.worktreeInfo(root, { spawn: fake }).isWorktree === true;
+      },
+    },
+    {
+      // A failed git call read as "not a worktree" instead of UNKNOWN — a clean pass invented out of a
+      // measurement that never happened, which is the exact shape of every defect fixed this week.
+      name: "a failed git call reported as known",
+      apply: (s) => s.replace("return { known: false, isWorktree: false, gitDir, commonDir, missing: [] };", "return { known: true, isWorktree: false, gitDir, commonDir, missing: [] };"),
+      probe: (m) => m.worktreeInfo(root, { spawn: () => ({ status: 1, stdout: "" }) }).known === true,
+    },
     ...(sep === "\\"
       ? [
           // Only observable where the host separator is not already `/`. On a POSIX box this mutation is an
@@ -261,6 +306,7 @@ const names = (opts) => projectRoots(root, opts).map((p) => p.name).sort();
       mu.probe(mod),
       `SURVIVING MUTANT — "${mu.name}" and the suite still passed. Add a case for it.`,
     );
+    MUTANTS_RUN += 1;
   }
   rmSync(lab, { recursive: true, force: true });
 }
@@ -284,9 +330,70 @@ const names = (opts) => projectRoots(root, opts).map((p) => p.name).sort();
   assert.ok(gitRepos(REAL).length >= 8, `only ${gitRepos(REAL).length} git repos found in the real repo`);
 }
 
+/* ─────────── 9. worktreeInfo / worktreeCaveat — the guard on four false checkers ──────────
+ *
+ * MEASURED first, in a real worktree, 2026-08-01 — these are the numbers the guard exists for:
+ *   link-check 1 -> 45 broken · plan-audit 68 -> 36 scanned · reuse-scan 715 files -> 0 · recurrence-check
+ *   0 -> 1 firing. Two panic, two reassure.
+ *
+ * `spawn` is injected rather than a real worktree being created, so the cases are deterministic and cost
+ * nothing — but the DETECTION itself was validated against a real `git worktree add` before being written,
+ * because a fake spawn can only confirm the shape I already believed.
+ */
+{
+  const fake = (map) => (_cmd, args) => {
+    const key = args.includes("--absolute-git-dir") ? "gitDir" : "commonDir";
+    const v = map[key];
+    return v === null ? { status: 1, stdout: "" } : { status: 0, stdout: `${v}\n` };
+  };
+
+  // Same path both ways ⇒ the main tree. No caveat, and every checker keeps its number.
+  const main = worktreeInfo(root, { spawn: fake({ gitDir: "/r/.git", commonDir: "/r/.git" }) });
+  assert.equal(main.isWorktree, false, "identical git-dir and common-dir is the MAIN tree");
+  assert.equal(main.known, true);
+  assert.equal(
+    worktreeCaveat(root, { spawn: fake({ gitDir: "/r/.git", commonDir: "/r/.git" }) }),
+    null,
+    "the main tree must get NO caveat — a warning that always prints is a warning nobody reads",
+  );
+
+  // Different ⇒ a worktree.
+  const wt = worktreeInfo(root, {
+    spawn: fake({ gitDir: "/r/.git/worktrees/probe", commonDir: "/r/.git" }),
+  });
+  assert.equal(wt.isWorktree, true, "git-dir under .git/worktrees/ is a WORKTREE");
+
+  // Trailing slash and case must not invent a worktree. On Windows git can answer either case.
+  const noisy = worktreeInfo(root, { spawn: fake({ gitDir: "/R/.git/", commonDir: "/r/.git" }) });
+  assert.equal(noisy.isWorktree, false, "a trailing slash or a case difference is not a worktree");
+
+  // git missing or not a repo ⇒ UNKNOWN, never a clean pass invented from a failed measurement.
+  const dead = worktreeInfo(root, { spawn: fake({ gitDir: null, commonDir: null }) });
+  assert.equal(dead.known, false, "a failed git call must report UNKNOWN");
+  assert.equal(dead.isWorktree, false, "…and must not claim to be a worktree either");
+
+  // The caveat must NAME what is absent, not merely say "something is". A message that does not say which
+  // directory is missing sends the reader to guess, which is how a caveat gets ignored.
+  const caveat = worktreeCaveat(root, {
+    spawn: fake({ gitDir: "/r/.git/worktrees/probe", commonDir: "/r/.git" }),
+  });
+  assert.match(caveat ?? "", /git worktree/i, `the caveat must name the cause:\n${caveat}`);
+  assert.match(caveat ?? "", /main tree/i, "…and tell the reader where to re-run");
+  assert.doesNotMatch(caveat ?? "", /UNRELIABLE HERE/, "the prefix belongs to the caller, not the text");
+
+  // The REAL repo, from this file's own location, must not look like a worktree — if it did, every number
+  // this suite and tool-check report would already be suspect.
+  assert.equal(
+    worktreeInfo(resolve(HERE, "..", "..")).isWorktree,
+    false,
+    "the real fleet checkout reports as a worktree — every count from every checker is unreliable right now",
+  );
+}
+
 rmSync(root, { recursive: true, force: true });
 console.log(
   "_layout.test.mjs — all four project markers incl. the `plans` one, container descent, bounded+configurable " +
     "depth, build/hidden dirs excluded, bare-name invariant, first-wins limitation, gitRepos with and without " +
-    "a root repo, 7 mutants all killed, plus a floor check against the real fleet  ✅",
+    `a root repo, worktree detection (4 checkers give false counts inside one), ${MUTANTS_RUN} mutants all ` +
+    "killed, plus a floor check against the real fleet  ✅",
 );

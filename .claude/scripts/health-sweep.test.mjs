@@ -71,6 +71,12 @@ function sandbox() {
   const dir = join(root, ".claude", "scripts");
   mkdirSync(dir, { recursive: true });
   cpSync(join(HERE, "health-sweep.mjs"), join(dir, "health-sweep.mjs"));
+  // Its real imports must travel with it. `_layout.mjs` arrived on 2026-08-01 (the worktree guard, which is
+  // why the sweep refuses to print a VERDICT inside one) and without this the sandbox died with
+  // ERR_MODULE_NOT_FOUND — the same module-resolution trap that made an eval mutant look like a survivor.
+  // The sandbox is a plain temp dir with no `.git`, so `git rev-parse` fails there, the guard reports UNKNOWN
+  // rather than "worktree", and every case below still measures what it means to.
+  cpSync(join(HERE, "_layout.mjs"), join(dir, "_layout.mjs"));
   for (const [name, body] of Object.entries(HEALTHY))
     writeFileSync(join(dir, name), body);
   return root;

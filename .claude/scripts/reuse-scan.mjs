@@ -37,9 +37,10 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { projectRoots, posix } from "./_layout.mjs";
+import { projectRoots, posix, worktreeCaveat } from "./_layout.mjs";
 
 const FLEET = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const WT_CAVEAT = worktreeCaveat(FLEET);
 const CATALOG = join(FLEET, "platform", "registries", "shared-assets.md");
 const REGISTRY_BUILT = join(FLEET, "commons", "public", "r");
 
@@ -391,7 +392,12 @@ const RULE = {
 };
 
 console.log(
-  `reuse-scan  ${files.length} files across ${projects().length} projects${focus ? `  (focus: ${focus})` : ""}`,
+  // Measured 2026-08-01: 715 files / 9 projects in the main tree, **0 / 0** inside a worktree, because the
+  // projects are independent repos that a worktree has no copy of. "No duplication found" over nothing is
+  // the protecting direction of the same defect — it reassures instead of panicking, which is worse.
+  // Computed ONCE: each call spawns git twice, and the first cut called it twice on one line.
+  `${WT_CAVEAT ? `  ⚠ UNRELIABLE HERE — ${WT_CAVEAT}\n\n` : ""}` +
+    `reuse-scan  ${files.length} files across ${projects().length} projects${focus ? `  (focus: ${focus})` : ""}`,
 );
 console.log(
   `k-gram k=${K}, similarity >= ${NEAR}, files under ${MIN_CODE_LINES} code lines skipped\n`,

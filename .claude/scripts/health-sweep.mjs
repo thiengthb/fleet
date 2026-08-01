@@ -34,6 +34,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
+import { worktreeCaveat } from "./_layout.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const S = (p) => join(REPO, ".claude/scripts", p);
@@ -373,6 +374,29 @@ for (const r of results) {
     console.log(`             ${" ".repeat(18)} clean means: ${r.proves}`);
   if (r.drift && r.driftWhat)
     console.log(`             ${" ".repeat(18)} → ${r.drift} ${r.driftWhat}`);
+}
+
+/**
+ * A worktree gets NO verdict. This is the one command the supervisor is told to run weekly and to read a
+ * single line of, so it is the one place where an unreliable number does the most damage — and measured
+ * 2026-08-01 inside a real worktree, four of its sub-checkers answer about a tree that is missing
+ * `projects/`, `commons` and `rulebook` entirely: `link-check` 1 → 45 broken, `plan-audit` 68 → 36 scanned,
+ * `reuse-scan` 715 files → 0, `recurrence-check` 0 → 1 firing. Two of those panic and two reassure.
+ *
+ * Printing "45 BROKEN" would send someone hunting 44 breaks that do not exist; printing "nothing broken"
+ * over 36 of 68 plans is worse. So the sweep states that it cannot answer, and exits non-zero — the same
+ * choice `usage-census` makes when it reads 0 transcripts and refuses to print a retirement list. A verdict
+ * is a promise about the whole repo; this tree is not the whole repo.
+ */
+const wtCaveat = worktreeCaveat(REPO);
+if (wtCaveat) {
+  console.log(`\n  VERDICT: UNMEASURED — ${wtCaveat}`);
+  console.log(
+    `  The per-checker lines above are still printed, because the meta-layer ones (tool-check, memory-audit,\n` +
+      `  skill-audit, claude-md-budget) are unaffected — a worktree has all of \`.claude/\`. What cannot be\n` +
+      `  trusted here is anything that counts projects, plans or wires into the sibling repos.`,
+  );
+  process.exit(1);
 }
 
 console.log(
